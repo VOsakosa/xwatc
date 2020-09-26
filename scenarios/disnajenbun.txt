@@ -1,0 +1,19 @@
+Dorf Disnajenbun
+ , , , , 
+ , , , , 
+ Westen, , , , Osten
+ , ,.Stein, , 
+ , , , , 
+ , , , , 
+ , , , , 
+
+Baum,Baum,Baum,Baum,Baum
+Baum,,,O:T2:D1,Baum
+,,Y,,
+Baum,O:T2:D2,,,Baum
+Baum,,Baum,,Baum
+Baum,,,,Baum
+Baum,Baum,,Baum,Baum
+
+Alles was hier steht, wird volle Kanne ignoriert
+Hallo Jasper wird heute nacht...
