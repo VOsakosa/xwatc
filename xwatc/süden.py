@@ -126,7 +126,8 @@ def duhastüberlebt(mänx):
                 print("Waldschrat (inteligent)")
                 
             elif a==2:
-                print("Du hast gewonnen! Glückwunsch!")
+                print("Du läufst kurz herum, dann fällst du in Ohnmacht. Im Traum spricht eine Stimme zu dir:"
+                      "Glückwunsch, du hast gewonnen! Eine gefühlte Ewigkeit später wachst du mit Kopfschmerzen auf.")
                 
             elif a==3:
                 print("Wachsam gehst du weiter.")
@@ -159,21 +160,29 @@ def duhastüberlebt(mänx):
                 
                 
             elif a==4:
-                print('Juhu! du hast gewonnen!')
+                print('Du läufst kurz herum, dann fällst du in Ohnmacht. Im Traum spricht eine Stimme zu dir:'
+                      'Juhu! du hast gewonnen! Eine gefühlte Ewigkeit später wachst du mit Kopfschmerzen auf.')
                 
             elif a==5:
                 print(kursiv("Hallo"), "spricht plötzlich eine Stimme in deinem Kopf. Dann ist es wieder still." )
                 
             elif a==6:
-                print(''"JOEL")
-                print("Das Gift der Schneckekommt in deinen Körper.Harharhar! lacht das minigehirn der Schnecke Schade, leider bist du tot"
-                      )
+                print('JOEL schlägt zu.'
+                      'Tut mir wirklich sehr Leid, '
+                      'aber die Superentität JOEL, '
+                      'auch genannt böse-böser-Unsinn-Enttität, '
+                      'ist zu stark.')
+                print("Das Gift der Schneckekommt in deinen Körper.Harharhar!"
+                      "lacht das minigehirn der Schnecke Schade, leider bist du tot")
                 
             elif a==7:
                 print("Riesige Spinne")
                 
             elif a==8:
-                print("Du hast gewonnen! Glückwunsch!")
+                print("Plötzlich wird dir kotzübel."
+                      "Dir ist als würde eine Stimme zu dir sprechen, bzw. dich anschreien: "
+                      "Du hast gewonnen, VERDAMMT!!! LASS MICH in RUHE!!! "
+                      "Dann bleibst du alleine und mit Kopfschmerzen zurück.")
                 
             elif a==9:
                 print("Panti-Jäger")
