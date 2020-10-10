@@ -4,9 +4,62 @@ import xwatc.westen
 import xwatc.norden
 import xwatc.osten
 import xwatc.süden
-from xwatc.system import Mänx, minput, Gefährte, ja_nein, Spielende
+from xwatc.system import Mänx, minput, Gefährte, ja_nein, Spielende, kursiv
 
 def waffe_wählen(mänx):
+    
+    Rasse = input("Was willst du sein?")
+    rasse = input ("Nun, eigentlich ist es egal was du sein willst.")
+    rase = input ("So oder so, du bist ein Mensch vom Volke der Arak.")
+    rose = input ("Im Laufe des Spieles kannst du allerdings weitere Spezies und Völker freischalten!")
+    rosse = input ("Naja, willst du eigentlich ein Mensch sein?")
+    if rosse == "ja"or rosse=="j":
+        p = input ("Na, dann ist ja alles gut.")
+        
+    if rosse == "nein" or rosse=="n":
+        a=random.randint(1,11)
+        if a==1:
+            print("Tja, Pech gehabt. Du bist trotzdem einer.")
+            
+        if a==2:
+            print("Tja, Pech gehabt. Du bist trotzdem einer.")
+            
+        if a==3:
+            print("Tja, Pech gehabt. Du bist trotzdem einer.")
+            
+        if a==4:
+            print("Tja, Pech gehabt. Du bist trotzdem einer.")
+            
+        if a==5:
+            print("Tja, Pech gehabt. Du bist trotzdem einer.")
+            
+        if a==6:
+            print("Tja, Pech gehabt. Du bist trotzdem einer.")
+            
+        if a==7:
+            print("Tja, Pech gehabt. Du bist trotzdem einer.")
+            
+        if a==8:
+            print("Tja, Pech gehabt. Du bist trotzdem einer.")
+            
+        if a==9:
+            print("Tja, Pech gehabt. Du bist trotzdem einer.")
+            
+        if a==10:
+            print("Tja, Pech gehabt. Du bist trotzdem einer.")
+            
+        if a==11:
+            print("Tja, Pech gehabt. Du bist trotzdem einer.")
+            
+        else:
+            print("Na gut. "
+                  "Dann bist du eben eine seltene Lavaschnecke. "
+                  "Das hast du nun von deinem Gejammer!")
+    
+        
+    
+    
+    
     
     waffe = input("Wähle zwischen Schwert, Schild und Speer")
     if waffe=="Speer"or waffe=="speer":
