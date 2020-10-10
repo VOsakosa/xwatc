@@ -2,29 +2,29 @@ from collections import defaultdict
 from typing import Sequence
 
 ITEMVERZEICHNIS = {
-     "Beere": "Obst",
-     "Hering":"Fisch",
-     "Holz":"Holz",
-     "Hühnerfleisch":"Fleisch",
-     "Leere": "Scherz-Item",
-     "Mantel": "Kleidung",
-     "Messer":"Waffe",
-     "Mugel des Sprechens":"Mugel",
-     "Normales Schwert": "Waffe",
-     "Riesenschneckeninnereien": "Superpapierrohstoff",
-     "Riesenschneckenfleisch": "Fleisch",
-     "Ring des Berndoc": "Ring",
-     "Sardine":"Fisch",
-     "Schild": "Rüstungsgegenstand",
-     "Schneckenschleim":"Superfolienrohstoff",
-     "Scholle":"Fisch",
-     "Schwert": "magische Waffe",
-     "Speer": "Waffe",
-     "Spitzhacke":"Werkzeug",
-     "Stein":"Stein",
-     "Stein der aussieht wie ein Hühnerei": "Heilige Tagesei",
-     "Stöckchen": "Holz",
-     "Unterhose": "Kleidung",
+    "Beere": "Obst",
+    "Hering": "Fisch",
+    "Holz": "Holz",
+    "Hühnerfleisch": "Fleisch",
+    "Leere": "Scherz-Item",
+    "Mantel": "Kleidung",
+    "Messer": "Waffe",
+    "Mugel des Sprechens": "Mugel",
+    "Normales Schwert": "Waffe",
+    "Riesenschneckeninnereien": "Superpapierrohstoff",
+    "Riesenschneckenfleisch": "Fleisch",
+    "Ring des Berndoc": "Ring",
+    "Sardine": "Fisch",
+    "Schild": "Rüstungsgegenstand",
+    "Schneckenschleim": "Superfolienrohstoff",
+    "Scholle": "Fisch",
+    "Schwert": "magische Waffe",
+    "Speer": "Waffe",
+    "Spitzhacke": "Werkzeug",
+    "Stein": "Stein",
+    "Stein der aussieht wie ein Hühnerei": "Heilige Tagesei",
+    "Stöckchen": "Holz",
+    "Unterhose": "Kleidung",
 }
 
 
@@ -120,6 +120,10 @@ def minput(mänx, frage, möglichkeiten=None, lower=True):
             raise Spielende()
         elif not möglichkeiten or taste in möglichkeiten:
             return taste
+
+def mint(*text):
+    """Printe und warte auf ein Enter."""
+    input(" ".join(str(t) for t in text))
 
 
 def ja_nein(mänx, frage):
