@@ -4,8 +4,10 @@ from xwatc import haendler
 from xwatc import scenario
 from xwatc.system import Mänx, minput, Gefährte, ja_nein, Spielende
 
+
 def sprich(sprecher, text):
-    print(f'{sprecher}: "{text}"') 
+    print(f'{sprecher}: "{text}"')
+
 
 def t2(mänx):
     """Jaspers Teilgeschichte"""
@@ -21,11 +23,12 @@ def t2(mänx):
     cont = True
     while cont:
         cont = False
-        richtung=minput(mänx, "Gehst du nach Norden, Osten, Westen oder Süden? norden/süden/westen/"
-                                 "osten",["osten","süden","westen","norden"])
+        richtung = minput(mänx, "Gehst du nach Norden, Osten, Westen oder Süden? norden/süden/westen/"
+                          "osten", ["osten", "süden", "westen", "norden"])
         if richtung == "norden":
             print("Der kleine Pfad stößt spitz auf einen Weg von links.")
-            weiter = minput(mänx, "Willst du dem Weg folgen [f] oder scharf links abbiegen?[abb]", ["f", "abb"])
+            weiter = minput(
+                mänx, "Willst du dem Weg folgen [f] oder scharf links abbiegen?[abb]", ["f", "abb"])
             if weiter == "f":
                 t2_norden(mänx)
             else:
@@ -40,19 +43,23 @@ def t2(mänx):
             beeren = True
         elif richtung == "süden":
             t2_süd(mänx)
-        else: # Westen
+        else:  # Westen
             print("Du triffst auf einen Weg")
             if minput("Rechts oder Links?", ["r", "l"]) == "r":
                 t2_norden(mänx)
             else:
                 t2_west(mänx)
 
+
 def t2_norden(mänx):
     """Das Dorf auf dem Weg nach Norden"""
     print("Auf dem Weg kommen dir mehrfach Leute entgegen, und du kommst in ein kleines Dorf")
-    mädchen = haendler.Händler("Mädchen", kauft=["Kleidung"], verkauft={"Rose":[1,1]}, gold=0)
+    mädchen = haendler.Händler("Mädchen", kauft=["Kleidung"], verkauft={
+                               "Rose": [1, 1]}, gold=0)
+
     def vorstellen():
         print("Am Wegesrand siehst du ein Mädchen in Lumpen. Sie scheint zu frieren.")
+
     def preis(_):
         return 0
     mädchen.vorstellen = vorstellen
@@ -61,7 +68,8 @@ def t2_norden(mänx):
         print("Das Mädchen ist schwach. Niemand hindert dich daran, sie auf offener Straße zu schlagen.")
         print("Sie hat nichts außer ihren Lumpen", end="")
         if mädchen.verkauft["Rose"]:
-            print(", die Blume, die sie dir verkaufen wollte, ist beim Kampf zertreten worden.")
+            print(
+                ", die Blume, die sie dir verkaufen wollte, ist beim Kampf zertreten worden.")
         else:
             print(".")
         del mädchen.verkauft["Rose"]
@@ -74,7 +82,8 @@ def t2_norden(mänx):
     elif mädchen.verkauft["Rose"][0] == 0:
         print("Das Mädchen ist dankbar für das Stück Gold")
     if "Unterhose" in mädchen.verkauft:
-        print("Das Mädchen ist sichtlich verwirrt, dass du ihr eine Unterhose gegeben hast.")
+        print(
+            "Das Mädchen ist sichtlich verwirrt, dass du ihr eine Unterhose gegeben hast.")
         print("Es hält sie vor sich und mustert sie. Dann sagt sie artig danke.")
         mänx.titel.add("Perversling")
     minput(mänx, "Du kommst im Dorf Disnayenbun an.")
@@ -82,6 +91,7 @@ def t2_norden(mänx):
         t2_no(mänx)
     else:
         t2_nw(mänx)
+
 
 def t2_süd(mänx):
     print("Der Wald wird immer dunkler")
@@ -91,13 +101,15 @@ def t2_süd(mänx):
     haus = ja_nein(mänx, "Gehst du zum Licht?")
     if haus:
         print("Es ist eine einsame, einstöckige Hütte, aus der das Licht kam. Vor dir ist die Rückseite des Hauses, "
-          "an der sich Feuerholz stapelt")
+              "an der sich Feuerholz stapelt")
         haus = ja_nein(mänx, "Klopfst du an die Tür?")
     if haus:
         print("Ein junger Mann begrüßt dich an der Tür.")
-        aktion = mänx.minput('?: "Ein Wanderer? Komm herein, du siehst ganz durchgefroren aus."[k/r/f]', list("krf"))
+        aktion = mänx.minput(
+            '?: "Ein Wanderer? Komm herein, du siehst ganz durchgefroren aus."[k/r/f]', list("krf"))
         if aktion == "f":
-            print("Du rennst weg, als hätte der bloße Anblick des jungen Manns dich verschreckt.")
+            print(
+                "Du rennst weg, als hätte der bloße Anblick des jungen Manns dich verschreckt.")
             print('Jetzt denkt der Arme sich bestimmt: "Bin ich so hässlich oder schrecklich, dass Leute auf den '
                   'ersten Blick abhauen?"')
             print("Aber dir ist das egal, die unbekannte Gefahr ist abgewehrt.")
@@ -113,8 +125,9 @@ def t2_süd(mänx):
               "auf den Weg durch den Wald.")
         ende_des_waldes(mänx)
 
+
 def haus_des_hexers(mänx):
-    print("Er bittet dich an den Tisch und gibt dir einen warmen Punsch.")#
+    print("Er bittet dich an den Tisch und gibt dir einen warmen Punsch.")
     leo = 'Leo Berndoc'
     sprich(leo, "Ich bin Leo Berndoc.")
     sprich(leo, "Was suchst du in diesem Wald?")
@@ -152,12 +165,13 @@ def haus_des_hexers(mänx):
         sprich(leo, "Du musst einfach immer geradeaus dem schmalen Pfad folgen.")
         ende_des_waldes(mänx)
     elif antwort == "liebe":
-        sprich(leo, "Glaubst du denn an die wahre Liebe, die, die alle Widrigkeiten überwindet?")
+        sprich(
+            leo, "Glaubst du denn an die wahre Liebe, die, die alle Widrigkeiten überwindet?")
         if ja_nein(mänx, "Ja/Nein"):
             sprich(leo, "Du bist also eine/r von denen!")
             sprich(leo, "Ich schwöre auf meinen Namen, ich werde dich hier auslöschen!")
             sleep(1)
-            sprich(leo +"(flüstert)", "Ich werde Lena rächen.")
+            sprich(leo + "(flüstert)", "Ich werde Lena rächen.")
             hexer_kampf(mänx)
         else:
             sprich(leo, "Und warum nicht?")
@@ -173,7 +187,8 @@ def haus_des_hexers(mänx):
                 sprich(leo, "Du denkst, nur weil du liebst, kann du die Ehre der Berndoc ignorieren und "
                             "mit ihr zusammenkommen!")
                 sleep(0.5)
-                sprich(leo, "Ich schwöre auf meinen Namen, ich werde dich hier auslöschen!")
+                sprich(
+                    leo, "Ich schwöre auf meinen Namen, ich werde dich hier auslöschen!")
                 hexer_kampf(mänx)
             else:
                 sprich(leo, "Interessant.")
@@ -182,7 +197,7 @@ def haus_des_hexers(mänx):
                 print("Dein erstes Bett in dieser Welt ist schön weich.")
                 sleep(5)
                 ende_des_waldes(mänx, True)
-    else: # oase
+    else:  # oase
         sprich(leo, "Interessant.")
         print("Er wirkt sichtlich überfordert.")
         sprich(leo, "Das muss eine Tür der Qual sein..., oder war es Wal der Qual...")
@@ -207,7 +222,8 @@ def hexer_kampf(mänx):
         mänx.erhalte("Unterhose", 7)
         mänx.erhalte("Banane", 1)
         mänx.erhalte("Menschenskelett", 3)
-        print("Du findest einen Ring. In ihm steht eingraviert: \"Ich hasse dich, Dongmin!\"")
+        print("Du findest einen Ring. In ihm steht eingraviert: "
+              "\"Ich hasse dich, Dongmin!\"")
         mänx.erhalte("Ring des Berndoc")
         print("Du entscheidest dich, nach Süden weiterzugehen")
         sleep(2)
@@ -220,11 +236,21 @@ def hexer_kampf(mänx):
         if mänx.hat_item("Unterhose"):
             print("Er zieht dich bis auf die Unterhose aus", end="")
         else:
-            print("Er zieht dich aus, verzieht das Gesicht, als er sieht, dass du keine Unterhose trägst", end="")
+            print("Er zieht dich aus, verzieht das Gesicht, als er sieht, "
+                  "dass du keine Unterhose trägst", end="")
         print(" und wirft dich im Süden des Waldes auf den Boden")
         mänx.inventar_leeren()
     ende_des_waldes(mänx)
-    
+
+
+SÜD_DORF_GENAUER = [
+    "Das Dorf besteht aus einer Handvoll Holzhütten sowie zwei Fachwerkhäusern.",
+    "Die meisten Dorfbewohner glauben an den Gott des Marschlandes, "
+    "wie an den Schnitzereien an den Türrahmen erkennbar",
+    "Die Dorfbewohner haben größtenteils schwarze Haare und leicht gebräunte "
+    "Haut.",
+]
+
 
 def ende_des_waldes(mänx, morgen=False):
     print("Der Wald wird schnell viel weniger unheimlich")
@@ -232,13 +258,17 @@ def ende_des_waldes(mänx, morgen=False):
         print("Erschöpft legst du dich auf den Waldboden schlafen.")
         sleep(2)
     print("Im Süden siehst du ein Dorf")
+    mänx.genauer(SÜD_DORF_GENAUER)
     pass
+
 
 def t2_west(mänx):
     pass
 
+
 def t2_no(mänx):
     pass
+
 
 def t2_nw(mänx):
     pass
