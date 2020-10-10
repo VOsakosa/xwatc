@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Sequence
+from typing import Sequence, Dict, List, Tuple, TypeVar
 
 ITEMVERZEICHNIS = {
     "Beere": "Obst",
@@ -31,10 +31,15 @@ ITEMVERZEICHNIS = {
 def get_class(item):
     return ITEMVERZEICHNIS.get(item)
 
+Inventar = Dict[str, int]
+T = TypeVar("T")
 
 class Mänx:
+    """Der Hauptcharakter des Spiels, alles dreht sich um ihn, er hält alle
+    Information."""
+
     def __init__(self):
-        self.inventar = defaultdict(lambda: 0)
+        self.inventar: Inventar = defaultdict(lambda: 0)
         self.inventar["Gold"] = 33
         self.inventar["Mantel"] = 1
         self.inventar["Unterhose"] = 1
@@ -63,6 +68,21 @@ class Mänx:
             return 1000
         return 20
 
+    @property
+    def gold(self) -> int:
+        return self.inventar["Gold"]
+
+    @gold.setter
+    def gold(self, menge: int) -> None:
+        self.inventar["Gold"] = menge
+
+    def hat_klasse(self, *klassen) -> bool:
+        """Prüfe, ob mänx item aus einer der Klassen besitzt."""
+        for item in self.items():
+            if get_class(item) in klassen:
+                return True
+        return False
+
     def items(self):
         for item, anzahl in self.inventar.items():
             if anzahl:
@@ -80,6 +100,33 @@ class Mänx:
 
     def minput(self, *args, **kwargs):
         return minput(self, *args, **kwargs)
+
+    def menu(self, frage: str, optionen: List[Tuple[str, str, T]]) -> T:
+        """Ähnlich wie Minput, nur werden jetzt Optionen als Liste gegeben."""
+        print("Du kannst")
+        for name, kurz, _ in optionen:
+            print(name, " (", kurz, ")", sep="")
+        kurz_optionen = " " + "/".join(o[0] for o in optionen)
+        if len(kurz_optionen) < 50:
+            frage += kurz_optionen
+        while True:
+            eingabe = input(frage).lower()
+            if not eingabe:
+                # Nach leerer Option suchen
+                for _, o, v in optionen:
+                    if not o:
+                        return v
+            elif not spezial_taste(self, eingabe):
+                kandidaten = [(o,v) for _,o,v in optionen 
+                              if o.startswith(eingabe)]
+                if len(kandidaten) == 1:
+                    return kandidaten[0][1]
+                elif not kandidaten:
+                    print("Keine Antwort beginnt mit", eingabe)
+                else:
+                    print("Es könnte eines davon sein:", 
+                          ",".join(o for o, v in kandidaten))
+        
 
     def genauer(self, text: Sequence[str]):
         t = self.minput("Genauer? (Schreibe irgendwas für ja)")
@@ -104,6 +151,12 @@ class Welt:
     def ist(self, name):
         return name in self.inventar and self.inventar[name]
 
+def schiebe_inventar(start: Inventar, ziel: Inventar):
+    """Schiebe alles aus start in ziel"""
+    for item, anzahl in start.items():
+        ziel[item] += anzahl
+    start.clear()
+# EIN- und AUSGABE
 
 def minput(mänx, frage, möglichkeiten=None, lower=True):
     """Manipulierter Input
@@ -112,14 +165,22 @@ def minput(mänx, frage, möglichkeiten=None, lower=True):
         taste = input(frage)
         if lower:
             taste = taste.lower()
-        if taste == "e":
-            print(mänx.inventar_zeigen())
-        elif taste == "sterben":
-            mänx.lebenswille = 0
-        elif taste == "sofort sterben":
-            raise Spielende()
+        if spezial_taste(mänx, taste):
+            pass
         elif not möglichkeiten or taste in möglichkeiten:
             return taste
+
+def spezial_taste(mänx, taste: str) -> bool:
+    """Führe die Spezialaktion taste aus, oder gebe Falsch zurück."""
+    if taste == "e":
+        print(mänx.inventar_zeigen())
+    elif taste == "sterben":
+        mänx.lebenswille = 0
+    elif taste == "sofort sterben":
+        raise Spielende()
+    else:
+        return False
+    return True
 
 def mint(*text):
     """Printe und warte auf ein Enter."""
@@ -138,4 +199,4 @@ def kursiv(text: str) -> str:
 
 
 class Spielende(Exception):
-    pass
+    """Diese Exception wird geschmissen, um das Spiel zu beenden."""

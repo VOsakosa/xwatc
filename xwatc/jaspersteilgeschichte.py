@@ -2,7 +2,7 @@ from time import sleep
 import xwatc_Hauptgeschichte as xwatc
 from xwatc import haendler
 from xwatc import scenario
-from xwatc.system import Mänx, minput, Gefährte, ja_nein, Spielende
+from xwatc.system import Mänx, minput, Gefährte, ja_nein, Spielende, mint
 
 
 def sprich(sprecher, text):
@@ -18,7 +18,7 @@ def t2(mänx):
     print("Du befindest sich auf einer Lichtung in einem Wald.")
     print("Ein schmaler Pfad führt nach Norden")
     print("Im Osten ist Dickicht")
-    print("Im Westen und Süden ist nichts besonderes")
+    mint("Im Westen und Süden ist nichts besonderes")
     beeren = False
     cont = True
     while cont:

@@ -2,6 +2,7 @@ from typing import Dict, List, Optional as Op
 
 from xwatc.system import Mänx, minput, Gefährte, ja_nein, get_class
 
+# TODO Händler ist NSC
 class Händler:
     def __init__(self, name, kauft: Op[List[str]], verkauft, gold: int):
         """Neuer Händler namens *name*, der Sachen aus den Kategorien *kauft* kauft.
@@ -38,6 +39,8 @@ class Händler:
                 self.verkauft[name] = [anzahl, preis + 1]
             else:
                 self.verkauft[name][0] += 1
+            return True
+        return False
 
     def get_preis(self, name: str) -> Op[int]:
         return None
@@ -74,7 +77,7 @@ class Händler:
             print("Der Händler*in hat nichts mehr zu verkaufen")
 
     def vorstellen(self):
-        print("Du stehst du vor dem Händler*in", name)
+        print("Du stehst du vor dem Händler*in", self.name)
         if self.kauft is None:
             print("Er kauft grundsätzlich alles")
         elif self.kauft:
