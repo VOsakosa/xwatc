@@ -58,7 +58,7 @@ def osten(mänx):
                     print("Bis plötzlich vor dir ein F®X↓ŋ auftaucht. "
                           "Diese Wesen sehen eigentlich aus wie Frösche."
                           "Also, wenn man mal von der Größe, "
-                          "der lilanen Färbung sowie der großen, haarigen, heraushängenden Zunge absah.")
+                          "der lilanen Färbung sowie der großen, haarigen, heraushängenden Zunge absieht.")
                     
                 elif a==2:
                     print("Und hältst inne als vor dir ein Zombie aus der Dunkelheit torkelt.")
@@ -73,9 +73,15 @@ def osten(mänx):
                           "schlagen dich einige vermummten Gestalten bewusstlos und stecken dich in einen Sack.")
                     
                 elif a==5:
-                    print("Vor dir tretet ein bärtiger, nach Alkohohl stinkender Mann aus dem Schatten.")
-                
-                
+                    print("Vor dir tritt ein bärtiger, nach Alkohohl stinkender Mann aus dem Schatten.")
+                    
+                else:
+                    input:("Plötzlich fängst du an gewaltige Kompo-schmerzen zu haben."
+                           "Aber warte mal! Du ", kursiv("hast")" ja gar keinen Kompo!"
+                           "Du bist schließlich ein Me ein Män ein Mons..."
+                           "Naja, irgendetwas in der Art halt."
+                           "Was ", kursiv("machst") " du hier eigentlich? Du solltest schleuningst verschwinden!")
+                    
                 
                 
                 
