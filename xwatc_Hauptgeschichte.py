@@ -50,16 +50,11 @@ def waffe_wählen(mänx):
             
         if a==11:
             print("Tja, Pech gehabt. Du bist trotzdem einer.")
-            
+
         else:
             print("Na gut. "
                   "Dann bist du eben eine seltene Lavaschnecke. "
                   "Das hast du nun von deinem Gejammer!")
-    
-        
-    
-    
-    
     
     waffe = input("Wähle zwischen Schwert, Schild und Speer")
     if waffe=="Speer"or waffe=="speer":
@@ -99,8 +94,8 @@ def main():
 
 def himmelsrichtungen(mänx):
     richtung=minput (mänx, "Wohin gehst du jetzt? "
-              "In Richtung Norden ist das nächste Dorf,im Süden warten "
-              "Monster auf dich,im Westen liegt "
+              "In Richtung Norden ist das nächste Dorf, im Süden warten "
+              "Monster auf dich, im Westen liegt "
               "das Meer und der Osten ist unentdeckt"
               ".",["norden","osten","süden","westen"])
     if richtung=="Norden"or richtung=="norden":
