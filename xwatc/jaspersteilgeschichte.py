@@ -1,12 +1,11 @@
 from time import sleep
-import xwatc_Hauptgeschichte as xwatc
 from xwatc import haendler
 from xwatc import scenario
-from xwatc.system import Mänx, minput, Gefährte, ja_nein, Spielende, mint, sprich
+from xwatc.system import Mänx, minput, ja_nein, Spielende, mint, sprich
 
 
 
-def t2(mänx):
+def t2(mänx: Mänx):
     """Jaspers Teilgeschichte"""
     print("Hinter der Tür ist es warm und sonnig.")
     sleep(1)
@@ -92,18 +91,21 @@ def t2_norden(mänx):
 
 def t2_süd(mänx):
     print("Der Wald wird immer dunkler")
-    print("Ein kalter Wind weht. Das Vogelgezwitscher der Lichtung kommt dir nun wie ein kurzer Traum vor.")
-    print("Es wird immer dunkler")
+    mint("Ein kalter Wind weht. Das Vogelgezwitscher der Lichtung kommt dir nun "
+          "wie ein kurzer Traum vor.")
+    mint("Es wird immer dunkler")
     print("Plötzlich siehst du ein Licht in der Ferne")
     haus = ja_nein(mänx, "Gehst du zum Licht?")
     if haus:
-        print("Es ist eine einsame, einstöckige Hütte, aus der das Licht kam. Vor dir ist die Rückseite des Hauses, "
+        print("Es ist eine einsame, einstöckige Hütte, aus der das Licht kam. "
+              "Vor dir ist die Rückseite des Hauses, "
               "an der sich Feuerholz stapelt")
         haus = ja_nein(mänx, "Klopfst du an die Tür?")
     if haus:
         print("Ein junger Mann begrüßt dich an der Tür.")
         aktion = mänx.minput(
-            '?: "Ein Wanderer? Komm herein, du siehst ganz durchgefroren aus."[k/r/f]', list("krf"))
+            '?: "Ein Wanderer? Komm herein, du siehst ganz durchgefroren aus."[k/r/f]',
+            list("krf"))
         if aktion == "f":
             print(
                 "Du rennst weg, als hätte der bloße Anblick des jungen Manns dich verschreckt.")
@@ -117,7 +119,8 @@ def t2_süd(mänx):
         else:  # "r"
             haus_des_hexers(mänx)
     else:
-        print("Dem, der auch immer hinter dem Licht steckt, sollte man nicht trauen, befindest du und machst "
+        print("Dem, der auch immer hinter dem Licht steckt, sollte man nicht "
+              "trauen, befindest du und machst "
               "dich weiter "
               "auf den Weg durch den Wald.")
         ende_des_waldes(mänx)
@@ -201,10 +204,14 @@ def haus_des_hexers(mänx):
         sleep(0.3)
         sprich(leo, "Aber was hat ein Wal hier zu suchen?")
         print("Du hast ihn sichtlich verwirrt")
-        print("Er zeigt noch auf ein Gästezimmer, dann geht er vor sich hin brabbelnd in sein Zimmer")
-        print("Im Bett denkst du über deinen heutigen Tag nach. Du sinkst in einen unruhigen Schlaf")
+        mint("Er zeigt noch auf ein Gästezimmer, dann geht er vor sich hin brabbelnd in sein Zimmer")
+        mint("Im Bett denkst du über deinen heutigen Tag nach. Du sinkst "
+              "in einen unruhigen Schlaf")
         sleep(5)
         print("Früh am Morgen verlässt du eilig das Haus.")
+        mint("Aber du siehst noch einen Ring auf dem Tisch.")
+        if ja_nein(mänx, "Steckst du ihn ein?"):
+            mänx.erhalte("Ring des Berndoc")
         sprich(leo, "Ich hab's! Es ist ein Wahlqualportal!!!")
         ende_des_waldes(mänx, True)
 
