@@ -99,7 +99,7 @@ def t2_süd(mänx):
     if haus:
         print("Es ist eine einsame, einstöckige Hütte, aus der das Licht kam. "
               "Vor dir ist die Rückseite des Hauses, "
-              "an der sich Feuerholz stapelt")
+              "an der sich Feuerholz stapelt.")
         haus = ja_nein(mänx, "Klopfst du an die Tür?")
     if haus:
         print("Ein junger Mann begrüßt dich an der Tür.")
@@ -136,7 +136,7 @@ def haus_des_hexers(mänx):
         "Ich habe mich hier verirrt.[verirrt]/ "
         "Ich bin nur auf der Durchreise.[durchreise]/ "
         "Die große Liebe![liebe]/ "
-        "Ich bin einfach in den Osten–weil da kein Menschen sind–gegangen, "
+        "Ich bin einfach in den Osten ­– weil da keine Menschen sind – gegangen, "
         "und dann war da diese Oase. Da waren zwei Türen. "
         "Ich habe mir ein Herz gefasst, bin durch die Tür gegangen und hier bin ich. Plötzlich.[oase]/ "
         "Das gehst dich doch nichts an![an]",
@@ -203,10 +203,10 @@ def haus_des_hexers(mänx):
         sprich(leo, "Das muss eine Tür der Qual sein..., oder war es Wal der Qual...")
         sleep(0.3)
         sprich(leo, "Aber was hat ein Wal hier zu suchen?")
-        print("Du hast ihn sichtlich verwirrt")
+        print("Du hast ihn sichtlich verwirrt.")
         mint("Er zeigt noch auf ein Gästezimmer, dann geht er vor sich hin brabbelnd in sein Zimmer")
         mint("Im Bett denkst du über deinen heutigen Tag nach. Du sinkst "
-              "in einen unruhigen Schlaf")
+              "in einen unruhigen Schlaf.")
         sleep(5)
         print("Früh am Morgen verlässt du eilig das Haus.")
         mint("Aber du siehst noch einen Ring auf dem Tisch.")
@@ -220,7 +220,7 @@ def hexer_kampf(mänx):
     print("Der Mann spricht einen schnellen Zauberspruch. Dir wird unglaublich kalt.")
     if mänx.get_kampfkraft() > 2000:
         print("Aber du bist stärker.")
-        print("Du besiegst den Mann und plünderst sein Haus")
+        print("Du besiegst den Mann und plünderst sein Haus.")
         mänx.erhalte("Gold", 120)
         mänx.erhalte("Mantel", 3)
         mänx.erhalte("Unterhose", 7)

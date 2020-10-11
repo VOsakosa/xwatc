@@ -83,6 +83,7 @@ class Mänx(InventarBasis):
     Information."""
 
     def __init__(self):
+        super().__init__()
         self.inventar["Gold"] = 33
         self.inventar["Mantel"] = 1
         self.inventar["Unterhose"] = 1
@@ -142,7 +143,7 @@ class Mänx(InventarBasis):
 
     def genauer(self, text: Sequence[str]):
         t = self.minput("Genauer? (Schreibe irgendwas für ja)")
-        if t:
+        if t and t not in ("nein", "n"):
             for block in text:
                 print(block)
 
