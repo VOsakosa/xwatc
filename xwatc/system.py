@@ -3,9 +3,11 @@ from typing import Sequence
 
 ITEMVERZEICHNIS = {
     "Beere": "Obst",
+    "Eisen": "Metall",
     "Hering": "Fisch",
     "Holz": "Holz",
     "Hühnerfleisch": "Fleisch",
+    "Kohle": "Brennstoff",
     "Leere": "Scherz-Item",
     "Mantel": "Kleidung",
     "Messer": "Waffe",
@@ -18,13 +20,14 @@ ITEMVERZEICHNIS = {
     "Schild": "Rüstungsgegenstand",
     "Schneckenschleim": "Superfolienrohstoff",
     "Scholle": "Fisch",
-    "Schwert": "magische Waffe",
+    "Schwert": "legändäre Waffe",
     "Speer": "Waffe",
     "Spitzhacke": "Werkzeug",
     "Stein": "Stein",
     "Stein der aussieht wie ein Hühnerei": "Heilige Tagesei",
     "Stöckchen": "Holz",
     "Unterhose": "Kleidung",
+    
 }
 
 
@@ -50,6 +53,14 @@ class Mänx:
             if anzahl:
                 ans.append(f"{anzahl}x {item}")
         return ", ".join(ans)
+    
+    def missionen_zeigen(self):
+        ans = []
+        for item, anzahl in self.inventar.items():
+            if anzahl:
+                ans.append(f"{anzahl}x {item}")
+        return ", ".join(ans)
+
 
     def inventar_leeren(self) -> None:
         self.inventar.clear()
@@ -112,14 +123,18 @@ def minput(mänx, frage, möglichkeiten=None, lower=True):
         taste = input(frage)
         if lower:
             taste = taste.lower()
+        
         if taste == "e":
             print(mänx.inventar_zeigen())
+        elif taste == "q":
+            print(mänx.missionen_zeigen())
         elif taste == "sterben":
             mänx.lebenswille = 0
         elif taste == "sofort sterben":
             raise Spielende()
         elif not möglichkeiten or taste in möglichkeiten:
             return taste
+        
 
 def mint(*text):
     """Printe und warte auf ein Enter."""

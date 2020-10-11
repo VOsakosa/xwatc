@@ -165,8 +165,10 @@ def duhastüberlebt(mänx):
                       'aber die Superentität JOEL, '
                       'auch genannt böse-böser-Unsinn-Enttität, '
                       'ist zu stark.')
-                print("Das Gift der Schneckekommt in deinen Körper.Harharhar!"
+                mint("Das Gift der Schneckekommt in deinen Körper.Harharhar!"
                       "lacht das minigehirn der Schnecke Schade, leider bist du tot")
+                mint("Joel hat zugeschlagen.")
+                mint("Es tut mir wirklich ",kursiv ("sehr"), "leid.")
 
             elif a == 7:
                 print("Riesige Spinne")
