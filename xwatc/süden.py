@@ -1,13 +1,13 @@
 from time import sleep
-import xwatc_Hauptgeschichte as xwatc
-from xwatc.system import Mänx, minput, Gefährte, ja_nein, kursiv
+from xwatc.system import Mänx, minput, ja_nein, kursiv
 from xwatc import osten
 from xwatc import norden
 from xwatc import westen
+import xwatc_Hauptgeschichte as xwatc_haupt
 import random
 
 
-def süden(mänx):
+def süden(mänx: Mänx):
     print("Du wanderst durch fruchtbare Wiesen und Täler.Seltsam - warum siedelt hier niemand? "
           "Ein Monster beantwortet deine Frage. ")
     sleep(1)
@@ -41,7 +41,7 @@ def süden(mänx):
                         elif richtung == "Osten"or richtung == "osten":
                             osten.osten(mänx)
                         elif richtung == "süden":
-                            süden.süden(mänx)
+                            süden(mänx)
                     elif intelipopo == "a":
                         osten.osten(mänx)
             else:
@@ -78,7 +78,7 @@ def süden(mänx):
             intelipopo = minput(mänx, "gehst du den selben Weg wieder zurück oder gehst du einen anderen"
                                 "? g/a(gleicher/anderer)", ["g", "a"])
             if intelipopo == "g":
-                xwatc.himmelsrichtungen(mänx)
+                xwatc_haupt.himmelsrichtungen(mänx)
             else:
                 osten.osten(mänx)
         else:
@@ -189,6 +189,6 @@ def duhastüberlebt(mänx):
                 print("Fleischfressende Pflanze")
 
     elif mut == "z":
-        himmelsrichtungen(mänx)
+        xwatc_haupt.himmelsrichtungen(mänx)
 
     # elif mut=="z":

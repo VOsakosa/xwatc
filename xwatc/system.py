@@ -1,9 +1,11 @@
 from collections import defaultdict
-from typing import Sequence
+from typing import Sequence, Dict, List, Tuple, TypeVar
+from dataclasses import dataclass, field
 
 ITEMVERZEICHNIS = {
     "Beere": "Obst",
     "Eisen": "Metall",
+    "Dolch": "Waffe",
     "Hering": "Fisch",
     "Holz": "Holz",
     "Hühnerfleisch": "Fleisch",
@@ -30,14 +32,76 @@ ITEMVERZEICHNIS = {
     
 }
 
+UNTERKLASSEN = {
+    "Fisch": "Nahrung",
+    "Fleisch": "Nahrung",
+    "legendäre Waffe": "Waffe",
+    "Ring": "Ausrüstung",
+    "Rüstungsgegenstand": "Ausrüstung",
+}
+
 
 def get_class(item):
     return ITEMVERZEICHNIS.get(item)
 
+def get_classes(item):
+    c = get_class(item)
+    yield c
+    while c in UNTERKLASSEN:
+        c = UNTERKLASSEN[c]
+        yield c
 
-class Mänx:
+
+T = TypeVar("T")
+
+MenuOption = Tuple[str, str, T]
+Inventar = Dict[str, int]
+
+
+class InventarBasis:
+    """Ein Ding mit Inventar"""
+    inventar: Inventar
+
     def __init__(self):
         self.inventar = defaultdict(lambda: 0)
+
+    def inventar_zeigen(self):
+        ans = []
+        for item, anzahl in self.inventar.items():
+            if anzahl:
+                ans.append(f"{anzahl}x {item}")
+        return ", ".join(ans)
+
+    @property
+    def gold(self) -> int:
+        return self.inventar["Gold"]
+
+    @gold.setter
+    def gold(self, menge: int) -> None:
+        self.inventar["Gold"] = menge
+
+    def hat_klasse(self, *klassen) -> bool:
+        """Prüfe, ob mänx item aus einer der Klassen besitzt."""
+        for item in self.items():
+            if any(c in klassen for c in get_classes(item)):
+                return True
+        return False
+
+    def items(self):
+        for item, anzahl in self.inventar.items():
+            if anzahl:
+                yield item
+
+    def hat_item(self, item, anzahl=1):
+        return item in self.inventar and self.inventar[item] >= anzahl
+
+
+class Mänx(InventarBasis):
+    """Der Hauptcharakter des Spiels, alles dreht sich um ihn, er hält alle
+    Information."""
+
+    def __init__(self):
+        super().__init__()
         self.inventar["Gold"] = 33
         self.inventar["Mantel"] = 1
         self.inventar["Unterhose"] = 1
@@ -46,13 +110,6 @@ class Mänx:
         self.lebenswille = 10
         self.fähigkeiten = set()
         self.welt = Welt("bliblablukc")
-
-    def inventar_zeigen(self):
-        ans = []
-        for item, anzahl in self.inventar.items():
-            if anzahl:
-                ans.append(f"{anzahl}x {item}")
-        return ", ".join(ans)
     
     def missionen_zeigen(self):
         ans = []
@@ -60,7 +117,6 @@ class Mänx:
             if anzahl:
                 ans.append(f"{anzahl}x {item}")
         return ", ".join(ans)
-
 
     def inventar_leeren(self) -> None:
         self.inventar.clear()
@@ -74,14 +130,6 @@ class Mänx:
             return 1000
         return 20
 
-    def items(self):
-        for item, anzahl in self.inventar.items():
-            if anzahl:
-                yield item
-
-    def hat_item(self, item, anzahl=1):
-        return item in self.inventar and self.inventar[item] >= anzahl
-
     def erhalte(self, item, anzahl=1):
         print(f"Du erhälst {anzahl} {item}")
         self.inventar[item] += anzahl
@@ -92,9 +140,36 @@ class Mänx:
     def minput(self, *args, **kwargs):
         return minput(self, *args, **kwargs)
 
+    def menu(self, frage: str, optionen: List[MenuOption[T]]) -> T:
+        """Ähnlich wie Minput, nur werden jetzt Optionen als Liste gegeben."""
+        # print("Du kannst")
+        print()
+        for name, kurz, _ in optionen:
+            print("-", name, " (", kurz, ")", sep="")
+        kurz_optionen = " " + "/".join(o[1] for o in optionen)
+        if len(kurz_optionen) < 50:
+            frage += kurz_optionen + " "
+        while True:
+            eingabe = input(frage).lower()
+            if not eingabe:
+                # Nach leerer Option suchen
+                for _, o, v in optionen:
+                    if not o:
+                        return v
+            elif not spezial_taste(self, eingabe):
+                kandidaten = [(o, v) for _, o, v in optionen
+                              if o.startswith(eingabe)]
+                if len(kandidaten) == 1:
+                    return kandidaten[0][1]
+                elif not kandidaten:
+                    print("Keine Antwort beginnt mit", eingabe)
+                else:
+                    print("Es könnte eines davon sein:",
+                          ",".join(o for o, v in kandidaten))
+
     def genauer(self, text: Sequence[str]):
         t = self.minput("Genauer? (Schreibe irgendwas für ja)")
-        if t:
+        if t and t not in ("nein", "n"):
             for block in text:
                 print(block)
 
@@ -108,6 +183,7 @@ class Welt:
     def __init__(self, name):
         self.inventar = {}
         self.name = name
+        self.objekte = {}
 
     def setze(self, name):
         self.inventar[name] = 1
@@ -116,29 +192,51 @@ class Welt:
         return name in self.inventar and self.inventar[name]
 
 
+def schiebe_inventar(start: Inventar, ziel: Inventar):
+    """Schiebe alles aus start in ziel"""
+    for item, anzahl in start.items():
+        ziel[item] += anzahl
+    start.clear()
+# EIN- und AUSGABE
+
+
 def minput(mänx, frage, möglichkeiten=None, lower=True):
     """Manipulierter Input
     Wenn möglichkeiten (in kleinbuchstaben) gegeben, dann muss die Antwort eine davon sein."""
+    if not frage.endswith(" "):
+        frage += " "
     while True:
         taste = input(frage)
         if lower:
             taste = taste.lower()
-        
-        if taste == "e":
-            print(mänx.inventar_zeigen())
-        elif taste == "q":
-            print(mänx.missionen_zeigen())
-        elif taste == "sterben":
-            mänx.lebenswille = 0
-        elif taste == "sofort sterben":
-            raise Spielende()
+        if spezial_taste(mänx, taste):
+            pass
         elif not möglichkeiten or taste in möglichkeiten:
             return taste
         
 
+
+def spezial_taste(mänx, taste: str) -> bool:
+    """Führe die Spezialaktion taste aus, oder gebe Falsch zurück."""
+    if taste == "e":
+        print(mänx.inventar_zeigen())
+    elif taste == "q":
+        print(mänx.missionen_zeigen())
+    elif taste == "sterben":
+        mänx.lebenswille = 0
+    elif taste == "sofort sterben":
+        raise Spielende()
+    else:
+        return False
+    return True
+
+
 def mint(*text):
     """Printe und warte auf ein Enter."""
     input(" ".join(str(t) for t in text))
+
+def sprich(sprecher: str, text: str):
+    mint(f'{sprecher}: "{text}"')
 
 
 def ja_nein(mänx, frage):
@@ -153,4 +251,4 @@ def kursiv(text: str) -> str:
 
 
 class Spielende(Exception):
-    pass
+    """Diese Exception wird geschmissen, um das Spiel zu beenden."""
