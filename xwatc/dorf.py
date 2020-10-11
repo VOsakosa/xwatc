@@ -23,6 +23,7 @@ class NSC(ABC, system.InventarBasis):
         self.name = name
         self.art = art
         self.kennt_spieler = False
+        self.tot = False
 
     @abstractmethod
     def kampf(self, mänx: system.Mänx) -> None:
@@ -33,8 +34,11 @@ class NSC(ABC, system.InventarBasis):
         return [("kämpfen", "k", self.kampf)]
 
     def main(self, mänx: system.Mänx) -> None:
-        opts = self.optionen(mänx)
-        mänx.menu(":", opts)(mänx)
+        if self.tot:
+            mint(f"{self.name}s Leiche liegt still auf dem Boden.")
+        else:
+            opts = self.optionen(mänx)
+            mänx.menu(":", opts)(mänx)
 
 
 class Dorfbewohner(NSC):
@@ -108,19 +112,19 @@ class Dorf:
             self.orte = [Ort("Draußen")]
         self.name = name
 
-    def main(self, mänx):
+    def main(self, mänx) -> None:
         print(f"Du bist in {self.name}. Möchtest du einen der Orte betreten oder "
               "draußen bleiben?")
-        for ort in self.orte:
-            print(ort.name)
+        orte: List[MenuOption[Opt[Ort]]]
         orte = [(ort.name, ort.name.lower(), ort) for ort in self.orte]
-        orte.append("Bleiben", "", self.orte[0])
-        orte.append(f"{self.name} verlassen", "v", None)
+        orte.append(("Bleiben", "", self.orte[0]))
+        orte.append((f"{self.name} verlassen", "v", None))
         loc = mänx.menu("Wohin? ", orte)
         while loc:
             loc = self.ort_main(mänx, loc)
 
     def ort_main(self, mänx, ort: Ort) -> Opt[Ort]:
+        ort.menschen[:] = filter(lambda m: not m.tot, ort.menschen)
         if ort.menschen:
             print("Hier sind:")
             for mensch in ort.menschen:
@@ -130,8 +134,8 @@ class Dorf:
         optionen: List[MenuOption[Union[NSC, Ort, None]]]
         optionen = [("Mit " + mensch.name + " reden", "r" + mensch.name.lower(),
                      mensch) for mensch in ort.menschen]
-        optionen.extend((f"Nach {ort.name} gehen", "o" + ort.name.lower(), ort)
-                        for ort in self.orte)
+        optionen.extend((f"Nach {o.name} gehen", "o" + o.name.lower(), o)
+                        for o in self.orte if o != ort)
         optionen.append(("Ort verlassen", "fliehen", None))
         opt = mänx.menu("Was machst du?", optionen)
         if isinstance(opt, NSC):

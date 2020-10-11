@@ -117,12 +117,13 @@ class Mänx(InventarBasis):
 
     def menu(self, frage: str, optionen: List[MenuOption[T]]) -> T:
         """Ähnlich wie Minput, nur werden jetzt Optionen als Liste gegeben."""
-        print("Du kannst")
+        # print("Du kannst")
+        print()
         for name, kurz, _ in optionen:
-            print(name, " (", kurz, ")", sep="")
-        kurz_optionen = " " + "/".join(o[0] for o in optionen)
+            print("-", name, " (", kurz, ")", sep="")
+        kurz_optionen = " " + "/".join(o[1] for o in optionen)
         if len(kurz_optionen) < 50:
-            frage += kurz_optionen
+            frage += kurz_optionen + " "
         while True:
             eingabe = input(frage).lower()
             if not eingabe:
@@ -157,6 +158,7 @@ class Welt:
     def __init__(self, name):
         self.inventar = {}
         self.name = name
+        self.objekte = {}
 
     def setze(self, name):
         self.inventar[name] = 1
@@ -176,6 +178,8 @@ def schiebe_inventar(start: Inventar, ziel: Inventar):
 def minput(mänx, frage, möglichkeiten=None, lower=True):
     """Manipulierter Input
     Wenn möglichkeiten (in kleinbuchstaben) gegeben, dann muss die Antwort eine davon sein."""
+    if not frage.endswith(" "):
+        frage += " "
     while True:
         taste = input(frage)
         if lower:

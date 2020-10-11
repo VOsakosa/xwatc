@@ -3,7 +3,7 @@ from xwatc.system import Mänx, minput, ja_nein, kursiv
 from xwatc import osten
 from xwatc import norden
 from xwatc import westen
-from xwatc_Hauptgeschichte import himmelsrichtungen
+import xwatc_Hauptgeschichte as xwatc_haupt
 import random
 
 
@@ -78,7 +78,7 @@ def süden(mänx: Mänx):
             intelipopo = minput(mänx, "gehst du den selben Weg wieder zurück oder gehst du einen anderen"
                                 "? g/a(gleicher/anderer)", ["g", "a"])
             if intelipopo == "g":
-                himmelsrichtungen(mänx)
+                xwatc_haupt.himmelsrichtungen(mänx)
             else:
                 osten.osten(mänx)
         else:
@@ -187,6 +187,6 @@ def duhastüberlebt(mänx):
                 print("Fleischfressende Pflanze")
 
     elif mut == "z":
-        himmelsrichtungen(mänx)
+        xwatc_haupt.himmelsrichtungen(mänx)
 
     # elif mut=="z":
