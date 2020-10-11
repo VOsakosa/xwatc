@@ -1,13 +1,18 @@
-from typing import Dict, List, Optional as Op
+from typing import List, Optional as Op
 
-from xwatc.system import Mänx, minput, Gefährte, ja_nein, get_class
+from xwatc.dorf import NSC
+from xwatc.system import Mänx, minput, ja_nein, get_class
 
-# TODO Händler ist NSC
-class Händler:
-    def __init__(self, name, kauft: Op[List[str]], verkauft, gold: int):
+ALLGEMEINE_PREISE = {
+    "Speer": 50
+}
+
+class Händler(NSC):
+    def __init__(self, name, kauft: Op[List[str]], verkauft, gold: int,
+                 art = "Händler"):
         """Neuer Händler namens *name*, der Sachen aus den Kategorien *kauft* kauft.
         *verkauft* ist das Inventar. *gold* ist die Anzahl von Gold."""
-        self.name = name
+        super().__init__(name, art)
         self.kauft = kauft
         # Anzahl, Preis
         self.verkauft = verkauft
@@ -43,7 +48,7 @@ class Händler:
         return False
 
     def get_preis(self, name: str) -> Op[int]:
-        return None
+        return ALLGEMEINE_PREISE.get(name)
 
     def _verkaufen(self, mänx, gegenstand, menge):
         """Versuch interaktiv, an den Händler zu verkaufen."""
@@ -130,6 +135,7 @@ class Händler:
             else:
                 print("Nutze k [Anzahl] [Item] zum Kaufen, v zum Verkaufen, z für Zurück, a für eine Anzeige und "
                       "nur k zum Kämpfen, p [Item] um nach dem Preis zu fragen.")
+
     def plündern(self, mänx):
         """Gib den ganzen Inventarinhalt an mänx"""
         for item, (anzahl, _rest) in self.verkauft.items():
