@@ -1,8 +1,10 @@
 from collections import defaultdict
 from typing import Sequence, Dict, List, Tuple, TypeVar
+from dataclasses import dataclass, field
 
 ITEMVERZEICHNIS = {
     "Beere": "Obst",
+    "Dolch": "Waffe",
     "Hering": "Fisch",
     "Holz": "Holz",
     "Hühnerfleisch": "Fleisch",
@@ -31,23 +33,19 @@ ITEMVERZEICHNIS = {
 def get_class(item):
     return ITEMVERZEICHNIS.get(item)
 
-Inventar = Dict[str, int]
+
 T = TypeVar("T")
 
-class Mänx:
-    """Der Hauptcharakter des Spiels, alles dreht sich um ihn, er hält alle
-    Information."""
+MenuOption = Tuple[str, str, T]
+Inventar = Dict[str, int]
+
+
+class InventarBasis:
+    """Ein Ding mit Inventar"""
+    inventar: Inventar
 
     def __init__(self):
-        self.inventar: Inventar = defaultdict(lambda: 0)
-        self.inventar["Gold"] = 33
-        self.inventar["Mantel"] = 1
-        self.inventar["Unterhose"] = 1
-        self.gefährten = []
-        self.titel = set()
-        self.lebenswille = 10
-        self.fähigkeiten = set()
-        self.welt = Welt("bliblablukc")
+        self.inventar = defaultdict(lambda: 0)
 
     def inventar_zeigen(self):
         ans = []
@@ -55,18 +53,6 @@ class Mänx:
             if anzahl:
                 ans.append(f"{anzahl}x {item}")
         return ", ".join(ans)
-
-    def inventar_leeren(self) -> None:
-        self.inventar.clear()
-        self.titel.clear()
-        self.gefährten.clear()
-
-    def get_kampfkraft(self) -> int:
-        if any(get_class(it) == "magische Waffe" for it in self.items()):
-            return 2000
-        if any(get_class(it) == "Waffe" for it in self.items()):
-            return 1000
-        return 20
 
     @property
     def gold(self) -> int:
@@ -91,6 +77,33 @@ class Mänx:
     def hat_item(self, item, anzahl=1):
         return item in self.inventar and self.inventar[item] >= anzahl
 
+
+class Mänx(InventarBasis):
+    """Der Hauptcharakter des Spiels, alles dreht sich um ihn, er hält alle
+    Information."""
+
+    def __init__(self):
+        self.inventar["Gold"] = 33
+        self.inventar["Mantel"] = 1
+        self.inventar["Unterhose"] = 1
+        self.gefährten = []
+        self.titel = set()
+        self.lebenswille = 10
+        self.fähigkeiten = set()
+        self.welt = Welt("bliblablukc")
+
+    def inventar_leeren(self) -> None:
+        self.inventar.clear()
+        self.titel.clear()
+        self.gefährten.clear()
+
+    def get_kampfkraft(self) -> int:
+        if any(get_class(it) == "magische Waffe" for it in self.items()):
+            return 2000
+        if any(get_class(it) == "Waffe" for it in self.items()):
+            return 1000
+        return 20
+
     def erhalte(self, item, anzahl=1):
         print(f"Du erhälst {anzahl} {item}")
         self.inventar[item] += anzahl
@@ -101,7 +114,7 @@ class Mänx:
     def minput(self, *args, **kwargs):
         return minput(self, *args, **kwargs)
 
-    def menu(self, frage: str, optionen: List[Tuple[str, str, T]]) -> T:
+    def menu(self, frage: str, optionen: List[MenuOption[T]]) -> T:
         """Ähnlich wie Minput, nur werden jetzt Optionen als Liste gegeben."""
         print("Du kannst")
         for name, kurz, _ in optionen:
@@ -117,16 +130,15 @@ class Mänx:
                     if not o:
                         return v
             elif not spezial_taste(self, eingabe):
-                kandidaten = [(o,v) for _,o,v in optionen 
+                kandidaten = [(o, v) for _, o, v in optionen
                               if o.startswith(eingabe)]
                 if len(kandidaten) == 1:
                     return kandidaten[0][1]
                 elif not kandidaten:
                     print("Keine Antwort beginnt mit", eingabe)
                 else:
-                    print("Es könnte eines davon sein:", 
+                    print("Es könnte eines davon sein:",
                           ",".join(o for o, v in kandidaten))
-        
 
     def genauer(self, text: Sequence[str]):
         t = self.minput("Genauer? (Schreibe irgendwas für ja)")
@@ -151,12 +163,14 @@ class Welt:
     def ist(self, name):
         return name in self.inventar and self.inventar[name]
 
+
 def schiebe_inventar(start: Inventar, ziel: Inventar):
     """Schiebe alles aus start in ziel"""
     for item, anzahl in start.items():
         ziel[item] += anzahl
     start.clear()
 # EIN- und AUSGABE
+
 
 def minput(mänx, frage, möglichkeiten=None, lower=True):
     """Manipulierter Input
@@ -170,6 +184,7 @@ def minput(mänx, frage, möglichkeiten=None, lower=True):
         elif not möglichkeiten or taste in möglichkeiten:
             return taste
 
+
 def spezial_taste(mänx, taste: str) -> bool:
     """Führe die Spezialaktion taste aus, oder gebe Falsch zurück."""
     if taste == "e":
@@ -182,9 +197,13 @@ def spezial_taste(mänx, taste: str) -> bool:
         return False
     return True
 
+
 def mint(*text):
     """Printe und warte auf ein Enter."""
     input(" ".join(str(t) for t in text))
+
+def sprich(sprecher: str, text: str):
+    mint(f'{sprecher}: "{text}"')
 
 
 def ja_nein(mänx, frage):

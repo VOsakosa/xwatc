@@ -2,11 +2,8 @@ from time import sleep
 import xwatc_Hauptgeschichte as xwatc
 from xwatc import haendler
 from xwatc import scenario
-from xwatc.system import Mänx, minput, Gefährte, ja_nein, Spielende, mint
+from xwatc.system import Mänx, minput, Gefährte, ja_nein, Spielende, mint, sprich
 
-
-def sprich(sprecher, text):
-    print(f'{sprecher}: "{text}"')
 
 
 def t2(mänx):
