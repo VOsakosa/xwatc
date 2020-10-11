@@ -29,9 +29,24 @@ ITEMVERZEICHNIS = {
     "Unterhose": "Kleidung",
 }
 
+UNTERKLASSEN = {
+    "Fisch": "Nahrung",
+    "Fleisch": "Nahrung",
+    "legendäre Waffe": "Waffe",
+    "Ring": "Ausrüstung",
+    "Rüstungsgegenstand": "Ausrüstung",
+}
+
 
 def get_class(item):
     return ITEMVERZEICHNIS.get(item)
+
+def get_classes(item):
+    c = get_class(item)
+    yield c
+    while c in UNTERKLASSEN:
+        c = UNTERKLASSEN[c]
+        yield c
 
 
 T = TypeVar("T")
@@ -65,7 +80,7 @@ class InventarBasis:
     def hat_klasse(self, *klassen) -> bool:
         """Prüfe, ob mänx item aus einer der Klassen besitzt."""
         for item in self.items():
-            if get_class(item) in klassen:
+            if any(c in klassen for c in get_classes(item)):
                 return True
         return False
 
