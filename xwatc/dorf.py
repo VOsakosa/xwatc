@@ -3,35 +3,44 @@ Xwatc' Ort- und Menschensystem.
 
 Seit 10.10.2020
 """
-from typing import List, Union, Callable
+from typing import List, Union, Callable, Dict, Tuple
 from typing import Optional as Opt
 from dataclasses import dataclass, field
 from xwatc.system import mint, schiebe_inventar, Spielende, MenuOption, sprich
 from xwatc import system
-from abc import ABC, abstractmethod
 __author__ = "jasper"
 
 NSCOptionen = List[MenuOption[Callable[[system.Mänx], None]]]
+DialogFn = Callable[["NSC", system.Mänx], Opt[bool]]
 
 
-class NSC(ABC, system.InventarBasis):
+class NSC(system.InventarBasis):
     name: str
     art: str
 
-    def __init__(self, name: str, art: str):
+    def __init__(self, name: str, art: str, kampfdialog: Opt[DialogFn] = None,
+                 fliehen: Opt[Callable[[system.Mänx], None]] = None):
         super().__init__()
         self.name = name
         self.art = art
         self.kennt_spieler = False
         self.tot = False
+        self.kampf_fn = kampfdialog
+        self.dialoge: List[Dialog] = []
+        self.dialog_anzahl: Dict[str, int] = {}
+        if fliehen:
+            self.fliehen = fliehen  # type: ignore
 
-    @abstractmethod
     def kampf(self, mänx: system.Mänx) -> None:
-        pass
+        raise ValueError(f"Xwatc weiß nicht, wie {self.name} kämpft")
 
-    @abstractmethod
-    def optionen(self, mänx: system.Mänx) -> NSCOptionen:
-        return [("kämpfen", "k", self.kampf)]
+    def fliehen(self, _mänx: system.Mänx) -> None:  # pylint: disable=method-hidden
+        mint("Du entkommst mühelos.")
+
+    def optionen(self, _mänx: system.Mänx) -> NSCOptionen:
+        return [("kämpfen", "k", self.kampf),
+                ("reden", "r", self.reden),
+                ("fliehen", "f", self.fliehen)]
 
     def main(self, mänx: system.Mänx) -> None:
         if self.tot:
@@ -40,12 +49,97 @@ class NSC(ABC, system.InventarBasis):
             opts = self.optionen(mänx)
             mänx.menu(":", opts)(mänx)
 
+    def sprich(self, text) -> None:
+        system.sprich(self.name, text)
+
+    def reden(self, mänx: system.Mänx) -> None:
+        dlg_anzahl = self.dialog_anzahl
+        cont = True
+        start = True
+        while cont:
+            optionen: List[MenuOption[Opt[Dialog]]]
+            optionen = [d.zu_option() for d in self.dialoge
+                        if d.verfügbar(self, mänx)]
+            if not optionen:
+                if start:
+                    print("Du weißt nicht, was du könntest.")
+                else:
+                    print("Du hast nichts mehr zu sagen.")
+            optionen.append(("fliehen", "f", None))
+            dlg: Opt[Dialog] = mänx.menu("", optionen)
+            if not dlg:
+                cont = False
+            else:
+                cont = bool(dlg.geschichte(self, mänx))
+                dlg_anzahl[dlg.name] = dlg_anzahl.setdefault(dlg.name, 0) + 1
+            start = False
+
+    def dialog(self, *args, **kwargs) -> Dialog:
+        "Erstelle einen Dialog"
+        dia = Dialog(*args, **kwargs)
+        self.dialoge.append(dia)
+        return dia
+
+
+class Dialog:
+    """Ein einzelner Gesprächsfaden beim Gespräch mit einem NSC"""
+    wenn_fn: Opt[DialogFn]
+
+    def __init__(self, name: str, text: str, geschichte: DialogFn,
+                 vorherige: Union[str, None, List[Union[str, Tuple[str, int]]]] = None):
+        self.name = name
+        self.text = text
+        self.geschichte = geschichte
+        if vorherige is not None:
+            self.vorherige = vorherige
+        elif isinstance(vorherige, str):
+            self.vorherige = list(vorherige)
+        else:
+            self.vorherige = []
+
+        self.wenn_fn = None
+        self.anzahl = 0
+
+    def wenn(self, fn: DialogFn) -> 'Dialog':
+        self.wenn_fn = fn
+        return self
+
+    def wiederhole(self, anzahl: int) -> 'Dialog':
+        """Füge eine maximale Anzahl von Wiederholungen hinzu"""
+        self.anzahl = anzahl
+        return self
+
+    def verfügbar(self, nsc: 'NSC', mänx: system.Mänx) -> bool:
+        # Keine Wiederholungen mehr
+        if self.anzahl and nsc.dialog_anzahl.get(self.name, 0) >= self.anzahl:
+            return False
+        # vorherige Dialoge
+        for bed in self.vorherige:
+            if isinstance(bed, str):
+                if not nsc.dialog_anzahl.get(bed, 0):
+                    return False
+            else:
+                bed_name, anzahl = bed
+                if nsc.dialog_anzahl.get(bed_name, 0) < anzahl:
+                    return False
+        if self.wenn_fn:
+            return bool(self.wenn_fn(nsc, mänx))
+        return True
+
+    def zu_option(self) -> MenuOption['Dialog']:
+        return (self.text, self.name, self)
+
 
 class Dorfbewohner(NSC):
     def __init__(self, name: str, geschlecht: bool):
         super().__init__(name, "Dorfbewohner" if geschlecht
                          else "Dorfbewohnerin")
         self.geschlecht = geschlecht
+        self.dialog("hallo", "Hallo", lambda n, _: 
+                    sprich(n.name, f"Hallo, ich bin {n.name}. "
+                   "Freut mich, dich kennenzulernen.")).wiederhole(1)
+        self.dialog("hallo2", "Hallo", lambda n, _:
+                    sprich(n.name, "Hallo nochmal!"), "hallo")
 
     def kampf(self, mänx: system.Mänx) -> None:
         if mänx.hat_klasse("Waffe", "magische Waffe"):
@@ -55,7 +149,7 @@ class Dorfbewohner(NSC):
             mint(
                 f"Du rennst auf {self.name} zu und schlägst wie wild auf "
                 + ("ihn" if self.geschlecht else "sie") + " ein."
-                )
+            )
             if self.hat_item("Dolch"):
                 if self.geschlecht:
                     mint("Er ist erschrocken, schafft es aber, seinen Dolch "
@@ -71,20 +165,6 @@ class Dorfbewohner(NSC):
                 raise Spielende
         else:
             mint("Ihr schlagt euch, bis ihr nicht mehr könnt.")
-
-    def reden(self, _mänx: system.Mänx) -> None:
-        if not self.kennt_spieler:
-            sprich(self.name, f"Hallo, ich bin {self.name}. "
-                   "Freut mich, dich kennenzulernen.")
-            self.kennt_spieler = True
-        else:
-            sprich(self.name, "Hallo wieder.")
-
-    def optionen(self, mänx: system.Mänx) -> NSCOptionen:
-        ans = super().optionen(mänx)
-        ans.append(("reden", "r", self.reden))
-        return ans
-
 
 @dataclass
 class Ort:

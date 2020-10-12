@@ -2,7 +2,7 @@ from time import sleep
 from xwatc import haendler
 from xwatc import scenario
 from xwatc.system import Mänx, minput, ja_nein, Spielende, mint, sprich
-from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen
+from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner
 
 
 def t2(mänx: Mänx):
@@ -308,7 +308,7 @@ class TobiacBerndoc(NSC):
         sprich("Du", "Ich bin $&%!")
         # TODO Sprechmenu
         opts = [
-            ('"Warum spielst du Orgel. Es ist doch nicht Gottesdienst gerade?"',
+            ('"Warum spielst du Orgel? Es ist doch nicht Gottesdienst gerade?"',
              "orgel", 0),
             ('"Kannst du mir beibringen, Orgel zu spielen?"', "lernen", 1),
             ('"Wie findest du das Wetter heute?"', "wetter", 2)
@@ -359,6 +359,12 @@ class TobiacBerndoc(NSC):
         print("Die Melodie klingt ungewöhnlich, aber sehr schön.")
         super().main(mänx)
 
+class Waschweib(Dorfbewohner):
+    def __init__(self, name: str):
+        super().__init__(name, geschlecht=False)
+        self.art = "Waschweib"
+
+    
 
 def ende_des_waldes(mänx, morgen=False):
     print("Der Wald wird schnell viel weniger unheimlich")
