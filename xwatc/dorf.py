@@ -37,6 +37,9 @@ class NSC(system.InventarBasis):
     def fliehen(self, _mänx: system.Mänx) -> None:  # pylint: disable=method-hidden
         mint("Du entkommst mühelos.")
 
+    def vorstellen(self, mänx: system.Mänx) -> None:
+        """So wird der NSC vorgestellt"""
+
     def optionen(self, _mänx: system.Mänx) -> NSCOptionen:
         return [("kämpfen", "k", self.kampf),
                 ("reden", "r", self.reden),
@@ -46,6 +49,7 @@ class NSC(system.InventarBasis):
         if self.tot:
             mint(f"{self.name}s Leiche liegt still auf dem Boden.")
         else:
+            
             opts = self.optionen(mänx)
             mänx.menu(":", opts)(mänx)
 
@@ -53,6 +57,9 @@ class NSC(system.InventarBasis):
         system.sprich(self.name, text)
 
     def reden(self, mänx: system.Mänx) -> None:
+        if not self.kennt_spieler:
+            self.vorstellen(mänx)
+            self.kennt_spieler = True
         dlg_anzahl = self.dialog_anzahl
         cont = True
         start = True

@@ -5,7 +5,7 @@ from xwatc.system import Mänx, minput, ja_nein, Spielende, mint, sprich
 from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner
 
 
-def t2(mänx: Mänx):
+def t2(mänx: Mänx) -> None:
     """Jaspers Teilgeschichte"""
     print("Hinter der Tür ist es warm und sonnig.")
     sleep(1)
@@ -56,13 +56,10 @@ class Mädchen(haendler.Händler):
         print("Am Wegesrand siehst du ein Mädchen in Lumpen. "
               "Sie scheint zu frieren.")
 
-    def preis(self, _):
+    def get_preis(self, _):
         return 0
 
-    def optionen(self, mänx: Mänx) -> NSCOptionen:
-        return haendler.Händler.optionen(self, mänx)
-
-    def kampf(self, mänx: Mänx)->None:
+    def kampf(self, mänx: Mänx) -> None:
         print("Das Mädchen ist schwach. Niemand hindert dich daran, sie "
               "auf offener Straße zu schlagen.")
         print("Sie hat nichts außer ihren Lumpen.", end="")
@@ -75,7 +72,7 @@ class Mädchen(haendler.Händler):
         self.plündern(mänx)
 
 
-def t2_norden(mänx):
+def t2_norden(mänx) -> None:
     """Das Dorf auf dem Weg nach Norden"""
     print("Auf dem Weg kommen dir mehrfach Leute entgegen, und du kommst in ein kleines Dorf")
     mädchen = Mädchen()
@@ -100,7 +97,7 @@ def t2_norden(mänx):
         t2_nw(mänx)
 
 
-def t2_süd(mänx):
+def t2_süd(mänx) -> None:
     print("Der Wald wird immer dunkler.")
     mint("Ein kalter Wind weht. Das Vogelgezwitscher der Lichtung kommt dir nun "
          "wie ein kurzer Traum vor.")
@@ -138,7 +135,7 @@ def t2_süd(mänx):
         ende_des_waldes(mänx)
 
 
-def haus_des_hexers(mänx):
+def haus_des_hexers(mänx)-> None:
     print("Er bittet dich an den Tisch und gibt dir einen warmen Punsch.")
     mänx.welt.setze("Hexer bekannt")
     leo = 'Leo Berndoc'
@@ -261,7 +258,7 @@ def hexer_kampf(mänx):
             print("Er zieht dich aus, verzieht das Gesicht, als er sieht, "
                   "dass du keine Unterhose trägst", end="")
         print(" und wirft dich im Süden des Waldes auf den Boden")
-        mänx.inventar_leeren()
+        mänx.inventar_leeren()  # TODO nicht meine Titeeel!
     ende_des_waldes(mänx)
 
 
@@ -277,8 +274,22 @@ SÜD_DORF_NAME = "Scherenfeld"
 
 
 class TobiacBerndoc(NSC):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("Tobiac Berndoc", "Orgelspieler")
+        cls = type(self)
+        self.dialog("orgel",
+                    '"Warum spielst du Orgel? Es ist doch nicht Gottesdienst gerade?"',
+                    cls.reden_orgel)
+        self.dialog("lernen",
+                    '"Kannst du mir beibringen, Orgel zu spielen?"',
+                    cls.reden_lernen)
+        self.dialog("leo", '"Was ist dein Verhältnis zu Leo Berndoc?"',
+                    cls.reden_leo).wenn(lambda n, m: m.welt.ist("Hexer bekannt"))
+        self.dialog("wetter",
+                    '"Wie findest du das Wetter heute?"', cls.reden_wetter)
+        self.dialog('ring',
+                    "Den Ring vorzeigen", cls.ring_zeigen).wenn(
+                        lambda n, m: m.hat_item("Ring des Berndoc"))
 
     def kampf(self, mänx: Mänx) -> None:
         if mänx.hat_klasse("Waffe", "magische Waffe"):
@@ -300,58 +311,53 @@ class TobiacBerndoc(NSC):
         sleep(2)
         mint("Du gibt dich der Melodie hin.")
 
-    def reden(self, mänx: Mänx) -> None:
+    def vorstellen(self, mänx: Mänx) -> None:
         print("Tobiac spielt erst noch den Satz zu Ende.")
         sleep(2)
         print("Er spricht mit leiser Stimme.")
         sprich(self.name, f"Hallo, ich bin {self.name}.")
         sprich("Du", "Ich bin $&%!")
-        # TODO Sprechmenu
-        opts = [
-            ('"Warum spielst du Orgel? Es ist doch nicht Gottesdienst gerade?"',
-             "orgel", 0),
-            ('"Kannst du mir beibringen, Orgel zu spielen?"', "lernen", 1),
-            ('"Wie findest du das Wetter heute?"', "wetter", 2)
-        ]
-        if mänx.welt.ist("Hexer bekannt"):
-            opts.append(
-                ('"Was ist dein Verhältnis zu Leo Berndoc?"', "leo", 3))
-        if mänx.hat_item("Ring des Berndoc"):
-            opts.append(("Den Ring vorzeigen", "ring", 4))
-        opt = mänx.menu(
-            "Was sagst du?", opts)
-        if opt == 0:
-            sprich(self.name, "Ich spiele gerne Orgel. "
-                   "Es beruhigt mich ungemein.")
-            sprich(self.name, "Wenn nur mein Sohn auch so gerne wie ich spielen würde.")
-            sprich(self.name, "Ich bin nie zu Hause und spiele lieber Orgel. "
-                   "Und mein Sohn spielt lieber bei den Nachbarn nebenan.")
-            if ja_nein(mänx, self.name + " :Ich bin ein schlechter Vater, nicht?"):
-                sprich(self.name, "Es tut irgendwie doch weh, es so zu hören.")
-            else:
-                sprich(self.name, "Danke.")
-        elif opt == 1:
-            sprich(self.name, "Ja, gerne!")
-            mint("Tobiac ist sofort voll in seinem Element. Dir ist, als wäre "
-                 "er einsam und froh über deine Gesellschaft.")
-            mint("Du bleibt einige Tage bei ihm und lernst sein Handwerk.")
-            mint("Je länger du übst, desto mehr siehst du, dass er so gut spielt "
-                 "wie kein anderer.")
-            mänx.fähigkeiten.add("Orgel")
-        elif opt == 2:
-            sprich(self.name + "(zögert kurz)", "Schön sonnig, nicht?")
-            print("Draußen war es bewölkt.")
-            mint("Wie lange war Tobiac wohl nicht mehr draußen?")
-        elif opt == 3:
-            sprich(self.name, "Er ist mein Bruder, aber er hat sich in den "
-                   "Wald zurückgezogen. Ich habe lange nicht mehr von ihm gehört.")
-            sprich(self.name, "Er war auch vorher sehr zurückgezogen.")
-            sprich(self.name, "Warum fragst du?")
+
+    def reden_orgel(self, mänx: Mänx) -> None:
+        sprich(self.name, "Ich spiele gerne Orgel. "
+               "Es beruhigt mich ungemein.")
+        sprich(self.name, "Wenn nur mein Sohn auch so gerne wie ich spielen würde.")
+        sprich(self.name, "Ich bin nie zu Hause und spiele lieber Orgel. "
+               "Und mein Sohn spielt lieber bei den Nachbarn nebenan.")
+        if ja_nein(mänx, self.name + " :Ich bin ein schlechter Vater, nicht?"):
+            sprich(self.name, "Es tut irgendwie doch weh, es so zu hören.")
+        else:
+            sprich(self.name, "Danke.")
+
+    def reden_lernen(self, mänx: Mänx) -> None:
+        sprich(self.name, "Ja, gerne!")
+        mint("Tobiac ist sofort voll in seinem Element. Dir ist, als wäre "
+             "er einsam und froh über deine Gesellschaft.")
+        mint("Du bleibt einige Tage bei ihm und lernst sein Handwerk.")
+        mint("Je länger du übst, desto mehr siehst du, dass er so gut spielt "
+             "wie kein anderer.")
+        mänx.fähigkeiten.add("Orgel")
+
+    def reden_wetter(self, mänx: Mänx) -> None:  # pylint: disable=unused-argument
+        sprich(self.name + "(zögert kurz)", "Schön sonnig, nicht?")
+        print("Draußen war es bewölkt.")
+        mint("Wie lange war Tobiac wohl nicht mehr draußen?")
+
+    def reden_leo(self, mänx: Mänx) -> None:  # pylint: disable=unused-argument
+        sprich(self.name, "Er ist mein Bruder, aber er hat sich in den "
+               "Wald zurückgezogen. Ich habe lange nicht mehr von ihm gehört.")
+        sprich(self.name, "Er war auch vorher sehr zurückgezogen.")
+        sprich(self.name, "Warum fragst du?")
+
+    def ring_zeigen(self, mänx: Mänx) -> None:
+        self.sprich("Das ist doch der Ring unserer Familie!")
+        self.sprich("Warte. Ich werde nicht fragen, wo du ihn herhast.")
+        self.inventar["Ring des Berndoc"] += 1
+        mänx.inventar["Ring des Berndoc"] -= 1
 
     def optionen(self, mänx: Mänx) -> NSCOptionen:
         return NSC.optionen(self, mänx) + [
-            ("Ihm beim Spielen zuhören", "hören", self.zuhören),
-            ("Reden", "reden", self.reden)
+            ("Ihm beim Spielen zuhören", "hören", self.zuhören)
         ]
 
     def main(self, mänx: Mänx) -> None:
@@ -359,12 +365,12 @@ class TobiacBerndoc(NSC):
         print("Die Melodie klingt ungewöhnlich, aber sehr schön.")
         super().main(mänx)
 
+
 class Waschweib(Dorfbewohner):
     def __init__(self, name: str):
         super().__init__(name, geschlecht=False)
         self.art = "Waschweib"
 
-    
 
 def ende_des_waldes(mänx, morgen=False):
     print("Der Wald wird schnell viel weniger unheimlich")
