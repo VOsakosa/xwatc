@@ -5,16 +5,16 @@ from dataclasses import dataclass, field
 ITEMVERZEICHNIS = {
     "Beere": "Obst",
     "Eisen": "Metall",
-    "Dolch": "Waffe",
+    "Dolch": "normale Waffe",
     "Hering": "Fisch",
     "Holz": "Holz",
     "Hühnerfleisch": "Fleisch",
     "Kohle": "Brennstoff",
     "Leere": "Scherz-Item",
     "Mantel": "Kleidung",
-    "Messer": "Waffe",
+    "Messer": "normale Waffe",
     "Mugel des Sprechens": "Mugel",
-    "Normales Schwert": "Waffe",
+    "Normales Schwert": "normale Waffe",
     "Riesenschneckeninnereien": "Superpapierrohstoff",
     "Riesenschneckenfleisch": "Fleisch",
     "Ring des Berndoc": "Ring",
@@ -23,11 +23,12 @@ ITEMVERZEICHNIS = {
     "Schneckenschleim": "Superfolienrohstoff",
     "Scholle": "Fisch",
     "Schwert": "legändäre Waffe",
-    "Speer": "Waffe",
-    "Spitzhacke": "Werkzeug",
+    "Speer": "normale Waffe",
+    "Spitzhacke": "normales Werkzeug",
     "Stein": "Stein",
     "Stein der aussieht wie ein Hühnerei": "Heilige Tagesei",
     "Stöckchen": "Holz",
+    "Talisman der Schreie": "Talisman",
     "Unterhose": "Kleidung",
     
 }
@@ -39,6 +40,7 @@ UNTERKLASSEN = {
     "Ring": "Ausrüstung",
     "Rüstungsgegenstand": "Ausrüstung",
 }
+
 
 
 def get_class(item):
@@ -105,11 +107,19 @@ class Mänx(InventarBasis):
         self.inventar["Gold"] = 33
         self.inventar["Mantel"] = 1
         self.inventar["Unterhose"] = 1
+        self.inventar["Hose"] = 1
+        self.inventar["T-Shirt"] = 1
+        self.inventar["Gürtel"] = 1
+        self.inventar["Socke"] = 2
+        self.inventar["Turnschuh"] = 2
+        self.inventar["Mütze"] = 1
         self.gefährten = []
         self.titel = set()
         self.lebenswille = 10
         self.fähigkeiten = set()
-        self.welt = Welt("bliblablukc")
+        self.welt = Welt("bliblablux")
+        self.missionen = list()
+        
     
     def missionen_zeigen(self):
         ans = []

@@ -18,7 +18,7 @@ def osten(mänx):
               "die andre zu nem andren Ort.")
         weg=minput(mänx, "In welche Tür gehst du? t1/t2",["t2","t1"])
         if weg=="t1" :
-             mint("Du bist tot")
+             raise Spielende
            #  mänx.inventar_leeren()
              
             # waffe_wählen(mänx)
@@ -42,10 +42,7 @@ def osten(mänx):
             mint("")
             
             
-        elif Entscheidung=="f":
-            
-            
-            
+        elif Entscheidung=="f":           
             mint('Du rennst weg,'
                  'doch der Karawanenbesitzer holt dich mit einer übermenschlichen Geschwindigkeit wieder ein '
                  'und fasst dich am Kragen: '
@@ -67,7 +64,7 @@ def osten(mänx):
                 mänx.inventar ["Spitzhacke"] +=1
                 mänx.inventar ["Stein"] += 4
                 bla=minput(mänx, "Du bekommst Zeug")
-                bopo=minput("Arbeitest du weiter?", ["j"],["ja"], [n],[nein])
+                bopo=minput(mänx, "Arbeitest du weiter?", ["j"],["ja"], [n],[nein])
                 if bopo=="j" or "ja":
                     sleep (61)
                     a=random.randint(1,120)
@@ -134,13 +131,43 @@ def osten(mänx):
                                  "Hinter ihm findest du einen Hohlraum von der Größe eines Sarges. "
                                  "Und tatsächlich: in ihm liegt eine moderige Leiche")
                             mint("Und da liegt", kursiv ("noch"),"etwas!")
-                            mint("")
-                            
+                            mint("Eine seltsame, blau schimmernde Stahlkugel!")
+                            print("Sie ist so etwa so groß wie ein Fußball, nur etwas kleiner.")
+                            mint("Außerdem hast du einen ziemlich prallen Geldbeutel entdeckt.")
+                            au=minput(mänx, "Sammelst du alles ein?", ["j"], ["ja"], ["n"], ["nein"])
+                            if au == "j" or "ja":
+                                mänx.inventar ["Stern des Vorvgir"] += 1
+                                mänx.inventar ["Gold"] += 13568                            
                         mänx.inventar ["Eisen"] += 10
                         mänx.inventar ["Stein"] += 1
-                    
-                    
-                    
+                            else:
+                                mint("Dann eben nicht. Tja... ")
+                                mint("Ich denke du solltest", kursiv("woanders"),"hin...")
+                                jaspersteilgeschichte.t2(mänx)    
+                    else:
+                        mint("Du stößt auf eine seltsam schimmernde Mauer.")
+                        a=minput(mänx, "Versuchst du sie zu durchbrechen?", ["j"], ["ja"], ["n"], ["nein"])
+                        if a=="j" or "ja":
+                            print("Als deine Spitzhacke die Mauer trifft, splittert sie mit einem hässlichen Kreischen.")
+                            mint("Aaaaaaaaaaaaaaahhhhhh!!!")
+                            print ("Ein gellender Schrei zerreißt die Stille.")
+                            mint("Wer schreit denn da?!")
+                            print("Oh: ",kursiv("du"),"schreist da!")
+                            print("Die Schmerzen bringen dich um den Verstand.")
+                            mint("Du bist tot")
+                            mint("Oder etwa doch nicht?")
+                            mänx.inventar ["Stein"] += 30
+                            mänx.inventar ["Talisman der Schreie"] += 1
+                            mänx.inventar ["Spitzhacke"] -= 1
+                            jaspersteilgeschichte.t2(mänx)
+                            
+                        else:
+                            print("OK dann eben nicht.")
+                            mint("Ich denke mal du solltest ",kursiv("verschwinden!"),"")
+                            mänx.inventar ["Stein"] += 30
+                            jaspersteilgeschichte.t2(mänx)
+                            
+                        
                 
             elif abzweigung=="m":
                 mint("Du hörst ein Klatschen.")
@@ -177,6 +204,16 @@ def osten(mänx):
                     mint("Ein Schrei entringt deiner Kehle und dir wird schwarz vor Augen.")
                     mint("Als du wieder aufwachst,"
                           "liegst du inmitten einer saftigen Wiese aus leuchtendem blauem Gras.")
-                
-                
+                    print("Nein... Anscheinend befindest du dich in einer Höhle.")
+                    mint("In einer mit leuchtend blauem Gras bewachsenen Höhle.")
+                    print("Und noch etwas war seltsam: "
+                         "Irgendwie fühlst du dich kräftiger, ", kursiv ("lebendiger!"), "")
+                    mint("Unwillkürlich schaust du an dir herunter – Und erstarrst!")
+                    mint("Keine Haut mehr an denem Fleisch, "
+                         "kein Fleisch mehr an deinen Knochen: "
+                         "Du bist ein Skelett!")
+                    
+            
+            mint("Urplötzlich fängt die Luft um dich herum an zu flimmern. Und dann...")   
+            jaspersteilgeschichte.t2(mänx)    
                 
