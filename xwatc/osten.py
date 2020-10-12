@@ -1,6 +1,7 @@
 from time import sleep
 import xwatc_Hauptgeschichte as xwatc
 from xwatc.system import Mänx, minput, Gefährte, ja_nein, mint, Spielende
+from xwatc import miasteilgeschichte
 from xwatc import jaspersteilgeschichte
 import random
 
@@ -36,7 +37,9 @@ def osten(mänx):
                             "leibdiener/kampf/flucht.(l/k/f)", ["l","k","f"])
         
         if Entscheidung=="l":
-            mint('"Hurra!", der Mann strahlt. Ich hatte noch nie einen Arak als Diener!')
+            print('"Hurra!", der Mann strahlt. Ich hatte noch nie einen Arak als Diener!')
+            sleep (1)
+            mint("Nun beginnt dein Leben als Diener")
             
         elif Entscheidung=="k":
             mint("")
@@ -46,27 +49,31 @@ def osten(mänx):
             mint('Du rennst weg,'
                  'doch der Karawanenbesitzer holt dich mit einer übermenschlichen Geschwindigkeit wieder ein '
                  'und fasst dich am Kragen: '
-                 '"Schön hier geblieben. '
+                 '"Schön hier geblieben." '
                  'Dann siehst du beinahe in Zeitlupe eine Klinge herannahen.')
             
             raise Spielende
         
     elif richtung=="höhle":
-        mint("In der Höhle ist es dunkel, aber es gibt sauberes Wasser und hier wachsen essbare Pilze.")
-        if ja_nein  (mänx, "Willst du die Höhle erkunden?"):
-            abzweigung=minput(mänx, "Du gehst tiefer und tiefer. Du stehst nun vor einer Abzweigung."
-                              "Auf dem Schildchen über der einen steht bergbau"
-                              "und über der anderen steht monster. (b/m)", ["b","m"])
+        höhle(mänx)
+        
+
+def höhle(mänx):
+            mint("In der Höhle ist es dunkel, aber es gibt sauberes Wasser und hier wachsen essbare Pilze.")
+            if ja_nein  (mänx, "Willst du die Höhle erkunden?"):
+                abzweigung=minput(mänx, "Du gehst tiefer und tiefer. Du stehst nun vor einer Abzweigung."
+                                  "Auf dem Schildchen über der einen steht bergbau"
+                                  "und über der anderen steht monster. (b/m)", ["b","m"])
             
             if abzweigung=="b":
-                mint ("Du nimmst dir eine Spitzhacke und fängst an den Stein zu bearbeiten. Warte eine Minute.")
+                print ("Du nimmst dir eine Spitzhacke und fängst an den Stein zu bearbeiten. Warte eine Minute.")
                 sleep (61)
                 mänx.inventar ["Spitzhacke"] +=1
                 mänx.inventar ["Stein"] += 4
                 bla=minput(mänx, "Du bekommst Zeug")
-                bopo=minput(mänx, "Arbeitest du weiter?", ["j"],["ja"], [n],[nein])
+                bopo=minput(mänx, "Arbeitest du weiter?", ["j","ja", "n","nein"])
                 if bopo=="j" or "ja":
-                    sleep (61)
+                    sleep (59)
                     a=random.randint(1,120)
                     if 1 <= a <= 27:
                         mint("Du bekommst ein bischen Stein")
@@ -138,8 +145,8 @@ def osten(mänx):
                             if au == "j" or "ja":
                                 mänx.inventar ["Stern des Vorvgir"] += 1
                                 mänx.inventar ["Gold"] += 13568                            
-                        mänx.inventar ["Eisen"] += 10
-                        mänx.inventar ["Stein"] += 1
+                                mänx.inventar ["Eisen"] += 10
+                                mänx.inventar ["Stein"] += 1
                             else:
                                 mint("Dann eben nicht. Tja... ")
                                 mint("Ich denke du solltest", kursiv("woanders"),"hin...")
@@ -166,6 +173,12 @@ def osten(mänx):
                             mint("Ich denke mal du solltest ",kursiv("verschwinden!"),"")
                             mänx.inventar ["Stein"] += 30
                             jaspersteilgeschichte.t2(mänx)
+                            
+                            
+                else:
+                    mint("OK")
+        
+            
                             
                         
                 
