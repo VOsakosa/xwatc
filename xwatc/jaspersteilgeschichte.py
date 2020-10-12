@@ -2,7 +2,7 @@ from time import sleep
 from xwatc import haendler
 from xwatc import scenario
 from xwatc.system import Mänx, minput, ja_nein, Spielende, mint, sprich
-from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen
+from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner
 
 
 def t2(mänx: Mänx):
@@ -47,29 +47,40 @@ def t2(mänx: Mänx):
                 t2_west(mänx)
 
 
-def t2_norden(mänx):
-    """Das Dorf auf dem Weg nach Norden"""
-    print("Auf dem Weg kommen dir mehrfach Leute entgegen, und du kommst in ein kleines Dorf")
-    mädchen = haendler.Händler("Mädchen", kauft=["Kleidung"], verkauft={
-                               "Rose": [1, 1]}, gold=0)
+class Mädchen(haendler.Händler):
+    def __init__(self):
+        super().__init__("Mädchen", kauft=["Kleidung"], verkauft={
+            "Rose": [1, 1]}, gold=0, art="Mädchen")
 
-    def vorstellen():
-        print("Am Wegesrand siehst du ein Mädchen in Lumpen. Sie scheint zu frieren.")
+    def vorstellen(self):
+        print("Am Wegesrand siehst du ein Mädchen in Lumpen. "
+              "Sie scheint zu frieren.")
 
-    def preis(_):
+    def preis(self, _):
         return 0
-    mädchen.vorstellen = vorstellen
-    mädchen.get_preis = preis
-    if "k" == mädchen.handeln(mänx):
-        print("Das Mädchen ist schwach. Niemand hindert dich daran, sie auf offener Straße zu schlagen.")
+
+    def optionen(self, mänx: Mänx) -> NSCOptionen:
+        return haendler.Händler.optionen(self, mänx)
+
+    def kampf(self, mänx: Mänx)->None:
+        print("Das Mädchen ist schwach. Niemand hindert dich daran, sie "
+              "auf offener Straße zu schlagen.")
         print("Sie hat nichts außer ihren Lumpen.", end="")
-        if mädchen.verkauft["Rose"]:
+        if self.verkauft["Rose"]:
             print(
                 ", die Blume, die sie dir verkaufen wollte, ist beim Kampf zertreten worden.")
         else:
             print(".")
-        del mädchen.verkauft["Rose"]
-        mädchen.plündern(mänx)
+        del self.verkauft["Rose"]
+        self.plündern(mänx)
+
+
+def t2_norden(mänx):
+    """Das Dorf auf dem Weg nach Norden"""
+    print("Auf dem Weg kommen dir mehrfach Leute entgegen, und du kommst in ein kleines Dorf")
+    mädchen = Mädchen()
+    if "k" == mädchen.handeln(mänx):
+        mädchen.kampf(mänx)
     elif "Mantel" in mädchen.verkauft:
         print("Das Mädchen bedeutet dir, dass sie nur den halben Mantel braucht.")
         print("Du schneidest den Mantel entzwei, und gibst ihr nur die Hälfte.")
@@ -82,7 +93,7 @@ def t2_norden(mänx):
             "Das Mädchen ist sichtlich verwirrt, dass du ihr eine Unterhose gegeben hast.")
         print("Es hält sie vor sich und mustert sie. Dann sagt sie artig danke.")
         mänx.titel.add("Perversling")
-    minput(mänx, "Du kommst im Dorf Disnayenbun an.")
+    mint("Du kommst im Dorf Disnayenbun an.")
     if "osten" == scenario.lade_scenario(mänx, "disnajenbun"):
         t2_no(mänx)
     else:
@@ -107,9 +118,10 @@ def t2_süd(mänx):
             '?: "Ein Wanderer? Komm herein, du siehst ganz durchgefroren aus."[k/r/f]',
             list("krf"))
         if aktion == "f":
-            print(
-                "Du rennst weg, als hätte der bloße Anblick des jungen Manns dich verschreckt.")
-            print('Jetzt denkt der Arme sich bestimmt: "Bin ich so hässlich oder schrecklich, dass Leute auf den '
+            print("Du rennst weg, als hätte der bloße Anblick "
+                  "des jungen Manns dich verschreckt.")
+            print('Jetzt denkt der Arme sich bestimmt: "Bin ich so hässlich '
+                  'oder schrecklich, dass Leute auf den '
                   'ersten Blick abhauen?"')
             print("Aber dir ist das egal, die unbekannte Gefahr ist abgewehrt.")
             ende_des_waldes(mänx)
@@ -139,13 +151,15 @@ def haus_des_hexers(mänx):
         "Die große Liebe![liebe]/ "
         "Ich bin einfach in den Osten ­– weil da keine Menschen sind – gegangen, "
         "und dann war da diese Oase. Da waren zwei Türen. "
-        "Ich habe mir ein Herz gefasst, bin durch die Tür gegangen und hier bin ich. Plötzlich.[oase]/ "
+        "Ich habe mir ein Herz gefasst, bin durch die Tür gegangen und hier "
+        "bin ich. Plötzlich.[oase]/ "
         "Das gehst dich doch nichts an![an]",
         ["verirrt", "halloli", "durchreise", "liebe", "oase", "an"])
     if antwort == "halloli":
         print("Er sagt mit einem verschwörischen Tonfall: \"Ich verstehe.\"")
         sprich(leo, "Bleibe ruhig noch die Nacht. Hier werden sie dich nicht finden.")
-        print("Du entschließt dich, mitzumachen. Am nächsten Tag verlässt du schnell das Haus, bevor der Schwindel "
+        print("Du entschließt dich, mitzumachen. Am nächsten Tag verlässt du "
+              "schnell das Haus, bevor der Schwindel "
               "auffliegt")
         ende_des_waldes(mänx, True)
     elif antwort == "verirrt" or antwort == "an":
@@ -176,16 +190,18 @@ def haus_des_hexers(mänx):
             hexer_kampf(mänx)
         else:
             sprich(leo, "Und warum nicht?")
-            ant = mänx.minput("Weil Liebe Ordnung haben muss. Auch die Liebe kann sich nicht über "
-                              "alles hinwegsetzen.[1]/\n"
-                              "Dass sie alles Widrigkeiten überwindet, das ist zu optimistisch. Aber "
-                              "ich werde nie aufgeben.[2]/\n"
-                              "Diese Liebe meine ich nicht. Ich meine die Nächstenliebe, das Gute im "
-                              "Menschen und die Güte Gottes. Die habe ich in deiner Gastfreundschaft "
-                              "gefunden.[3]")
+            ant = mänx.minput(
+                "Weil Liebe Ordnung haben muss. Auch die Liebe kann sich nicht über "
+                "alles hinwegsetzen.[1]/\n"
+                "Dass sie alles Widrigkeiten überwindet, das ist zu optimistisch. Aber "
+                "ich werde nie aufgeben.[2]/\n"
+                "Diese Liebe meine ich nicht. Ich meine die Nächstenliebe, das Gute im "
+                "Menschen und die Güte Gottes. Die habe ich in deiner Gastfreundschaft "
+                "gefunden.[3]")
             if ant == "2":
                 sprich(leo, "Du bist also eine/r von denen!")
-                sprich(leo, "Du denkst, nur weil du liebst, kann du die Ehre der Berndoc ignorieren und "
+                sprich(leo, "Du denkst, nur weil du liebst, kann du "
+                       "die Ehre der Berndoc ignorieren und "
                             "mit ihr zusammenkommen!")
                 sleep(0.5)
                 sprich(
@@ -205,7 +221,8 @@ def haus_des_hexers(mänx):
         sleep(0.3)
         sprich(leo, "Aber was hat ein Wal hier zu suchen?")
         print("Du hast ihn sichtlich verwirrt.")
-        mint("Er zeigt noch auf ein Gästezimmer, dann geht er vor sich hin brabbelnd in sein Zimmer")
+        mint("Er zeigt noch auf ein Gästezimmer, dann geht er vor "
+             "sich hin brabbelnd in sein Zimmer")
         mint("Im Bett denkst du über deinen heutigen Tag nach. Du sinkst "
              "in einen unruhigen Schlaf.")
         sleep(5)
@@ -276,7 +293,7 @@ class TobiacBerndoc(NSC):
             if ja_nein(mänx, "Machst du weiter?"):
                 mint("Du schlägst ihn bewusstlos")
 
-    def zuhören(self, mänx: Mänx) -> None:
+    def zuhören(self, _mänx: Mänx) -> None:
         mint("Tobiac spielt einfach weiter Orgel.\n"
              "Du hast das Gefühl, er hat dich bemerkt, aber er lässt sich "
              "nichts anmerken.")
@@ -291,7 +308,7 @@ class TobiacBerndoc(NSC):
         sprich("Du", "Ich bin $&%!")
         # TODO Sprechmenu
         opts = [
-            ('"Warum spielst du Orgel. Es ist doch nicht Gottesdienst gerade?"',
+            ('"Warum spielst du Orgel? Es ist doch nicht Gottesdienst gerade?"',
              "orgel", 0),
             ('"Kannst du mir beibringen, Orgel zu spielen?"', "lernen", 1),
             ('"Wie findest du das Wetter heute?"', "wetter", 2)
@@ -331,7 +348,7 @@ class TobiacBerndoc(NSC):
             sprich(self.name, "Er war auch vorher sehr zurückgezogen.")
             sprich(self.name, "Warum fragst du?")
 
-    def optionen(self, mänx:Mänx)->NSCOptionen:
+    def optionen(self, mänx: Mänx) -> NSCOptionen:
         return NSC.optionen(self, mänx) + [
             ("Ihm beim Spielen zuhören", "hören", self.zuhören),
             ("Reden", "reden", self.reden)
@@ -342,6 +359,12 @@ class TobiacBerndoc(NSC):
         print("Die Melodie klingt ungewöhnlich, aber sehr schön.")
         super().main(mänx)
 
+class Waschweib(Dorfbewohner):
+    def __init__(self, name: str):
+        super().__init__(name, geschlecht=False)
+        self.art = "Waschweib"
+
+    
 
 def ende_des_waldes(mänx, morgen=False):
     print("Der Wald wird schnell viel weniger unheimlich")
@@ -365,6 +388,7 @@ def süd_dorf(mänx):
         mänx.welt.objekte["j:dorf:süd"] = d
     mänx.welt.objekte["j:dorf:süd"].main(mänx)
 
+
 def t2_west(mänx):
     pass
 
@@ -386,6 +410,7 @@ def t2_nw(mänx):
 
 def land_der_kühe(mänx):
     pass
+
 
 if __name__ == '__main__':
     t2(Mänx())
