@@ -41,7 +41,7 @@ def t2(mänx: Mänx) -> None:
             t2_süd(mänx)
         else:  # Westen
             print("Du triffst auf einen Weg.")
-            if minput("Rechts oder Links?", ["r", "l"]) == "r":
+            if mänx.minput("Rechts oder Links?", ["r", "l"]) == "r":
                 t2_norden(mänx)
             else:
                 t2_west(mänx)
@@ -379,20 +379,22 @@ def ende_des_waldes(mänx, morgen=False):
         sleep(2)
     süd_dorf(mänx)
 
+def erzeuge_süd_dorf() -> Dorf:
+    d = Dorf(SÜD_DORF_NAME)
+    kirche = Ort("Kirche", [
+        "Du bist in einer kleinen Kirche.",
+        # Tobiac tot?
+        "Im Hauptschiff ist niemand, aber du hörst die Orgel"
+    ])
+    kirche.menschen.append(TobiacBerndoc())
+    d.orte.append(kirche)
+    # TODO weitere Objekte
+    return d
 
 def süd_dorf(mänx):
     print("Im Süden siehst du ein Dorf")
     mänx.genauer(SÜD_DORF_GENAUER)
-    if "j:dorf:süd" in mänx.welt.objekte:
-        mänx.welt.objekte["j:dorf:süd"].main(mänx)
-    else:
-        d = Dorf(SÜD_DORF_NAME)
-        kirche = Ort("Kirche")
-        kirche.menschen.append(TobiacBerndoc())
-        d.orte.append(kirche)
-        # TODO weitere Objekte
-        mänx.welt.objekte["j:dorf:süd"] = d
-    mänx.welt.objekte["j:dorf:süd"].main(mänx)
+    mänx.welt.get_or_else("j:dorf:süd", erzeuge_süd_dorf).main(mänx)
 
 
 def t2_west(mänx):

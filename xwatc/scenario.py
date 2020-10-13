@@ -32,11 +32,11 @@ class Scenario:
         self.anzeigename = name
         self.feld = feld
         self.objekte = objekte
-        self.spielerpos = None
+        self.spielerpos: List[int]
         höhe = len(feld[0])
         assert len(feld) == len(objekte)
-        for reihe in feld:
-            assert len(reihe) == höhe
+        for r in feld:
+            assert len(r) == höhe
         for y, reihe in enumerate(objekte):
             assert len(reihe) == höhe
             for x, obj in enumerate(reihe):
@@ -153,8 +153,8 @@ if __name__ == '__main__':
     # objekte[1][1] = "B"
     # scenario = Scenario("Hallo", feld, objekte)
     scenario = Scenario.laden("../scenarios/s1.txt")
-    ergebnis = scenario.einleiten(system.Mänx())
-    if ergebnis.tot:
+    erg = scenario.einleiten(system.Mänx())
+    if erg.tot:
         print("Du bist tot")
         
         

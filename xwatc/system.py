@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Sequence, Dict, List, Tuple, TypeVar
+from typing import Sequence, Dict, List, Tuple, TypeVar, Callable
 from dataclasses import dataclass, field
 
 ITEMVERZEICHNIS = {
@@ -179,17 +179,29 @@ class Gefährte:
         self.name = name
 
 
+
 class Welt:
     def __init__(self, name):
         self.inventar = {}
         self.name = name
         self.objekte = {}
 
-    def setze(self, name):
+    def setze(self, name: str) -> None:
+        """Setze eine Welt-Variable"""
         self.inventar[name] = 1
 
-    def ist(self, name):
+    def ist(self, name:str) -> bool:
         return name in self.inventar and self.inventar[name]
+
+    def get_or_else(self, name: str, fkt: Callable[..., T], *args,
+                     **kwargs) -> T:
+        if name in self.objekte:
+            ans = self.objekte[name]
+            if isinstance(fkt, type):
+                assert isinstance(ans, fkt)
+            return ans
+        else:
+            return fkt(*args, **kwargs)
 
 
 def schiebe_inventar(start: Inventar, ziel: Inventar):
@@ -200,7 +212,7 @@ def schiebe_inventar(start: Inventar, ziel: Inventar):
 # EIN- und AUSGABE
 
 
-def minput(mänx, frage, möglichkeiten=None, lower=True):
+def minput(mänx: Mänx, frage: str, möglichkeiten=None, lower=True) -> str:
     """Manipulierter Input
     Wenn möglichkeiten (in kleinbuchstaben) gegeben, dann muss die Antwort eine davon sein."""
     if not frage.endswith(" "):
@@ -252,3 +264,4 @@ def kursiv(text: str) -> str:
 
 class Spielende(Exception):
     """Diese Exception wird geschmissen, um das Spiel zu beenden."""
+

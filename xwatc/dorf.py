@@ -3,6 +3,7 @@ Xwatc' Ort- und Menschensystem.
 
 Seit 10.10.2020
 """
+from __future__ import annotations
 from typing import List, Union, Callable, Dict, Tuple
 from typing import Optional as Opt
 from dataclasses import dataclass, field
@@ -32,7 +33,12 @@ class NSC(system.InventarBasis):
             self.fliehen = fliehen  # type: ignore
 
     def kampf(self, mänx: system.Mänx) -> None:
-        raise ValueError(f"Xwatc weiß nicht, wie {self.name} kämpft")
+        """Starte den Kampf gegen mänx."""
+        self.kennt_spieler = True
+        if self.kampf_fn:
+            self.kampf_fn(self, mänx)
+        else:
+            raise ValueError(f"Xwatc weiß nicht, wie {self.name} kämpft")
 
     def fliehen(self, _mänx: system.Mänx) -> None:  # pylint: disable=method-hidden
         mint("Du entkommst mühelos.")
@@ -40,20 +46,21 @@ class NSC(system.InventarBasis):
     def vorstellen(self, mänx: system.Mänx) -> None:
         """So wird der NSC vorgestellt"""
 
-    def optionen(self, _mänx: system.Mänx) -> NSCOptionen:
+    def optionen(self, mänx: system.Mänx) -> NSCOptionen:  # pylint: disable=unused-argument
         return [("kämpfen", "k", self.kampf),
                 ("reden", "r", self.reden),
                 ("fliehen", "f", self.fliehen)]
 
     def main(self, mänx: system.Mänx) -> None:
+        """Starte die Interaktion mit dem Mänxen"""
         if self.tot:
             mint(f"{self.name}s Leiche liegt still auf dem Boden.")
         else:
-            
             opts = self.optionen(mänx)
             mänx.menu(":", opts)(mänx)
 
-    def sprich(self, text) -> None:
+    def sprich(self, text: str) -> None:
+        """Minte mit vorgestelltem Namen"""
         system.sprich(self.name, text)
 
     def reden(self, mänx: system.Mänx) -> None:
@@ -69,11 +76,11 @@ class NSC(system.InventarBasis):
                         if d.verfügbar(self, mänx)]
             if not optionen:
                 if start:
-                    print("Du weißt nicht, was du könntest.")
+                    print("Du weißt nicht, was du sagen könntest.")
                 else:
                     print("Du hast nichts mehr zu sagen.")
             optionen.append(("fliehen", "f", None))
-            dlg: Opt[Dialog] = mänx.menu("", optionen)
+            dlg = mänx.menu("", optionen)
             if not dlg:
                 cont = False
             else:
@@ -81,7 +88,7 @@ class NSC(system.InventarBasis):
                 dlg_anzahl[dlg.name] = dlg_anzahl.setdefault(dlg.name, 0) + 1
             start = False
 
-    def dialog(self, *args, **kwargs) -> Dialog:
+    def dialog(self, *args, **kwargs) -> 'Dialog':
         "Erstelle einen Dialog"
         dia = Dialog(*args, **kwargs)
         self.dialoge.append(dia)
@@ -142,9 +149,9 @@ class Dorfbewohner(NSC):
         super().__init__(name, "Dorfbewohner" if geschlecht
                          else "Dorfbewohnerin")
         self.geschlecht = geschlecht
-        self.dialog("hallo", "Hallo", lambda n, _: 
+        self.dialog("hallo", "Hallo", lambda n, _:
                     sprich(n.name, f"Hallo, ich bin {n.name}. "
-                   "Freut mich, dich kennenzulernen.")).wiederhole(1)
+                           "Freut mich, dich kennenzulernen.")).wiederhole(1)
         self.dialog("hallo2", "Hallo", lambda n, _:
                     sprich(n.name, "Hallo nochmal!"), "hallo")
 
@@ -173,19 +180,22 @@ class Dorfbewohner(NSC):
         else:
             mint("Ihr schlagt euch, bis ihr nicht mehr könnt.")
 
+
 @dataclass
 class Ort:
     """Ein Ort im Dorf, wo sich Menschen aufhalten können"""
     name: str
+    text: Option[str, List[str]]
     menschen: List[NSC] = field(default_factory=list)
+    
 
     def platzangabe(self):
-        if self.name == "Draußen":
-            print("Du bist draußen.")
+        if isinstance(self.text, str):
+            mint(self.text)
         else:
-            # TODO Genus
-            print("Du bist im {self.name}.")
-
+            for line in self.text[:-1]:
+                print(line)
+            mint(self.text[-1])
 
 class Dorf:
     """Ein Dorf besteht aus mehreren Orten, an denen man Menschen treffen kann.
@@ -196,7 +206,7 @@ class Dorf:
         if orte:
             self.orte = orte
         else:
-            self.orte = [Ort("Draußen")]
+            self.orte = [Ort("Draußen", "Du bist draußen.")]
         self.name = name
 
     def main(self, mänx) -> None:

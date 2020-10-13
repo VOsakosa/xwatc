@@ -124,7 +124,7 @@ class Händler(NSC):
                 if preis is None:
                     print("Der Händler kann den Wert davon nicht einschätzen.")
                 else:
-                    print(f"Der Händler ist bereit, die dafür {preis} Gold zu zahlen.")
+                    print(f"Der Händler ist bereit, dir dafür {preis} Gold zu zahlen.")
             elif al == "a":
                 self.zeige_auslage()
             elif al == "z" or al == "w":
