@@ -7,7 +7,7 @@ def westen(mänx):
     sleep(1)
     print("Da begegnete dir eine Henne"
           ", die auf einem Stein hockt.")
-    moral=minput("f/w/k/r (fliehen/weiter/kämpfen/reden)", ["f","w","k","r"])
+    moral=minput(mänx, "f/w/k/r (fliehen/weiter/kämpfen/reden)", ["f","w","k","r"])
     
     if moral=="w":
         print("Du gehst einfach g"
@@ -90,7 +90,7 @@ def westen(mänx):
                  
              
          if nett=="3":
-             print("Die Züge der Henne froren ein. Die Henne war die Ausdruckslosigkeit in Pers.. Huhn.")
+             print("Die Züge der Henne froren ein. Die Henne war die Ausdruckslosigkeit in Pers... Huhn.")
              print("Das Huhn guckt dich an.")
              sleep(1)
              print("Das Huhn guckt dir tief in die Augen.")
@@ -111,6 +111,7 @@ def westen(mänx):
                  print("Das Huhn pickt")
                  sleep(3)
                  print("aua")
+                 raise Spielende
                  
                             
                  
@@ -150,7 +151,7 @@ def westen(mänx):
                  ja=minput ( mänx, "Ja Meisterin Kraagkargk/Nein Meis"
                              "terin Kraagkargk/Ja/nein (jm/nm/j/n)", [jm,nm,n,j])
                  if ja==jm:
-                     input('"Gut", sagte Meisterin Kraagkargk')
+                     mint('"Gut", sagte Meisterin Kraagkargk')
                      print("Du musst jetzt leider eine Minute warten.")
                      sleep(60)
                      print("Meisterin Kraagkargk huscht in die Nacht davon "
@@ -197,15 +198,16 @@ def westen(mänx):
                      print("Das Huhn pickt")
                      sleep(3)
                      print("aua")
+                     raise Spielende
                             
                  
          elif nett=="9":
                  print("Die Henne kreischt.")
                  print("lauter als ein Löwe,")
                  print("schriller als ein Adler,")
-                 print("totbringender als eine Banshee.")
-                 print("Du bist tot")
-                 
+                 mint("totbringender als eine Banshee.")
+                 raise Spielende
+                
          elif nett=="10":
                  print("Erst blickt dich das Huhn wütend an, dann verschwindet es.")
          
