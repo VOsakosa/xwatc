@@ -1,7 +1,9 @@
-from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner
-class MarioWittenpfäld(NSC):
+    
+from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner    
+class ThomarcAizenfjäld(NSC):    
+    
     def __init__(self):
-        super().__init__("Mario Wittenpfäld", "Wache")
+        super().__init__("Thomarc Aizenfjäld", "Wache")
 
     def kampf(self, mänx: Mänx) -> None:
         print("Als du Anstalten machtest, deine Waffe zu zücken, "
@@ -15,23 +17,16 @@ class MarioWittenpfäld(NSC):
         print('"Was ist?", fragt die Wache dich.')
         opts = [
             ('"Hallo, Wer bist du?"', 'bist', 0),
-            ('"Du heißt Tom, oder?"', "tom", 1),
-            ('"Wie findest du das Wetter heute?"', "wetter", 2),
-            ('"Hey, wie geht es dir?"', "geht", 3)
+            ('"Wie findest du das Wetter heute?"', "wetter", 1),
+            ('"Hey, wie geht es dir?"', "geht", 2)
         ]
         opt = mänx.menu(
             "Was sagst du?", opts)
         if opt == 0:
             print("Der Wachmann reagiert nicht.")
-            if ja_nein(mänx, " Beharrst du auf deine Frage?"):
-                mint("Die Wache seufzt. Ich heiße Mario. Mario Wittenpfäld.")
-            else:
-                mint(self.name, "Du lässt die Wache in Ruhe.")
         elif opt == 1:
-            print("", kursiv ("nein!"), "     Ich heiße Mario, Mario Wittenpfäld!")
-        elif opt == 2:
             mint('"schön", sagte die Wache mürrisch.')
-        elif opt == 3:
+        elif opt == 2:
             mint('"gut", sagte die Wache.')
             print('Sie scheint nicht allzu gesprächig zu sein.')
 

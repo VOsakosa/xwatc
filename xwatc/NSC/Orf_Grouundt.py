@@ -1,38 +1,35 @@
 from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner
-class MarioWittenpfäld(NSC):
+class OrfGrouundt(NSC):
     def __init__(self):
-        super().__init__("Mario Wittenpfäld", "Wache")
+        super().__init__("Orf Grouudt", "Wache")
 
     def kampf(self, mänx: Mänx) -> None:
         print("Als du Anstalten machtest, deine Waffe zu zücken, "
-              "schlug die Wache dir mit der flachen Seite ihres Schwertes gegen die Schläfe.")
+              "gab der Wachmann dir eine so dicke Kopfnuss, dass du ohnmächtig auf das Pflaster sinkst.")
         
         
             
 
 
     def reden(self, mänx: Mänx) -> None:
-        print('"Was ist?", fragt die Wache dich.')
+        print('"Hallo"')
         opts = [
-            ('"Hallo, Wer bist du?"', 'bist', 0),
-            ('"Du heißt Tom, oder?"', "tom", 1),
+            ('"Wer bist du?"', 'bist', 0),
+            ('"Du bist doch ein Panti, oder?"', "panti", 1),
             ('"Wie findest du das Wetter heute?"', "wetter", 2),
-            ('"Hey, wie geht es dir?"', "geht", 3)
+            ('"Wie geht es dir?"', "geht", 3)
         ]
         opt = mänx.menu(
             "Was sagst du?", opts)
         if opt == 0:
-            print("Der Wachmann reagiert nicht.")
-            if ja_nein(mänx, " Beharrst du auf deine Frage?"):
-                mint("Die Wache seufzt. Ich heiße Mario. Mario Wittenpfäld.")
-            else:
-                mint(self.name, "Du lässt die Wache in Ruhe.")
+            print('"Hau ab!"')
         elif opt == 1:
-            print("", kursiv ("nein!"), "     Ich heiße Mario, Mario Wittenpfäld!")
+            print("", kursiv ("NEIN!"), "")
+            mint("Wage es ja nicht wieder mich einen Panti zu nennen!!!")
         elif opt == 2:
-            mint('"schön", sagte die Wache mürrisch.')
+            mint('"Hau ab", sagte die Wache mürrisch.')
         elif opt == 3:
-            mint('"gut", sagte die Wache.')
+            mint('"Hau ab!", sagte die Wache.')
             print('Sie scheint nicht allzu gesprächig zu sein.')
 
     def optionen(self, mänx: Mänx) -> NSCOptionen:
