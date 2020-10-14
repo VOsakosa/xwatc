@@ -1,8 +1,8 @@
 from time import sleep
 from xwatc.system import Mänx, minput, ja_nein, kursiv
-from xwatc import osten
-from xwatc import norden
-from xwatc import westen
+from xwatc.lg.osten import osten
+from xwatc.lg.norden import norden
+from xwatc.lg.westen import westen
 import xwatc_Hauptgeschichte as xwatc_haupt
 import random
 

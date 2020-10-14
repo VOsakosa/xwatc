@@ -1,9 +1,9 @@
 from time import sleep
 
-import xwatc.westen
-import xwatc.norden
-import xwatc.osten
-import xwatc.süden
+from xwatc.lg.norden import norden
+from xwatc.lg.westen import westen
+from xwatc.lg.osten import osten
+from xwatc.lg.süden import süden
 from xwatc.system import Mänx, minput, Gefährte, ja_nein, Spielende, kursiv
 import random
 
@@ -69,13 +69,13 @@ def himmelsrichtungen(mänx):
               "das Meer und der Osten ist unentdeckt"
               ".",["norden","osten","süden","westen"])
     if richtung=="Norden"or richtung=="norden":
-        xwatc.norden.norden(mänx)
+        norden.norden(mänx)
     elif richtung=="Osten"or richtung=="osten":
-        xwatc.osten.osten(mänx)
+        osten.osten(mänx)
     elif richtung=="süden":
-        xwatc.süden.süden(mänx)
+        süden.süden(mänx)
     elif richtung=="westen":
-        xwatc.westen.westen(mänx)
+        westen.westen(mänx)
         
     
                       

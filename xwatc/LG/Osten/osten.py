@@ -1,8 +1,8 @@
 from time import sleep
 import xwatc_Hauptgeschichte as xwatc
 from xwatc.system import Mänx, minput, Gefährte, ja_nein, mint, Spielende
-from xwatc import miasteilgeschichte
-from xwatc import jaspersteilgeschichte
+from xwatc import mtg
+from xwatc import jtg as jaspersteilgeschichte
 import random
 
 def osten(mänx):

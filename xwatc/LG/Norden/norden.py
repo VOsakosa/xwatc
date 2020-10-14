@@ -2,14 +2,15 @@ from time import sleep
 import xwatc_Hauptgeschichte as xwatc
 from xwatc.system import Mänx, minput, Gefährte, ja_nein, Spielende
 from xwatc.scenario import lade_scenario
-from Fischerfrau_Massaker import fischerfraumassaker
+from .Fischerfrau_Massaker import fischerfraumassaker
 
 def norden(mänx):
     print("Du wanderst 9 Tage lang gen Norden, bis du zu einem kleinen Fischerdorf "
           "kommst.")
     print("An einem Stand verkauft eine alte Frau Fische. ")
     while True:
-        antwort=minput(mänx, "Willst du handeln, reden, sie angreifen oder einfach weitergehen? (h/r/a/w"["h","a", "w", "r"])
+        antwort=minput(mänx, "Willst du handeln, reden, sie angreifen oder einfach weitergehen? (h/r/a/w)",
+                       ["h","a", "w", "r"])
         if antwort=="h":
             if mänx.inventar["Gold"] >= 5:
                 fisch=minput(mänx, "Du kannst eine Scholle, eine Sardine oder einen Hering kaufen. "

@@ -71,6 +71,10 @@ class MartinPortulakk(NSC):
                      "versuchst du mit ihm zu reden oder fliehst du? (d/um/r/f)", ["d", "um", "r", "f"])
             if a==d:
                 mint("Du findest Kleidung, Fisch, Gemüse und Zeug.")
+                #so ist es schöner
+                # d = {"Socke": 8, "Hose":2}
+                # for name, anzahl in d.items():
+                #    mänx.inventar[name] += anzahl
                 mänx.inventar ["Socke"] += 8
                 mänx.inventar ["Hose"] += 2
                 mänx.inventar ["Hemd"] += 3
