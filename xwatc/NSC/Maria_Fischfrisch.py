@@ -1,7 +1,7 @@
 from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner
-class MarioWittenpfäld(NSC):
+class Fischerfrau(NSC):
     def __init__(self):
-        super().__init__("Mario Wittenpfäld", "Wache")
+        super().__init__("Maria Fischfrisch", "alte Fischerfrau")
 
     def kampf(self, mänx: Mänx) -> None:
         print("Als du Anstalten machtest, deine Waffe zu zücken, "

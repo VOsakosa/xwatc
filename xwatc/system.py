@@ -22,7 +22,7 @@ ITEMVERZEICHNIS = {
     "Schild": "Rüstungsgegenstand",
     "Schneckenschleim": "Superfolienrohstoff",
     "Scholle": "Fisch",
-    "Schwert": "legändäre Waffe",
+    "Schwert": "legendäre Waffe",
     "Speer": "normale Waffe",
     "Spitzhacke": "normales Werkzeug",
     "Stein": "Stein",
