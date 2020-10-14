@@ -52,7 +52,7 @@ class Mädchen(haendler.Händler):
         super().__init__("Mädchen", kauft=["Kleidung"], verkauft={
             "Rose": [1, 1]}, gold=0, art="Mädchen")
 
-    def vorstellen(self):
+    def vorstellen(self, mänx):
         print("Am Wegesrand siehst du ein Mädchen in Lumpen. "
               "Sie scheint zu frieren.")
 
@@ -76,7 +76,7 @@ def t2_norden(mänx) -> None:
     """Das Dorf auf dem Weg nach Norden"""
     print("Auf dem Weg kommen dir mehrfach Leute entgegen, und du kommst in ein kleines Dorf")
     mädchen = Mädchen()
-    if "k" == mädchen.handeln(mänx):
+    if "k" == mädchen.main(mänx):
         mädchen.kampf(mänx)
     elif "Mantel" in mädchen.verkauft:
         print("Das Mädchen bedeutet dir, dass sie nur den halben Mantel braucht.")

@@ -1,4 +1,4 @@
-from typing import List, Optional as Op
+from typing import List, Optional as Op, Literal
 
 from xwatc.dorf import NSC
 from xwatc.system import Mänx, minput, ja_nein, get_class
@@ -48,6 +48,9 @@ class Händler(NSC):
         return False
 
     def get_preis(self, name: str) -> Op[int]:
+        """Berechne den Ankaufpreis für das Objekt name.
+        :return: Preis in Gold, oder None, wenn nicht gekauft wird.
+        """
         return ALLGEMEINE_PREISE.get(name)
 
     def _verkaufen(self, mänx, gegenstand, menge):
@@ -61,7 +64,7 @@ class Händler(NSC):
                 print("So etwas kauft der Händler nicht")
                 print("Der Händler kauft nur", ", ".join(self.kauft))
             else:
-                print("Der Händler verkauft nur")
+                print("Der Händler verkauft nur.")
                 
         else:
             preis = self.get_preis(gegenstand)
@@ -81,7 +84,7 @@ class Händler(NSC):
         else:
             print("Der Händler*in hat nichts mehr zu verkaufen")
 
-    def vorstellen(self):
+    def vorstellen(self, mänx: Mänx) -> None:
         print("Du stehst du vor dem Händler*in", self.name)
         if self.kauft is None:
             print("Er kauft grundsätzlich alles")
@@ -89,9 +92,14 @@ class Händler(NSC):
             print("Er kauft", ", ".join(self.kauft))
         self.zeige_auslage()
 
-    def handeln(self, mänx):
+    def main(self, mänx: Mänx) -> Literal["k", "z"]:
         """Lass Spieler mit Mänx handeln"""
-        self.vorstellen()
+        if self.tot:
+            print("Der Händler ist tot.")
+            return "z"
+        if not self.kennt_spieler:
+            self.vorstellen(mänx)
+            self.kennt_spieler = True
         while True:
             a = minput(mänx, "handel>", lower=False)
             al = a.lower()
@@ -111,10 +119,14 @@ class Händler(NSC):
             elif al.startswith("v ") or al.startswith("verkaufe "):
                 kauft = a.split(" ", 2)
                 try:
-                    menge = int(kauft[1])
-                    gegenstand = kauft[2]
+                    if len(kauft) == 1:
+                        menge = 1
+                        gegenstand = kauft[1]
+                    else:
+                        menge = int(kauft[1])
+                        gegenstand = kauft[2]
                 except (ValueError, IndexError):
-                    print("Syntax: v [anzahl] [gegenstand]")
+                    print("Syntax: v [anzahl]? [gegenstand]")
                     print("Bsp: v 12 Augapfel")
                 else:
                     self._verkaufen(mänx, gegenstand, menge)
@@ -141,5 +153,5 @@ class Händler(NSC):
         for item, (anzahl, _rest) in self.verkauft.items():
             mänx.inventar[item] += anzahl
         self.verkauft.clear()
-        mänx.inventar["Gold"] += self.gold
+        mänx.gold += self.gold
         self.gold = 0

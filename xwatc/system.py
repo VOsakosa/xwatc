@@ -1,6 +1,6 @@
 from collections import defaultdict
-from typing import Sequence, Dict, List, Tuple, TypeVar, Callable
-from dataclasses import dataclass, field
+from typing import Sequence, Dict, List, Tuple, TypeVar, Callable, Any, Union,\
+    overload, Optional, Iterator
 
 ITEMVERZEICHNIS = {
     "Beere": "Obst",
@@ -30,7 +30,7 @@ ITEMVERZEICHNIS = {
     "Stöckchen": "Holz",
     "Talisman der Schreie": "Talisman",
     "Unterhose": "Kleidung",
-    
+
 }
 
 UNTERKLASSEN = {
@@ -42,16 +42,17 @@ UNTERKLASSEN = {
 }
 
 
-
-def get_class(item):
+def get_class(item: str) -> Optional[str]:
     return ITEMVERZEICHNIS.get(item)
 
-def get_classes(item):
+
+def get_classes(item: str) -> Iterator[str]:
     c = get_class(item)
-    yield c
-    while c in UNTERKLASSEN:
-        c = UNTERKLASSEN[c]
+    if c:
         yield c
+        while c in UNTERKLASSEN:
+            c = UNTERKLASSEN[c]
+            yield c
 
 
 T = TypeVar("T")
@@ -119,8 +120,7 @@ class Mänx(InventarBasis):
         self.fähigkeiten = set()
         self.welt = Welt("bliblablux")
         self.missionen = list()
-        
-    
+
     def missionen_zeigen(self):
         ans = []
         for item, anzahl in self.inventar.items():
@@ -141,7 +141,7 @@ class Mänx(InventarBasis):
         return 20
 
     def erhalte(self, item, anzahl=1):
-        print(f"Du erhälst {anzahl} {item}")
+        print(f"Du erhältst {anzahl} {item}")
         self.inventar[item] += anzahl
 
     def will_weiterleben(self):
@@ -150,7 +150,18 @@ class Mänx(InventarBasis):
     def minput(self, *args, **kwargs):
         return minput(self, *args, **kwargs)
 
-    def menu(self, frage: str, optionen: List[MenuOption[T]]) -> T:
+    @overload
+    def menu(self, frage: str, optionen: List[MenuOption[T]],
+             gucken: Union[Sequence[str], Callable[[], Any]] = ...,
+             versteckt: None = None) -> T: ...
+
+    @overload
+    def menu(self, frage: str, optionen: List[MenuOption[T]],
+             gucken: Union[Sequence[str], Callable[[], Any]] = ...,
+             versteckt: Sequence[str] = ...) -> Union[str, T]: ...
+
+    def menu(self, frage, optionen,
+             gucken=("Hier gibt es nichts zu sehen",), versteckt=None):
         """Ähnlich wie Minput, nur werden jetzt Optionen als Liste gegeben."""
         # print("Du kannst")
         print()
@@ -161,11 +172,15 @@ class Mänx(InventarBasis):
             frage += kurz_optionen + " "
         while True:
             eingabe = input(frage).lower()
-            if not eingabe:
+            if versteckt and eingabe in versteckt:
+                return eingabe
+            elif not eingabe:
                 # Nach leerer Option suchen
                 for _, o, v in optionen:
                     if not o:
                         return v
+            elif eingabe == "g" or eingabe == "gucken":
+                print(gucken)
             elif not spezial_taste(self, eingabe):
                 kandidaten = [(o, v) for _, o, v in optionen
                               if o.startswith(eingabe)]
@@ -177,7 +192,7 @@ class Mänx(InventarBasis):
                     print("Es könnte eines davon sein:",
                           ",".join(o for o, v in kandidaten))
 
-    def genauer(self, text: Sequence[str]):
+    def genauer(self, text: Sequence[str]) -> None:
         t = self.minput("Genauer? (Schreibe irgendwas für ja)")
         if t and t not in ("nein", "n"):
             for block in text:
@@ -189,22 +204,21 @@ class Gefährte:
         self.name = name
 
 
-
 class Welt:
-    def __init__(self, name):
-        self.inventar = {}
+    def __init__(self, name: str) -> None:
+        self.inventar: Dict[str, int] = {}
         self.name = name
-        self.objekte = {}
+        self.objekte: Dict[str, Any] = {}
 
     def setze(self, name: str) -> None:
         """Setze eine Welt-Variable"""
         self.inventar[name] = 1
 
-    def ist(self, name:str) -> bool:
-        return name in self.inventar and self.inventar[name]
+    def ist(self, name: str) -> bool:
+        return name in self.inventar and bool(self.inventar[name])
 
     def get_or_else(self, name: str, fkt: Callable[..., T], *args,
-                     **kwargs) -> T:
+                    **kwargs) -> T:
         if name in self.objekte:
             ans = self.objekte[name]
             if isinstance(fkt, type):
@@ -235,7 +249,6 @@ def minput(mänx: Mänx, frage: str, möglichkeiten=None, lower=True) -> str:
             pass
         elif not möglichkeiten or taste in möglichkeiten:
             return taste
-        
 
 
 def spezial_taste(mänx, taste: str) -> bool:
@@ -257,6 +270,7 @@ def mint(*text):
     """Printe und warte auf ein Enter."""
     input(" ".join(str(t) for t in text))
 
+
 def sprich(sprecher: str, text: str):
     mint(f'{sprecher}: "{text}"')
 
@@ -274,4 +288,3 @@ def kursiv(text: str) -> str:
 
 class Spielende(Exception):
     """Diese Exception wird geschmissen, um das Spiel zu beenden."""
-

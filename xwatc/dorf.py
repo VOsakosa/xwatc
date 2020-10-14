@@ -4,7 +4,7 @@ Xwatc' Ort- und Menschensystem.
 Seit 10.10.2020
 """
 from __future__ import annotations
-from typing import List, Union, Callable, Dict, Tuple
+from typing import List, Union, Callable, Dict, Tuple, Any
 from typing import Optional as Opt
 from dataclasses import dataclass, field
 from xwatc.system import mint, schiebe_inventar, Spielende, MenuOption, sprich
@@ -51,7 +51,7 @@ class NSC(system.InventarBasis):
                 ("reden", "r", self.reden),
                 ("fliehen", "f", self.fliehen)]
 
-    def main(self, mänx: system.Mänx) -> None:
+    def main(self, mänx: system.Mänx) -> Any:
         """Starte die Interaktion mit dem Mänxen"""
         if self.tot:
             mint(f"{self.name}s Leiche liegt still auf dem Boden.")
