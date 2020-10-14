@@ -41,7 +41,7 @@ def t2(mänx: Mänx):
             t2_süd(mänx)
         else:  # Westen
             print("Du triffst auf einen Weg.")
-            if minput("Rechts oder Links?", ["r", "l"]) == "r":
+            if minput(mänx, "Rechts oder Links?", ["r", "l"]) == "r":
                 t2_norden(mänx)
             else:
                 t2_west(mänx)

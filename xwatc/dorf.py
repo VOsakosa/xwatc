@@ -74,7 +74,7 @@ class NSC(system.InventarBasis):
                 dlg_anzahl[dlg.name] = dlg_anzahl.setdefault(dlg.name, 0) + 1
             start = False
 
-    def dialog(self, *args, **kwargs) -> Dialog:
+    def dialog(self, *args, **kwargs) -> "Dialog":
         "Erstelle einen Dialog"
         dia = Dialog(*args, **kwargs)
         self.dialoge.append(dia)
