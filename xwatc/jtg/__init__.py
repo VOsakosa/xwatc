@@ -2,7 +2,7 @@ from time import sleep
 from xwatc import haendler
 from xwatc import scenario
 from xwatc.system import Mänx, minput, ja_nein, Spielende, mint, sprich
-from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner
+from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner, Dialog
 from random import randint
 import random
 from xwatc.jtg.ressourcen import FRAUENNAMEN
@@ -20,14 +20,28 @@ def t2(mänx: Mänx) -> None:
     print("Im Westen und Süden ist nichts besonderes.")
     beeren = False
     cont = True
+
+    def gucken():
+        if not mänx.welt.ist("jtg:var:gänseblümchen"):
+            mänx.welt.setze("jtg:var:gänseblümchen")
+            mint("Du findest Blumen auf der Lichtung.")
+            mänx.erhalte("Gänseblümchen", 3)
+        mint("Wenn du genau hinsiehst, erkennst du, dass hier ein Pfad von "
+             "Norden nach Süden auf einen von Westen trifft. Im Osten sind sind "
+             "nur Büsche.")
+
     while cont:
         cont = False
-        richtung = minput(mänx, "Gehst du nach Norden, Osten, Westen oder Süden? norden/süden/westen/"
-                          "osten", ["osten", "süden", "westen", "norden"])
+        richtung = minput(
+            mänx, "Gehst du nach Norden, Osten, Westen oder Süden? "
+            "norden/süden/westen/osten/gucken",
+            ["osten", "süden", "westen", "norden", "gucken", "g"])
         if richtung == "norden":
             print("Der kleine Pfad stößt spitz auf einen Weg von links.")
             weiter = minput(
-                mänx, "Willst du dem Weg folgen [f] oder scharf links abbiegen?[abb]", ["f", "abb"])
+                mänx,
+                "Willst du dem Weg folgen [f] oder scharf links abbiegen?[abb]",
+                ["f", "abb"])
             if weiter == "f":
                 t2_norden(mänx)
             else:
@@ -36,10 +50,13 @@ def t2(mänx: Mänx) -> None:
             if not beeren:
                 print("Du findest Beeren.")
                 mänx.inventar["Beere"] += 10
-                print("Aber du kommst hier nicht weiter")
+                mint("Aber du kommst hier nicht weiter.")
             minput(mänx, "Umkehren?")
             cont = True
             beeren = True
+        elif richtung == "gucken" or richtung == "g":
+            gucken()
+            cont = True
         elif richtung == "süden":
             t2_süd(mänx)
         else:  # Westen
@@ -51,12 +68,14 @@ def t2(mänx: Mänx) -> None:
 
 
 class Mädchen(haendler.Händler):
+    """Mädchen am Weg nach Norden."""
+
     def __init__(self):
         super().__init__("Mädchen", kauft=["Kleidung"], verkauft={
             "Rose": [1, 1]}, gold=0, art="Mädchen")
 
     def vorstellen(self, mänx):
-        print("Am Wegesrand siehst du ein Mädchen in Lumpen. "
+        print("Am Wegesrand vor dem Dorfeingang siehst du ein Mädchen in Lumpen. "
               "Sie scheint zu frieren.")
 
     def get_preis(self, _):
@@ -77,7 +96,7 @@ class Mädchen(haendler.Händler):
 
 def t2_norden(mänx) -> None:
     """Das Dorf auf dem Weg nach Norden"""
-    print("Auf dem Weg kommen dir mehrfach Leute entgegen, und du kommst in ein kleines Dorf")
+    print("Auf dem Weg kommen dir mehrfach Leute entgegen, und du kommst in ein kleines Dorf.")
     mädchen = mänx.welt.get_or_else("jtg:mädchen", Mädchen)
     if "k" == mädchen.main(mänx):
         mädchen.kampf(mänx)
@@ -91,12 +110,19 @@ def t2_norden(mänx) -> None:
     if "Unterhose" in mädchen.verkauft:
         print(
             "Das Mädchen ist sichtlich verwirrt, dass du ihr eine Unterhose gegeben hast.")
-        print("Es hält sie vor sich und mustert sie. Dann sagt sie artig danke.")
+        mint("Es hält sie vor sich und mustert sie. Dann sagt sie artig danke.")
         mänx.titel.add("Perversling")
+    print("")
+    disnayenbum(mänx)
+
+
+def disnayenbum(mänx: Mänx):
     mint("Du kommst im Dorf Disnayenbun an.")
     if "osten" == scenario.lade_scenario(mänx, "disnajenbun"):
+        mint("Du verlässt das Dorf Richtung Osten.")
         t2_no(mänx)
     else:
+        mint("Du verlässt das Dorf Richtung Nordwesten.")
         t2_nw(mänx)
 
 
@@ -145,16 +171,16 @@ def haus_des_hexers(mänx)-> None:
     sprich(leo, "Ich bin Leo Berndoc.")
     sprich(leo, "Was suchst du in diesem Wald?")
     antwort = mänx.minput("",
-        "Halloli! Was mach ich wohl in deinem Haus?[halloli]/ "
-        "Ich habe mich hier verirrt.[verirrt]/ "
-        "Ich bin nur auf der Durchreise.[durchreise]/ "
-        "Die große Liebe![liebe]/ "
-        "Ich bin einfach in den Osten ­– weil da keine Menschen sind – gegangen, "
-        "und dann war da diese Oase. Da waren zwei Türen. "
-        "Ich habe mir ein Herz gefasst, bin durch die Tür gegangen und hier "
-        "bin ich. Plötzlich.[oase]/ "
-        "Das gehst dich doch nichts an![an]",
-        ["verirrt", "halloli", "durchreise", "liebe", "oase", "an"])
+                          "Halloli! Was mach ich wohl in deinem Haus?[halloli]/ "
+                          "Ich habe mich hier verirrt.[verirrt]/ "
+                          "Ich bin nur auf der Durchreise.[durchreise]/ "
+                          "Die große Liebe![liebe]/ "
+                          "Ich bin einfach in den Osten ­– weil da keine Menschen sind – gegangen, "
+                          "und dann war da diese Oase. Da waren zwei Türen. "
+                          "Ich habe mir ein Herz gefasst, bin durch die Tür gegangen und hier "
+                          "bin ich. Plötzlich.[oase]/ "
+                          "Das gehst dich doch nichts an![an]",
+                          ["verirrt", "halloli", "durchreise", "liebe", "oase", "an"])
     if antwort == "halloli":
         print("Er sagt mit einem verschwörerischen Tonfall: \"Ich verstehe.\"")
         sprich(leo, "Bleibe ruhig noch die Nacht. Hier werden sie dich nicht finden.")
@@ -258,7 +284,7 @@ def hexer_kampf(mänx):
         hose = mänx.inventar["Unterhose"]
         if hose:
             print("Er zieht dich bis auf die Unterhose aus", end="")
-            
+
         else:
             print("Er zieht dich aus, verzieht das Gesicht, als er sieht, "
                   "dass du keine Unterhose trägst", end="")
@@ -341,6 +367,7 @@ class TobiacBerndoc(NSC):
         mint("Tobiac ist sofort voll in seinem Element. Dir ist, als wäre "
              "er einsam und froh über deine Gesellschaft.")
         mint("Du bleibt einige Tage bei ihm und lernst sein Handwerk.")
+        mänx.welt.nächster_tag(11)
         mint("Je länger du übst, desto mehr siehst du, dass er so gut spielt "
              "wie kein anderer.")
         mänx.fähigkeiten.add("Orgel")
@@ -365,7 +392,7 @@ class TobiacBerndoc(NSC):
         mänx.inventar["Ring des Berndoc"] -= 1
         return True
 
-    def reden_wo_bin_ich(self, mänx: Mänx) -> bool: # pylint: disable=unused-argument
+    def reden_wo_bin_ich(self, mänx: Mänx) -> bool:  # pylint: disable=unused-argument
         self.sprich(f"Du bist in {SÜD_DORF_NAME}, im Reich Jotungard.")
         return True
 
@@ -380,7 +407,6 @@ class TobiacBerndoc(NSC):
         super().main(mänx)
 
 
-
 class Waschweib(Dorfbewohner):
     def __init__(self, name: str):
         super().__init__(name, geschlecht=False)
@@ -388,6 +414,7 @@ class Waschweib(Dorfbewohner):
         self.inventar["Schnöder Ehering"] += 1
         self.inventar["Einfaches Kleid"] += 1
         self.inventar["Unterhose"] += 1
+
 
 def zufälliges_waschweib() -> Waschweib:
     name = "{} {}tochter".format(
@@ -398,12 +425,54 @@ def zufälliges_waschweib() -> Waschweib:
     w.gold += max(0, random.randint(-4, 10))
     return w
 
+
+def süd_dorf_wo(nsc: NSC, _mänx: Mänx):
+    nsc.sprich("Dieses Dorf ist " + SÜD_DORF_NAME + ".")
+    nsc.sprich("Dort (zeigt nach Osten) geht es nach Disnayenbum und "
+               "nach Tauern.")
+    nsc.sprich("Dort (zeigt nach Süden) geht es zur Hauptstadt. Ich würde da "
+               "nicht hingehen, wenn ich du wäre. Da sind zu viele Monster.")
+    nsc.sprich("Und zuletzt geht es noch da (zeigt nach Westen) nach "
+               "Grökrakchöl.")
+    mint("Grö-Kra-krö?")
+    nsc.sprich("Nein, Gröh-Kra-Kchöhl. Das ist eine Grenzbefestigung.")
+    return True
+
+
+def süd_dorf_grenzen(nsc: NSC, _mänx: Mänx):
+    nsc.sprich("Nach Tauern und Eo natürlich.")
+    nsc.sprich("In Tauern leben Taurer, das sind keine Menschen, sondern Wesen "
+               "mit Köpfen, die Kühen ähneln.")
+    if isinstance(nsc, Waschweib):
+        nsc.sprich("Ich finde Kühe aber niedlicher.")
+    nsc.sprich("Und Eo...")
+    nsc.sprich("Wir führen zwar keinen Krieg gegen sie, aber die Beziehungen "
+               "sind schlecht. Sie lassen uns nicht herein.")
+    return True
+
+def süd_dorf_norden(nsc: NSC, _mänx: Mänx):
+    nsc.sprich("Meinst du den Wald?")
+    nsc.sprich("Da würde ich nicht hineingehen. Da lebt ein Hexer oder so.")
+    nsc.sprich("Aber er hält uns die Monster vom Leib. Ist also nicht so, als "
+               "ob das nur schlecht wäre.")
+    return True
+
+
+SÜD_DORF_DIALOGE = [
+    Dialog("wo", '"Wo bin ich hier?"', süd_dorf_wo),
+    Dialog("grenzen", '"Welche Grenzen?"', süd_dorf_grenzen, "wo"),
+    Dialog("norden", '"Was ist mit dem Norden?"', süd_dorf_norden, "wo"),
+]
+
+
 def ende_des_waldes(mänx, morgen=False):
+    mänx.welt.nächster_tag()
     print("Der Wald wird schnell viel weniger unheimlich")
     if not morgen:
         print("Erschöpft legst du dich auf den Waldboden schlafen.")
         sleep(2)
     süd_dorf(mänx)
+
 
 def erzeuge_süd_dorf(mänx) -> Dorf:
     d = Dorf(SÜD_DORF_NAME)
@@ -412,12 +481,16 @@ def erzeuge_süd_dorf(mänx) -> Dorf:
         # Tobiac tot?
         "Im Hauptschiff ist niemand, aber du hörst die Orgel"
     ])
-    kirche.menschen.append(mänx.welt.get_or_else("jtg:m:tobiac", TobiacBerndoc))
+    kirche.menschen.append(mänx.welt.get_or_else(
+        "jtg:m:tobiac", TobiacBerndoc))
     d.orte.append(kirche)
-    for _i in range(randint(2,5)):
-        d.orte[0].menschen.append(zufälliges_waschweib())
+    for _i in range(randint(2, 5)):
+        w = zufälliges_waschweib()
+        w.dialoge.extend(SÜD_DORF_DIALOGE)
+        d.orte[0].menschen.append(w)
     # TODO weitere Objekte
     return d
+
 
 def süd_dorf(mänx):
     print("Im Süden siehst du ein Dorf")

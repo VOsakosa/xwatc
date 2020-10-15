@@ -1,6 +1,8 @@
 from xwatc.scenario import ScenarioEnde
 
-def osten(mänx, scenario):
+#pylint: disable=unused-argument
+
+def osten(mänx, scenario):  
     return ScenarioEnde(ergebnis="osten")
 
 def westen(mänx, scenario):

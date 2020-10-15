@@ -213,10 +213,12 @@ class Gefährte:
 
 
 class Welt:
+    """Speichert den Zustand der Welt, in der sich der Hauptcharakter befindet."""
     def __init__(self, name: str) -> None:
         self.inventar: Dict[str, int] = {}
         self.name = name
         self.objekte: Dict[str, Any] = {}
+        self.inventar["generell:tag"] = 0
 
     def setze(self, name: str) -> None:
         """Setze eine Welt-Variable"""
@@ -227,6 +229,7 @@ class Welt:
 
     def get_or_else(self, name: str, fkt: Callable[..., T], *args,
                     **kwargs) -> T:
+        """Hole ein Objekt aus dem Speicher oder erzeuge ist mit *fkt*"""
         if name in self.objekte:
             ans = self.objekte[name]
             if isinstance(fkt, type):
