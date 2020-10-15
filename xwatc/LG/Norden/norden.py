@@ -2,7 +2,7 @@ from time import sleep
 import xwatc_Hauptgeschichte as xwatc
 from xwatc.system import Mänx, minput, Gefährte, ja_nein, Spielende
 from xwatc.scenario import lade_scenario
-from .Fischerfrau_Massaker import fischerfraumassaker
+from xwatc.lg.norden.Fischerfrau_Massaker import fischerfraumassaker
 
 def norden(mänx):
     print("Du wanderst 9 Tage lang gen Norden, bis du zu einem kleinen Fischerdorf "

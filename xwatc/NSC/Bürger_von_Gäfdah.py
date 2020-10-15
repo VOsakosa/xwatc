@@ -100,18 +100,6 @@ class MartinPortulakk(NSC):
                 mänx.inventar ["Harke"] += 1
                 mänx.inventar ["Rechen"] += 1
                 mänx.inventar ["Messer"] += 1
-                
-            elif a=="um":
-                mint("Du bringst den Mann um, doch davor rief er noch lauthals nach Hilfe.")
-                print("Nicht lange danach kam die Dorfwache.")
-                
-            elif a=="r":
-                mint("Du versuchst, mit ihm zu reden, doch der Mann brachte nur ein Wimmern heraus.")
-                
-            else:
-                print("Kaum warst du aus dem Haus, schrie der Mann nach Hilfe.")
-                mint("Tja das war's dann wohl...")
-                print("Die Wachen sind schon da.")
 
         elif opt == 7:
             mint('"gut", sagte die Wache.')
