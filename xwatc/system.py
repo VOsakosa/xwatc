@@ -64,8 +64,8 @@ def get_classes(item: str) -> Iterator[str]:
 
 
 T = TypeVar("T")
-
-MenuOption = Tuple[str, str, T]
+Tcov = TypeVar("Tcov", covariant=True)
+MenuOption = Tuple[str, str, Tcov]
 Inventar = Dict[str, int]
 
 
@@ -157,6 +157,9 @@ class Mänx(InventarBasis):
 
     def minput(self, *args, **kwargs):
         return minput(self, *args, **kwargs)
+
+    def ja_nein(self, *args, **kwargs):
+        return ja_nein(self, *args, **kwargs)
 
     @overload
     def menu(self, frage: str, optionen: List[MenuOption[T]],

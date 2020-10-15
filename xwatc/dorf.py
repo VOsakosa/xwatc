@@ -4,14 +4,15 @@ Xwatc' Ort- und Menschensystem.
 Seit 10.10.2020
 """
 from __future__ import annotations
-from typing import List, Union, Callable, Dict, Tuple, Any
+from typing import List, Union, Callable, Dict, Tuple, Any, cast
 from typing import Optional as Opt
 from dataclasses import dataclass, field
 from xwatc.system import mint, schiebe_inventar, Spielende, MenuOption, sprich
 from xwatc import system
 __author__ = "jasper"
 
-NSCOptionen = List[MenuOption[Callable[[system.Mänx], None]]]
+MänxFkt = Callable[[system.Mänx], Any]
+NSCOptionen = List[MenuOption[MänxFkt]]
 DialogFn = Callable[["NSC", system.Mänx], Opt[bool]]
 
 
@@ -48,22 +49,13 @@ class NSC(system.InventarBasis):
 
     def optionen(self, mänx: system.Mänx) -> NSCOptionen:  # pylint: disable=unused-argument
         return [("kämpfen", "k", self.kampf),
-                ("reden", "r", self.reden),
                 ("fliehen", "f", self.fliehen)]
 
     def main(self, mänx: system.Mänx) -> Any:
-        """Starte die Interaktion mit dem Mänxen"""
+        """Starte die Interaktion mit dem Mänxen."""
         if self.tot:
             mint(f"{self.name}s Leiche liegt still auf dem Boden.")
-        else:
-            opts = self.optionen(mänx)
-            mänx.menu(":", opts)(mänx)
-
-    def sprich(self, text: str) -> None:
-        """Minte mit vorgestelltem Namen"""
-        system.sprich(self.name, text)
-
-    def reden(self, mänx: system.Mänx) -> None:
+            return
         if not self.kennt_spieler:
             self.vorstellen(mänx)
             self.kennt_spieler = True
@@ -71,22 +63,28 @@ class NSC(system.InventarBasis):
         cont = True
         start = True
         while cont:
-            optionen: List[MenuOption[Opt[Dialog]]]
-            optionen = [d.zu_option() for d in self.dialoge
-                        if d.verfügbar(self, mänx)]
+            optionen: List[MenuOption[Union[Dialog, MänxFkt]]]
+            optionen = cast(Any, self.optionen(mänx))
+            optionen.extend(d.zu_option() for d in self.dialoge
+                        if d.verfügbar(self, mänx))
             if not optionen:
                 if start:
                     print("Du weißt nicht, was du sagen könntest.")
                 else:
                     print("Du hast nichts mehr zu sagen.")
-            optionen.append(("fliehen", "f", None))
             dlg = mänx.menu("", optionen)
-            if not dlg:
-                cont = False
-            else:
+            if isinstance(dlg, Dialog):
                 cont = bool(dlg.geschichte(self, mänx))
                 dlg_anzahl[dlg.name] = dlg_anzahl.setdefault(dlg.name, 0) + 1
+            else:
+                dlg(mänx)
+                cont = False
             start = False
+
+    def sprich(self, text: str) -> None:
+        """Minte mit vorgestelltem Namen"""
+        system.sprich(self.name, text)
+        
 
     def dialog(self, *args, **kwargs) -> 'Dialog':
         "Erstelle einen Dialog"
