@@ -202,8 +202,12 @@ class Mänx(InventarBasis):
             elif eingabe == "g" or eingabe == "gucken":
                 print(gucken)
             elif not spezial_taste(self, eingabe):
-                kandidaten = [(o, v) for _, o, v in optionen
-                              if o.startswith(eingabe)]
+                kandidaten = []
+                for _, o, v in optionen:
+                    if o == eingabe:  # Genauer Match
+                        return v
+                    elif o.startswith(eingabe):
+                        kandidaten.append((o, v))
                 if len(kandidaten) == 1:
                     return kandidaten[0][1]
                 elif not kandidaten:
@@ -217,6 +221,7 @@ class Mänx(InventarBasis):
         if t and t not in ("nein", "n"):
             for block in text:
                 print(block)
+
 
 
 class Gefährte:

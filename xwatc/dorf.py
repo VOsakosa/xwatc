@@ -74,7 +74,7 @@ class NSC(system.InventarBasis):
                     print("Du hast nichts mehr zu sagen.")
             dlg = mänx.menu("", optionen)
             if isinstance(dlg, Dialog):
-                cont = bool(dlg.geschichte(self, mänx))
+                cont = dlg.geschichte(self, mänx) is False
                 dlg_anzahl[dlg.name] = dlg_anzahl.setdefault(dlg.name, 0) + 1
             else:
                 dlg(mänx)
