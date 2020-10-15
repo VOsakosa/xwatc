@@ -3,6 +3,8 @@ from typing import Sequence, Dict, List, Tuple, TypeVar, Callable, Any, Union,\
     overload, Optional, Iterator
 
 ITEMVERZEICHNIS = {
+    "Apfel": "Obst",
+    "Aprikose": "Obst",
     "Banane": "Obst",
     "Beere": "Obst",
     "Einfaches Kleid": "Kleidung",
@@ -37,7 +39,7 @@ ITEMVERZEICHNIS = {
     "Stöckchen": "Holz",
     "Talisman der Schreie": "Talisman",
     "Unterhose": "Kleidung",
-
+    "Zwetschge": "Obst",
 }
 
 UNTERKLASSEN = {
@@ -45,6 +47,7 @@ UNTERKLASSEN = {
     "Fleisch": "Nahrung",
     "legendäre Waffe": "Waffe",
     "normale Waffe": "Waffe",
+    "Obst": "Nahrung",
     "Ring": "Ausrüstung",
     "Rüstungsgegenstand": "Ausrüstung",
 }
@@ -113,6 +116,15 @@ class Mänx(InventarBasis):
 
     def __init__(self):
         super().__init__()
+        self.gebe_startinventar()
+        self.gefährten = []
+        self.titel = set()
+        self.lebenswille = 10
+        self.fähigkeiten = set()
+        self.welt = Welt("bliblablux")
+        self.missionen = list()
+
+    def gebe_startinventar(self):
         self.inventar["Gold"] = 33
         self.inventar["Mantel"] = 1
         self.inventar["Unterhose"] = 1
@@ -122,12 +134,6 @@ class Mänx(InventarBasis):
         self.inventar["Socke"] = 2
         self.inventar["Turnschuh"] = 2
         self.inventar["Mütze"] = 1
-        self.gefährten = []
-        self.titel = set()
-        self.lebenswille = 10
-        self.fähigkeiten = set()
-        self.welt = Welt("bliblablux")
-        self.missionen = list()
 
     def missionen_zeigen(self):
         ans = []
@@ -137,9 +143,12 @@ class Mänx(InventarBasis):
         return ", ".join(ans)
 
     def inventar_leeren(self) -> None:
+        """Töte den Menschen, leere sein Inventar und entlasse
+        seine Gefährten."""
         self.inventar.clear()
-        self.titel.clear()
+        # self.titel.clear()
         self.gefährten.clear()
+        self.gebe_startinventar()
 
     def get_kampfkraft(self) -> int:
         if any(get_class(it) == "magische Waffe" for it in self.items()):
