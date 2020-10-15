@@ -1,4 +1,4 @@
-from typing import List, Optional as Op, Literal
+from typing import List, Optional as Op, Literal, NewType, Dict, cast
 
 from xwatc.dorf import NSC
 from xwatc.system import Mänx, minput, ja_nein, get_class
@@ -6,9 +6,11 @@ from xwatc.system import Mänx, minput, ja_nein, get_class
 ALLGEMEINE_PREISE = {
     "Speer": 50
 }
+Preis = NewType("Preis", int)
 
 class Händler(NSC):
-    def __init__(self, name, kauft: Op[List[str]], verkauft, gold: int,
+    def __init__(self, name, kauft: Op[List[str]], 
+                 verkauft: Dict[str, Preis], gold: Preis,
                  art = "Händler"):
         """Neuer Händler namens *name*, der Sachen aus den Kategorien *kauft* kauft.
         *verkauft* ist das Inventar. *gold* ist die Anzahl von Gold."""
@@ -16,15 +18,16 @@ class Händler(NSC):
         self.kauft = kauft
         # Anzahl, Preis
         self.verkauft = verkauft
-        self.gold: int = gold
+        self.gold = gold
+        self.rückkauf = False
 
     def kaufen(self, mänx: Mänx, name: str, anzahl: int=1) -> bool:
         """Mänx kauft von Händler"""
         if name not in self.verkauft:
             return False
-        preis = self.verkauft[name][1]
-        if self.verkauft[name][0] >= anzahl and mänx.inventar["Gold"] >= preis:
-            self.verkauft[name][0] -= anzahl
+        preis = self.verkauft[name]
+        if self.inventar[name] >= anzahl and mänx.inventar["Gold"] >= preis:
+            self.inventar[name] -= anzahl
             self.gold += anzahl * preis
             mänx.inventar["Gold"] -= anzahl * preis
             mänx.inventar[name] += anzahl
@@ -32,18 +35,18 @@ class Händler(NSC):
         return False
 
     def kann_kaufen(self, name: str):
+        """Prüft, ob der Händler *name* ankauft."""
         return self.kauft is None or get_class(name) in self.kauft
 
-    def verkaufen(self, mänx: Mänx, name: str, preis: int, anzahl: int = 1) -> bool:
+    def verkaufen(self, mänx: Mänx, name: str, preis: Preis, anzahl: int = 1) -> bool:
         """Mänx verkauft an Händler"""
         if self.kann_kaufen(name) and self.gold >= preis * anzahl:
             self.gold -= preis * anzahl
-            mänx.inventar["Gold"] += preis * anzahl
+            mänx.gold += preis * anzahl
             mänx.inventar[name] -= anzahl
-            if name not in self.verkauft:
-                self.verkauft[name] = [anzahl, preis + 1]
-            else:
-                self.verkauft[name][0] += 1
+            self.inventar[name] += anzahl
+            if self.rückkauf and name not in self.verkauft:
+                self.verkauft[name] = cast(Preis, preis + 1)
             return True
         return False
 
@@ -75,10 +78,12 @@ class Händler(NSC):
             else:
                 self.verkaufen(mänx, gegenstand, preis, menge)
 
-    def zeige_auslage(self):
+    def zeige_auslage(self) -> None:
+        """Printe die Auslage auf den Bildschirm."""
         if self.verkauft:
             länge = max(len(a) for a in self.verkauft) + 1
-            for item, (anzahl, preis) in self.verkauft.items():
+            for item, preis in self.verkauft.items():
+                anzahl = self.inventar[item]
                 if anzahl:
                     print(f"{item:<{länge}}{anzahl:04}x {preis:3} Gold")
         else:
@@ -147,11 +152,3 @@ class Händler(NSC):
             else:
                 print("Nutze k [Anzahl] [Item] zum Kaufen, v zum Verkaufen, z für Zurück, a für eine Anzeige und "
                       "nur k zum Kämpfen, p [Item] um nach dem Preis zu fragen.")
-
-    def plündern(self, mänx):
-        """Gib den ganzen Inventarinhalt an mänx"""
-        for item, (anzahl, _rest) in self.verkauft.items():
-            mänx.inventar[item] += anzahl
-        self.verkauft.clear()
-        mänx.gold += self.gold
-        self.gold = 0

@@ -227,6 +227,12 @@ class Welt:
         else:
             return fkt(*args, **kwargs)
 
+    def nächster_tag(self, tage: int = 1):
+        self.inventar["generell:tag"] += tage
+
+    def get_tag(self) -> int:
+        return self.inventar["generell:tag"]
+
 
 def schiebe_inventar(start: Inventar, ziel: Inventar):
     """Schiebe alles aus start in ziel"""

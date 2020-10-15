@@ -75,7 +75,7 @@ class Mädchen(haendler.Händler):
 def t2_norden(mänx) -> None:
     """Das Dorf auf dem Weg nach Norden"""
     print("Auf dem Weg kommen dir mehrfach Leute entgegen, und du kommst in ein kleines Dorf")
-    mädchen = Mädchen()
+    mädchen = mänx.welt.get_or_else("jtg:mädchen", Mädchen)
     if "k" == mädchen.main(mänx):
         mädchen.kampf(mänx)
     elif "Mantel" in mädchen.verkauft:
@@ -137,11 +137,11 @@ def t2_süd(mänx) -> None:
 
 def haus_des_hexers(mänx)-> None:
     print("Er bittet dich an den Tisch und gibt dir einen warmen Punsch.")
-    mänx.welt.setze("Hexer bekannt")
+    mänx.welt.setze("kennt:hexer")
     leo = 'Leo Berndoc'
     sprich(leo, "Ich bin Leo Berndoc.")
     sprich(leo, "Was suchst du in diesem Wald?")
-    antwort = mänx.minput(
+    antwort = mänx.minput("",
         "Halloli! Was mach ich wohl in deinem Haus?[halloli]/ "
         "Ich habe mich hier verirrt.[verirrt]/ "
         "Ich bin nur auf der Durchreise.[durchreise]/ "
@@ -153,7 +153,7 @@ def haus_des_hexers(mänx)-> None:
         "Das gehst dich doch nichts an![an]",
         ["verirrt", "halloli", "durchreise", "liebe", "oase", "an"])
     if antwort == "halloli":
-        print("Er sagt mit einem verschwörischen Tonfall: \"Ich verstehe.\"")
+        print("Er sagt mit einem verschwörerischen Tonfall: \"Ich verstehe.\"")
         sprich(leo, "Bleibe ruhig noch die Nacht. Hier werden sie dich nicht finden.")
         print("Du entschließt dich, mitzumachen. Am nächsten Tag verlässt du "
               "schnell das Haus, bevor der Schwindel "
@@ -169,7 +169,7 @@ def haus_des_hexers(mänx)-> None:
         sleep(3)
         print("Als du am nächsten Morgen aufwachst, fühlst du dich schwach und kalt.")
         print("Leo steht vor dir.")
-        sprich(leo, "Du bist jetzt eine wandelne Leiche und gehorchst meinem Willen")
+        sprich(leo, "Du bist jetzt eine wandelnde Leiche und gehorchst meinem Willen")
         raise Spielende()
     elif antwort == "durchreise":
         sprich(leo, "Schade. Trotzdem-Schön, dich getroffen zu haben. Im Süden ist ein Dorf, "
@@ -244,7 +244,7 @@ def hexer_kampf(mänx):
         print("Du findest einen Ring. In ihm steht eingraviert: "
               "\"Ich hasse dich, Dongmin!\"")
         mänx.erhalte("Ring des Berndoc")
-        print("Du entscheidest dich, nach Süden weiterzugehen")
+        print("Du entscheidest dich, nach Süden weiter zu gehen.")
         sleep(2)
     else:
         print("Du kannst dich kaum bewegen. Er tritt auf dich drauf.")
@@ -252,13 +252,16 @@ def hexer_kampf(mänx):
         print("Dein Rücken tut weh")
         sleep(0.5)
         print("Aber er zeigt Gnade. ", end="")
-        if mänx.hat_item("Unterhose"):
+        hose = mänx.inventar["Unterhose"]
+        if hose:
             print("Er zieht dich bis auf die Unterhose aus", end="")
+            
         else:
             print("Er zieht dich aus, verzieht das Gesicht, als er sieht, "
                   "dass du keine Unterhose trägst", end="")
         print(" und wirft dich im Süden des Waldes auf den Boden")
-        mänx.inventar_leeren()  # TODO nicht meine Titeeel!
+        mänx.inventar.clear()
+        mänx.inventar["Unterhose"] = hose
     ende_des_waldes(mänx)
 
 
@@ -284,12 +287,13 @@ class TobiacBerndoc(NSC):
                     '"Kannst du mir beibringen, Orgel zu spielen?"',
                     cls.reden_lernen)
         self.dialog("leo", '"Was ist dein Verhältnis zu Leo Berndoc?"',
-                    cls.reden_leo).wenn(lambda n, m: m.welt.ist("Hexer bekannt"))
+                    cls.reden_leo).wenn(lambda n, m: m.welt.ist("kennt:hexer"))
         self.dialog("wetter",
                     '"Wie findest du das Wetter heute?"', cls.reden_wetter)
         self.dialog('ring',
                     "Den Ring vorzeigen", cls.ring_zeigen).wenn(
                         lambda n, m: m.hat_item("Ring des Berndoc"))
+        self.dialog('wo', '"Wo bin ich?"', cls.reden_wo_bin_ich)
 
     def kampf(self, mänx: Mänx) -> None:
         if mänx.hat_klasse("Waffe", "magische Waffe"):
@@ -343,17 +347,24 @@ class TobiacBerndoc(NSC):
         print("Draußen war es bewölkt.")
         mint("Wie lange war Tobiac wohl nicht mehr draußen?")
 
-    def reden_leo(self, mänx: Mänx) -> None:  # pylint: disable=unused-argument
+    def reden_leo(self, mänx: Mänx):  # pylint: disable=unused-argument
         sprich(self.name, "Er ist mein Bruder, aber er hat sich in den "
                "Wald zurückgezogen. Ich habe lange nicht mehr von ihm gehört.")
         sprich(self.name, "Er war auch vorher sehr zurückgezogen.")
         sprich(self.name, "Warum fragst du?")
+        return True
 
-    def ring_zeigen(self, mänx: Mänx) -> None:
+    def ring_zeigen(self, mänx: Mänx) -> bool:
         self.sprich("Das ist doch der Ring unserer Familie!")
         self.sprich("Warte. Ich werde nicht fragen, wo du ihn herhast.")
+        print("Du gibst ihm den Ring des Berndoc")
         self.inventar["Ring des Berndoc"] += 1
         mänx.inventar["Ring des Berndoc"] -= 1
+        return True
+
+    def reden_wo_bin_ich(self, mänx: Mänx) -> bool: # pylint: disable=unused-argument
+        self.sprich(f"Du bist in {SÜD_DORF_NAME}, im Reich Jotungard.")
+        return True
 
     def optionen(self, mänx: Mänx) -> NSCOptionen:
         return NSC.optionen(self, mänx) + [
@@ -364,6 +375,7 @@ class TobiacBerndoc(NSC):
         print("Tobiac spielt auf der Orgel.")
         print("Die Melodie klingt ungewöhnlich, aber sehr schön.")
         super().main(mänx)
+
 
 
 class Waschweib(Dorfbewohner):
@@ -394,7 +406,7 @@ def erzeuge_süd_dorf() -> Dorf:
 def süd_dorf(mänx):
     print("Im Süden siehst du ein Dorf")
     mänx.genauer(SÜD_DORF_GENAUER)
-    mänx.welt.get_or_else("j:dorf:süd", erzeuge_süd_dorf).main(mänx)
+    mänx.welt.get_or_else("jtg:dorf:süd", erzeuge_süd_dorf).main(mänx)
 
 
 def t2_west(mänx):

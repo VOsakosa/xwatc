@@ -94,6 +94,10 @@ class NSC(system.InventarBasis):
         self.dialoge.append(dia)
         return dia
 
+    def plündern(self, mänx: system.Mänx) -> Any:
+        """Schiebe das ganze Inventar von NSC zum Mänxen."""
+        schiebe_inventar(self.inventar, mänx.inventar)
+
 
 class Dialog:
     """Ein einzelner Gesprächsfaden beim Gespräch mit einem NSC"""
@@ -185,7 +189,7 @@ class Dorfbewohner(NSC):
 class Ort:
     """Ein Ort im Dorf, wo sich Menschen aufhalten können"""
     name: str
-    text: Option[str, List[str]]
+    text: Union[str, List[str]]
     menschen: List[NSC] = field(default_factory=list)
     
 
