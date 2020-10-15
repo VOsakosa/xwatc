@@ -3,6 +3,9 @@ from xwatc import haendler
 from xwatc import scenario
 from xwatc.system import Mänx, minput, ja_nein, Spielende, mint, sprich
 from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner
+from random import randint
+import random
+from xwatc.jtg.ressourcen import FRAUENNAMEN
 
 
 def t2(mänx: Mänx) -> None:
@@ -382,7 +385,18 @@ class Waschweib(Dorfbewohner):
     def __init__(self, name: str):
         super().__init__(name, geschlecht=False)
         self.art = "Waschweib"
+        self.inventar["Schnöder Ehering"] += 1
+        self.inventar["Einfaches Kleid"] += 1
+        self.inventar["Unterhose"] += 1
 
+def zufälliges_waschweib() -> Waschweib:
+    name = "{} {}tochter".format(
+        random.choice(FRAUENNAMEN), random.choice(FRAUENNAMEN))
+    w = Waschweib(name)
+    if random.random() > 0.8:
+        w.inventar["Haarband"] += 1
+    w.gold += max(0, random.randint(-4, 10))
+    return w
 
 def ende_des_waldes(mänx, morgen=False):
     print("Der Wald wird schnell viel weniger unheimlich")
@@ -391,22 +405,24 @@ def ende_des_waldes(mänx, morgen=False):
         sleep(2)
     süd_dorf(mänx)
 
-def erzeuge_süd_dorf() -> Dorf:
+def erzeuge_süd_dorf(mänx) -> Dorf:
     d = Dorf(SÜD_DORF_NAME)
     kirche = Ort("Kirche", [
         "Du bist in einer kleinen Kirche.",
         # Tobiac tot?
         "Im Hauptschiff ist niemand, aber du hörst die Orgel"
     ])
-    kirche.menschen.append(TobiacBerndoc())
+    kirche.menschen.append(mänx.welt.get_or_else("jtg:m:tobiac", TobiacBerndoc))
     d.orte.append(kirche)
+    for _i in range(randint(2,5)):
+        d.orte[0].menschen.append(zufälliges_waschweib())
     # TODO weitere Objekte
     return d
 
 def süd_dorf(mänx):
     print("Im Süden siehst du ein Dorf")
     mänx.genauer(SÜD_DORF_GENAUER)
-    mänx.welt.get_or_else("jtg:dorf:süd", erzeuge_süd_dorf).main(mänx)
+    mänx.welt.get_or_else("jtg:dorf:süd", erzeuge_süd_dorf, mänx).main(mänx)
 
 
 def t2_west(mänx):
@@ -433,4 +449,6 @@ def land_der_kühe(mänx):
 
 
 if __name__ == '__main__':
-    t2(Mänx())
+    m = Mänx()
+    m.inventar["Speer"] += 1
+    t2(m)

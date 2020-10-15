@@ -108,10 +108,11 @@ class Dialog:
         self.name = name
         self.text = text
         self.geschichte = geschichte
-        if vorherige is not None:
+        self.vorherige: List[Union[str, Tuple[str, int]]]
+        if isinstance(vorherige, str):
+            self.vorherige = [vorherige]
+        elif vorherige is not None:
             self.vorherige = vorherige
-        elif isinstance(vorherige, str):
-            self.vorherige = list(vorherige)
         else:
             self.vorherige = []
 
@@ -155,14 +156,15 @@ class Dorfbewohner(NSC):
         self.geschlecht = geschlecht
         self.dialog("hallo", "Hallo", lambda n, _:
                     sprich(n.name, f"Hallo, ich bin {n.name}. "
-                           "Freut mich, dich kennenzulernen.")).wiederhole(1)
+                           "Freut mich, dich kennenzulernen.") or True).wiederhole(1)
         self.dialog("hallo2", "Hallo", lambda n, _:
-                    sprich(n.name, "Hallo nochmal!"), "hallo")
+                    sprich(n.name, "Hallo nochmal!") or True, "hallo")
 
     def kampf(self, mänx: system.Mänx) -> None:
         if mänx.hat_klasse("Waffe", "magische Waffe"):
             mint("Du streckst den armen Typen nieder.")
-            schiebe_inventar(self.inventar, mänx.inventar)
+            self.tot = True
+            self.plündern(mänx)
         elif self.hat_klasse("Waffe", "magische Waffe"):
             mint(
                 f"Du rennst auf {self.name} zu und schlägst wie wild auf "
