@@ -74,7 +74,11 @@ class NSC(system.InventarBasis):
                     print("Du hast nichts mehr zu sagen.")
             dlg = mänx.menu("", optionen)
             if isinstance(dlg, Dialog):
-                cont = dlg.geschichte(self, mänx) is False
+                if callable(dlg.geschichte):
+                    cont = dlg.geschichte(self, mänx) is False
+                else:
+                    for g in dlg.geschichte:
+                        self.sprich(g)
                 dlg_anzahl[dlg.name] = dlg_anzahl.setdefault(dlg.name, 0) + 1
             else:
                 dlg(mänx)
@@ -101,7 +105,7 @@ class Dialog:
     """Ein einzelner Gesprächsfaden beim Gespräch mit einem NSC"""
     wenn_fn: Opt[DialogFn]
 
-    def __init__(self, name: str, text: str, geschichte: DialogFn,
+    def __init__(self, name: str, text: str, geschichte: Union[DialogFn, List[str]],
                  vorherige: Union[str, None, List[Union[str, Tuple[str, int]]]] = None):
         self.name = name
         self.text = text

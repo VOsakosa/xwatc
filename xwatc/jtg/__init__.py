@@ -1,19 +1,17 @@
 from time import sleep
 from xwatc import haendler
 from xwatc import scenario
-from xwatc.system import Mänx, minput, ja_nein, Spielende, mint, sprich
+from xwatc.system import Mänx, minput, ja_nein, Spielende, mint, sprich, kursiv
 from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner, Dialog
 from random import randint
 import random
 from xwatc.jtg.ressourcen import FRAUENNAMEN
 from xwatc.jtg.tauern import land_der_kühe
-from xwatc.jtg import groekrak
+from xwatc.jtg import groekrak, see
 
 
 def t2(mänx: Mänx) -> None:
     """Jaspers Teilgeschichte"""
-    print("Hinter der Tür ist es warm und sonnig.")
-    sleep(1)
     print("Es erwartet dich Vogelgezwitscher.")
     sleep(1)
     print("Du befindest sich auf einer Lichtung in einem Wald.")
@@ -145,22 +143,27 @@ def t2_süd(mänx) -> None:
         haus = ja_nein(mänx, "Klopfst du an die Tür?")
     if haus:
         print("Ein junger Mann begrüßt dich an der Tür.")
-        aktion = mänx.minput(
-            '?: "Ein Wanderer? Komm herein, du siehst ganz durchgefroren aus."[k/r/f]',
-            list("krf"))
-        if aktion == "f":
-            print("Du rennst weg, als hätte der bloße Anblick "
-                  "des jungen Manns dich verschreckt.")
-            print('Jetzt denkt der Arme sich bestimmt: "Bin ich so hässlich '
-                  'oder schrecklich, dass Leute auf den '
-                  'ersten Blick abhauen?"')
-            print("Aber dir ist das egal, die unbekannte Gefahr ist abgewehrt.")
-            ende_des_waldes(mänx)
-        elif aktion == "k":
-            print('?: "Ein/e Inquisitor/in? Dafür musst du früher aufstehen!"')
-            hexer_kampf(mänx)
-        else:  # "r"
-            haus_des_hexers(mänx)
+        if mänx.rasse == "Skelett":
+            sprich("?", "Ach hallo, ein Skelett! Fühl dich hier wie zuhause.")
+            # TODO skelett-Varianten
+            ende_des_waldes(mänx, True)
+        else:
+            aktion = mänx.minput(
+                '?: "Ein Wanderer? Komm herein, du siehst ganz durchgefroren aus."[k/r/f]',
+                list("krf"))
+            if aktion == "f":
+                print("Du rennst weg, als hätte der bloße Anblick "
+                      "des jungen Manns dich verschreckt.")
+                print('Jetzt denkt der Arme sich bestimmt: "Bin ich so hässlich '
+                      'oder schrecklich, dass Leute auf den '
+                      'ersten Blick abhauen?"')
+                print("Aber dir ist das egal, die unbekannte Gefahr ist abgewehrt.")
+                ende_des_waldes(mänx)
+            elif aktion == "k":
+                print('?: "Ein/e Inquisitor/in? Dafür musst du früher aufstehen!"')
+                hexer_kampf(mänx)
+            else:  # "r"
+                haus_des_hexers(mänx)
     else:
         print("Dem, der auch immer hinter dem Licht steckt, sollte man nicht "
               "trauen, befindest du und machst "
@@ -455,6 +458,7 @@ def süd_dorf_grenzen(nsc: NSC, _mänx: Mänx):
                "sind schlecht. Sie lassen uns nicht herein.")
     return True
 
+
 def süd_dorf_norden(nsc: NSC, _mänx: Mänx):
     nsc.sprich("Meinst du den Wald?")
     nsc.sprich("Da würde ich nicht hineingehen. Da lebt ein Hexer oder so.")
@@ -514,11 +518,109 @@ def t2_no(mänx):
         süd_dorf(mänx)
 
 
-def t2_nw(mänx):
-    pass
+def t2_nw(mänx: Mänx):
+    print("Der Weg ist gepflastert, aber er wurde lange nicht mehr gepflegt "
+          "und genutzt.")
+    mint("Immer wieder musst du umgefallenen Baumstämmen ausweichen.")
+    mint("Du kommst aus dem Wald in eine spärlich bewachsene Hügellandschaft.")
+    print("Ein schmaler Pfad biegt nach Süden ab.")
+    opts = [
+        ("norden", "Folge dem Weg nach Norden", eo_turm),
+        ("umk", "Kehre um nach Disnayenbum", disnayenbum),
+        ("süden", "Biege auf den Pfad nach Süden ab", see.zugang_nord),
+    ]
+    mänx.menu("", opts, gucken="Um dich erstreckt sich eine weite Hügellandschaft,"
+              " im Norden meinst du einen Turm ausmachen zu können.")(mänx)
 
 
+def t2_nw_n(mänx: Mänx):
+    print("Ein schmaler Pfad biegt nach Süden ab, der Weg macht eine Biegung "
+          "nach Südosten.")
+    opts = [
+        ("umk", "Kehre um.", eo_turm),
+        ("südosten", "Folge dem Weg", disnayenbum),
+        ("süden", "Biege auf den Pfad nach Süden ab", see.zugang_nord),
+    ]
+    mänx.menu("", opts, gucken="Um dich erstreckt sich eine weite Hügellandschaft,"
+              " im Norden meinst du einen Turm ausmachen zu können.")(mänx)
 
+
+def eo_turm(mänx: Mänx):
+    print("Der Weg führt geradewegs auf einen Turm zu.")
+    mint("Dieser hohe Turm steht auf einem Hügel und kann die ganze Landschaft "
+         "überblicken.")
+    print("Am Wegesrand siehst du ein Schild: "
+          "\"Hier beginnt TERRITORIUM VON EO \\Betreten verboten\"")
+    opts = [
+        ("umgehen", "Umgehe den Turm weiträumig in Richtung Norden", eo_umgehen),
+        ("turm", "Folge dem Weg auf den Turm zu", eo_turm2),
+        ("umkehren", "Gehe zurück", t2_nw_n),
+    ]
+    mänx.menu("", opts, gucken="Der Turm ragt bedrohlich vor dir auf.")(mänx)
+
+
+def eo_turm2(mänx: Mänx):
+    print("Kaum kommst du in die Nähe des Turms, ruft eine laute Stimme "
+          "unfreundlich herab:")
+    sprich("Eo-Wache", "Kannst du nicht lesen, hier ist Territorium von Eo!")
+    sprich("Eo-Wache", "Kehre um oder wir müssen Gewalt anwenden!")
+    opts = [
+        ("lesen", '"Nein, Herr, ich kann nicht lesen! Tut mir leid, ich kehre'
+         ' um!"', t2_nw_n),
+        ("egal", '"Das ist mir egal, ich will hier durch!"', eo_turm_kampf),
+        ("papiere", '"Ich habe Papiere!"', eo_turm_kampf),
+    ]
+    mänx.menu("", opts, gucken=[
+        "Wenn du genau hinsiehst, kannst du Schießscharten "
+        "am Turm ausmachen",
+        "Und wenn du noch genauer hinsiehst, scheint sich "
+        "dahinter etwas zu bewegen."])(mänx)
+
+def eo_turm_kampf(mänx: Mänx):
+    mint("Das scheint die Wache nicht zu überzeugen.")
+    print("Sie brüllt laut:")
+    sprich("Eo-Wache", "SCHIESSEN!")
+    print("Ungefähr 10 Pfeile werden aus dem Turm abgefeuert.")
+    mint("Davon durchbohren dich einige und du stirbst.")
+    raise Spielende
+
+def eo_umgehen(mänx: Mänx):
+    print("Du läufst vorsichtig in weitem Abstand um den Turm herum.")
+    mint("Immer wieder blickst du dich in Richtung des Turms um.")
+    if mänx.rasse == "Lavaschnecke":
+        mint("Eine Stimme spricht in deinem Kopf")
+        sprich("Gott der Lavaschnecken", "Du bist in Gefahr, fliehe, meine "
+               "kleine Lavaschnecke!")
+        if mänx.ja_nein("Fliehst du, "+kursiv("kleine Lavaschnecke")+ "(LOL)?"):
+            eo_flucht(mänx)
+            return
+    mint("Plötzlich siehst du etwas hinter dir in den Augenwinkeln.")
+    mint("Ein Messer steckt in deinem Rücken.")
+    sprich("Eo-Magierin", "Du bist hiermit wegen illegalen Eindringens nach "
+           "Eo bestraft.")
+    print("Nun, das hast du davon, dass du auf keine Warnung hörst.")
+    raise Spielende
+        
+def eo_flucht(mänx: Mänx):
+    print("Du drehst dich um, und genau vor dir taucht eine Magierin auf.")
+    mänx.welt.get_or_else("jtg:eo:magierin", eo_magierin).main()
+    t2_nw_n(mänx)
+
+
+def eo_magierin() -> NSC:
+    def kampf(_nsc, _m):
+        mint("Du stürmst auf sie los. Aber ihre Umrisse verzerren sich, und "
+             "kaum versiehst du dich, steckt ein Messer von hinten in deiner "
+             "Brust.")
+        raise Spielende
+    n= NSC("Lisc Śńeazrm", "Eo-Magierin", kampf)
+    n.dialog("hallo", '"Hallo!"', ["Nichts da 'Hallo'!", "Was suchst du hier?"])
+    n.dialog("gehe", '"Ich gehe ja schon!"', ["Ganz recht so. Komm nie wieder!"])
+    n.dialog("heiße", '"Ich heiße %&"%, wie heißt du?"', [
+            "Ich heiße Lisc.", "Mach, dass du wegkommst."
+        ])
+    return n
+    
 
 if __name__ == '__main__':
     m = Mänx()
