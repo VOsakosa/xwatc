@@ -9,6 +9,7 @@ import random
 
 def waffe_wählen(mänx):
     rasse = input("Was willst du sein?")
+    mänx.rasse = "Arak"
     if rasse.lower() not in ("mensch", "arak"):
         print("Nun, eigentlich ist es egal was du sein willst.")
         print("So oder so, du bist ein Mensch vom Volke der Arak.")
@@ -18,7 +19,7 @@ def waffe_wählen(mänx):
         rosse = input("Naja, willst du eigentlich ein Mensch sein?")
         if rosse == "ja"or rosse == "j":
             print("Na, dann ist ja alles gut.")
-
+            
         elif rosse == "nein" or rosse == "n":
             a = random.randint(1, 11)
             if a != 11:
@@ -27,7 +28,7 @@ def waffe_wählen(mänx):
                 print("Na gut. "
                       "Dann bist du eben eine seltene Lavaschnecke. "
                       "Das hast du nun von deinem Gejammer!")
-                mänx.welt.set("generell:lavaschnecke")
+                mänx.rasse = "Lavaschnecke"
     else:
         print("Du wärst sowieso ein Mensch geworden.")
 

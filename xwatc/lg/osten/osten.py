@@ -19,13 +19,12 @@ def osten(mänx: Mänx):
              "die andre zu nem andren Ort.")
         weg = minput(mänx, "In welche Tür gehst du? t1/t2", ["t2", "t1"])
         if weg == "t1":
+            print("Du spürst instinktiv, dass das die falsche Entscheidung war.")
             raise Spielende
-          #  mänx.inventar_leeren()
-
-           # waffe_wählen(mänx)
-
         elif weg == "t2":
-
+            print("Hinter der Tür ist es warm und sonnig.")
+            sleep(1)
+            mänx.welt.setze("jtg:t2")
             jaspersteilgeschichte.t2(mänx)
     elif richtung == "w":
         mint("Du läufst weiter bis du eine Karawane siehst. Ein sonnengebräunter Mann läuft zu dir. ")
@@ -53,7 +52,7 @@ def osten(mänx: Mänx):
 
             raise Spielende
 
-    elif richtung == "höhle":
+    else:  # richtung == "höhle":
         höhle(mänx)
 
 
@@ -231,3 +230,4 @@ def monster(mänx: Mänx):
         mint("Keine Haut mehr an deinem Fleisch, "
              "kein Fleisch mehr an deinen Knochen: "
              "Du bist ein Skelett!")
+        mänx.rasse = "Skelett"
