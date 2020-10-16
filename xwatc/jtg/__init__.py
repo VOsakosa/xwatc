@@ -6,6 +6,8 @@ from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner, Dialog
 from random import randint
 import random
 from xwatc.jtg.ressourcen import FRAUENNAMEN
+from xwatc.jtg.tauern import land_der_kühe
+from xwatc.jtg import groekrak
 
 
 def t2(mänx: Mänx) -> None:
@@ -15,7 +17,7 @@ def t2(mänx: Mänx) -> None:
     print("Es erwartet dich Vogelgezwitscher.")
     sleep(1)
     print("Du befindest sich auf einer Lichtung in einem Wald.")
-    print("Ein schmaler Pfad führt nach Norden.")
+    mint("Ein schmaler Pfad führt nach Norden.")
     print("Im Osten ist Dickicht.")
     print("Im Westen und Süden ist nichts besonderes.")
     beeren = False
@@ -45,7 +47,10 @@ def t2(mänx: Mänx) -> None:
             if weiter == "f":
                 t2_norden(mänx)
             else:
-                t2_west(mänx)
+                # TODO umkehren ermöglichen
+                print("Der Weg macht nach einer Weile eine Biegung nach "
+                      "rechts.")
+                groekrak.zugang_ost(mänx)
         elif richtung == "osten":
             if not beeren:
                 print("Du findest Beeren.")
@@ -64,7 +69,7 @@ def t2(mänx: Mänx) -> None:
             if mänx.minput("Rechts oder Links?", ["r", "l"]) == "r":
                 t2_norden(mänx)
             else:
-                t2_west(mänx)
+                groekrak.zugang_ost(mänx)
 
 
 class Mädchen(haendler.Händler):
@@ -410,7 +415,7 @@ class TobiacBerndoc(NSC):
 class Waschweib(Dorfbewohner):
     def __init__(self, name: str):
         super().__init__(name, geschlecht=False)
-        self.art = "Waschweib"
+        self.art = "Hausfrau"
         self.inventar["Schnöder Ehering"] += 1
         self.inventar["Einfaches Kleid"] += 1
         self.inventar["Unterhose"] += 1
@@ -498,10 +503,6 @@ def süd_dorf(mänx):
     mänx.welt.get_or_else("jtg:dorf:süd", erzeuge_süd_dorf, mänx).main(mänx)
 
 
-def t2_west(mänx):
-    pass
-
-
 def t2_no(mänx):
     print("Du kommst an einen Wegweiser.")
     print("Der Weg gabelt sich an einem kleinen Fluss, links führt der Weg "
@@ -517,8 +518,6 @@ def t2_nw(mänx):
     pass
 
 
-def land_der_kühe(mänx):
-    pass
 
 
 if __name__ == '__main__':

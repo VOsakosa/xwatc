@@ -3,6 +3,8 @@ from typing import Sequence, Dict, List, Tuple, TypeVar, Callable, Any, Union,\
     overload, Optional, Iterator
 
 ITEMVERZEICHNIS = {
+    "Apfel": "Obst",
+    "Aprikose": "Obst",
     "Banane": "Obst",
     "Beere": "Obst",
     "Einfaches Kleid": "Kleidung",
@@ -37,7 +39,7 @@ ITEMVERZEICHNIS = {
     "Stöckchen": "Holz",
     "Talisman der Schreie": "Talisman",
     "Unterhose": "Kleidung",
-
+    "Zwetschge": "Obst",
 }
 
 UNTERKLASSEN = {
@@ -45,6 +47,7 @@ UNTERKLASSEN = {
     "Fleisch": "Nahrung",
     "legendäre Waffe": "Waffe",
     "normale Waffe": "Waffe",
+    "Obst": "Nahrung",
     "Ring": "Ausrüstung",
     "Rüstungsgegenstand": "Ausrüstung",
 }
@@ -64,8 +67,8 @@ def get_classes(item: str) -> Iterator[str]:
 
 
 T = TypeVar("T")
-
-MenuOption = Tuple[str, str, T]
+Tcov = TypeVar("Tcov", covariant=True)
+MenuOption = Tuple[str, str, Tcov]
 Inventar = Dict[str, int]
 
 
@@ -113,6 +116,16 @@ class Mänx(InventarBasis):
 
     def __init__(self):
         super().__init__()
+        self.gebe_startinventar()
+        self.gefährten = []
+        self.titel = set()
+        self.lebenswille = 10
+        self.fähigkeiten = set()
+        self.welt = Welt("bliblablux")
+        self.missionen = list()
+        self.rasse = "Arak"
+
+    def gebe_startinventar(self):
         self.inventar["Gold"] = 33
         self.inventar["Mantel"] = 1
         self.inventar["Unterhose"] = 1
@@ -122,12 +135,6 @@ class Mänx(InventarBasis):
         self.inventar["Socke"] = 2
         self.inventar["Turnschuh"] = 2
         self.inventar["Mütze"] = 1
-        self.gefährten = []
-        self.titel = set()
-        self.lebenswille = 10
-        self.fähigkeiten = set()
-        self.welt = Welt("bliblablux")
-        self.missionen = list()
 
     def missionen_zeigen(self):
         ans = []
@@ -137,9 +144,12 @@ class Mänx(InventarBasis):
         return ", ".join(ans)
 
     def inventar_leeren(self) -> None:
+        """Töte den Menschen, leere sein Inventar und entlasse
+        seine Gefährten."""
         self.inventar.clear()
-        self.titel.clear()
+        # self.titel.clear()
         self.gefährten.clear()
+        self.gebe_startinventar()
 
     def get_kampfkraft(self) -> int:
         if any(get_class(it) == "magische Waffe" for it in self.items()):
@@ -157,6 +167,9 @@ class Mänx(InventarBasis):
 
     def minput(self, *args, **kwargs):
         return minput(self, *args, **kwargs)
+
+    def ja_nein(self, *args, **kwargs):
+        return ja_nein(self, *args, **kwargs)
 
     @overload
     def menu(self, frage: str, optionen: List[MenuOption[T]],
@@ -190,8 +203,12 @@ class Mänx(InventarBasis):
             elif eingabe == "g" or eingabe == "gucken":
                 print(gucken)
             elif not spezial_taste(self, eingabe):
-                kandidaten = [(o, v) for _, o, v in optionen
-                              if o.startswith(eingabe)]
+                kandidaten = []
+                for _, o, v in optionen:
+                    if o == eingabe:  # Genauer Match
+                        return v
+                    elif o.startswith(eingabe):
+                        kandidaten.append((o, v))
                 if len(kandidaten) == 1:
                     return kandidaten[0][1]
                 elif not kandidaten:
@@ -205,6 +222,7 @@ class Mänx(InventarBasis):
         if t and t not in ("nein", "n"):
             for block in text:
                 print(block)
+
 
 
 class Gefährte:

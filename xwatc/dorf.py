@@ -179,12 +179,20 @@ class Dorfbewohner(NSC):
                 raise Spielende
             else:
                 if self.geschlecht:
-                    mint("Aber er wehrt sich.")
+                    mint("Aber er wehrt sich tödlich.")
                 else:
-                    mint("Aber sie wehrt sich.")
+                    mint("Aber sie wehrt sich tödlich.")
                 raise Spielende
         else:
-            mint("Ihr schlagt euch, bis ihr nicht mehr könnt.")
+            a=random.randint(1,6)
+            if a !=1:
+                print("Irgendwann ist dein Gegner bewusstlos.")
+                if ja_nein(mänx, "Schlägst du weiter bis er tot ist oder gehst du weg?"):
+                    print("Irgendwann ist der Arme tot. Du bist ein Mörder. "
+                          "Kaltblütig hast du dich dafür entschieden einen lebendigen Menschen zu töten." 
+                    "", kursiv ("zu ermorden."), "Mörder.")
+        
+                     
 
 
 @dataclass
