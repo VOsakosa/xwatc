@@ -1,19 +1,36 @@
 Dorf Disnajenbun
- , , , , 
- , , , , 
- Westen, , , , Osten
- , ,.Stein, , 
- , , , , 
- , , , , 
- , , , , 
 
-Baum,Baum,Baum,Baum,Baum
-Baum,,,O:T2:D1,Baum
-,,Y,,
-Baum,O:T2:D2,,,Baum
-Baum,,Baum,,Baum
-Baum,,,,Baum
-Baum,Baum,,Baum,Baum
+B: Baum ;木;B; ;gn
+X: Mauer;Ｘ;X;.;bn
 
-Alles was hier steht, wird volle Kanne ignoriert
-Hallo Jasper wird heute nacht...
+.: @Stein ;. ;.;gu
+i: @Weizen;í ;í;gn
+
+a: jtg:fred   ;🨀 ;M;.;gb
+b: jtg:axtmann;斧;M
+c: jtg:mieko  ;人;M
+m: jtg:nomuh  ;牛;k;i;bn
+k: jtg:kirie  ;女;F;i
+w: jtg:lina   ;女;F
+S: #süden
+O: #osten
+W: #westen
+Y: Spieler;主;Y
+
+
+---
+BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
+BBBBBiiiiiiiiiBBBB BB   BBBBBBBBB
+BBB  imiikiiiBBBB   B      BBBBBB
+BB   XXX      B              BBBB
+B    X X            XXXXXX      B
+B                   Xc   X      B
+W      XXXXXXX      XXXX X      O
+W      X  w  X                  O
+W      X              .   .     O
+B      XXXXXXX b                B
+B                .      .       B
+BBB    .    . a     BB        BBB
+BBBBB     Y        BBBB      BBBB
+BBBBBBBBSSSSSSSSSSBBBBBBBSSSBBBBB
+...

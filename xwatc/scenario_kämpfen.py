@@ -1,6 +1,6 @@
 from xwatc.scenario import ScenarioEnde, Weg
 
-def baum(mänx, obj, scen):
+def baum(mänx, obj):
     obj = obj.replace("Baum", "", 1).strip()
     if obj:
         print(f"Du schlägst dem Baum ein {obj} ab")
@@ -14,12 +14,12 @@ def baum(mänx, obj, scen):
             print("Du hast nichts, mit dem du diesen Baum fällen könntest.")
         return Weg(wird_zu="Baum")
 
-def o_t2_d2(mänx, scen):
+def o_t2_d2(mänx):
     print("Nachdem du den Mann angegriffen hast, kommt ein anderer von hinten und spaltet dich mit "
           "seiner Axt entzwei")
     return ScenarioEnde(tot=True)
 
-def o_t2_d1(mänx, scen):
+def o_t2_d1(mänx):
     print("Der Mann ist wachsam, so als hätte er deinen Angriff geahnt.")
     print("Im Gegensatz zu dir hat dieser Mann viel Kampferfahrung und er hat keinerlei Skrupel, einen "
           "aggressiven Fremden zu töten.")
@@ -31,9 +31,9 @@ KÄMPFEN = {
     "O:T2:D2": o_t2_d2,
 }
 
-def kämpfen(mänx, obj, scen):
+def kämpfen(mänx, obj):
     if obj.startswith("Baum"):
-        return baum(mänx, obj, scen)
+        return baum(mänx, obj)
     elif obj in KÄMPFEN:
-        return KÄMPFEN[obj](mänx, scen)
+        return KÄMPFEN[obj](mänx)
     raise ValueError(obj, "hat noch keine Geschichte")
