@@ -76,7 +76,8 @@ class Mädchen(haendler.Händler):
 
     def __init__(self) -> None:
         super().__init__("Mädchen", kauft=["Kleidung"], verkauft={
-            "Rose": Preis(1)}, gold=Preis(0), art="Mädchen")
+            "Rose": (1, Preis(1))}, gold=Preis(0), art="Mädchen",
+            direkt_handeln=True)
 
     def vorstellen(self, mänx):
         print("Am Wegesrand vor dem Dorfeingang siehst du ein Mädchen in Lumpen. "
@@ -417,9 +418,9 @@ class TobiacBerndoc(NSC):
         return True
 
     def optionen(self, mänx: Mänx) -> NSCOptionen:
-        return NSC.optionen(self, mänx) + [
-            ("Ihm beim Spielen zuhören", "hören", self.zuhören)
-        ]
+        yield from super().optionen(mänx)
+        yield ("Ihm beim Spielen zuhören", "hören", self.zuhören)
+        
 
     def main(self, mänx: Mänx) -> None:
         print("Tobiac spielt auf der Orgel.")
@@ -434,6 +435,7 @@ class Waschweib(Dorfbewohner):
         self.inventar["Schnöder Ehering"] += 1
         self.inventar["Einfaches Kleid"] += 1
         self.inventar["Unterhose"] += 1
+        self.direkt_reden = True
 
 
 def zufälliges_waschweib() -> Waschweib:
