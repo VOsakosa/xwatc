@@ -77,6 +77,7 @@ class Händler(NSC):
                 print("So viel kannst du dir nicht leisten")
             else:
                 self.verkaufen(mänx, gegenstand, preis, menge)
+                print("Verkauft.")
 
     def zeige_auslage(self) -> None:
         """Printe die Auslage auf den Bildschirm."""
@@ -124,7 +125,7 @@ class Händler(NSC):
             elif al.startswith("v ") or al.startswith("verkaufe "):
                 kauft = a.split(" ", 2)
                 try:
-                    if len(kauft) == 1:
+                    if len(kauft) == 2:
                         menge = 1
                         gegenstand = kauft[1]
                     else:
