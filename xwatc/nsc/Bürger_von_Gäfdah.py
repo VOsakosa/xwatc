@@ -1,4 +1,6 @@
 from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner
+from xwatc.system import mint, kursiv, Mänx, ja_nein, minput
+
 class MartinPortulakk(NSC):
     def __init__(self):
         super().__init__("Martin Portulakk", "Bürger")
@@ -28,16 +30,15 @@ class MartinPortulakk(NSC):
             ('"Ich tue dir nichts. Ich habe mich verirrt."', 'verirrt', 0),
             ('"Beruhige dich! Du bist doch Siegbert, oder?"', "siegbert", 1),
             ('"Wie findest du das Wetter heute?"', "wetter", 2),
-            ('"Wie geht es dir?"', "geht", 3)
-            ('"Ich will dir nichts tun!"', "!", 4)
-            ('"Ich will dir nichts tun."', ".", 5)
-            ('"Still oder ich töte dich!"', "töte", 6)
+            ('"Wie geht es dir?"', "geht", 3),
+            ('"Ich will dir nichts tun!"', "!", 4),
+            ('"Ich will dir nichts tun."', ".", 5),
+            ('"Still oder ich töte dich!"', "töte", 6),
             ('(beruhigend)"Sei leise. '
              'Wenn du die Wachen rufst töte ich '
-             'dich schneller als du "muck" sagst."', "muck", 7)
+             'dich schneller als du "muck" sagst."', "muck", 7),
         ]
-        opt = mänx.menu(
-            "Was sagst du?", opts)
+        opt = mänx.menu(opts, frage="Was sagst du?")
         if opt == 0:
             print("Der Wachmann reagiert nicht.")
             if ja_nein(mänx, " Beharrst du auf deine Frage?"):
@@ -69,7 +70,7 @@ class MartinPortulakk(NSC):
             a=minput(mänx, "Durchsuchst du die Hütte, "
                      "bringst du den Mann um, "
                      "versuchst du mit ihm zu reden oder fliehst du? (d/um/r/f)", ["d", "um", "r", "f"])
-            if a==d:
+            if a=='d':
                 mint("Du findest Kleidung, Fisch, Gemüse und Zeug.")
                 #so ist es schöner
                 # d = {"Socke": 8, "Hose":2}
@@ -108,8 +109,8 @@ class MartinPortulakk(NSC):
 
     def optionen(self, mänx: Mänx) -> NSCOptionen:
         return NSC.optionen(self, mänx) + [
-            ("Reden", "reden", self.reden)
-            ("Kämpfen", "kämpfen", self.kampf)
+            ("Reden", "reden", self.reden),
+            ("Kämpfen", "kämpfen", self.kampf),
         ]
 
     def main(self, mänx: Mänx) -> None:
