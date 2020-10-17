@@ -21,12 +21,19 @@ def erzeuge_süd_dorf(mänx) -> Dorf:
     
     ])
     
-    kirche = Ort("Kirche", [
-        "Du bist in einer kleinen Kirche.",
-        # Tobiac tot?
-        "Im Hauptschiff ist niemand, aber du hörst die Orgel"
+    haus1 = Ort("Haus1", [
+        "Du kommst in ein kleines Haus."
     
     ])
+    kirche.menschen.append(mänx.welt.get_or_else(
+        "jtg:m:tobiac", TobiacBerndoc))
+    d.orte.append(kirche)
+    kirche.menschen.append(mänx.welt.get_or_else(
+        "jtg:m:tobiac", TobiacBerndoc))
+    d.orte.append(kirche)
+    kirche.menschen.append(mänx.welt.get_or_else(
+        "jtg:m:tobiac", TobiacBerndoc))
+    d.orte.append(kirche)
     kirche.menschen.append(mänx.welt.get_or_else(
         "jtg:m:tobiac", TobiacBerndoc))
     d.orte.append(kirche)
