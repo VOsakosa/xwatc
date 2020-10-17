@@ -71,10 +71,18 @@ class NSC(system.InventarBasis):
 
 
     def main(self, mänx: system.Mänx) -> Any:
-        """Starte die Interaktion mit dem Mänxen."""
+        """Starte die Interaktion mit dem Mänxen"""
         if self.tot:
             mint(f"{self.name}s Leiche liegt still auf dem Boden.")
-            return
+        else:
+            opts = self.optionen(mänx)
+            mänx.menu(":", opts)(mänx)
+
+    def sprich(self, text: str) -> None:
+        """Minte mit vorgestelltem Namen"""
+        system.sprich(self.name, text)
+
+    def reden(self, mänx: system.Mänx) -> None:
         self.vorstellen(mänx)
         self._main(mänx)
             
@@ -240,12 +248,20 @@ class Dorfbewohner(NSC):
                 raise Spielende
             else:
                 if self.geschlecht:
-                    mint("Aber er wehrt sich.")
+                    mint("Aber er wehrt sich tödlich.")
                 else:
-                    mint("Aber sie wehrt sich.")
+                    mint("Aber sie wehrt sich tödlich.")
                 raise Spielende
         else:
-            mint("Ihr schlagt euch, bis ihr nicht mehr könnt.")
+            a=random.randint(1,6)
+            if a !=1:
+                print("Irgendwann ist dein Gegner bewusstlos.")
+                if ja_nein(mänx, "Schlägst du weiter bis er tot ist oder gehst du weg?"):
+                    print("Irgendwann ist der Arme tot. Du bist ein Mörder. "
+                          "Kaltblütig hast du dich dafür entschieden einen lebendigen Menschen zu töten." 
+                    "", kursiv ("zu ermorden."), "Mörder.")
+        
+                     
 
 
 @dataclass

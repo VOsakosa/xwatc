@@ -4,7 +4,16 @@ from xwatc.dorf import NSC, NSCOptionen, Rückkehr
 from xwatc.system import Mänx, minput, ja_nein, get_class
 
 ALLGEMEINE_PREISE = {
-    "Speer": 50
+    "Speer": 50,
+    "Hering": 5,
+    "Sardine": 5,
+    "Gänseblümchen": 3,
+    "Löwenzahn": 2,
+    "Distelblüte": 10,
+    "Rose": 20,
+    "Aorenblume": 80,
+    "Atctenrose": 350
+    
 }
 Preis = NewType("Preis", int)
 Item = str

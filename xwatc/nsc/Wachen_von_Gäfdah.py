@@ -1,6 +1,10 @@
 from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner
+<<<<<<< HEAD
+from . gefängnis_von_gäfdah import gefängnis_von_gäfdah
+=======
 from xwatc.system import mint, kursiv, Mänx, ja_nein
 
+>>>>>>> 78d8887a84fd728ea9cff07d3817a6ed451f57b5
 
 class SakcaBrauc(NSC):
     def __init__(self):
@@ -37,8 +41,12 @@ class SakcaBrauc(NSC):
 
     def optionen(self, mänx: Mänx) -> NSCOptionen:
         return NSC.optionen(self, mänx) + [
+<<<<<<< HEAD
+            ("Reden", "reden", self.reden)
+=======
             ("Reden", "reden", self.reden),
             ("Kämpfen", "kämpfen", self.kampf)
+>>>>>>> 78d8887a84fd728ea9cff07d3817a6ed451f57b5
         ]
 
     def main(self, mänx: Mänx) -> None:
@@ -54,6 +62,14 @@ class ThomarcAizenfjäld(NSC):
     def kampf(self, mänx: Mänx) -> None:
         print("Als du Anstalten machtest, deine Waffe zu zücken, "
               "schlug die Wache dir mit der flachen Seite ihres Schwertes gegen die Schläfe.")
+<<<<<<< HEAD
+        
+        
+            
+    def handeln(self, mänx: Mänx) -> None:
+        print("Die Wache will gerade nicht handeln.")
+=======
+>>>>>>> 78d8887a84fd728ea9cff07d3817a6ed451f57b5
 
     def reden(self, mänx: Mänx) -> None:
         print('"Was ist?", fragt die Wache dich.')
@@ -74,7 +90,6 @@ class ThomarcAizenfjäld(NSC):
     def optionen(self, mänx: Mänx) -> NSCOptionen:
         return NSC.optionen(self, mänx) + [
             ("Reden", "reden", self.reden)
-            ("Kämpfen", "kämpfen", self.kampf)
         ]
 
     def main(self, mänx: Mänx) -> None:
@@ -88,7 +103,15 @@ class OrfGrouundt(NSC):
 
     def kampf(self, mänx: Mänx) -> None:
         print("Als du Anstalten machtest, deine Waffe zu zücken, "
+<<<<<<< HEAD
+              "gibt der Wachmann dir eine so dicke Kopfnuss, dass du ohnmächtig auf das Pflaster sinkst.")
+        
+        
+            
+
+=======
               "gab der Wachmann dir eine so dicke Kopfnuss, dass du ohnmächtig auf das Pflaster sinkst.")
+>>>>>>> 78d8887a84fd728ea9cff07d3817a6ed451f57b5
 
     def reden(self, mänx: Mänx) -> None:
         print('"Hallo"')
@@ -112,8 +135,12 @@ class OrfGrouundt(NSC):
 
     def optionen(self, mänx: Mänx) -> NSCOptionen:
         return NSC.optionen(self, mänx) + [
+<<<<<<< HEAD
+            ("Reden", "reden", self.reden)
+=======
             ("Reden", "reden", self.reden),
             ("Kämpfen", "kämpfen", self.kampf)
+>>>>>>> 78d8887a84fd728ea9cff07d3817a6ed451f57b5
         ]
 
     def main(self, mänx: Mänx) -> None:
@@ -154,8 +181,12 @@ class MarioWittenpfäld(NSC):
 
     def optionen(self, mänx: Mänx) -> NSCOptionen:
         return NSC.optionen(self, mänx) + [
+<<<<<<< HEAD
+            ("Reden", "reden", self.reden)
+=======
             ("Reden", "reden", self.reden),
             ("Kämpfen", "kämpfen", self.kampf)
+>>>>>>> 78d8887a84fd728ea9cff07d3817a6ed451f57b5
         ]
 
     def main(self, mänx: Mänx) -> None:
