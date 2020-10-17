@@ -1,13 +1,15 @@
 from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner
-import . norden
+from . import norden
+from xwatc import haendler
+from xwatc.system import Mänx
 
 class Fischerfrau(haendler.Händler):
     def __init__(self):
         super().__init__("Maria Fischfrisch", "alte Fischerfrau")
 
     def kampf(self, mänx: Mänx) -> None:
-        
-        
+        pass
+
     def vorstellen(self, mänx):
         print("Die Fischerfrau verkauft Fische")
         

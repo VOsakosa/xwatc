@@ -1,6 +1,6 @@
 """Der Teil von Norden, wo Waffen getestet werden. Hauptsächlich an einer Fischerfrau in einem Dorf im Binnenland."""
 from xwatc.system import minput, Mänx, Spielende, mint
-import . norden
+from . import norden
 from . import Maria_Fischfrisch
 
 
