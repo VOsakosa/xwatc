@@ -72,7 +72,7 @@ class NSC(system.InventarBasis):
                     print("Du weißt nicht, was du sagen könntest.")
                 else:
                     print("Du hast nichts mehr zu sagen.")
-            dlg = mänx.menu("", optionen)
+            dlg = mänx.menu(optionen)
             if isinstance(dlg, Dialog):
                 if callable(dlg.geschichte):
                     cont = dlg.geschichte(self, mänx) is False
@@ -224,7 +224,7 @@ class Dorf:
         orte = [(ort.name, ort.name.lower(), ort) for ort in self.orte]
         orte.append(("Bleiben", "", self.orte[0]))
         orte.append((f"{self.name} verlassen", "v", None))
-        loc = mänx.menu("Wohin? ", orte)
+        loc = mänx.menu(orte, frage="Wohin? ")
         while loc:
             loc = self.ort_main(mänx, loc)
 
@@ -242,7 +242,7 @@ class Dorf:
         optionen.extend((f"Nach {o.name} gehen", "o" + o.name.lower(), o)
                         for o in self.orte if o != ort)
         optionen.append(("Ort verlassen", "fliehen", None))
-        opt = mänx.menu("Was machst du?", optionen)
+        opt = mänx.menu(optionen)
         if isinstance(opt, NSC):
             opt.main(mänx)
             return ort

@@ -529,7 +529,7 @@ def t2_nw(mänx: Mänx):
         ("umk", "Kehre um nach Disnayenbum", disnayenbum),
         ("süden", "Biege auf den Pfad nach Süden ab", see.zugang_nord),
     ]
-    mänx.menu("", opts, gucken="Um dich erstreckt sich eine weite Hügellandschaft,"
+    mänx.menu(opts, gucken="Um dich erstreckt sich eine weite Hügellandschaft,"
               " im Norden meinst du einen Turm ausmachen zu können.")(mänx)
 
 
@@ -541,7 +541,7 @@ def t2_nw_n(mänx: Mänx):
         ("südosten", "Folge dem Weg", disnayenbum),
         ("süden", "Biege auf den Pfad nach Süden ab", see.zugang_nord),
     ]
-    mänx.menu("", opts, gucken="Um dich erstreckt sich eine weite Hügellandschaft,"
+    mänx.menu(opts, gucken="Um dich erstreckt sich eine weite Hügellandschaft,"
               " im Norden meinst du einen Turm ausmachen zu können.")(mänx)
 
 
@@ -556,7 +556,7 @@ def eo_turm(mänx: Mänx):
         ("turm", "Folge dem Weg auf den Turm zu", eo_turm2),
         ("umkehren", "Gehe zurück", t2_nw_n),
     ]
-    mänx.menu("", opts, gucken="Der Turm ragt bedrohlich vor dir auf.")(mänx)
+    mänx.menu(opts, gucken="Der Turm ragt bedrohlich vor dir auf.")(mänx)
 
 
 def eo_turm2(mänx: Mänx):
@@ -570,7 +570,7 @@ def eo_turm2(mänx: Mänx):
         ("egal", '"Das ist mir egal, ich will hier durch!"', eo_turm_kampf),
         ("papiere", '"Ich habe Papiere!"', eo_turm_kampf),
     ]
-    mänx.menu("", opts, gucken=[
+    mänx.menu(opts, gucken=[
         "Wenn du genau hinsiehst, kannst du Schießscharten "
         "am Turm ausmachen",
         "Und wenn du noch genauer hinsiehst, scheint sich "

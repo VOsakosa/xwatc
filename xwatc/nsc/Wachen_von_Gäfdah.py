@@ -1,4 +1,6 @@
 from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner
+from xwatc.system import mint, kursiv, Mänx, ja_nein
+
 
 class SakcaBrauc(NSC):
     def __init__(self):
@@ -8,10 +10,6 @@ class SakcaBrauc(NSC):
         print("Als du Anstalten machtest, deine Waffe zu zücken, "
               "schlug Sakca dir mit der Faust ins Gesicht.")
         mint("Als du daraufhin zurücktaumelst, schlägt sie dich bewusstlos.")
-        
-        
-            
-
 
     def reden(self, mänx: Mänx) -> None:
         print('"Was ist?", fragt dich die Wache.')
@@ -21,12 +19,10 @@ class SakcaBrauc(NSC):
             ('"Wie findest du das Wetter heute?"', "wetter", 2),
             ('"Wie geht es dir?"', "geht", 3)
         ]
-        opt = mänx.menu(
-            "Was sagst du?", opts)
+        opt = mänx.menu(opts, "Was sagst du?")
         if opt == 0:
             print("Ich heiße Sakca")
-            
-            
+
         elif opt == 1:
             print("Lass mich in Ruhe!")
             if ja_nein(mänx, "Lässt du sie in Ruhe?"):
@@ -41,7 +37,7 @@ class SakcaBrauc(NSC):
 
     def optionen(self, mänx: Mänx) -> NSCOptionen:
         return NSC.optionen(self, mänx) + [
-            ("Reden", "reden", self.reden)
+            ("Reden", "reden", self.reden),
             ("Kämpfen", "kämpfen", self.kampf)
         ]
 
@@ -50,19 +46,14 @@ class SakcaBrauc(NSC):
         super().main(mänx)
 
 
+class ThomarcAizenfjäld(NSC):
 
-class ThomarcAizenfjäld(NSC):    
-    
     def __init__(self):
         super().__init__("Thomarc Aizenfjäld", "Wache")
 
     def kampf(self, mänx: Mänx) -> None:
         print("Als du Anstalten machtest, deine Waffe zu zücken, "
               "schlug die Wache dir mit der flachen Seite ihres Schwertes gegen die Schläfe.")
-        
-        
-            
-
 
     def reden(self, mänx: Mänx) -> None:
         print('"Was ist?", fragt die Wache dich.')
@@ -71,8 +62,7 @@ class ThomarcAizenfjäld(NSC):
             ('"Wie findest du das Wetter heute?"', "wetter", 1),
             ('"Hey, wie geht es dir?"', "geht", 2)
         ]
-        opt = mänx.menu(
-            "Was sagst du?", opts)
+        opt = mänx.menu(opts, "Was sagst du?")
         if opt == 0:
             print("Der Wachmann reagiert nicht.")
         elif opt == 1:
@@ -90,7 +80,6 @@ class ThomarcAizenfjäld(NSC):
     def main(self, mänx: Mänx) -> None:
         print("Die Wache steht herum und geht ernst und dienstbeflissen ihrer Arbeit nach.")
         super().main(mänx)
-
 
 
 class OrfGrouundt(NSC):
@@ -100,10 +89,6 @@ class OrfGrouundt(NSC):
     def kampf(self, mänx: Mänx) -> None:
         print("Als du Anstalten machtest, deine Waffe zu zücken, "
               "gab der Wachmann dir eine so dicke Kopfnuss, dass du ohnmächtig auf das Pflaster sinkst.")
-        
-        
-            
-
 
     def reden(self, mänx: Mänx) -> None:
         print('"Hallo"')
@@ -113,12 +98,11 @@ class OrfGrouundt(NSC):
             ('"Wie findest du das Wetter heute?"', "wetter", 2),
             ('"Wie geht es dir?"', "geht", 3)
         ]
-        opt = mänx.menu(
-            "Was sagst du?", opts)
+        opt = mänx.menu(opts, "Was sagst du?")
         if opt == 0:
             print('"Hau ab!"')
         elif opt == 1:
-            print("", kursiv ("NEIN!"), "")
+            print("", kursiv("NEIN!"), "")
             mint("Wage es ja nicht wieder mich einen Panti zu nennen!!!")
         elif opt == 2:
             mint('"Hau ab", sagte die Wache mürrisch.')
@@ -128,14 +112,13 @@ class OrfGrouundt(NSC):
 
     def optionen(self, mänx: Mänx) -> NSCOptionen:
         return NSC.optionen(self, mänx) + [
-            ("Reden", "reden", self.reden)
+            ("Reden", "reden", self.reden),
             ("Kämpfen", "kämpfen", self.kampf)
         ]
 
     def main(self, mänx: Mänx) -> None:
         print("Die Wache steht herum und geht ernst und dienstbeflissen ihrer Arbeit nach.")
         super().main(mänx)
-
 
 
 class MarioWittenpfäld(NSC):
@@ -145,10 +128,6 @@ class MarioWittenpfäld(NSC):
     def kampf(self, mänx: Mänx) -> None:
         print("Als du Anstalten machtest, deine Waffe zu zücken, "
               "schlug die Wache dir mit der flachen Seite ihres Schwertes gegen die Schläfe.")
-        
-        
-            
-
 
     def reden(self, mänx: Mänx) -> None:
         print('"Was ist?", fragt die Wache dich.')
@@ -158,8 +137,7 @@ class MarioWittenpfäld(NSC):
             ('"Wie findest du das Wetter heute?"', "wetter", 2),
             ('"Hey, wie geht es dir?"', "geht", 3)
         ]
-        opt = mänx.menu(
-            "Was sagst du?", opts)
+        opt = mänx.menu(opts, "Was sagst du?")
         if opt == 0:
             print("Der Wachmann reagiert nicht.")
             if ja_nein(mänx, " Beharrst du auf deine Frage?"):
@@ -167,7 +145,7 @@ class MarioWittenpfäld(NSC):
             else:
                 mint(self.name, "Du lässt die Wache in Ruhe.")
         elif opt == 1:
-            print("", kursiv ("nein!"), "     Ich heiße Mario, Mario Wittenpfäld!")
+            print("", kursiv("nein!"), "     Ich heiße Mario, Mario Wittenpfäld!")
         elif opt == 2:
             mint('"schön", sagte die Wache mürrisch.')
         elif opt == 3:
@@ -176,7 +154,7 @@ class MarioWittenpfäld(NSC):
 
     def optionen(self, mänx: Mänx) -> NSCOptionen:
         return NSC.optionen(self, mänx) + [
-            ("Reden", "reden", self.reden)
+            ("Reden", "reden", self.reden),
             ("Kämpfen", "kämpfen", self.kampf)
         ]
 
