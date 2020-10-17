@@ -1,9 +1,9 @@
 from typing import List, Optional as Op, Union, NewType, Dict
 import os.path
 from xwatc.system import Mänx
+import sys
 
 if __name__ == "__main__":
-    import sys
     sys.path.append("..")
 
 from xwatc import system
