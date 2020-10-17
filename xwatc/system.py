@@ -1,6 +1,7 @@
 from collections import defaultdict
 from typing import Sequence, Dict, List, Tuple, TypeVar, Callable, Any, Union,\
-    overload, Optional, Iterator
+    overload, Optional, Iterator, Mapping
+from time import sleep
 
 ITEMVERZEICHNIS = {
     "Apfel": "Obst",
@@ -10,10 +11,13 @@ ITEMVERZEICHNIS = {
     "Einfaches Kleid": "Kleidung",
     "Eisen": "Metall",
     "Dolch": "normale Waffe",
+    "Distelblüte": "Blume",
     "Gänseblümchen": "Blume",
     "Hering": "Fisch",
     "Holz": "Holz",
+    "Hose": "Kleidung",
     "Hühnerfleisch": "Fleisch",
+    "Klatschmohn": "Blume",
     "Kohle": "Brennstoff",
     "Leere": "Scherz-Item",
     "Mantel": "Kleidung",
@@ -35,7 +39,7 @@ ITEMVERZEICHNIS = {
     "Speer": "normale Waffe",
     "Spitzhacke": "normales Werkzeug",
     "Stein": "Stein",
-    "Stein der aussieht wie ein Hühnerei": "Heilige Tagesei",
+    "Stein der aussieht wie ein Hühnerei": "Heiliges Tagesei",
     "Stöckchen": "Holz",
     "Talisman der Schreie": "Talisman",
     "Unterhose": "Kleidung",
@@ -171,44 +175,46 @@ class Mänx(InventarBasis):
     def ja_nein(self, *args, **kwargs):
         return ja_nein(self, *args, **kwargs)
 
-    @overload
-    def menu(self, frage: str, optionen: List[MenuOption[T]],
-             gucken: Union[Sequence[str], Callable[[], Any]] = ...,
-             versteckt: None = None) -> T: ...
+    def menu(self,
+             optionen: List[MenuOption[T]],
+             frage: str = "",
+             gucken: Union[Sequence[str], Callable[[], Any]] =
+             ("Hier gibt es nichts zu sehen",),
+             versteckt: Optional[Mapping[str, T]] = None) -> T:
+        """Ähnlich wie Minput, nur werden jetzt Optionen als Liste gegeben.
 
-    @overload
-    def menu(self, frage: str, optionen: List[MenuOption[T]],
-             gucken: Union[Sequence[str], Callable[[], Any]] = ...,
-             versteckt: Sequence[str] = ...) -> Union[str, T]: ...
-
-    def menu(self, frage, optionen,
-             gucken=("Hier gibt es nichts zu sehen",), versteckt=None):
-        """Ähnlich wie Minput, nur werden jetzt Optionen als Liste gegeben."""
+        Die Zuordnung geschieht in folgender Reihenfolge
+        #. Versteckte Optionen
+        #. Optionen
+        #. Gucken
+        #. Spezialtasten
+        #. Nummer
+        #. Passendste Antwort
+        """
         # print("Du kannst")
         print()
-        for name, kurz, _ in optionen:
-            print("-", name, " (", kurz, ")", sep="")
+        for i, (name, kurz, _) in enumerate(optionen):
+            print(i, ".", name, " [", kurz, "]", sep="")
         kurz_optionen = " " + "/".join(o[1] for o in optionen)
         if len(kurz_optionen) < 50:
             frage += kurz_optionen + " "
         while True:
             eingabe = input(frage).lower()
             if versteckt and eingabe in versteckt:
-                return eingabe
-            elif not eingabe:
-                # Nach leerer Option suchen
-                for _, o, v in optionen:
-                    if not o:
-                        return v
-            elif eingabe == "g" or eingabe == "gucken":
+                return versteckt[eingabe]
+            kandidaten = []
+            for _, o, v in optionen:
+                if o == eingabe:  # Genauer Match
+                    return v
+                elif o.startswith(eingabe):
+                    kandidaten.append((o, v))
+            if eingabe == "g" or eingabe == "gucken":
                 print(gucken)
-            elif not spezial_taste(self, eingabe):
-                kandidaten = []
-                for _, o, v in optionen:
-                    if o == eingabe:  # Genauer Match
-                        return v
-                    elif o.startswith(eingabe):
-                        kandidaten.append((o, v))
+            elif not spezial_taste(self, eingabe) and eingabe:
+                try:
+                    return optionen[int(eingabe)][2]
+                except (IndexError, ValueError):
+                    pass
                 if len(kandidaten) == 1:
                     return kandidaten[0][1]
                 elif not kandidaten:
@@ -224,7 +230,6 @@ class Mänx(InventarBasis):
                 print(block)
 
 
-
 class Gefährte:
     def __init__(self, name):
         self.name = name
@@ -232,6 +237,7 @@ class Gefährte:
 
 class Welt:
     """Speichert den Zustand der Welt, in der sich der Hauptcharakter befindet."""
+
     def __init__(self, name: str) -> None:
         self.inventar: Dict[str, int] = {}
         self.name = name
@@ -307,7 +313,8 @@ def mint(*text):
 
 
 def sprich(sprecher: str, text: str):
-    mint(f'{sprecher}: "{text}"')
+    print(f'{sprecher}: "{text}"')
+    sleep(0.1 * len(text))
 
 
 def ja_nein(mänx, frage):

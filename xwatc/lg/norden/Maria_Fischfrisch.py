@@ -1,21 +1,24 @@
 from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner
 import . norden
-from . Fischerfraumassaker import fischerfraumassaker
 
 class Fischerfrau(haendler.Händler):
     def __init__(self):
-        super().__init__("Maria Fischfrisch", kauft=["Blume"], verkauft={
-            "Hering": 4,
-            "Sardine": 3,
-            "Lachs": 6}, art="alte Fischerfrau")
-        self.inventar["Gold"] = 
+        super().__init__("Maria Fischfrisch", "alte Fischerfrau")
 
     def kampf(self, mänx: Mänx) -> None:
-        fischerfraumassaker(mänx)
         
         
     def vorstellen(self, mänx):
         print("Die Fischerfrau verkauft Fische")
+        
+    def __init__(self):
+    super().__init__("Frau", kauft=["Blume"], verkauft={
+        "Hering": 6,
+        "Sardelle": 5,
+        "Lachs": 8})
+            
+    def get_preis(self, _):
+        return 0
     
 
     def reden(self, mänx: Mänx) -> None:

@@ -79,9 +79,22 @@ class NSC(system.InventarBasis):
                     print("Du weißt nicht, was du sagen könntest.")
                 else:
                     print("Du hast nichts mehr zu sagen.")
+<<<<<<< HEAD
             optionen.append(("fliehen", "f", None))
             dlg = mänx.menu("", optionen)
             if not dlg:
+=======
+            dlg = mänx.menu(optionen)
+            if isinstance(dlg, Dialog):
+                if callable(dlg.geschichte):
+                    cont = dlg.geschichte(self, mänx) is False
+                else:
+                    for g in dlg.geschichte:
+                        self.sprich(g)
+                dlg_anzahl[dlg.name] = dlg_anzahl.setdefault(dlg.name, 0) + 1
+            else:
+                dlg(mänx)
+>>>>>>> 78d8887a84fd728ea9cff07d3817a6ed451f57b5
                 cont = False
             else:
                 cont = bool(dlg.geschichte(self, mänx))
@@ -98,17 +111,19 @@ class NSC(system.InventarBasis):
         """Schiebe das ganze Inventar von NSC zum Mänxen."""
         schiebe_inventar(self.inventar, mänx.inventar)
 
+VorList = List[Union[str, Tuple[str, int]]]
 
 class Dialog:
     """Ein einzelner Gesprächsfaden beim Gespräch mit einem NSC"""
     wenn_fn: Opt[DialogFn]
 
-    def __init__(self, name: str, text: str, geschichte: DialogFn,
-                 vorherige: Union[str, None, List[Union[str, Tuple[str, int]]]] = None):
+    def __init__(self, name: str, text: str,
+                 geschichte: Union[DialogFn, List[str]],
+                 vorherige: Union[str, None, VorList] = None):
         self.name = name
         self.text = text
         self.geschichte = geschichte
-        self.vorherige: List[Union[str, Tuple[str, int]]]
+        self.vorherige: VorList
         if isinstance(vorherige, str):
             self.vorherige = [vorherige]
         elif vorherige is not None:
@@ -230,7 +245,7 @@ class Dorf:
         orte = [(ort.name, ort.name.lower(), ort) for ort in self.orte]
         orte.append(("Bleiben", "", self.orte[0]))
         orte.append((f"{self.name} verlassen", "v", None))
-        loc = mänx.menu("Wohin? ", orte)
+        loc = mänx.menu(orte, frage="Wohin? ")
         while loc:
             loc = self.ort_main(mänx, loc)
 
@@ -248,7 +263,7 @@ class Dorf:
         optionen.extend((f"Nach {o.name} gehen", "o" + o.name.lower(), o)
                         for o in self.orte if o != ort)
         optionen.append(("Ort verlassen", "fliehen", None))
-        opt = mänx.menu("Was machst du?", optionen)
+        opt = mänx.menu(optionen)
         if isinstance(opt, NSC):
             opt.main(mänx)
             return ort

@@ -7,7 +7,7 @@ from xwatc.lg.norden.Fischerfrau_Massaker import fischerfraumassaker
 def norden(mänx):
     print("Du wanderst 9 Tage lang gen Norden, bis du zu einem kleinen Fischerdorf "
           "kommst.")
-    print("An einem Stand verkauft eine alte Frau Fische. ")
+    
     while True:
         antwort=minput(mänx, "Willst du handeln, reden, sie angreifen oder einfach weitergehen? (h/r/a/w)",
                        ["h","a", "w", "r"])

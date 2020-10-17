@@ -19,14 +19,14 @@ Preis = NewType("Preis", int)
 
 class Händler(NSC):
     def __init__(self, name, kauft: Op[List[str]], 
-                 verkauft: Dict[str, Preis], gold: Preis,
+                 verkauft: Dict[str, int], gold: Preis,
                  art = "Händler"):
         """Neuer Händler namens *name*, der Sachen aus den Kategorien *kauft* kauft.
         *verkauft* ist das Inventar. *gold* ist die Anzahl von Gold."""
         super().__init__(name, art)
         self.kauft = kauft
         # Anzahl, Preis
-        self.verkauft = verkauft
+        self.verkauft = cast(Dict[str, Preis], verkauft)
         self.gold = gold
         self.rückkauf = False
 
