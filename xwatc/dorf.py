@@ -100,17 +100,19 @@ class NSC(system.InventarBasis):
         """Schiebe das ganze Inventar von NSC zum Mänxen."""
         schiebe_inventar(self.inventar, mänx.inventar)
 
+VorList = List[Union[str, Tuple[str, int]]]
 
 class Dialog:
     """Ein einzelner Gesprächsfaden beim Gespräch mit einem NSC"""
     wenn_fn: Opt[DialogFn]
 
-    def __init__(self, name: str, text: str, geschichte: Union[DialogFn, List[str]],
-                 vorherige: Union[str, None, List[Union[str, Tuple[str, int]]]] = None):
+    def __init__(self, name: str, text: str,
+                 geschichte: Union[DialogFn, List[str]],
+                 vorherige: Union[str, None, VorList] = None):
         self.name = name
         self.text = text
         self.geschichte = geschichte
-        self.vorherige: List[Union[str, Tuple[str, int]]]
+        self.vorherige: VorList
         if isinstance(vorherige, str):
             self.vorherige = [vorherige]
         elif vorherige is not None:

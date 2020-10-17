@@ -7,7 +7,7 @@ from xwatc.system import Mänx, minput, Spielende
 import random
 
 
-def waffe_wählen(mänx):
+def waffe_wählen(mänx: Mänx):
     rasse = input("Was willst du sein?")
     mänx.rasse = "Arak"
     if rasse.lower() not in ("mensch", "arak"):

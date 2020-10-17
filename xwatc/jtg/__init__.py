@@ -8,6 +8,7 @@ import random
 from xwatc.jtg.ressourcen import FRAUENNAMEN
 from xwatc.jtg.tauern import land_der_kühe
 from xwatc.jtg import groekrak, see
+from xwatc.haendler import Preis
 
 
 def t2(mänx: Mänx) -> None:
@@ -73,16 +74,16 @@ def t2(mänx: Mänx) -> None:
 class Mädchen(haendler.Händler):
     """Mädchen am Weg nach Norden."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("Mädchen", kauft=["Kleidung"], verkauft={
-            "Rose": [1, 1]}, gold=0, art="Mädchen")
+            "Rose": Preis(1)}, gold=Preis(0), art="Mädchen")
 
     def vorstellen(self, mänx):
         print("Am Wegesrand vor dem Dorfeingang siehst du ein Mädchen in Lumpen. "
               "Sie scheint zu frieren.")
 
-    def get_preis(self, _):
-        return 0
+    def get_preis(self, _) -> Preis:
+        return Preis(0)
 
     def kampf(self, mänx: Mänx) -> None:
         print("Das Mädchen ist schwach. Niemand hindert dich daran, sie "
@@ -144,9 +145,7 @@ def t2_süd(mänx) -> None:
     if haus:
         print("Ein junger Mann begrüßt dich an der Tür.")
         if mänx.rasse == "Skelett":
-            sprich("?", "Ach hallo, ein Skelett! Fühl dich hier wie zuhause.")
-            # TODO skelett-Varianten
-            ende_des_waldes(mänx, True)
+            hexer_skelett(mänx)
         else:
             aktion = mänx.minput(
                 '?: "Ein Wanderer? Komm herein, du siehst ganz durchgefroren aus."[k/r/f]',
@@ -171,24 +170,37 @@ def t2_süd(mänx) -> None:
               "auf den Weg durch den Wald.")
         ende_des_waldes(mänx)
 
+def hexer_skelett(mänx: Mänx):
+    mänx.welt.setze("kennt:hexer")
+    sprich("?", "Ach hallo, ein Skelett! Fühl dich hier wie zuhause.")
+    leo = "Leo Berndoc"
+    sprich(leo, "Ich habe ganz vergessen, mich vorzustellen!")
+    sprich(leo, "Ich bin Leo Berndoc.")
+    ende_des_waldes(mänx, True)
 
-def haus_des_hexers(mänx)-> None:
+def haus_des_hexers(mänx: Mänx)-> None:
     print("Er bittet dich an den Tisch und gibt dir einen warmen Punsch.")
     mänx.welt.setze("kennt:hexer")
     leo = 'Leo Berndoc'
     sprich(leo, "Ich bin Leo Berndoc.")
     sprich(leo, "Was suchst du in diesem Wald?")
-    antwort = mänx.minput("",
-                          "Halloli! Was mach ich wohl in deinem Haus?[halloli]/ "
-                          "Ich habe mich hier verirrt.[verirrt]/ "
-                          "Ich bin nur auf der Durchreise.[durchreise]/ "
-                          "Die große Liebe![liebe]/ "
-                          "Ich bin einfach in den Osten ­– weil da keine Menschen sind – gegangen, "
-                          "und dann war da diese Oase. Da waren zwei Türen. "
-                          "Ich habe mir ein Herz gefasst, bin durch die Tür gegangen und hier "
-                          "bin ich. Plötzlich.[oase]/ "
-                          "Das gehst dich doch nichts an![an]",
-                          ["verirrt", "halloli", "durchreise", "liebe", "oase", "an"])
+    opts = [
+        (o, v, v) for (o, v) in zip((
+            "Halloli! Was mach ich wohl in deinem Haus? ",
+              "Ich habe mich hier verirrt.",
+              "Ich bin nur auf der Durchreise.",
+              "Die große Liebe!",
+              
+              "Das gehst dich doch nichts an!",
+        ),
+        ["verirrt", "halloli", "durchreise", "liebe", "an"])
+    ]
+    if mänx.welt.ist("jtg:t2"):
+        opts.append(("Ich bin einfach in den Osten ­– weil da keine Menschen sind – gegangen, "
+              "und dann war da diese Oase. Da waren zwei Türen. "
+              "Ich habe mir ein Herz gefasst, bin durch die Tür gegangen und hier "
+              "bin ich. Plötzlich.", "oase", "oase"))
+    antwort = mänx.minput(opts)
     if antwort == "halloli":
         print("Er sagt mit einem verschwörerischen Tonfall: \"Ich verstehe.\"")
         sprich(leo, "Bleibe ruhig noch die Nacht. Hier werden sie dich nicht finden.")

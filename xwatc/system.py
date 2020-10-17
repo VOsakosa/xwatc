@@ -15,6 +15,7 @@ ITEMVERZEICHNIS = {
     "Hering": "Fisch",
     "Holz": "Holz",
     "Hühnerfleisch": "Fleisch",
+    "Klatschmohn": "Blume",
     "Kohle": "Brennstoff",
     "Leere": "Scherz-Item",
     "Mantel": "Kleidung",
