@@ -71,18 +71,10 @@ class NSC(system.InventarBasis):
 
 
     def main(self, mänx: system.Mänx) -> Any:
-        """Starte die Interaktion mit dem Mänxen"""
+        """Starte die Interaktion mit dem Mänxen."""
         if self.tot:
             mint(f"{self.name}s Leiche liegt still auf dem Boden.")
-        else:
-            opts = self.optionen(mänx)
-            mänx.menu(":", opts)(mänx)
-
-    def sprich(self, text: str) -> None:
-        """Minte mit vorgestelltem Namen"""
-        system.sprich(self.name, text)
-
-    def reden(self, mänx: system.Mänx) -> None:
+            return
         self.vorstellen(mänx)
         self._main(mänx)
             
