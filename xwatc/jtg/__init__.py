@@ -15,6 +15,9 @@ def t2(mänx: Mänx) -> None:
     """Jaspers Teilgeschichte"""
     print("Es erwartet dich Vogelgezwitscher.")
     sleep(1)
+    lichtung(mänx)
+
+def lichtung(mänx: Mänx) -> None:
     print("Du befindest sich auf einer Lichtung in einem Wald.")
     mint("Ein schmaler Pfad führt nach Norden.")
     print("Im Osten ist Dickicht.")
