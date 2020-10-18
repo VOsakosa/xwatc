@@ -20,6 +20,7 @@ ITEMVERZEICHNIS = {
     "Klatschmohn": "Blume",
     "Kohle": "Brennstoff",
     "Leere": "Scherz-Item",
+    "mächtige Axt": "legendäre Waffe",
     "Mantel": "Kleidung",
     "Menschenskelett": "Dekoration",
     "Messer": "normale Waffe",
