@@ -326,7 +326,7 @@ def mint(*text):
 
 def sprich(sprecher: str, text: str):
     print(f'{sprecher}: "{text}"')
-    sleep(0.1 * len(text))
+    sleep(0.03 * len(text))
 
 
 def ja_nein(mänx, frage):
