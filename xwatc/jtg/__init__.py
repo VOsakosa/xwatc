@@ -76,7 +76,8 @@ class Mädchen(haendler.Händler):
 
     def __init__(self) -> None:
         super().__init__("Mädchen", kauft=["Kleidung"], verkauft={
-            "Rose": Preis(1)}, gold=Preis(0), art="Mädchen")
+            "Rose": (1, Preis(1))}, gold=Preis(0), art="Mädchen",
+            direkt_handeln=True)
 
     def vorstellen(self, mänx):
         print("Am Wegesrand vor dem Dorfeingang siehst du ein Mädchen in Lumpen. "
@@ -98,7 +99,7 @@ class Mädchen(haendler.Händler):
         self.plündern(mänx)
 
 
-def t2_norden(mänx) -> None:
+def t2_norden(mänx: Mänx) -> None:
     """Das Dorf auf dem Weg nach Norden"""
     print("Auf dem Weg kommen dir mehrfach Leute entgegen, und du kommst in ein kleines Dorf.")
     mädchen = mänx.welt.get_or_else("jtg:mädchen", Mädchen)
@@ -109,9 +110,9 @@ def t2_norden(mänx) -> None:
         print("Du schneidest den Mantel entzwei, und gibst ihr nur die Hälfte.")
         mänx.inventar["halber Mantel"] += 1
         mänx.titel.add("Samariter")
-    elif mädchen.verkauft["Rose"][0] == 0:
+    elif mädchen.inventar["Rose"] == 0:
         print("Das Mädchen ist dankbar für das Stück Gold")
-    if "Unterhose" in mädchen.verkauft:
+    if mädchen.inventar["Unterhose"]:
         print(
             "Das Mädchen ist sichtlich verwirrt, dass du ihr eine Unterhose gegeben hast.")
         mint("Es hält sie vor sich und mustert sie. Dann sagt sie artig danke.")
@@ -172,7 +173,7 @@ def t2_süd(mänx) -> None:
 
 def hexer_skelett(mänx: Mänx):
     mänx.welt.setze("kennt:hexer")
-    sprich("?", "Ach hallo, ein Skelett! Fühl dich hier wie zuhause.")
+    sprich("?", "Ach hallo, ein Skelett! Fühl dich hier wie zu Hause.")
     leo = "Leo Berndoc"
     sprich(leo, "Ich habe ganz vergessen, mich vorzustellen!")
     sprich(leo, "Ich bin Leo Berndoc.")
@@ -406,7 +407,7 @@ class TobiacBerndoc(NSC):
 
     def ring_zeigen(self, mänx: Mänx) -> bool:
         self.sprich("Das ist doch der Ring unserer Familie!")
-        self.sprich("Warte. Ich werde nicht fragen, wo du ihn herhast.")
+        self.sprich("Warte. Ich werde nicht fragen, wo du ihn her hast.")
         print("Du gibst ihm den Ring des Berndoc")
         self.inventar["Ring des Berndoc"] += 1
         mänx.inventar["Ring des Berndoc"] -= 1
@@ -417,9 +418,9 @@ class TobiacBerndoc(NSC):
         return True
 
     def optionen(self, mänx: Mänx) -> NSCOptionen:
-        return NSC.optionen(self, mänx) + [
-            ("Ihm beim Spielen zuhören", "hören", self.zuhören)
-        ]
+        yield from super().optionen(mänx)
+        yield ("Ihm beim Spielen zuhören", "hören", self.zuhören)
+        
 
     def main(self, mänx: Mänx) -> None:
         print("Tobiac spielt auf der Orgel.")
@@ -434,6 +435,7 @@ class Waschweib(Dorfbewohner):
         self.inventar["Schnöder Ehering"] += 1
         self.inventar["Einfaches Kleid"] += 1
         self.inventar["Unterhose"] += 1
+        self.direkt_reden = True
 
 
 def zufälliges_waschweib() -> Waschweib:

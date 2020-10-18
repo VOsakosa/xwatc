@@ -194,7 +194,7 @@ class Mänx(InventarBasis):
         # print("Du kannst")
         print()
         for i, (name, kurz, _) in enumerate(optionen):
-            print(i, ".", name, " [", kurz, "]", sep="")
+            print(i + 1, ".", name, " [", kurz, "]", sep="")
         kurz_optionen = " " + "/".join(o[1] for o in optionen)
         if len(kurz_optionen) < 50:
             frage += kurz_optionen + " "
@@ -212,7 +212,7 @@ class Mänx(InventarBasis):
                 print(gucken)
             elif not spezial_taste(self, eingabe) and eingabe:
                 try:
-                    return optionen[int(eingabe)][2]
+                    return optionen[int(eingabe) - 1][2]
                 except (IndexError, ValueError):
                     pass
                 if len(kandidaten) == 1:

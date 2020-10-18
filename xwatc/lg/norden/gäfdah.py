@@ -1,4 +1,5 @@
 GÄFDA_NAME = "Gäfda"
+
 def erzeuge_süd_dorf(mänx) -> Dorf:
     d = Dorf(GÄFDA_NAME)
     kirche = Ort("Kirche", [

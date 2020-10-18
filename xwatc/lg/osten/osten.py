@@ -93,7 +93,7 @@ def bergbau(mänx: Mänx):
             mänx.inventar["Stein"] += 6
     
         elif 81 <= a <= 90:
-            mint("Du bekommst ein bischen Kohle")
+            mint("Du bekommst ein bisschen Kohle")
             mänx.inventar["Kohle"] += 3
             mänx.inventar["Stein"] += 1
     
@@ -126,8 +126,8 @@ def bergbau(mänx: Mänx):
             mint(
                 "Du arbeitest in der Mine und bautest gerade eine Kohlemine ab, da findest du etwas:")
             mint("Du traust deinen Augen nicht: ",
-                 kursiv("ein Diamand!"), "")
-            mänx.inventar["Diamand"] += 1
+                 kursiv("ein Diamant!"), "")
+            mänx.inventar["Diamant"] += 1
             mänx.inventar["Kohle"] += 20
             mänx.inventar["Stein"] += 1
     
@@ -211,7 +211,7 @@ def monster(mänx: Mänx):
 
     elif a == 5:
         mint(
-            "Vor dir tritt ein bärtiger, nach Alkohohl stinkender Mann aus dem Schatten.")
+            "Vor dir tritt ein bärtiger, nach Alkohol stinkender Mann aus dem Schatten.")
 
     else:
         mint("Plötzlich fängst du an gewaltige Kompo-schmerzen zu haben."
