@@ -128,6 +128,7 @@ class Mänx(InventarBasis):
         self.welt = Welt("bliblablux")
         self.missionen = list()
         self.rasse = "Arak"
+        self.context: Any = None
 
     def gebe_startinventar(self):
         self.inventar["Gold"] = 33

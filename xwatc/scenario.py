@@ -217,7 +217,8 @@ class Scenario:
         #     self.bodenfns[obj](mänx)
         return True
 
-    def einleiten(self, mänx) -> ScenarioEnde:
+    def einleiten(self, mänx: Mänx) -> ScenarioEnde:
+        mänx.context = self
         ans = None
         clear = False
         while not ans:
@@ -234,6 +235,8 @@ class Scenario:
                 ans = self.bewege_spieler(mänx, 0, -1)
             else:
                 print("Hä? Was is'n 'n", repr(arg))
+        if mänx.context is self:
+            mänx.context = None
         return ans
 
 
