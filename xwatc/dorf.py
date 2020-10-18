@@ -31,7 +31,8 @@ class NSC(system.InventarBasis):
 
     def __init__(self, name: str, art: str, kampfdialog: Opt[DialogFn] = None,
                  fliehen: Opt[Callable[[system.Mänx], None]] = None,
-                 direkt_reden: bool = False, freundlich: int = 0):
+                 direkt_reden: bool = False, freundlich: int = 0,
+                 startinventar: Opt[Dict[str, int]] = None):
         super().__init__()
         self.name = name
         self.art = art
@@ -43,6 +44,9 @@ class NSC(system.InventarBasis):
         self.dialoge: List[Dialog] = []
         self.dialog_anzahl: Dict[str, int] = {}
         self.fliehen_fn = fliehen
+        if startinventar:
+            for a, i in startinventar.items():
+                self.inventar[a] += i
 
     def kampf(self, mänx: system.Mänx) -> None:
         """Starte den Kampf gegen mänx."""
@@ -169,6 +173,7 @@ class Dialog:
     def __init__(self, name: str, text: str,
                  geschichte: Union[DialogFn, List[str]],
                  vorherige: Union[str, None, VorList] = None):
+        # TODO mindestfreundlichkeit
         self.name = name
         self.text = text
         self.geschichte = geschichte

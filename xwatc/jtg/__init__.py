@@ -7,7 +7,7 @@ from random import randint
 import random
 from xwatc.jtg.ressourcen import FRAUENNAMEN
 from xwatc.jtg.tauern import land_der_kühe
-from xwatc.jtg import groekrak, see
+from xwatc.jtg import groekrak, see, nord
 from xwatc.haendler import Preis
 
 
@@ -127,6 +127,7 @@ def t2_norden(mänx: Mänx) -> None:
 
 def disnayenbum(mänx: Mänx):
     mint("Du kommst im Dorf Disnayenbun an.")
+    nord.registrieren(mänx)
     nex = scenario.lade_scenario(mänx, "disnajenbun")
     if "osten" == nex:
         mint("Du verlässt das Dorf Richtung Osten.")
