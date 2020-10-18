@@ -15,6 +15,7 @@ GENAUER = [
     "Mauern sind wohl die Häuser der normalen Bevölkerung."
 ]
 
+
 def zugang_ost(mänx: Mänx):
     """Zugang zu Grökrak aus dem Osten"""
     mint("Der Weg führt nach Südwesten aus dem Wald heraus.")
@@ -26,6 +27,7 @@ def zugang_ost(mänx: Mänx):
              "Festung hervor.")
     mänx.genauer(GENAUER)
     grökrak(mänx)
+
 
 def zugang_südost(mänx: Mänx):
     """Zugang aus Scherenfeld"""
@@ -39,7 +41,7 @@ def zugang_südost(mänx: Mänx):
         print("Niemand hat dich gesehen.")
     print("Der Weg überquert mit einer Brücke einen Bach. Am Bach stehen Bäume,"
           " die "
-         "dir die Aussicht auf ", end="")
+          "dir die Aussicht auf ", end="")
     if mänx.welt.ist("kennt:grökrakchöl"):
         mint("Grökrakhöl verbargen.")
     else:
@@ -47,12 +49,12 @@ def zugang_südost(mänx: Mänx):
     mänx.genauer(GENAUER)
     grökrak(mänx)
 
+
 def grökrak(mänx: Mänx):
     if mänx.ja_nein("Willst du die Festung betreten?"):
         gkrak = mänx.welt.get_or_else("jgt:dorf:grökrakchöl", erzeuge_grökrak)
         gkrak.main()
-    
-    
-        
+
+
 def erzeuge_grökrak():
     """"""
