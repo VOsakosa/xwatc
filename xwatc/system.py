@@ -164,9 +164,16 @@ class Mänx(InventarBasis):
             return 1000
         return 20
 
-    def erhalte(self, item, anzahl=1):
+    def erhalte(self, item: str, anzahl: int = 1,
+                anderer: Optional[InventarBasis] = None):
+        if anderer:
+            anzahl = min(anzahl, anderer.inventar[item])
+            if not anzahl:
+                return
         print(f"Du erhältst {anzahl} {item}")
         self.inventar[item] += anzahl
+        if anderer:
+            anderer.inventar[item] -= anzahl
 
     def will_weiterleben(self):
         return self.lebenswille > 0
@@ -231,6 +238,11 @@ class Mänx(InventarBasis):
             for block in text:
                 print(block)
 
+    def sleep(self, länge: float, pausenzeichen="."):
+        for _i in range(int(länge/0.1)):
+            print(pausenzeichen, end="")
+            sleep(0.1)
+        print()
 
 class Gefährte:
     def __init__(self, name):

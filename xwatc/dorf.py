@@ -219,9 +219,9 @@ class Dialog:
 
 
 class Dorfbewohner(NSC):
-    def __init__(self, name: str, geschlecht: bool):
+    def __init__(self, name: str, geschlecht: bool, **kwargs):
         super().__init__(name, "Dorfbewohner" if geschlecht
-                         else "Dorfbewohnerin")
+                         else "Dorfbewohnerin", **kwargs)
         self.geschlecht = geschlecht
         self.dialog("hallo", "Hallo", lambda n, _:
                     sprich(n.name, f"Hallo, ich bin {n.name}. "
@@ -230,6 +230,8 @@ class Dorfbewohner(NSC):
                     sprich(n.name, "Hallo nochmal!") or True, "hallo")
 
     def kampf(self, mänx: system.Mänx) -> None:
+        if self.kampf_fn:
+            return super().kampf(mänx)
         if mänx.hat_klasse("Waffe", "magische Waffe"):
             mint("Du streckst den armen Typen nieder.")
             self.tot = True
