@@ -5,6 +5,7 @@ Seit 10.10.2020
 """
 from __future__ import annotations
 from enum import Enum
+import random
 from typing import List, Union, Callable, Dict, Tuple, Any, Iterator, Iterable
 from typing import Optional as Opt
 from dataclasses import dataclass, field
@@ -41,8 +42,7 @@ class NSC(system.InventarBasis):
         self.freundlich = freundlich
         self.dialoge: List[Dialog] = []
         self.dialog_anzahl: Dict[str, int] = {}
-        if fliehen:
-            self.fliehen = fliehen  # type: ignore
+        self.fliehen_fn = fliehen
 
     def kampf(self, mänx: system.Mänx) -> None:
         """Starte den Kampf gegen mänx."""
@@ -52,8 +52,10 @@ class NSC(system.InventarBasis):
         else:
             raise ValueError(f"Xwatc weiß nicht, wie {self.name} kämpft")
 
-    def fliehen(self, _mänx: system.Mänx) -> None:  # pylint: disable=method-hidden
-        if self.freundlich < 0:
+    def fliehen(self, mänx: system.Mänx) -> None:  # pylint: disable=method-hidden
+        if self.fliehen_fn:
+            self.fliehen_fn(mänx)
+        elif self.freundlich < 0:
             mint("Du entkommst mühelos.")
 
     def vorstellen(self, mänx: system.Mänx) -> None:
@@ -244,14 +246,12 @@ class Dorfbewohner(NSC):
                 else:
                     mint("Aber sie wehrt sich tödlich.")
                 raise Spielende
-        else:
-            a=random.randint(1,6)
-            if a !=1:
-                print("Irgendwann ist dein Gegner bewusstlos.")
-                if ja_nein(mänx, "Schlägst du weiter bis er tot ist oder gehst du weg?"):
-                    print("Irgendwann ist der Arme tot. Du bist ein Mörder. "
-                          "Kaltblütig hast du dich dafür entschieden einen lebendigen Menschen zu töten." 
-                    "", kursiv ("zu ermorden."), "Mörder.")
+        elif random.randint(1,6) != 1:
+            print("Irgendwann ist dein Gegner bewusstlos.")
+            if mänx.ja_nein("Schlägst du weiter bis er tot ist oder gehst du weg?"):
+                print("Irgendwann ist der Arme tot. Du bist ein Mörder. "
+                      "Kaltblütig hast du dich dafür entschieden einen lebendigen Menschen zu töten." 
+                "", system.kursiv ("zu ermorden."), "Mörder.")
         
                      
 
