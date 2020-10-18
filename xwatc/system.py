@@ -239,9 +239,9 @@ class Mänx(InventarBasis):
                 print(block)
 
     def sleep(self, länge: float, pausenzeichen="."):
-        for _i in range(int(länge/0.1)):
+        for _i in range(int(länge/0.5)):
             print(pausenzeichen, end="")
-            sleep(0.1)
+            sleep(0.5)
         print()
 
 class Gefährte:

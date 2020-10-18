@@ -3,7 +3,7 @@ NSCs für Disnajenbun
 Created on 18.10.2020
 """
 from xwatc.system import Mänx, mint, Spielende
-from xwatc.dorf import NSC, Dorfbewohner
+from xwatc.dorf import NSC, Dorfbewohner, Rückkehr
 import random
 import re
 from typing import Optional
@@ -164,6 +164,7 @@ def axtmann() -> NSC:
         "Kapuzenmantel": 1,
         "Speisekarte": 1,
         "Lederhose": 1,
+        "Gold": 3,
     })
     n.dialog("hallo", '"Hallo"', [".."])
     return n
@@ -181,6 +182,8 @@ def fred() -> NSC:
                 "Kräutersud gegen Achselgeruch": 2,
                 "Armbanduhr": 1,
                 "Unterhose": 1,
+                "Ehering": 1,
+                "Gold": 51
             })
     n.dialog("hallo", '"Hallo"', [
         "Willkommen in Disnajenbun! Ich bin der Dorfvorsteher Fred.",
@@ -213,7 +216,8 @@ def mieko() -> NSC:
         Schraube=12,
         Werkzeugkasten=1,
         Latzhose=1,
-        Unterhose=1
+        Unterhose=1,
+        Gold=14
     ))
 
     def gebe_nagel(n, m):
@@ -241,9 +245,13 @@ def kirie() -> NSC:
                 Mütze=1,
                 Haarband=1,
                 Nagel=4,
-            ))
+            ), direkt_reden=True)
+
+    setattr(n, "vorstellen",
+            lambda m: print("Ein junges Mädchen spielt im Feld."))
 
     def spielen(n, m):
+        # Zeit vergeht
         print(f"Du spielst eine Weile mit {n.name}")
         m.sleep(10)
         if n.freundlich < 60:
@@ -283,5 +291,58 @@ def kirie() -> NSC:
         lambda n, m: m.hat_item("Talisman des Verstehens"))
     return n
 
-# @register("jtg:lina")
 
+@register("jtg:lina")
+def lina() -> NSC:
+    n = NSC("Lína Fórmayr", "Bäuerin", kampfdialog=kampf_in_disnayenbum,
+            startinventar=dict(
+                Unterhose=1,
+                Hose=1,
+                Top=1,
+                Ehering=1,
+                Gold=14,
+                Wischmopp=1,
+                Schürze=1,
+            ), freundlich=1, direkt_reden=True)
+    n.inventar["Großer BH"] += 1
+    n.wurde_bestarrt = False  # type: ignore
+
+    def hallo(n, m):
+        if n.freundlich > 0:
+            n.sprich("Hallo! Ich bin Lina.")
+            n.sprich("Du kannst dich hier gerne für die Nacht ausruhen, "
+                     "wenn du willst.")
+        else:
+            n.sprich("Hallo, ich bin Lina.")
+            m.sleep(1)
+            n.sprich("Die Höflichkeit gebietet es mir, dich hier übernachten "
+                     "zu lassen.")
+    n.dialog("hallo", '"Hallo!"', hallo)
+
+    def starren(n, m: Mänx):
+        if n.freundlich > 0:
+            n.freundlich -= 1
+            print("Sie wirft dir einen Blick zu und du wendet schnell den Blick ab.")
+        elif n.wurde_bestarrt:
+            n.sprich("BRÀIN!")
+            mint("Der Mann mit der Axt stürmt herein und gibt dir eines auf die "
+                 "Mütze.")
+            print("Du wirst ohnmächtig")
+            m.sleep(12)
+            m.welt.nächster_tag()
+            mint("Du wachst erst am nächsten Tag auf.")
+            return Rückkehr.VERLASSEN
+        else:
+            n.sprich("Freundchen, hör damit auf oder ich rufe Bràin.")
+            n.wurde_bestarrt = True
+
+    n.dialog("brüste", 'auf die Brüste starren', starren).wenn(
+        lambda n, m: "Perversling" in m.titel)
+
+    def übernachten(n, m):
+        n.sprich("Ich führe dich sofort zu deinem Bett.")
+        m.welt.nächster_tag()
+
+    n.dialog("ruhen", "ruhen", übernachten, "hallo")
+
+    return n
