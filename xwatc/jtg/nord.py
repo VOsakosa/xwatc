@@ -12,6 +12,7 @@ from xwatc import jtg
 __author__ = "jasper"
 REGISTER = {}
 
+# TODO Vorstellen!
 
 def register(name):
     def do_register(fkt):
@@ -22,8 +23,8 @@ def register(name):
 
 def registrieren(mänx: Mänx):
     for name, fkt in REGISTER.items():
-        if name not in mänx.welt:
-            mänx.welt[name] = fkt()
+        if name not in mänx.welt.objekte:
+            mänx.welt.objekte[name] = fkt()
 
 
 def frage_melken(nsc: NSC, _mänx: Mänx):
@@ -245,8 +246,9 @@ def kirie() -> NSC:
                 Mütze=1,
                 Haarband=1,
                 Nagel=4,
+                
             ), direkt_reden=True)
-
+    n.inventar["Talisman des Verstehens"] += 1
     setattr(n, "vorstellen",
             lambda m: print("Ein junges Mädchen spielt im Feld."))
 
@@ -341,6 +343,8 @@ def lina() -> NSC:
 
     def übernachten(n, m):
         n.sprich("Ich führe dich sofort zu deinem Bett.")
+        print("Du legst dich schlafen.")
+        m.sleep(6)
         m.welt.nächster_tag()
 
     n.dialog("ruhen", "ruhen", übernachten, "hallo")

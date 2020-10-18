@@ -103,7 +103,7 @@ class Feld:
         else:
             assert isinstance(self.obj, str)
             if self.obj in mänx.welt.objekte:
-                return mänx.welt.objekte[self.obj].main() or False
+                return mänx.welt.objekte[self.obj].main(mänx) or False
             else:
                 return False
 
@@ -257,8 +257,11 @@ def lade_scenario(mänx, path):
 
 
 if __name__ == '__main__':
+    from xwatc.jtg.nord import registrieren
+    m = system.Mänx()
+    registrieren(m)
     try:
-        erg = lade_scenario(system.Mänx(), "disnajenbun")
+        erg = lade_scenario(m, "disnajenbun")
     except system.Spielende:
         print("Du bist tot")
     else:
