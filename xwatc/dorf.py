@@ -79,22 +79,19 @@ class NSC(system.InventarBasis):
                     print("Du weißt nicht, was du sagen könntest.")
                 else:
                     print("Du hast nichts mehr zu sagen.")
-<<<<<<< HEAD
             optionen.append(("fliehen", "f", None))
             dlg = mänx.menu("", optionen)
             if not dlg:
-=======
-            dlg = mänx.menu(optionen)
-            if isinstance(dlg, Dialog):
-                if callable(dlg.geschichte):
-                    cont = dlg.geschichte(self, mänx) is False
+                dlg = mänx.menu(optionen)
+                if isinstance(dlg, Dialog):
+                    if callable(dlg.geschichte):
+                        cont = dlg.geschichte(self, mänx) is False
                 else:
                     for g in dlg.geschichte:
                         self.sprich(g)
                 dlg_anzahl[dlg.name] = dlg_anzahl.setdefault(dlg.name, 0) + 1
             else:
                 dlg(mänx)
->>>>>>> 78d8887a84fd728ea9cff07d3817a6ed451f57b5
                 cont = False
             else:
                 cont = bool(dlg.geschichte(self, mänx))
@@ -210,7 +207,6 @@ class Dorfbewohner(NSC):
                      
 
 
-@dataclass
 class Ort:
     """Ein Ort im Dorf, wo sich Menschen aufhalten können"""
     name: str

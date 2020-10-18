@@ -1,4 +1,4 @@
-from typing import List, Optional as Op, Literal, NewType, Dict, cast
+from typing import List, Optional as Op, NewType, Dict, cast
 
 from xwatc.dorf import NSC
 from xwatc.system import Mänx, minput, ja_nein, get_class
