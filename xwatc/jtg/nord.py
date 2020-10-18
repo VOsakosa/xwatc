@@ -8,7 +8,7 @@ import random
 import re
 from typing import Optional
 from xwatc.scenario import Scenario
-from xwatc.jtg import SÜD_DORF_NAME
+from xwatc import jtg
 __author__ = "jasper"
 REGISTER = {}
 
@@ -193,7 +193,7 @@ def fred() -> NSC:
     n.dialog("wege", '"Wo führen die Wege hier hin?"', [
         "Also...",
         "Der Weg nach Osten führt nach Tauern, aber du kannst auch nach " +
-        SÜD_DORF_NAME + " abbiegen.",
+        jtg.SÜD_DORF_NAME + " abbiegen.",
         "Der Weg nach Süden führt, falls du das nicht schon weißt, nach " +
         "Grökrakchöl.",
         "Zuallerletzt gäbe es noch den Weg nach Westen...",
