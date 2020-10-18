@@ -17,7 +17,7 @@ GENAUER = [
 
 def zugang_ost(mänx: Mänx):
     """Zugang zu Grökrak aus dem Osten"""
-    mint("Der Weg führt das Südwesten aus dem Wald heraus.")
+    mint("Der Weg führt nach Südwesten aus dem Wald heraus.")
     if mänx.welt.ist("kennt:grökrakchöl"):
         mint("Vor dir siehst du Grökrakchöl.")
     else:

@@ -78,6 +78,7 @@ class Mädchen(haendler.Händler):
         super().__init__("Mädchen", kauft=["Kleidung"], verkauft={
             "Rose": (1, Preis(1))}, gold=Preis(0), art="Mädchen",
             direkt_handeln=True)
+        self.in_disnajenbum = True
 
     def vorstellen(self, mänx):
         print("Am Wegesrand vor dem Dorfeingang siehst du ein Mädchen in Lumpen. "
@@ -103,32 +104,40 @@ def t2_norden(mänx: Mänx) -> None:
     """Das Dorf auf dem Weg nach Norden"""
     print("Auf dem Weg kommen dir mehrfach Leute entgegen, und du kommst in ein kleines Dorf.")
     mädchen = mänx.welt.get_or_else("jtg:mädchen", Mädchen)
-    if "k" == mädchen.main(mänx):
-        mädchen.kampf(mänx)
-    elif "Mantel" in mädchen.verkauft:
-        print("Das Mädchen bedeutet dir, dass sie nur den halben Mantel braucht.")
-        print("Du schneidest den Mantel entzwei, und gibst ihr nur die Hälfte.")
-        mänx.inventar["halber Mantel"] += 1
-        mänx.titel.add("Samariter")
-    elif mädchen.inventar["Rose"] == 0:
-        print("Das Mädchen ist dankbar für das Stück Gold")
-    if mädchen.inventar["Unterhose"]:
-        print(
-            "Das Mädchen ist sichtlich verwirrt, dass du ihr eine Unterhose gegeben hast.")
-        mint("Es hält sie vor sich und mustert sie. Dann sagt sie artig danke.")
-        mänx.titel.add("Perversling")
-    print("")
+    if mädchen.in_disnajenbum and not mädchen.tot:
+        if "k" == mädchen.main(mänx):
+            mädchen.kampf(mänx)
+        elif "Mantel" in mädchen.verkauft:
+            print("Das Mädchen bedeutet dir, dass sie nur den halben Mantel braucht.")
+            print("Du schneidest den Mantel entzwei, und gibst ihr nur die Hälfte.")
+            mänx.inventar["halber Mantel"] += 1
+            mänx.titel.add("Samariter")
+        elif mädchen.inventar["Rose"] == 0:
+            print("Das Mädchen ist dankbar für das Stück Gold")
+        if mädchen.inventar["Unterhose"]:
+            print(
+                "Das Mädchen ist sichtlich verwirrt, dass du ihr eine Unterhose gegeben hast.")
+            mint("Es hält sie vor sich und mustert sie. Dann sagt sie artig danke.")
+            mänx.titel.add("Perversling")
+        print("Das Mädchen verschwindet nach Süden.")
+        mädchen.in_disnajenbum = False
+        # TODO wohin?
     disnayenbum(mänx)
 
 
 def disnayenbum(mänx: Mänx):
     mint("Du kommst im Dorf Disnayenbun an.")
-    if "osten" == scenario.lade_scenario(mänx, "disnajenbun"):
+    nex = scenario.lade_scenario(mänx, "disnajenbun")
+    if "osten" == nex:
         mint("Du verlässt das Dorf Richtung Osten.")
         t2_no(mänx)
-    else:
+    elif nex == "westen":
         mint("Du verlässt das Dorf Richtung Nordwesten.")
         t2_nw(mänx)
+    else: # süden
+        mint("Du verlässt das Dorf Richtung Süden.")
+        # TODO die Pfade!
+        groekrak.zugang_ost(mänx)
 
 
 def t2_süd(mänx) -> None:
