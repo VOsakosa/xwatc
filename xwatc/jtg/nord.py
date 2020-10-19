@@ -232,6 +232,15 @@ def mieko() -> NSC:
         "Danke! Ich habe es selbst gebaut.",
         "Genau genommen habe ich alle Häuser hier gebaut.",
         "Vielleicht baue ich dir später, wenn du willst, auch ein Haus!"])
+    n.dialog("tür", 'von der magischen Tür erzählen', [
+        "Das ist aber interessant.",
+        "Vielleicht finde ich einen Magier, und wir gründen gemeinsam ein Geschäft:",
+        "Ich mache die Türen, und er macht sie magisch.",
+        ], "hallo").wenn_var("jtg:t2")
+    n.dialog("flimmern", "vom der Höhle erzählen", [
+        "Und du warst plötzlich hier?",
+        "Das ist aber interessant.",
+        ]).wenn_var("jtg:flimmern")
     return n
 
 

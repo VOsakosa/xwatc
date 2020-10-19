@@ -19,6 +19,7 @@ DialogFn = Callable[["NSC", system.Mänx], Opt[bool]]
 RunType = Union['Dialog', MänxFkt, 'Rückkehr']
 _MainOpts = List[MenuOption[RunType]]
 
+
 class Rückkehr(Enum):
     WEITER_REDEN = 0
     ZURÜCK = 1
@@ -68,13 +69,11 @@ class NSC(system.InventarBasis):
     def optionen(self, mänx: system.Mänx) -> NSCOptionen:  # pylint: disable=unused-argument
         yield ("kämpfen", "k", self.kampf)
         yield ("fliehen" if self.freundlich < 0 else "zurück", "f", self.fliehen)
-        
 
     def dialog_optionen(self, mänx: system.Mänx) -> Iterator[MenuOption[Dialog]]:
         for d in self.dialoge:
             if d.verfügbar(self, mänx):
                 yield d.zu_option()
-
 
     def main(self, mänx: system.Mänx) -> Any:
         """Starte die Interaktion mit dem Mänxen."""
@@ -83,9 +82,8 @@ class NSC(system.InventarBasis):
             return
         self.vorstellen(mänx)
         self._main(mänx)
-            
-    
-    def _run(self, option: RunType, 
+
+    def _run(self, option: RunType,
              mänx: system.Mänx) -> Rückkehr:
         """Führe eine Option aus."""
         if isinstance(option, Dialog):
@@ -152,7 +150,6 @@ class NSC(system.InventarBasis):
     def sprich(self, text: str, *args, **kwargs) -> None:
         """Minte mit vorgestelltem Namen"""
         system.sprich(self.name, text, *args, **kwargs)  # type: ignore
-        
 
     def dialog(self, *args, **kwargs) -> 'Dialog':
         "Erstelle einen Dialog"
@@ -164,15 +161,20 @@ class NSC(system.InventarBasis):
         """Schiebe das ganze Inventar von NSC zum Mänxen."""
         schiebe_inventar(self.inventar, mänx.inventar)
 
+
 VorList = List[Union[str, Tuple[str, int]]]
+
 
 class Dialog:
     """Ein einzelner Gesprächsfaden beim Gespräch mit einem NSC"""
     wenn_fn: Opt[DialogFn]
 
-    def __init__(self, name: str, text: str,
+    def __init__(self,
+                 name: str, 
+                 text: str,
                  geschichte: Union[DialogFn, List[str]],
-                 vorherige: Union[str, None, VorList] = None):
+                 vorherige: Union[str, None, VorList] = None,
+                 wiederhole: int = 0):
         # TODO mindestfreundlichkeit
         self.name = name
         self.text = text
@@ -186,11 +188,20 @@ class Dialog:
             self.vorherige = []
 
         self.wenn_fn = None
-        self.anzahl = 0
+        self.anzahl = wiederhole
 
     def wenn(self, fn: DialogFn) -> 'Dialog':
         self.wenn_fn = fn
         return self
+
+    def wenn_var(self, *welt_variabeln: str) -> 'Dialog':
+        if self.wenn_fn:
+            def neue_wenn(nsc, mänx, wf=self.wenn_fn):
+                return wf(nsc, mänx) and all(
+                    mänx.welt.ist(v) for v in welt_variabeln)
+            return self.wenn(neue_wenn)
+        else:
+            return self.wenn(lambda n, m: all(m.welt.ist(v) for v in welt_variabeln))
 
     def wiederhole(self, anzahl: int) -> 'Dialog':
         """Füge eine maximale Anzahl von Wiederholungen hinzu"""
@@ -254,14 +265,12 @@ class Dorfbewohner(NSC):
                 else:
                     mint("Aber sie wehrt sich tödlich.")
                 raise Spielende
-        elif random.randint(1,6) != 1:
+        elif random.randint(1, 6) != 1:
             print("Irgendwann ist dein Gegner bewusstlos.")
             if mänx.ja_nein("Schlägst du weiter bis er tot ist oder gehst du weg?"):
                 print("Irgendwann ist der Arme tot. Du bist ein Mörder. "
-                      "Kaltblütig hast du dich dafür entschieden einen lebendigen Menschen zu töten." 
-                "", system.kursiv ("zu ermorden."), "Mörder.")
-        
-                     
+                      "Kaltblütig hast du dich dafür entschieden einen lebendigen Menschen zu töten."
+                      "", system.kursiv("zu ermorden."), "Mörder.")
 
 
 @dataclass
@@ -270,7 +279,6 @@ class Ort:
     name: str
     text: Union[str, List[str]]
     menschen: List[NSC] = field(default_factory=list)
-    
 
     def platzangabe(self):
         if isinstance(self.text, str):
@@ -279,6 +287,7 @@ class Ort:
             for line in self.text[:-1]:
                 print(line)
             mint(self.text[-1])
+
 
 class Dorf:
     """Ein Dorf besteht aus mehreren Orten, an denen man Menschen treffen kann.

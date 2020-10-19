@@ -68,6 +68,7 @@ def höhle(mänx: Mänx):
         else:
             monster(mänx)
     mint("Urplötzlich fängt die Luft um dich herum an zu flimmern. Und dann...")
+    mänx.welt.setzt("jtg:flimmern")
     jaspersteilgeschichte.t2(mänx)
 
 def bergbau(mänx: Mänx):
