@@ -91,6 +91,16 @@ class InventarBasis:
                 ans.append(f"{anzahl}x {item}")
         return ", ".join(ans)
 
+    def erweitertes_inventar(self):
+        import xwatc.haendler
+        ans = ["{} Gold".format(self.inventar["Gold"])]
+        for item, anzahl in sorted(self.inventar.items()):
+            if anzahl and item != "Gold":
+                klasse = get_class(item) or "?"
+                kosten = xwatc.haendler.ALLGEMEINE_PREISE.get(item, "?")
+                ans.append(f"{anzahl:>4}x {item} ({kosten}G) {klasse}")
+        return "\n".join(ans)
+
     @property
     def gold(self) -> int:
         return self.inventar["Gold"]
@@ -306,10 +316,12 @@ def minput(mänx: Mänx, frage: str, möglichkeiten=None, lower=True) -> str:
             return taste
 
 
-def spezial_taste(mänx, taste: str) -> bool:
+def spezial_taste(mänx: Mänx, taste: str) -> bool:
     """Führe die Spezialaktion taste aus, oder gebe Falsch zurück."""
     if taste == "e":
         print(mänx.inventar_zeigen())
+    elif taste == "ee":
+        print(mänx.erweitertes_inventar())
     elif taste == "q":
         print(mänx.missionen_zeigen())
     elif taste == "sterben":
@@ -328,7 +340,7 @@ def mint(*text):
 
 def sprich(sprecher: str, text: str):
     print(f'{sprecher}: "{text}"')
-    sleep(0.1 * len(text))
+    sleep(0.03 * len(text))
 
 
 def ja_nein(mänx, frage):
