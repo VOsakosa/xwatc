@@ -338,9 +338,16 @@ def mint(*text):
     input(" ".join(str(t) for t in text))
 
 
-def sprich(sprecher: str, text: str):
-    print(f'{sprecher}: "{text}"')
-    sleep(0.03 * len(text))
+def sprich(sprecher: str, text: str, warte: bool = False):
+    if warte:
+        mint(f'{sprecher}: "{text}"')
+    else:
+        print(end=f'{sprecher}: "')
+        for word in text.split(" "):
+            print(word, end=" ", flush=True)
+            sleep(0.1)
+        print('"')
+        
 
 
 def ja_nein(mänx, frage):
