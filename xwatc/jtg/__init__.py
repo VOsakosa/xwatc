@@ -210,7 +210,7 @@ def haus_des_hexers(mänx: Mänx)-> None:
               "und dann war da diese Oase. Da waren zwei Türen. "
               "Ich habe mir ein Herz gefasst, bin durch die Tür gegangen und hier "
               "bin ich. Plötzlich.", "oase", "oase"))
-    antwort = mänx.minput(opts)
+    antwort = mänx.menu(opts)
     if antwort == "halloli":
         print("Er sagt mit einem verschwörerischen Tonfall: \"Ich verstehe.\"")
         sprich(leo, "Bleibe ruhig noch die Nacht. Hier werden sie dich nicht finden.")
