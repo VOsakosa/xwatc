@@ -148,7 +148,6 @@ class NSC(system.InventarBasis):
     def reden(self, mänx: system.Mänx) -> Rückkehr:
         """Das Menu, wo nur reden möglich ist."""
         if not self.kennt_spieler:
-            self.vorstellen(mänx)
             self.kennt_spieler = True
         ans = Rückkehr.WEITER_REDEN
         start = True

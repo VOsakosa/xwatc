@@ -2,6 +2,7 @@ from collections import defaultdict
 from typing import Sequence, Dict, List, Tuple, TypeVar, Callable, Any, Union,\
     overload, Optional, Iterator, Mapping
 from time import sleep
+import re
 
 ITEMVERZEICHNIS = {
     "Apfel": "Obst",
@@ -175,15 +176,15 @@ class Mänx(InventarBasis):
         return 20
 
     def erhalte(self, item: str, anzahl: int = 1,
-                anderer: Optional[InventarBasis] = None):
-        if anderer:
-            anzahl = min(anzahl, anderer.inventar[item])
+                von: Optional[InventarBasis] = None):
+        if von:
+            anzahl = min(anzahl, von.inventar[item])
             if not anzahl:
                 return
         print(f"Du erhältst {anzahl} {item}")
         self.inventar[item] += anzahl
-        if anderer:
-            anderer.inventar[item] -= anzahl
+        if von:
+            von.inventar[item] -= anzahl
 
     def will_weiterleben(self):
         return self.lebenswille > 0
@@ -250,7 +251,7 @@ class Mänx(InventarBasis):
 
     def sleep(self, länge: float, pausenzeichen="."):
         for _i in range(int(länge/0.5)):
-            print(pausenzeichen, end="")
+            print(pausenzeichen, end="", flush=True)
             sleep(0.5)
         print()
 
@@ -343,9 +344,9 @@ def sprich(sprecher: str, text: str, warte: bool = False):
         mint(f'{sprecher}: "{text}"')
     else:
         print(end=f'{sprecher}: "')
-        for word in text.split(" "):
-            print(word, end=" ", flush=True)
-            sleep(0.1)
+        for word in re.split(r"(\W)", text):
+            print(end=word, flush=True)
+            sleep(0.05)
         print('"')
         
 

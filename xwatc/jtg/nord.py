@@ -37,13 +37,20 @@ def frage_melken(nsc: NSC, _mänx: Mänx):
 
 
 def kampf_in_disnayenbum(nsc: NSC, mänx: Mänx):
-    mint(f"Du greifst {nsc.name} an.")
+    axtmann_da = False
     if isinstance(mänx.context, Scenario):
+        obs = mänx.welt.objekte
         # mänx.context.warne_kampf(nsc, mänx)
-        if "jtg:axtmann" in mänx.welt and not mänx.welt["jtg:axtmann"].tot:
-            print("Aber das ist dem Mann mit der Axt nicht entgangen.")
-            print("Er macht kurzen Prozess aus dir.")
-            raise Spielende()
+        axtmann_da = "jtg:axtmann" in obs and not obs["jtg:axtmann"].tot
+    if axtmann_da:
+        print("Du spürst den Blick des Axtmannes im Rücken.")
+        if not mänx.ja_nein("Willst du wirklich jemand wehrloses angreifen?"):
+            return
+    mint(f"Du greifst {nsc.name} an.")
+    if axtmann_da:
+        print("Aber das ist dem Mann mit der Axt nicht entgangen.")
+        print("Er macht kurzen Prozess aus dir.")
+        raise Spielende()
     mint("Ein leichter Kampf.")
     # TODO Tod berichten
     nsc.tot = True
@@ -58,7 +65,7 @@ class NoMuh(NSC):
         self.inventar["Glocke"] += 1
         self.dialog("hallo", '"Hallo"', ("Hallo.",))
         self.dialog("futter", '"Was hättest du gerne zu essen?"',
-                    ("Erbsen natürlich."))
+                    ("Erbsen natürlich.", ))
         self.dialog("melken", '"Darf ich dich melken?"', frage_melken)
         self.verstanden = False
         self.letztes_melken: Optional[int] = None
@@ -86,7 +93,7 @@ class NoMuh(NSC):
             NSC.sprich(self, text, *args, **kwargs)
         else:
             text = re.sub(r"\w+", "Muh", text)
-            NSC.sprich(self, "Muh", *args, **kwargs)
+            NSC.sprich(self, text, *args, **kwargs)
 
     def optionen(self, mänx: Mänx):
         yield from super().optionen(mänx)
@@ -166,7 +173,8 @@ def axtmann() -> NSC:
         "Speisekarte": 1,
         "Lederhose": 1,
         "Gold": 3,
-    })
+    }, vorstellen=["Ein großer Mann hat eine Kapuze tief ins Gesicht gezogen.",
+                   "Auffällig ist eine große Axt, die er in der Hand hält."])
     n.dialog("hallo", '"Hallo"', [".."])
     return n
 
@@ -185,7 +193,7 @@ def fred() -> NSC:
                 "Unterhose": 1,
                 "Ehering": 1,
                 "Gold": 51
-            })
+            }, vorstellen=["Ein Mann in Anzug lächelt dich unverbindlich an."])
     n.dialog("hallo", '"Hallo"', [
         "Willkommen in Disnajenbun! Ich bin der Dorfvorsteher Fred.",
         "Ruhe dich ruhig in unserem bescheidenen Dorf aus."])
@@ -206,7 +214,8 @@ def fred() -> NSC:
 
 @register("jtg:mieko")
 def mieko() -> NSC:
-    n = Dorfbewohner("Mìeko Rimàn", True, kampfdialog=kampf_in_disnayenbum)
+    n = Dorfbewohner("Mìeko Rimàn", True, kampfdialog=kampf_in_disnayenbum,
+                     vorstellen=["Ein Handwerker bastelt gerade an seiner Werkbank."])
     n.inventar.update(dict(
         Banane=1,
         Hering=4,
@@ -256,10 +265,8 @@ def kirie() -> NSC:
                 Haarband=1,
                 Nagel=4,
                 
-            ), direkt_reden=True)
+            ), direkt_reden=True, vorstellen=["Ein junges Mädchen spielt im Feld."])
     n.inventar["Talisman des Verstehens"] += 1
-    setattr(n, "vorstellen",
-            lambda m: print("Ein junges Mädchen spielt im Feld."))
 
     def spielen(n, m):
         # Zeit vergeht
@@ -278,6 +285,7 @@ def kirie() -> NSC:
             n.sprich("Gib ihn aber zurück, ja?")
             n.talisman_tag = m.welt.get_tag()
             n.sprich("Bis morgen, versprochen?")
+            m.erhalte("Talisman des Verstehens", von=n)
 
     def talisman_zurück(n, m):
         n.sprich("Danke")
@@ -288,6 +296,8 @@ def kirie() -> NSC:
         else:
             n.freundlich += 40
             n.sprich("Und? Wie war's? Konntet ihr Freunde werden?")
+        m.inventar["Talisman des Verstehens"] -= 1
+        n.inventar["Talisman des Verstehens"] += 1
 
     n.dialog("hallo", '"Hallo"', ("Hallo, Alter!",))
     n.dialog("heißt", '"...und wie heißt du?',
@@ -314,7 +324,10 @@ def lina() -> NSC:
                 Gold=14,
                 Wischmopp=1,
                 Schürze=1,
-            ), freundlich=1, direkt_reden=True)
+                Sachbuch=2,
+            ), freundlich=1, direkt_reden=True,
+            vorstellen=["Eine Frau von ca. 170cm mit großen Brüsten und "
+                        "braunem Haar sitzt auf einem Stuhl und liest."])
     n.inventar["Großer BH"] += 1
     n.wurde_bestarrt = False  # type: ignore
 
