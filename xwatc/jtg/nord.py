@@ -2,7 +2,7 @@
 NSCs für Disnajenbun
 Created on 18.10.2020
 """
-from xwatc.system import Mänx, mint, Spielende
+from xwatc.system import Mänx, mint, Spielende, InventarBasis, sprich
 from xwatc.dorf import NSC, Dorfbewohner, Rückkehr
 import random
 import re
@@ -13,6 +13,7 @@ __author__ = "jasper"
 REGISTER = {}
 
 # TODO Vorstellen!
+
 
 def register(name):
     def do_register(fkt):
@@ -102,33 +103,36 @@ class NoMuh(NSC):
 
     def füttern(self, mänx: Mänx):
         opts = [("Gras ausreißen", "gras", "gras")]
-        if mänx.hat_item("Gänseblümchen"):
-            opts.append(("Gänseblümchen", "gänseblümchen", "gb"))
-        if mänx.hat_item("Erbse"):
-            opts.append(("Erbsen", "erbsen", "eb"))
-        if mänx.hat_item("Mantel"):
-            opts.append(("Mantel", "mantel", "mt"))
+        for item in ("Gänseblümchen", "Erbse", "Mantel", "Karotte", "Banane"):
+            if mänx.hat_item(item):
+                opts.append((item, item.lower(), item.lower()))
         ans = mänx.menu(opts, frage="Was fütterst du sie?")
         if ans == "gras":
             print("NoMuh frisst das Gras aus deiner Hand")
             mint("und kaut gelangweilt darauf herum.")
-        elif ans == "eb":
+        elif ans == "erbse":
             print("NoMuh leckt dir die Erbsen schnell aus der Hand.")
             mänx.inventar["Erbse"] -= 1
             self.sprich("Endlich jemand, der mich versteht. Danke!")
             self.freundlich += 10
-        elif ans == "mt":
-            print("NoMuh beißt in deinen Mantel, dann reißt sie ihn.")
+        elif ans == "mantel":
+            print("NoMuh beißt in deinen Mantel, dann reißt sie ihn an.")
             mint("Der Mantel ist jetzt unbenutzbar.")
             mänx.inventar["Mantel"] -= 1
+        elif ans == "karotte":
+            self.sprich("Bin ich ein Kaninchen oder was?")
+            mint("NoMuh will keine Karotten.")
+        elif ans == "banane":
+            mint("NoMuh würdigt dich keinen Blickes.")
         else:
-            assert ans == "gb"
+            assert ans == "gänseblümchen"
             mänx.inventar["Gänseblümchen"] -= 1
             self.sprich("Frauen überzeugt man mit Blumen, was?")
             self.freundlich += 1
 
     def melken(self, mänx: Mänx):
         if self.freundlich >= 0:
+            mänx.titel.add("Kuhflüsterer")
             if self.letztes_melken is None or self.letztes_melken < mänx.welt.get_tag():
                 self.letztes_melken = mänx.welt.get_tag()
                 mänx.erhalte("magische Milch", 1)
@@ -245,11 +249,11 @@ def mieko() -> NSC:
         "Das ist aber interessant.",
         "Vielleicht finde ich einen Magier, und wir gründen gemeinsam ein Geschäft:",
         "Ich mache die Türen, und er macht sie magisch.",
-        ], "hallo").wenn_var("jtg:t2")
+    ], "hallo").wenn_var("jtg:t2")
     n.dialog("flimmern", "vom der Höhle erzählen", [
         "Und du warst plötzlich hier?",
         "Das ist aber interessant.",
-        ]).wenn_var("jtg:flimmern")
+    ]).wenn_var("jtg:flimmern")
     return n
 
 
@@ -264,7 +268,7 @@ def kirie() -> NSC:
                 Mütze=1,
                 Haarband=1,
                 Nagel=4,
-                
+
             ), direkt_reden=True, vorstellen=["Ein junges Mädchen spielt im Feld."])
     n.inventar["Talisman des Verstehens"] += 1
 
@@ -274,6 +278,8 @@ def kirie() -> NSC:
         m.sleep(10)
         if n.freundlich < 60:
             n.freundlich += 10
+        if n.freundlich > 60:
+            m.titel.add("Kinderfreund")
 
     def talisman(n, m):
         n.sprich("Das?")
@@ -335,12 +341,12 @@ def lina() -> NSC:
         if n.freundlich > 0:
             n.sprich("Hallo! Ich bin Lina.")
             n.sprich("Du kannst dich hier gerne für die Nacht ausruhen, "
-                     "wenn du willst.")
+                     "wenn du willst.", warte=True)
         else:
             n.sprich("Hallo, ich bin Lina.")
             m.sleep(1)
             n.sprich("Die Höflichkeit gebietet es mir, dich hier übernachten "
-                     "zu lassen.")
+                     "zu lassen.", warte=True)
     n.dialog("hallo", '"Hallo!"', hallo)
 
     def starren(n, m: Mänx):
@@ -368,7 +374,106 @@ def lina() -> NSC:
         print("Du legst dich schlafen.")
         m.sleep(6)
         m.welt.nächster_tag()
+        return Rückkehr.VERLASSEN
 
     n.dialog("ruhen", "ruhen", übernachten, "hallo")
-
+    n.dialog("kiste", '"Kann ich an die Kiste?"', [
+        "Ja, du kannst dir gerne Essen aus dem ersten Fach der Kiste holen."],
+        "hallo")
     return n
+
+
+@register("jtg:obj:kiste")
+class Kiste:
+    def __init__(self):
+        self.fach1 = InventarBasis()
+        self.fach1.inventar.update({
+            "Erbse": 4,
+            "Karotte": 5,
+            "Bohne": 13,
+            "Reisportion": 2,
+            "Tomate": 2,
+        })
+        self.fach2 = InventarBasis()
+        self.fach2.inventar.update({
+            "Großer BH": 2,
+            "Kleid": 1,
+            "Anzugjacke": 2,
+            "Anzug": 3,
+            "Axt": 1,
+            "Unterhose": 12,
+            "Amulett": 1,
+            "Kleid (Kind)": 1,
+            "Gummistiefel": 2,
+        })
+        self.lina = None
+
+    def main(self, mänx: Mänx):
+        if isinstance(mänx.context, Scenario) and mänx.welt.am_leben("jtg:lina"):
+            self.lina = mänx.welt.objekte["jtg:lina"]
+        else:
+            self.lina = None
+        opts = [
+            ("Fach 1 öffnen", "f1", self.öffne_fach1),
+            ("Fach 2 öffnen", "f2", self.öffne_fach2),
+            ("zerstören", "k", self.kampf),
+            ("reden", "r", self.reden),
+            ("zurück", "f", lambda m: Rückkehr.VERLASSEN)]
+        mint("Du stehst vor einer Kiste.")
+        while mänx.menu(opts)(mänx) == Rückkehr.WEITER_REDEN:
+            pass
+
+    def öffne_fach1(self, mänx: Mänx) -> Rückkehr:
+        mänx.inventar_zugriff(self.fach1)
+        return Rückkehr.WEITER_REDEN
+
+    def öffne_fach2(self, mänx: Mänx) -> Rückkehr:
+        if self.lina:
+            self.lina.sprich("Falsches Fach!")
+            if mänx.ja_nein("Lässt du das Fach offen?"):
+                print("Du siehst folgenden Inhalt:")
+                print(self.fach2.inventar_zeigen())
+                self.lina.freundlich -= 1
+                self.lina.sprich("Mach das Fach sofort zu.")
+                if mänx.ja_nein("Willst du etwas aus dem Fach nehmen?"):
+                    mänx.inventar_zugriff(self.fach2)
+                    self.lina.sprich("DIEB!")
+                    self.ruf_axtmann(mänx)
+                    return Rückkehr.VERLASSEN
+                else:
+                    mint("Du machst das Fach brav zu. Lina ist trotzdem wütend.")
+                    return Rückkehr.WEITER_REDEN
+            else:
+                mint("Du tust so, als wäre es Zufall gewesen")
+                return Rückkehr.WEITER_REDEN
+        else:
+            print("Scheint das falsche Fach zu sein.")
+            mint("Aber ist ja keiner da.")
+            mänx.inventar_zugriff(self.fach2)
+            return Rückkehr.WEITER_REDEN
+
+    def kampf(self, mänx: Mänx) -> Rückkehr:
+        mint("He-ya!")
+        if mänx.hat_klasse("Waffe"):
+            print("Nur ein Kratzer bleibt auf der Kiste.")
+        else:
+            print("Deine Faust tut dir weh.")
+        if self.lina:
+            self.lina.sprich("Was tust du da?")
+        return Rückkehr.WEITER_REDEN
+
+    def reden(self, _mänx: Mänx) -> Rückkehr:
+        sprich("Du", "Hallo Kiste!")
+        return Rückkehr.WEITER_REDEN
+
+    def ruf_axtmann(self, mänx):
+        if mänx.welt.am_leben("jtg:axtmann"):
+            print("Der Axtmann stürmt in das Haus und spaltet deinen Schädel.")
+            print("Ziemlich intolerant gegenüber Verbrechern, diese",
+                  "Disnajenbuner")
+            raise Spielende
+        else:
+            print("Der Axtmann ist nicht da. Scheint so, als könnte Lina "
+                  "allein dich nicht groß hindern")
+            if self.lina:
+                self.lina.freundlich -= 10
