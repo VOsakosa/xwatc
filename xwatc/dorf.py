@@ -4,16 +4,26 @@ Xwatc' Ort- und Menschensystem.
 Seit 10.10.2020
 """
 from __future__ import annotations
-from typing import List, Union, Callable, Dict, Tuple, Any
+from enum import Enum
+import random
+from typing import List, Union, Callable, Dict, Tuple, Any, Iterator, Iterable
 from typing import Optional as Opt
 from dataclasses import dataclass, field
 from xwatc.system import mint, schiebe_inventar, Spielende, MenuOption, sprich
 from xwatc import system
-from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah 
+from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
 __author__ = "jasper"
 
-NSCOptionen = List[MenuOption[Callable[[system.Mänx], None]]]
+MänxFkt = Callable[[system.Mänx], Any]
+NSCOptionen = Iterable[MenuOption[MänxFkt]]
 DialogFn = Callable[["NSC", system.Mänx], Opt[bool]]
+RunType = Union['Dialog', MänxFkt, 'Rückkehr']
+_MainOpts = List[MenuOption[RunType]]
+
+class Rückkehr(Enum):
+    WEITER_REDEN = 0
+    ZURÜCK = 1
+    VERLASSEN = 2
 
 
 class NSC(system.InventarBasis):
@@ -21,17 +31,19 @@ class NSC(system.InventarBasis):
     art: str
 
     def __init__(self, name: str, art: str, kampfdialog: Opt[DialogFn] = None,
-                 fliehen: Opt[Callable[[system.Mänx], None]] = None):
+                 fliehen: Opt[Callable[[system.Mänx], None]] = None,
+                 direkt_reden: bool = False, freundlich: int = 0):
         super().__init__()
         self.name = name
         self.art = art
         self.kennt_spieler = False
         self.tot = False
+        self.direkt_reden = direkt_reden
         self.kampf_fn = kampfdialog
+        self.freundlich = freundlich
         self.dialoge: List[Dialog] = []
         self.dialog_anzahl: Dict[str, int] = {}
-        if fliehen:
-            self.fliehen = fliehen  # type: ignore
+        self.fliehen_fn = fliehen
 
     def kampf(self, mänx: system.Mänx) -> None:
         """Starte den Kampf gegen mänx."""
@@ -41,40 +53,88 @@ class NSC(system.InventarBasis):
         else:
             raise ValueError(f"Xwatc weiß nicht, wie {self.name} kämpft")
 
-    def fliehen(self, _mänx: system.Mänx) -> None:  # pylint: disable=method-hidden
-        mint("Du entkommst mühelos.")
+    def fliehen(self, mänx: system.Mänx) -> None:  # pylint: disable=method-hidden
+        if self.fliehen_fn:
+            self.fliehen_fn(mänx)
+        elif self.freundlich < 0:
+            mint("Du entkommst mühelos.")
 
     def vorstellen(self, mänx: system.Mänx) -> None:
         """So wird der NSC vorgestellt"""
 
     def optionen(self, mänx: system.Mänx) -> NSCOptionen:  # pylint: disable=unused-argument
-        return [("kämpfen", "k", self.kampf),
-                ("reden", "r", self.reden),
-                ("fliehen", "f", self.fliehen)]
+        yield ("kämpfen", "k", self.kampf)
+        yield ("fliehen" if self.freundlich < 0 else "zurück", "f", self.fliehen)
+        
+
+    def dialog_optionen(self, mänx: system.Mänx) -> Iterator[MenuOption[Dialog]]:
+        for d in self.dialoge:
+            if d.verfügbar(self, mänx):
+                yield d.zu_option()
+
 
     def main(self, mänx: system.Mänx) -> Any:
-        """Starte die Interaktion mit dem Mänxen"""
+        """Starte die Interaktion mit dem Mänxen."""
         if self.tot:
             mint(f"{self.name}s Leiche liegt still auf dem Boden.")
+            return
+        self.vorstellen(mänx)
+        self._main(mänx)
+            
+    
+    def _run(self, option: RunType, 
+             mänx: system.Mänx) -> Rückkehr:
+        """Führe eine Option aus."""
+        if isinstance(option, Dialog):
+            dlg = option
+            dlg_anzahl = self.dialog_anzahl
+            ans = Rückkehr.WEITER_REDEN
+            if callable(dlg.geschichte):
+                ans2 = dlg.geschichte(self, mänx)
+                if ans2 is False:
+                    ans = Rückkehr.VERLASSEN
+                elif isinstance(ans2, Rückkehr):
+                    ans = ans2
+            else:
+                for g in dlg.geschichte:
+                    self.sprich(g)
+            dlg_anzahl[dlg.name] = dlg_anzahl.setdefault(dlg.name, 0) + 1
+            self.kennt_spieler = True
+            return ans
+        elif isinstance(option, Rückkehr):
+            return option
+        elif callable(option):
+            ans = option(mänx)
+            if isinstance(ans, Rückkehr):
+                return ans
+            return Rückkehr.VERLASSEN
         else:
-            opts = self.optionen(mänx)
-            mänx.menu(":", opts)(mänx)
+            raise TypeError("Could not run {} of type {}".format(
+                option, type(option)))
 
-    def sprich(self, text: str) -> None:
-        """Minte mit vorgestelltem Namen"""
-        system.sprich(self.name, text)
+    def _main(self, mänx: system.Mänx) -> Any:
+        """Das Hauptmenu, möglicherweise ist Reden direkt an."""
+        while True:
+            opts: _MainOpts
+            opts = list(self.optionen(mänx))
+            if self.direkt_reden:
+                opts.extend(self.dialog_optionen(mänx))
+            else:
+                opts.append(("reden", "r", self.reden))
+            ans = self._run(mänx.menu(opts), mänx)
+            if ans not in (Rückkehr.WEITER_REDEN, Rückkehr.ZURÜCK):
+                return
 
-    def reden(self, mänx: system.Mänx) -> None:
+    def reden(self, mänx: system.Mänx) -> Rückkehr:
+        """Das Menu, wo nur reden möglich ist."""
         if not self.kennt_spieler:
             self.vorstellen(mänx)
             self.kennt_spieler = True
-        dlg_anzahl = self.dialog_anzahl
-        cont = True
+        ans = Rückkehr.WEITER_REDEN
         start = True
-        while cont:
-            optionen: List[MenuOption[Opt[Dialog]]]
-            optionen = [d.zu_option() for d in self.dialoge
-                        if d.verfügbar(self, mänx)]
+        while ans == Rückkehr.WEITER_REDEN:
+            optionen: List[MenuOption[Union[Dialog, Rückkehr]]]
+            optionen = list(self.dialog_optionen(mänx))
             if not optionen:
                 if start:
                     print("Du weißt nicht, was du sagen könntest.")
@@ -84,6 +144,12 @@ class NSC(system.InventarBasis):
             optionen.append(("Zurück", "f", Rückkehr.ZURÜCK))
             ans = self._run(mänx.menu(optionen), mänx)
             start = False
+        return ans
+
+    def sprich(self, text: str, *args, **kwargs) -> None:
+        """Minte mit vorgestelltem Namen"""
+        system.sprich(self.name, text, *args, **kwargs)  # type: ignore
+        
 
     def dialog(self, *args, **kwargs) -> 'Dialog':
         "Erstelle einen Dialog"
@@ -184,7 +250,7 @@ class Dorfbewohner(NSC):
                 raise Spielende
         elif random.randint(1,6) != 1:
             print("Irgendwann ist dein Gegner bewusstlos.")
-            if ja_nein(mänx, "Schlägst du weiter bis er tot ist oder gehst du weg?"):
+            if mänx.ja_nein("Schlägst du weiter bis er tot ist oder gehst du weg?"):
                 print("Irgendwann ist der Arme tot. Du bist ein Mörder. "
                       "Kaltblütig hast du dich dafür entschieden einen lebendigen Menschen zu töten." 
                 "", kursiv (" zu ermorden. "), "Mörder.")
