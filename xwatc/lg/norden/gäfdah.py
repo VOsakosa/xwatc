@@ -1,6 +1,20 @@
+from time import sleep
+from xwatc import haendler
+from xwatc import scenario
+from xwatc.system import Mänx, minput, ja_nein, Spielende, mint, sprich
+from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner, Dialog
+from random import randint
+import random
+from xwatc.jtg.ressourcen import FRAUENNAMEN
+from . norden import norden
+
+
+
+
 GÄFDA_NAME = "Gäfda"
 
-def erzeuge_süd_dorf(mänx) -> Dorf:
+
+def erzeuge_Gäfdah(mänx) -> Dorf:
     d = Dorf(GÄFDA_NAME)
     kirche = Ort("Kirche", [
         "Du bist in einer Kirche.",
@@ -22,27 +36,26 @@ def erzeuge_süd_dorf(mänx) -> Dorf:
     
     ])
     
-    haus1 = Ort("Haus1", [
+    haus1 = Ort("Haus Nummer1", [
         "Du kommst in ein kleines Haus."
     
     ])
     kirche.menschen.append(mänx.welt.get_or_else(
+        "lg:norden:Maria_Fischfrisch:maria_fischfrisch", TobiacBerndoc))
+    d.orte.append(kirche)
+    schmiede.menschen.append(mänx.welt.get_or_else(
         "jtg:m:tobiac", TobiacBerndoc))
     d.orte.append(kirche)
-    kirche.menschen.append(mänx.welt.get_or_else(
+    rathaus.menschen.append(mänx.welt.get_or_else(
         "jtg:m:tobiac", TobiacBerndoc))
     d.orte.append(kirche)
-    kirche.menschen.append(mänx.welt.get_or_else(
-        "jtg:m:tobiac", TobiacBerndoc))
-    d.orte.append(kirche)
-    kirche.menschen.append(mänx.welt.get_or_else(
+    haus1.menschen.append(mänx.welt.get_or_else(
         "jtg:m:tobiac", TobiacBerndoc))
     d.orte.append(kirche)
     for _i in range(randint(2, 5)):
         w = zufälliges_waschweib()
-        w.dialoge.extend(SÜD_DORF_DIALOGE)
         d.orte[0].menschen.append(w)
     # TODO weitere Objekte
     return d
 
-mänx.welt.get_or_else("jtg:dorf:süd", erzeuge_süd_dorf, mänx).main(mänx)
+mänx.welt.get_or_else("Gäfdah", erzeuge_Gäfdah, mänx).main(mänx)

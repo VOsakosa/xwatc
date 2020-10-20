@@ -9,6 +9,7 @@ from typing import Optional as Opt
 from dataclasses import dataclass, field
 from xwatc.system import mint, schiebe_inventar, Spielende, MenuOption, sprich
 from xwatc import system
+from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah 
 __author__ = "jasper"
 
 NSCOptionen = List[MenuOption[Callable[[system.Mänx], None]]]
@@ -192,7 +193,11 @@ class Dorfbewohner(NSC):
                 
         else:
             print("Diesmal bist du es, der unterliegt.")
-            a=random
+            a=random.randint(1,10)
+            if a!= 1:
+                mint("Als du wieder aufwachst, bist du woanders.")
+                gefängnis_von_gäfdah(mänx)
+                
                     
         
                      
