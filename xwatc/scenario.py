@@ -103,7 +103,7 @@ class Feld:
         else:
             assert isinstance(self.obj, str)
             if self.obj in mänx.welt.objekte:
-                return mänx.welt.objekte[self.obj].main() or False
+                return mänx.welt.objekte[self.obj].main(mänx) or False
             else:
                 return False
 
@@ -217,7 +217,8 @@ class Scenario:
         #     self.bodenfns[obj](mänx)
         return True
 
-    def einleiten(self, mänx) -> ScenarioEnde:
+    def einleiten(self, mänx: Mänx) -> ScenarioEnde:
+        mänx.context = self
         ans = None
         clear = False
         while not ans:
@@ -234,6 +235,8 @@ class Scenario:
                 ans = self.bewege_spieler(mänx, 0, -1)
             else:
                 print("Hä? Was is'n 'n", repr(arg))
+        if mänx.context is self:
+            mänx.context = None
         return ans
 
 
@@ -254,8 +257,11 @@ def lade_scenario(mänx, path):
 
 
 if __name__ == '__main__':
+    from xwatc.jtg.nord import registrieren
+    m = system.Mänx()
+    registrieren(m)
     try:
-        erg = lade_scenario(system.Mänx(), "disnajenbun")
+        erg = lade_scenario(m, "disnajenbun")
     except system.Spielende:
         print("Du bist tot")
     else:

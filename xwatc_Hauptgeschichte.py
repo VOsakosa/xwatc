@@ -3,20 +3,20 @@ from xwatc.lg.norden import norden
 from xwatc.lg.westen import westen
 from xwatc.lg.osten import osten
 from xwatc.lg.süden import süden
-from xwatc.system import Mänx, minput, Spielende
+from xwatc.system import Mänx, minput, Spielende, mint
 import random
 
 
 def waffe_wählen(mänx: Mänx):
-    rasse = input("Was willst du sein?")
+    rasse = mänx.minput("Was willst du sein?")
     mänx.rasse = "Arak"
     if rasse.lower() not in ("mensch", "arak"):
         print("Nun, eigentlich ist es egal was du sein willst.")
         print("So oder so, du bist ein Mensch vom Volke der Arak.")
-        input("Im Laufe des Spieles kannst du allerdings weitere Spezies "
+        mint("Im Laufe des Spieles kannst du allerdings weitere Spezies "
               "und Völker freischalten!")
 
-        rosse = input("Naja, willst du eigentlich ein Mensch sein?")
+        rosse = mänx.minput("Naja, willst du eigentlich ein Mensch sein?")
         if rosse == "ja"or rosse == "j":
             print("Na, dann ist ja alles gut.")
             

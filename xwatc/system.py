@@ -1,7 +1,8 @@
 from collections import defaultdict
 from typing import Sequence, Dict, List, Tuple, TypeVar, Callable, Any, Union,\
-    overload, Optional, Iterator, Mapping
+    overload, Optional, Iterator, Mapping, Set
 from time import sleep
+import re
 
 ITEMVERZEICHNIS = {
     "Apfel": "Obst",
@@ -20,6 +21,7 @@ ITEMVERZEICHNIS = {
     "Klatschmohn": "Blume",
     "Kohle": "Brennstoff",
     "Leere": "Scherz-Item",
+    "mächtige Axt": "legendäre Waffe",
     "Mantel": "Kleidung",
     "Menschenskelett": "Dekoration",
     "Messer": "normale Waffe",
@@ -92,12 +94,14 @@ class InventarBasis:
 
     def erweitertes_inventar(self):
         import xwatc.haendler
+        if not any(self.inventar.values()):
+            return "Nichts da."
         ans = ["{} Gold".format(self.inventar["Gold"])]
         for item, anzahl in sorted(self.inventar.items()):
             if anzahl and item != "Gold":
                 klasse = get_class(item) or "?"
                 kosten = xwatc.haendler.ALLGEMEINE_PREISE.get(item, "?")
-                ans.append(f"{anzahl:>4}x {item} ({kosten}G) {klasse}")
+                ans.append(f"{anzahl:>4}x {item:<20} ({kosten:>3}G) {klasse}")
         return "\n".join(ans)
 
     @property
@@ -128,16 +132,17 @@ class Mänx(InventarBasis):
     """Der Hauptcharakter des Spiels, alles dreht sich um ihn, er hält alle
     Information."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.gebe_startinventar()
-        self.gefährten = []
-        self.titel = set()
+        self.gefährten: List['Gefährte'] = []
+        self.titel: Set[str] = set()
         self.lebenswille = 10
-        self.fähigkeiten = set()
+        self.fähigkeiten: Set[str] = set()
         self.welt = Welt("bliblablux")
-        self.missionen = list()
+        self.missionen: List[None] = list()
         self.rasse = "Arak"
+        self.context: Any = None
 
     def gebe_startinventar(self):
         self.inventar["Gold"] = 33
@@ -172,9 +177,16 @@ class Mänx(InventarBasis):
             return 1000
         return 20
 
-    def erhalte(self, item, anzahl=1):
+    def erhalte(self, item: str, anzahl: int = 1,
+                von: Optional[InventarBasis] = None):
+        if von:
+            anzahl = min(anzahl, von.inventar[item])
+            if not anzahl:
+                return
         print(f"Du erhältst {anzahl} {item}")
         self.inventar[item] += anzahl
+        if von:
+            von.inventar[item] -= anzahl
 
     def will_weiterleben(self):
         return self.lebenswille > 0
@@ -239,6 +251,70 @@ class Mänx(InventarBasis):
             for block in text:
                 print(block)
 
+    def sleep(self, länge: float, pausenzeichen="."):
+        for _i in range(int(länge/0.5)):
+            print(pausenzeichen, end="", flush=True)
+            sleep(0.5)
+        print()
+
+    def inventar_zugriff(self, inv: InventarBasis,
+                         nimmt: Union[bool, Sequence[str]] = False) -> None:
+        """Ein Menu, um auf ein anderes Inventar zuzugreifen."""
+        print(inv.erweitertes_inventar())
+        while True:
+            a = self.minput(">")
+            if a == "z" or a == "zurück" or a == "f":
+                return
+            co, _, rest = a.partition(" ")
+            args = rest.split()
+            # TODO Items mit Leerzeichen
+            if co == "n" or co == "nehmen":
+                if not args or args == ["*"]:
+                    schiebe_inventar(inv.inventar, self.inventar)
+                    return
+                elif len(args) == 1:
+                    ding = args[0]
+                    if ding in inv.inventar:
+                        self.erhalte(ding, inv.inventar[ding], inv)
+                    else:
+                        print(f"Kein {ding} da.")
+                elif len(args) == 2:
+                    ding = args[1]
+                    try:
+                        anzahl = int(args[0])
+                        assert anzahl > 0
+                    except (AssertionError, ValueError):
+                        print("Gebe eine positive Anzahl an.")
+                    else:
+                        if ding in inv.inventar:
+                            self.erhalte(ding, anzahl, inv)
+                        else:
+                            print(f"Kein {ding} da.")
+            elif co == "a" or co == "auslage":
+                print(inv.erweitertes_inventar())
+            elif co == "g" or co == "geben":
+                if not nimmt:
+                    print("Du kannst hier nichts hereingeben")
+                elif len(args) == 1:
+                    ding = args[0]
+                    if ding in self.inventar:
+                        inv.inventar[ding] = self.inventar[ding]
+                        self.inventar[ding] = 0
+                    else:
+                        print(f"Du hast kein {ding}.")
+                elif len(args) == 2:
+                    ding = args[1]
+                    try:
+                        anzahl = int(args[0])
+                        assert anzahl > 0
+                    except (AssertionError, ValueError):
+                        print("Gebe eine positive Anzahl an.")
+                    else:
+                        if self.hat_item(ding, anzahl):
+                            self.inventar[ding] -= anzahl
+                            inv.inventar[ding] += anzahl
+                        else:
+                            print(f"Du hast kein {ding}.")
 
 class Gefährte:
     def __init__(self, name):
@@ -271,6 +347,13 @@ class Welt:
             return ans
         else:
             return fkt(*args, **kwargs)
+
+    def am_leben(self, name: str) -> bool:
+        """Prüfe, ob das Objekt name da und noch am Leben ist."""
+        from xwatc import dorf
+        return name in self.objekte and (
+            not isinstance(self.objekte[name], dorf.NSC) or
+            not self.objekte[name].tot)
 
     def nächster_tag(self, tage: int = 1):
         self.inventar["generell:tag"] += tage
@@ -324,9 +407,16 @@ def mint(*text):
     input(" ".join(str(t) for t in text))
 
 
-def sprich(sprecher: str, text: str):
-    print(f'{sprecher}: "{text}"')
-    sleep(0.03 * len(text))
+def sprich(sprecher: str, text: str, warte: bool = False):
+    if warte:
+        mint(f'{sprecher}: "{text}"')
+    else:
+        print(end=f'{sprecher}: "')
+        for word in re.split(r"(\W)", text):
+            print(end=word, flush=True)
+            sleep(0.05)
+        print('"')
+        
 
 
 def ja_nein(mänx, frage):
