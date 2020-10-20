@@ -1,6 +1,6 @@
 from typing import List, Optional as Op, NewType, Dict, cast, Tuple
 
-from xwatc.dorf import NSC
+from xwatc.dorf import NSC, NSCOptionen, Rückkehr
 from xwatc.system import Mänx, minput, ja_nein, get_class
 
 ALLGEMEINE_PREISE = {
@@ -16,29 +16,36 @@ ALLGEMEINE_PREISE = {
     
 }
 Preis = NewType("Preis", int)
+Item = str
+Klasse = str
+
 
 class Händler(NSC):
-    def __init__(self, name, kauft: Op[List[str]], 
-                 verkauft: Dict[str, int], gold: Preis,
-                 art = "Händler"):
+    def __init__(self, name, kauft: Op[List[Klasse]],
+                 verkauft: Dict[Item, Tuple[int, int]], gold: int,
+                 art="Händler", direkt_handeln: bool = False):
         """Neuer Händler namens *name*, der Sachen aus den Kategorien *kauft* kauft.
         *verkauft* ist das Inventar. *gold* ist die Anzahl von Gold."""
         super().__init__(name, art)
         self.kauft = kauft
         # Anzahl, Preis
-        self.verkauft = cast(Dict[str, Preis], verkauft)
+        self.verkauft: Dict[Item, int] = {}
+        for ware, (anzahl, preis) in verkauft.items():
+            self.verkauft[ware] = Preis(preis)
+            self.inventar[ware] += anzahl
         self.gold = gold
         self.rückkauf = False
+        self.direkt_handeln = direkt_handeln
 
     def kaufen(self, mänx: Mänx, name: str, anzahl: int=1) -> bool:
         """Mänx kauft von Händler"""
         if name not in self.verkauft:
             return False
         preis = self.verkauft[name]
-        if self.inventar[name] >= anzahl and mänx.inventar["Gold"] >= preis:
+        if self.inventar[name] >= anzahl and mänx.gold >= preis:
             self.inventar[name] -= anzahl
             self.gold += anzahl * preis
-            mänx.inventar["Gold"] -= anzahl * preis
+            mänx.gold -= anzahl * preis
             mänx.inventar[name] += anzahl
             return True
         return False
@@ -70,14 +77,15 @@ class Händler(NSC):
         if menge <= 0:
             print("Jetzt mal ernsthaft, gib eine positive Anzahl an.")
         elif not mänx.hat_item(gegenstand, menge):
-            print(f'Du hast nicht genug "{gegenstand}" zum verkaufen. Versuch "e".')
+            print(
+                f'Du hast nicht genug "{gegenstand}" zum verkaufen. Versuch "e".')
         elif not self.kann_kaufen(gegenstand):
             if self.kauft:
                 print("So etwas kauft der Händler nicht")
                 print("Der Händler kauft nur", ", ".join(self.kauft))
             else:
                 print("Der Händler verkauft nur.")
-                
+
         else:
             preis = self.get_preis(gegenstand)
             if preis is None:
@@ -86,6 +94,7 @@ class Händler(NSC):
                 print("So viel kannst du dir nicht leisten")
             else:
                 self.verkaufen(mänx, gegenstand, preis, menge)
+                print("Verkauft.")
 
     def zeige_auslage(self) -> None:
         """Printe die Auslage auf den Bildschirm."""
@@ -106,14 +115,18 @@ class Händler(NSC):
             print("Er kauft", ", ".join(self.kauft))
         self.zeige_auslage()
 
-    def main(self, mänx: Mänx) -> Literal["k", "z"]:
+    def optionen(self, mänx: Mänx) -> NSCOptionen:
+        yield ("handeln", "handel", self.handeln)
+        yield from super().optionen(mänx)
+
+    def _main(self, mänx: Mänx):
+        if self.direkt_handeln:
+            self.handeln(mänx)
+        else:
+            super()._main(mänx)
+
+    def handeln(self, mänx: Mänx) -> Rückkehr:
         """Lass Spieler mit Mänx handeln"""
-        if self.tot:
-            print("Der Händler ist tot.")
-            return "z"
-        if not self.kennt_spieler:
-            self.vorstellen(mänx)
-            self.kennt_spieler = True
         while True:
             a = minput(mänx, "handel>", lower=False)
             al = a.lower()
@@ -133,7 +146,7 @@ class Händler(NSC):
             elif al.startswith("v ") or al.startswith("verkaufe "):
                 kauft = a.split(" ", 2)
                 try:
-                    if len(kauft) == 1:
+                    if len(kauft) == 2:
                         menge = 1
                         gegenstand = kauft[1]
                     else:
@@ -150,14 +163,21 @@ class Händler(NSC):
                 if preis is None:
                     print("Der Händler kann den Wert davon nicht einschätzen.")
                 else:
-                    print(f"Der Händler ist bereit, dir dafür {preis} Gold zu zahlen.")
+                    print(
+                        f"Der Händler ist bereit, dir dafür {preis} Gold zu zahlen.")
             elif al == "a":
                 self.zeige_auslage()
-            elif al == "z" or al == "w":
-                return "z"
+            elif al == "z" or al == "w" or al == "f":
+                return Rückkehr.ZURÜCK
             elif al == "k":
                 if ja_nein(mänx, "Wirklich kämpfen? "):
-                    return "k"
+                    self.kampf(mänx)
+                    return Rückkehr.VERLASSEN
+            elif al == "r":
+                ans = self.reden(mänx)
+                if ans != Rückkehr.ZURÜCK:
+                    return ans
             else:
-                print("Nutze k [Anzahl] [Item] zum Kaufen, v zum Verkaufen, z für Zurück, a für eine Anzeige und "
+                print("Nutze k [Anzahl] [Item] zum Kaufen, v zum Verkaufen, "
+                      "z für Zurück, a für eine Anzeige und "
                       "nur k zum Kämpfen, p [Item] um nach dem Preis zu fragen.")

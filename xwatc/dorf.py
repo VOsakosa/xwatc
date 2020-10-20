@@ -9,7 +9,6 @@ from typing import Optional as Opt
 from dataclasses import dataclass, field
 from xwatc.system import mint, schiebe_inventar, Spielende, MenuOption, sprich
 from xwatc import system
-import random
 __author__ = "jasper"
 
 NSCOptionen = List[MenuOption[Callable[[system.Mänx], None]]]
@@ -182,20 +181,18 @@ class Dorfbewohner(NSC):
                 else:
                     mint("Aber sie wehrt sich tödlich.")
                 raise Spielende
-        else:
-            a=random.randint(1,6)
-            if a !=1:
-                print("Irgendwann ist dein Gegner bewusstlos.")
-                if ja_nein(mänx, "Schlägst du weiter bis er tot ist oder gehst du weg?"):
-                    print("Irgendwann ist der Arme tot. Du bist ein Mörder. "
-                          "Kaltblütig hast du dich dafür entschieden einen lebendigen Menschen zu töten." 
-                    "", kursiv (" zu ermorden. "), "Mörder.")
-                else:
-                    print("Du gehst weg.")
-                    
+        elif random.randint(1,6) != 1:
+            print("Irgendwann ist dein Gegner bewusstlos.")
+            if ja_nein(mänx, "Schlägst du weiter bis er tot ist oder gehst du weg?"):
+                print("Irgendwann ist der Arme tot. Du bist ein Mörder. "
+                      "Kaltblütig hast du dich dafür entschieden einen lebendigen Menschen zu töten." 
+                "", kursiv (" zu ermorden. "), "Mörder.")
             else:
-                print("Diesmal bist du es, der unterliegt.")
-                a=random
+                print("Du gehst weg.")
+                
+        else:
+            print("Diesmal bist du es, der unterliegt.")
+            a=random
                     
         
                      
