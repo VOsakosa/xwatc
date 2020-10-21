@@ -1,21 +1,16 @@
 from time import sleep
 import xwatc_Hauptgeschichte as xwatc
 from xwatc.system import Mänx, minput, Gefährte, ja_nein, Spielende
-from xwatc.lg.norden.Fischerfrau_Massaker import fischerfraumassaker
+from xwatc.lg.norden.gäfdah import erzeuge_Gäfdah
 
-norden(mänx)
+
 def Gäfdah(mänx):
     print("Du wanderst 9 Tage lang gen Norden, bis du zu einem kleinen Fischerdorf "
           "kommst.")
     mänx.welt.get_or_else("Gäfdah", erzeuge_Gäfdah, mänx).main(mänx)
 
-
-
-
-
 def norden(mänx):
-    
-
+    Gäfdah(mänx)
     while True:
         antwort = minput(mänx, "Willst du handeln, reden, sie angreifen oder einfach weitergehen? (h/r/a/w)",
                          ["h", "a", "w", "r"])
@@ -75,3 +70,9 @@ def norden(mänx):
         # mänx.inventar_leeren()
 
         # waffe_wählen(mänx)
+
+if __name__ == '__main__':
+    try:
+        norden(Mänx())
+    except Spielende:
+        print("Du bist übrigens tot.")

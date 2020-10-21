@@ -1,7 +1,7 @@
 from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner
-from . import norden
 from xwatc import haendler
 from xwatc.system import Mänx
+from xwatc.lg.norden.Fischerfrau_Massaker import fischerfraumassaker
 
 class Fischerfrau(haendler.Händler):
     def __init__(self):
@@ -14,10 +14,11 @@ class Fischerfrau(haendler.Händler):
         print("Die Fischerfrau verkauft Fische")
         
     def __init__(self):
-        super().__init__("Frau", kauft=["Blume"], verkauft={
+        super().__init__("Frau", kauft=["Blume"], gold=200, verkauft={
             "Hering": (4, 6),
             "Sardelle": (13, 5),
             "Lachs": (4, 8)})
+        
             
     def get_preis(self, _):
         return 0
@@ -30,8 +31,7 @@ class Fischerfrau(haendler.Händler):
             ('"Wie findest du das Wetter heute?"', "wetter", 1),
             ('"Wie geht es dir?"', "geht", 2)
         ]
-        opt = mänx.menu(
-            "Was sagst du?", opts)
+        opt = mänx.menu(opts, frage="Was sagst du?")
         if opt == 0:
             print('(freundlich) "Ich heiße Maria. Und du?"')
             d=input('')
@@ -46,11 +46,6 @@ class Fischerfrau(haendler.Händler):
             else:
                 print('"oh"')
 
-    def optionen(self, mänx: Mänx) -> NSCOptionen:
-        return NSC.optionen(self, mänx) + [
-            ("Reden", "reden", self.reden)
-            ("Handeln", "handeln", self.handeln)
-        ]
 
     def main(self, mänx: Mänx) -> None:
         print("Die Wache steht herum und geht ernst und dienstbeflissen ihrer Arbeit nach.")

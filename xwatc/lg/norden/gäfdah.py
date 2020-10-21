@@ -4,11 +4,10 @@ from xwatc import scenario
 from xwatc.system import Mänx, minput, ja_nein, Spielende, mint, sprich
 from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner, Dialog
 from random import randint
+from . Maria_Fischfrisch import Fischerfrau
 import random
 from xwatc.jtg.ressourcen import FRAUENNAMEN
-from . norden import norden
-
-
+from xwatc.jtg import TobiacBerndoc, zufälliges_waschweib
 
 
 GÄFDA_NAME = "Gäfda"
@@ -41,21 +40,23 @@ def erzeuge_Gäfdah(mänx) -> Dorf:
     
     ])
     kirche.menschen.append(mänx.welt.get_or_else(
-        "lg:norden:Maria_Fischfrisch:maria_fischfrisch", TobiacBerndoc))
+        "lg:norden:Maria_Fischfrisch:maria_fischfrisch", Fischerfrau))
     d.orte.append(kirche)
     schmiede.menschen.append(mänx.welt.get_or_else(
         "jtg:m:tobiac", TobiacBerndoc))
-    d.orte.append(kirche)
+    d.orte.append(schmiede)
     rathaus.menschen.append(mänx.welt.get_or_else(
         "jtg:m:tobiac", TobiacBerndoc))
-    d.orte.append(kirche)
+    d.orte.append(rathaus)
     haus1.menschen.append(mänx.welt.get_or_else(
         "jtg:m:tobiac", TobiacBerndoc))
-    d.orte.append(kirche)
+    d.orte.append(haus1)
     for _i in range(randint(2, 5)):
         w = zufälliges_waschweib()
         d.orte[0].menschen.append(w)
     # TODO weitere Objekte
     return d
 
-mänx.welt.get_or_else("Gäfdah", erzeuge_Gäfdah, mänx).main(mänx)
+if __name__ == '__main__':
+    mänx = Mänx()
+    mänx.welt.get_or_else("Gäfdah", erzeuge_Gäfdah, mänx).main(mänx)
