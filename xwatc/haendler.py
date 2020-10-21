@@ -41,11 +41,11 @@ class Händler(NSC):
         """Mänx kauft von Händler"""
         if name not in self.verkauft:
             return False
-        preis = self.verkauft[name]
+        preis = self.verkauft[name] * anzahl
         if self.inventar[name] >= anzahl and mänx.gold >= preis:
             self.inventar[name] -= anzahl
-            self.gold += anzahl * preis
-            mänx.gold -= anzahl * preis
+            self.gold += preis
+            mänx.gold -= preis
             mänx.inventar[name] += anzahl
             return True
         return False
