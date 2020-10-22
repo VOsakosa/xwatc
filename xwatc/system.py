@@ -240,7 +240,7 @@ class Welt:
         self.inventar: Dict[str, int] = {}
         self.name = name
         self.objekte: Dict[str, Any] = {}
-        self.inventar["generell:tag"] = 0
+        self.tag = 0.0
 
     def setze(self, name: str) -> None:
         """Setze eine Welt-Variable"""
@@ -261,11 +261,16 @@ class Welt:
             return fkt(*args, **kwargs)
 
     def nächster_tag(self, tage: int = 1):
-        self.inventar["generell:tag"] += tage
+        self.tag = int(self.tag + tage)
 
     def get_tag(self) -> int:
-        return self.inventar["generell:tag"]
-
+        return int(self.tag)
+    
+    def is_nacht(self) -> bool:
+        return self.tag % 1.0 >= 0.5
+    
+    def tick(self, uhr: float):
+        self.tag += uhr
 
 def schiebe_inventar(start: Inventar, ziel: Inventar):
     """Schiebe alles aus start in ziel"""
