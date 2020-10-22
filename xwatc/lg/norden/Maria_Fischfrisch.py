@@ -1,30 +1,26 @@
-from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner
+from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner, Rückkehr
 from xwatc import haendler
-from xwatc.system import Mänx
+from xwatc.system import Mänx, mint
 from xwatc.lg.norden.Fischerfrau_Massaker import fischerfraumassaker
 
 class Fischerfrau(haendler.Händler):
-    def __init__(self):
-        super().__init__("Maria Fischfrisch", "alte Fischerfrau")
 
     def kampf(self, mänx: Mänx) -> None:
-        pass
+        fischerfraumassaker(mänx)
+        self.tot = True
 
     def vorstellen(self, mänx):
-        print("Die Fischerfrau verkauft Fische")
+        print("Die Fischerfrau verkauft Fische.")
         
     def __init__(self):
-        super().__init__("Frau", kauft=["Blume"], gold=200, verkauft={
+        super().__init__("Maria Fischfrisch", art="Fischerfrau",
+                          kauft=["Blume"], gold=200, verkauft={
             "Hering": (4, 6),
             "Sardelle": (13, 5),
             "Lachs": (4, 8)})
-        
-            
-    def get_preis(self, _):
-        return 0
-    
 
-    def reden(self, mänx: Mänx) -> None:
+
+    def reden(self, mänx: Mänx) -> Rückkehr:
         print('An einem Stand verkauft eine alte Frau Fische. ')
         opts = [
             ('"Hallo, Wer bist du?"', 'bist', 0),
@@ -34,8 +30,10 @@ class Fischerfrau(haendler.Händler):
         opt = mänx.menu(opts, frage="Was sagst du?")
         if opt == 0:
             print('(freundlich) "Ich heiße Maria. Und du?"')
-            d=input('')
-            print('"Das ist aber ein schöner Name."')
+            if "tot" not in mänx.minput(': '):
+                print('"Das ist aber ein schöner Name."')
+            else:
+                print('"Tod?"')
         elif opt == 1:
             print('"Schön, mein Kind."')
         elif opt == 2:
@@ -45,11 +43,7 @@ class Fischerfrau(haendler.Händler):
                 print('"Das ist aber schön."')
             else:
                 print('"oh"')
-
-
-    def main(self, mänx: Mänx) -> None:
-        print("Die Wache steht herum und geht ernst und dienstbeflissen ihrer Arbeit nach.")
-        super().main(mänx)
+        return Rückkehr.WEITER_REDEN
         
         
 

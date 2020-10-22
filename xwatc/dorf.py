@@ -9,7 +9,8 @@ import random
 from typing import List, Union, Callable, Dict, Tuple, Any, Iterator, Iterable
 from typing import Optional as Opt, Sequence
 from dataclasses import dataclass, field
-from xwatc.system import mint, schiebe_inventar, Spielende, MenuOption, sprich
+from xwatc.system import (mint, schiebe_inventar, Spielende, MenuOption,
+                          sprich, kursiv)
 from xwatc import system
 from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
 __author__ = "jasper"
