@@ -7,7 +7,7 @@ from __future__ import annotations
 from enum import Enum
 import random
 from typing import List, Union, Callable, Dict, Tuple, Any, Iterator, Iterable
-from typing import Optional as Opt
+from typing import Optional as Opt, Sequence
 from dataclasses import dataclass, field
 from xwatc.system import mint, schiebe_inventar, Spielende, MenuOption, sprich
 from xwatc import system
@@ -19,6 +19,8 @@ NSCOptionen = Iterable[MenuOption[MänxFkt]]
 DialogFn = Callable[["NSC", system.Mänx], Opt[bool]]
 RunType = Union['Dialog', MänxFkt, 'Rückkehr']
 _MainOpts = List[MenuOption[RunType]]
+DialogGeschichte = Union[Sequence[str], DialogFn]
+
 
 class Rückkehr(Enum):
     WEITER_REDEN = 0
@@ -30,9 +32,14 @@ class NSC(system.InventarBasis):
     name: str
     art: str
 
-    def __init__(self, name: str, art: str, kampfdialog: Opt[DialogFn] = None,
+    def __init__(self,
+                 name: str,
+                 art: str,
+                 kampfdialog: Opt[DialogFn] = None,
                  fliehen: Opt[Callable[[system.Mänx], None]] = None,
-                 direkt_reden: bool = False, freundlich: int = 0):
+                 direkt_reden: bool = False, freundlich: int = 0,
+                 startinventar: Opt[Dict[str, int]] = None,
+                 vorstellen: Opt[DialogGeschichte] = None):
         super().__init__()
         self.name = name
         self.art = art
@@ -40,10 +47,14 @@ class NSC(system.InventarBasis):
         self.tot = False
         self.direkt_reden = direkt_reden
         self.kampf_fn = kampfdialog
+        self.vorstellen_fn = vorstellen
         self.freundlich = freundlich
         self.dialoge: List[Dialog] = []
         self.dialog_anzahl: Dict[str, int] = {}
         self.fliehen_fn = fliehen
+        if startinventar:
+            for a, i in startinventar.items():
+                self.inventar[a] += i
 
     def kampf(self, mänx: system.Mänx) -> None:
         """Starte den Kampf gegen mänx."""
@@ -53,7 +64,7 @@ class NSC(system.InventarBasis):
         else:
             raise ValueError(f"Xwatc weiß nicht, wie {self.name} kämpft")
 
-    def fliehen(self, mänx: system.Mänx) -> None:  # pylint: disable=method-hidden
+    def fliehen(self, mänx: system.Mänx):
         if self.fliehen_fn:
             self.fliehen_fn(mänx)
         elif self.freundlich < 0:
@@ -61,17 +72,17 @@ class NSC(system.InventarBasis):
 
     def vorstellen(self, mänx: system.Mänx) -> None:
         """So wird der NSC vorgestellt"""
+        if self.vorstellen_fn:
+            self._call_geschichte(mänx, self.vorstellen_fn, use_print=True)
 
     def optionen(self, mänx: system.Mänx) -> NSCOptionen:  # pylint: disable=unused-argument
         yield ("kämpfen", "k", self.kampf)
         yield ("fliehen" if self.freundlich < 0 else "zurück", "f", self.fliehen)
-        
 
     def dialog_optionen(self, mänx: system.Mänx) -> Iterator[MenuOption[Dialog]]:
         for d in self.dialoge:
             if d.verfügbar(self, mänx):
                 yield d.zu_option()
-
 
     def main(self, mänx: system.Mänx) -> Any:
         """Starte die Interaktion mit dem Mänxen."""
@@ -80,24 +91,14 @@ class NSC(system.InventarBasis):
             return
         self.vorstellen(mänx)
         self._main(mänx)
-            
-    
-    def _run(self, option: RunType, 
+
+    def _run(self, option: RunType,
              mänx: system.Mänx) -> Rückkehr:
         """Führe eine Option aus."""
         if isinstance(option, Dialog):
             dlg = option
             dlg_anzahl = self.dialog_anzahl
-            ans = Rückkehr.WEITER_REDEN
-            if callable(dlg.geschichte):
-                ans2 = dlg.geschichte(self, mänx)
-                if ans2 is False:
-                    ans = Rückkehr.VERLASSEN
-                elif isinstance(ans2, Rückkehr):
-                    ans = ans2
-            else:
-                for g in dlg.geschichte:
-                    self.sprich(g)
+            ans = self._call_geschichte(mänx, dlg.geschichte)
             dlg_anzahl[dlg.name] = dlg_anzahl.setdefault(dlg.name, 0) + 1
             self.kennt_spieler = True
             return ans
@@ -111,6 +112,26 @@ class NSC(system.InventarBasis):
         else:
             raise TypeError("Could not run {} of type {}".format(
                 option, type(option)))
+
+    def _call_geschichte(self, mänx: system.Mänx,
+                         geschichte: DialogGeschichte,
+                         use_print: bool = False) -> Rückkehr:
+        ans = Rückkehr.WEITER_REDEN
+        if callable(geschichte):
+            ans2 = geschichte(self, mänx)
+            if ans2 is False:
+                ans = Rückkehr.VERLASSEN
+            elif isinstance(ans2, Rückkehr):
+                ans = ans2
+        elif use_print:
+            for g in geschichte[:-1]:
+                print(g)
+            mint(geschichte[-1])
+        else:
+            for g in geschichte[:-1]:
+                self.sprich(g)
+            self.sprich(geschichte[-1], warte=True)
+        return ans
 
     def _main(self, mänx: system.Mänx) -> Any:
         """Das Hauptmenu, möglicherweise ist Reden direkt an."""
@@ -128,7 +149,6 @@ class NSC(system.InventarBasis):
     def reden(self, mänx: system.Mänx) -> Rückkehr:
         """Das Menu, wo nur reden möglich ist."""
         if not self.kennt_spieler:
-            self.vorstellen(mänx)
             self.kennt_spieler = True
         ans = Rückkehr.WEITER_REDEN
         start = True
@@ -149,7 +169,6 @@ class NSC(system.InventarBasis):
     def sprich(self, text: str, *args, **kwargs) -> None:
         """Minte mit vorgestelltem Namen"""
         system.sprich(self.name, text, *args, **kwargs)  # type: ignore
-        
 
     def dialog(self, *args, **kwargs) -> 'Dialog':
         "Erstelle einen Dialog"
@@ -161,15 +180,21 @@ class NSC(system.InventarBasis):
         """Schiebe das ganze Inventar von NSC zum Mänxen."""
         schiebe_inventar(self.inventar, mänx.inventar)
 
+
 VorList = List[Union[str, Tuple[str, int]]]
+
 
 class Dialog:
     """Ein einzelner Gesprächsfaden beim Gespräch mit einem NSC"""
     wenn_fn: Opt[DialogFn]
 
-    def __init__(self, name: str, text: str,
+    def __init__(self,
+                 name: str,
+                 text: str,
                  geschichte: Union[DialogFn, List[str]],
-                 vorherige: Union[str, None, VorList] = None):
+                 vorherige: Union[str, None, VorList] = None,
+                 wiederhole: int = 0):
+        # TODO mindestfreundlichkeit
         self.name = name
         self.text = text
         self.geschichte = geschichte
@@ -182,11 +207,20 @@ class Dialog:
             self.vorherige = []
 
         self.wenn_fn = None
-        self.anzahl = 0
+        self.anzahl = wiederhole
 
     def wenn(self, fn: DialogFn) -> 'Dialog':
         self.wenn_fn = fn
         return self
+
+    def wenn_var(self, *welt_variabeln: str) -> 'Dialog':
+        if self.wenn_fn:
+            def neue_wenn(nsc, mänx, wf=self.wenn_fn):
+                return wf(nsc, mänx) and all(
+                    mänx.welt.ist(v) for v in welt_variabeln)
+            return self.wenn(neue_wenn)
+        else:
+            return self.wenn(lambda n, m: all(m.welt.ist(v) for v in welt_variabeln))
 
     def wiederhole(self, anzahl: int) -> 'Dialog':
         """Füge eine maximale Anzahl von Wiederholungen hinzu"""
@@ -215,9 +249,9 @@ class Dialog:
 
 
 class Dorfbewohner(NSC):
-    def __init__(self, name: str, geschlecht: bool):
+    def __init__(self, name: str, geschlecht: bool, **kwargs):
         super().__init__(name, "Dorfbewohner" if geschlecht
-                         else "Dorfbewohnerin")
+                         else "Dorfbewohnerin", **kwargs)
         self.geschlecht = geschlecht
         self.dialog("hallo", "Hallo", lambda n, _:
                     sprich(n.name, f"Hallo, ich bin {n.name}. "
@@ -226,6 +260,8 @@ class Dorfbewohner(NSC):
                     sprich(n.name, "Hallo nochmal!") or True, "hallo")
 
     def kampf(self, mänx: system.Mänx) -> None:
+        if self.kampf_fn:
+            return super().kampf(mänx)
         if mänx.hat_klasse("Waffe", "magische Waffe"):
             mint("Du streckst den armen Typen nieder.")
             self.tot = True
@@ -248,7 +284,7 @@ class Dorfbewohner(NSC):
                 else:
                     mint("Aber sie wehrt sich tödlich.")
                 raise Spielende
-        elif random.randint(1,6) != 1:
+        elif random.randint(1, 6) != 1:
             print("Irgendwann ist dein Gegner bewusstlos.")
             if mänx.ja_nein("Schlägst du weiter bis er tot ist oder gehst du weg?"):
                 print("Irgendwann ist der Arme tot. Du bist ein Mörder. "
@@ -275,7 +311,6 @@ class Ort:
     name: str
     text: Union[str, List[str]]
     menschen: List[NSC] = field(default_factory=list)
-    
 
     def platzangabe(self):
         if isinstance(self.text, str):
@@ -284,6 +319,7 @@ class Ort:
             for line in self.text[:-1]:
                 print(line)
             mint(self.text[-1])
+
 
 class Dorf:
     """Ein Dorf besteht aus mehreren Orten, an denen man Menschen treffen kann.
