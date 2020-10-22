@@ -11,6 +11,7 @@ from xwatc.jtg import groekrak, see, nord
 from xwatc.haendler import Preis
 from xwatc.jtg.groekrak import zugang_südost
 from xwatc.jtg import eo_nw
+import xwatc_Hauptgeschichte
 
 
 def t2(mänx: Mänx) -> None:
@@ -507,6 +508,7 @@ def ende_des_waldes(mänx, morgen=False):
     if not morgen:
         print("Erschöpft legst du dich auf den Waldboden schlafen.")
         sleep(2)
+    print("Im Süden siehst du ein Dorf")
     süd_dorf(mänx)
 
 
@@ -528,8 +530,7 @@ def erzeuge_süd_dorf(mänx) -> Dorf:
     return d
 
 
-def süd_dorf(mänx):
-    print("Im Süden siehst du ein Dorf")
+def süd_dorf(mänx: Mänx):
     mänx.genauer(SÜD_DORF_GENAUER)
     mänx.welt.get_or_else("jtg:dorf:süd", erzeuge_süd_dorf, mänx).main(mänx)
     ziele = [
@@ -538,10 +539,53 @@ def süd_dorf(mänx):
         ("Den Weg nach Westen nach Grökrakchöl", "grökrakchöl", zugang_südost),
         #("Den Pfad in den Wald", "wald", wald)
     ]
-    mänx.menu(ziele, frage="Wohin gehst du?").main(mänx)
+    mänx.menu(ziele, frage="Wohin gehst du?")(mänx)
 
-def hauptstadt_weg(mänx):
-    pass  # TODO unfertig
+def hauptstadt_weg(mänx: Mänx):
+    print("Am Wegesrand siehst du ein Schild: \"Achtung Monster!\"")
+    if mänx.ja_nein("Willst du wirklich weitergehen?"):
+        mon = random.randint(1, 3)
+        if mon == 2 or "Kinderfreund" in mänx.titel:
+            print("Plötzlich bemerkst du einen süßen Duft und ein sanftes "
+                  "Leuchten im Wald zu deiner Rechten.")
+            mint("Ehe du dich versiehst, bis du vom Weg abgekommen.")
+            print("Du hörst eine sanfte Stimme:")
+            sprich("Dryade", "Hier ist es nicht sicher, Wanderer.")
+            sprich("Dryade", "Nicht sicher für dich.", warte=True)
+            sprich("Dryade", "Schreite durch dieses Portal!")
+            if mänx.ja_nein("Ein Portal öffnet sich vor dir. Möchtest "
+                            "du hindurch?"):
+                print("Du landest an einem vertrauten Ort.")
+                mint("Es ist der Ort, wo deine Geschichte begonnen hat.")
+                xwatc_Hauptgeschichte.himmelsrichtungen(mänx)
+            else:
+                sprich("Dryade", "Vertraust du mir nicht?")
+                mint("Die Stimme verstummt, das Portal schließt sich und "
+                     "der Duft verschwindet.")
+                print("Plötzlich bist du im dunklen Wald allein.")
+                mint("Etwas schweres trifft dich an der Seite und wirft dich "
+                     "zu Boden.")
+                print("Dass es ein Stein ist, siehst du im Fallen.")
+                mint("Du kannst dich nicht mehr bewegen und du siehst im "
+                     "Augenwinkel einen Bär auf dich zukommen.")
+                raise Spielende
+        elif mon == 1:
+            mint("Ein Pack Wölfe greift dich an.")
+            print("Sie haben die umzingelt, bevor du sie bemerkt hast.")
+            if mänx.gefährten:
+                mint("Deine Gefährten sterben nach und nach.")
+            if mänx.hat_klasse("Waffe"):
+                mint("Einen Wolf kannst du noch umbringen, aber einer beißt "
+                     "dich von hinten und du sackst zusammen.")
+            else:
+                mint("Du bist den Wölfen wehrlos ausgeliefert.")
+            raise Spielende
+        else:  # mon == 3
+            mint("Du läufst mitten in einen Hinterhalt der Kobolde.")
+            print("Später wird kein Kopf als Schmuck gefunden.")
+            raise Spielende
+    else:
+        süd_dorf(mänx)
 
 def t2_no(mänx):
     print("Du kommst an einen Wegweiser.")
