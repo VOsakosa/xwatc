@@ -582,7 +582,7 @@ def hauptstadt_weg(mänx: Mänx):
             raise Spielende
         else:  # mon == 3
             mint("Du läufst mitten in einen Hinterhalt der Kobolde.")
-            print("Später wird kein Kopf als Schmuck gefunden.")
+            print("Später wird dein Kopf als Schmuck gefunden.")
             raise Spielende
     else:
         süd_dorf(mänx)
