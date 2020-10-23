@@ -78,6 +78,7 @@ MenuOption = Tuple[str, str, Tcov]
 Inventar = Dict[str, int]
 
 
+
 class InventarBasis:
     """Ein Ding mit Inventar"""
     inventar: Inventar
@@ -127,6 +128,19 @@ class InventarBasis:
     def hat_item(self, item, anzahl=1):
         return item in self.inventar and self.inventar[item] >= anzahl
 
+
+class Karawanenfracht(InventarBasis):
+    """Die Fracht einer Karawane zeigt nicht direkt ihr Gold (, da sie keines hat)"""
+    def karawanenfracht_anzeigen(self):
+        import xwatc.haendler
+        if not any(self.inventar.values()):
+            return "Nichts da."
+        for item, anzahl in sorted(self.inventar.items()):
+            if anzahl and item != "Gold":
+                klasse = get_class(item) or "?"
+                kosten = xwatc.haendler.ALLGEMEINE_PREISE.get(item, "?")
+                ans.append(f"{anzahl:>4}x {item:<20} ({kosten:>3}G) {klasse}")
+        return "\n".join(ans)
 
 class Mänx(InventarBasis):
     """Der Hauptcharakter des Spiels, alles dreht sich um ihn, er hält alle

@@ -53,6 +53,7 @@ def waffe_wählen(mänx: Mänx):
 def main():
     mänx = Mänx()
     print("Willkommen bei Xwatc")
+    mint("Du wirst nun einem kleinen Persönlichkeitstest unterzogen.")
     ende = False
     while not ende:
         waffe_wählen(mänx)
