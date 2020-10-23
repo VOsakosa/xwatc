@@ -4,9 +4,11 @@ Created on 17.10.2020
 """
 import enum
 import random
+from dataclasses import dataclass
+from xwatc.utils import uartikel, bartikel
 __author__ = "jasper"
 import typing
-from typing import List, Any, Optional as Opt
+from typing import List, Any, Optional as Opt, Tuple, cast
 from xwatc.system import Mänx
 from xwatc.dorf import MänxFkt
 
@@ -42,6 +44,7 @@ class MonsterChance:
 class Weg:
     """Ein Weg hat zwei Enden und dient dazu, die Länge der Reise darzustellen.
     Zwei Menschen auf dem Weg zählen als nicht benachbart."""
+
     def __init__(self, länge: float, p1: Wegpunkt, p2: Wegpunkt,
                  monster_tag: Opt[List[MonsterChance]] = None,
                  monster_nachts: Opt[List[MonsterChance]] = None):
@@ -62,7 +65,7 @@ class Weg:
 
     def monster_check(self, mänx: Mänx) -> bool:
         """Checkt, ob ein Monster getroffen wird.
-        
+
         :return:
             True, wenn der Spieler sich entscheidet umzukehren.
         """
@@ -78,17 +81,17 @@ class Weg:
                     return mon.main(mänx)
         return False
 
-    def main(self, mänx: Mänx, von: Wegpunkt) -> Wegpunkt:
+    def main(self, mänx: Mänx, von: Opt[Wegpunkt]) -> Wegpunkt:
         tagrest = mänx.welt.tag % 1.0
         if tagrest < 0.5 and tagrest + self.länge >= 0.5:
-            if mänx.ja_nein("Du wirst nicht vor Ende der Nacht ankommen. "
+            if von and mänx.ja_nein("Du wirst nicht vor Ende der Nacht ankommen. "
                             "Willst du umkehren?"):
                 return von
         # frage_nacht = False
         richtung = von == self.p1
         weg_rest = self.länge
         while weg_rest > 0:
-            mänx.welt.tick(1/24)
+            mänx.welt.tick(1 / 24)
             if self.monster_check(mänx):
                 # umkehren
                 richtung = not richtung
@@ -97,10 +100,106 @@ class Weg:
                 if mänx.ja_nein("Willst du ruhen?"):
                     # TODO Monster beim Schlafen!
                     mänx.welt.nächster_tag()
-            weg_rest -= 1/24
-            
+            weg_rest -= 1 / 48 if mänx.welt.is_nacht() else 1 / 24
 
         if richtung:
             return self.p2
         else:
             return self.p1
+
+
+class Wegtyp(enum.Enum):
+    STRASSE = "Straße", "f"
+    ALTE_STRASSE = "alte Straße", "f"
+    WEG = "Weg", "m"
+    VERFALLENER_WEG = "verfallener Weg", "m"
+    PFAD = "Pfad", "m"
+    TRAMPELPFAD = "Trampelpfad", "m"
+    
+    @property
+    def geschlecht(self) -> str:
+        return self.value[1]  #pylint: disable=unsubscriptable-object
+
+    def text(self, bestimmt: bool, fall: int) -> str:
+        return ((bartikel if bestimmt else uartikel)(self.geschlecht, fall)
+                + " " + self.value[0])  #pylint: disable=unsubscriptable-object
+
+@dataclass
+class Richtung:
+    typ: Wegtyp
+    ziel: Wegpunkt
+
+HIMMELSRICHTUNGEN = [a + "en" for a in (
+    "Nord",
+    "Nordost",
+    "Ost",
+    "Südost",
+    "Süd",
+    "Südwest",
+    "West",
+    "Nordwest"
+)]
+HIMMELSRICHTUNG_KURZ = ["n", "no", "o", "so", "s", "sw", "w", "nw"]
+
+
+class Wegkreuzung:
+    def __init__(self,
+                 beschreibung: Opt[str] = None,
+                 n: Opt[Richtung] = None,
+                 nw: Opt[Richtung] = None,
+                 no: Opt[Richtung] = None,
+                 o: Opt[Richtung] = None,
+                 w: Opt[Richtung] = None,
+                 sw: Opt[Richtung] = None,
+                 so: Opt[Richtung] = None,
+                 s: Opt[Richtung] = None,):
+        self.richtungen = [n, no, o, so, s, sw, w, nw]
+        self.beschreibung = beschreibung
+    
+    def beschreibe(self, mänx: Mänx, richtung: Opt[int]):
+        rs = self.richtungen
+        if richtung is not None:
+            rit = cast(Richtung, rs[richtung]).typ
+            gegen = (richtung + 4) % 8
+            iri = sum(map(bool, rs))
+            if iri == 1:
+                print("Sackgasse.")
+            elif iri == 2:
+                andere = next(i for i, v in enumerate(rs)
+                              if v and i != richtung)
+                atyp = cast(Richtung, rs[andere]).typ
+                if andere == gegen:
+                    if rit != atyp:
+                        print(rit.text(True, 1).capitalize(),
+                              "wird zu", atyp.text(False, 3))
+                else:
+                    print(rit.text(True, 1), "biegt nach", 
+                          HIMMELSRICHTUNGEN[andere], "ab", end="")
+                    if rit != atyp:
+                        print(" und wird zu", atyp.text(False, 3))
+                    else:
+                        print(".")
+            else:
+                print("Du kommst an eine Kreuzung.")
+                for i, ri in enumerate(rs):
+                    if ri and i != richtung:
+                        print(ri.typ.text(False, 1).capitalize(), "führt nach", 
+                              HIMMELSRICHTUNGEN[i] + ".")
+                
+        else:
+            print("Du kommst auf eine Wegkreuzung.")
+            for i, ri in enumerate(rs):
+                if ri:
+                    print(ri.typ.text(False, 1).capitalize(), "führt nach", 
+                          HIMMELSRICHTUNGEN[i] + ".")
+            
+
+    def main(self, mänx: Mänx, von: Opt[Wegpunkt]):
+        if von:
+            richtung = next((
+                i for i, v in enumerate(self.richtungen) if v and v.ziel == von
+                ), default=None)
+        else:
+            richtung = None
+        self.beschreibe(mänx, richtung)
+        
