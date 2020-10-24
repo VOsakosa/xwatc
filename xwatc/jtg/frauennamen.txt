@@ -3,6 +3,8 @@ Alin
 Ana
 Anale
 Axale
+Banari
+Banora
 Beadeta
 Bitegi
 Caori
@@ -12,6 +14,7 @@ Enale
 Federika
 Gyuali
 Hana
+Hanapa
 Icuri
 Jen'a
 Kanali
@@ -25,5 +28,10 @@ Tenai
 Tieca
 Xeli
 Xumi
+Yotalan
 Yonani
 Yotalan
+Zakaroni
+Zänya
+Zukapänja
+

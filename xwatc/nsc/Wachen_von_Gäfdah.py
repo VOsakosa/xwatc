@@ -1,6 +1,6 @@
-from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner
+from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner, Rückkehr
+from . gefängnis_von_gäfdah import gefängnis_von_gäfdah
 from xwatc.system import mint, kursiv, Mänx, ja_nein
-
 
 class SakcaBrauc(NSC):
     def __init__(self):
@@ -11,7 +11,7 @@ class SakcaBrauc(NSC):
               "schlug Sakca dir mit der Faust ins Gesicht.")
         mint("Als du daraufhin zurücktaumelst, schlägt sie dich bewusstlos.")
 
-    def reden(self, mänx: Mänx) -> None:
+    def reden(self, mänx: Mänx) -> Rückkehr:
         print('"Was ist?", fragt dich die Wache.')
         opts = [
             ('"Hallo, Wie heißt du?"', 'heißt', 0),
@@ -34,12 +34,7 @@ class SakcaBrauc(NSC):
         elif opt == 3:
             mint('"gut", sagte die Wache.')
             print('Sie scheint nicht allzu gesprächig zu sein.')
-
-    def optionen(self, mänx: Mänx) -> NSCOptionen:
-        return NSC.optionen(self, mänx) + [
-            ("Reden", "reden", self.reden),
-            ("Kämpfen", "kämpfen", self.kampf)
-        ]
+        return Rückkehr.WEITER_REDEN
 
     def main(self, mänx: Mänx) -> None:
         print("Die Wache steht herum und geht ihrer Arbeit nach.")
@@ -54,8 +49,11 @@ class ThomarcAizenfjäld(NSC):
     def kampf(self, mänx: Mänx) -> None:
         print("Als du Anstalten machtest, deine Waffe zu zücken, "
               "schlug die Wache dir mit der flachen Seite ihres Schwertes gegen die Schläfe.")
+            
+    def handeln(self, mänx: Mänx) -> None:
+        print("Die Wache will gerade nicht handeln.")
 
-    def reden(self, mänx: Mänx) -> None:
+    def reden(self, mänx: Mänx) -> Rückkehr:
         print('"Was ist?", fragt die Wache dich.')
         opts = [
             ('"Hallo, Wer bist du?"', 'bist', 0),
@@ -70,12 +68,11 @@ class ThomarcAizenfjäld(NSC):
         elif opt == 2:
             mint('"gut", sagte die Wache.')
             print('Sie scheint nicht allzu gesprächig zu sein.')
+        return Rückkehr.VERLASSEN
 
     def optionen(self, mänx: Mänx) -> NSCOptionen:
-        return NSC.optionen(self, mänx) + [
-            ("Reden", "reden", self.reden)
-            ("Kämpfen", "kämpfen", self.kampf)
-        ]
+        yield from NSC.optionen(self, mänx)
+        yield ("handeln", "handeln", self.handeln)
 
     def main(self, mänx: Mänx) -> None:
         print("Die Wache steht herum und geht ernst und dienstbeflissen ihrer Arbeit nach.")
@@ -88,9 +85,11 @@ class OrfGrouundt(NSC):
 
     def kampf(self, mänx: Mänx) -> None:
         print("Als du Anstalten machtest, deine Waffe zu zücken, "
-              "gab der Wachmann dir eine so dicke Kopfnuss, dass du ohnmächtig auf das Pflaster sinkst.")
+              "gibt der Wachmann dir eine so dicke Kopfnuss, dass du "
+              "ohnmächtig auf das Pflaster sinkst.")
 
-    def reden(self, mänx: Mänx) -> None:
+
+    def reden(self, mänx: Mänx) -> Rückkehr:
         print('"Hallo"')
         opts = [
             ('"Wer bist du?"', 'bist', 0),
@@ -109,12 +108,7 @@ class OrfGrouundt(NSC):
         elif opt == 3:
             mint('"Hau ab!", sagte die Wache.')
             print('Sie scheint nicht allzu gesprächig zu sein.')
-
-    def optionen(self, mänx: Mänx) -> NSCOptionen:
-        return NSC.optionen(self, mänx) + [
-            ("Reden", "reden", self.reden),
-            ("Kämpfen", "kämpfen", self.kampf)
-        ]
+        return Rückkehr.WEITER_REDEN
 
     def main(self, mänx: Mänx) -> None:
         print("Die Wache steht herum und geht ernst und dienstbeflissen ihrer Arbeit nach.")
@@ -129,7 +123,7 @@ class MarioWittenpfäld(NSC):
         print("Als du Anstalten machtest, deine Waffe zu zücken, "
               "schlug die Wache dir mit der flachen Seite ihres Schwertes gegen die Schläfe.")
 
-    def reden(self, mänx: Mänx) -> None:
+    def reden(self, mänx: Mänx) -> Rückkehr:
         print('"Was ist?", fragt die Wache dich.')
         opts = [
             ('"Hallo, Wer bist du?"', 'bist', 0),
@@ -151,12 +145,7 @@ class MarioWittenpfäld(NSC):
         elif opt == 3:
             mint('"gut", sagte die Wache.')
             print('Sie scheint nicht allzu gesprächig zu sein.')
-
-    def optionen(self, mänx: Mänx) -> NSCOptionen:
-        return NSC.optionen(self, mänx) + [
-            ("Reden", "reden", self.reden),
-            ("Kämpfen", "kämpfen", self.kampf)
-        ]
+        return Rückkehr.WEITER_REDEN
 
     def main(self, mänx: Mänx) -> None:
         print("Die Wache steht herum und geht ernst und dienstbeflissen ihrer Arbeit nach.")

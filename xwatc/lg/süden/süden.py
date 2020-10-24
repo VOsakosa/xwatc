@@ -1,5 +1,5 @@
 from time import sleep
-from xwatc.system import Mänx, minput, ja_nein, kursiv
+from xwatc.system import Mänx, minput, ja_nein, kursiv, mint
 from xwatc.lg.osten import osten
 from xwatc.lg.norden import norden
 from xwatc.lg.westen import westen
@@ -25,7 +25,7 @@ def süden(mänx: Mänx):
                              "deine Arme über dem Kopf f/v(flucht/verteidigung)", ["f", "v"])
                 if mut == "v":
                     print("Die Schnecke fraß dich auf, wie eine normale Schnecke Salat")
-                    o = minput(mänx, "Du bist tot")
+                    mint("Du bist tot")
                 elif mut == "f":
                     print(
                         "Du rennst weg. Zum Glück ist die Schnecke immer noch eine Schnecke und du entkommst.")
@@ -103,6 +103,7 @@ def süden(mänx: Mänx):
         else:
             westen.westen(mänx)
 
+
 def duhastüberlebt(mänx):
     if ja_nein(mänx, "Weidest du die Schnecke aus? "):
         print("Du bekommst ein paar Dinge")
@@ -166,9 +167,9 @@ def duhastüberlebt(mänx):
                       'auch genannt böse-böser-Unsinn-Enttität, '
                       'ist zu stark.')
                 mint("Das Gift der Schneckekommt in deinen Körper.Harharhar!"
-                      "lacht das minigehirn der Schnecke Schade, leider bist du tot")
+                     "lacht das minigehirn der Schnecke Schade, leider bist du tot")
                 mint("Joel hat zugeschlagen.")
-                mint("Es tut mir wirklich ",kursiv ("sehr"), "leid.")
+                mint("Es tut mir wirklich ", kursiv("sehr"), "leid.")
 
             elif a == 7:
                 print("Riesige Spinne")

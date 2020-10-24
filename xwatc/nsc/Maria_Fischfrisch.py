@@ -1,44 +1,58 @@
 from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner
-from xwatc.system import ja_nein, mint, minput, Mänx, kursiv
+import . norden
+from . Fischerfraumassaker import fischerfraumassaker
 
-
-class Fischerfrau(NSC):
+class Fischerfrau(haendler.Händler):
     def __init__(self):
-        super().__init__("Maria Fischfrisch", "alte Fischerfrau")
+        super().__init__("Maria Fischfrisch", kauft=["Blume"], verkauft={
+            "Hering": 4,
+            "Sardine": 3,
+            "Lachs": 6}, art="alte Fischerfrau")
+        self.inventar["Gold"] = 
 
     def kampf(self, mänx: Mänx) -> None:
-        print("Als du Anstalten machtest, deine Waffe zu zücken, "
-              "schlug die Wache dir mit der flachen Seite ihres Schwertes gegen die Schläfe.")
+        fischerfraumassaker(mänx)
+        
+        
+    def vorstellen(self, mänx):
+        print("Die Fischerfrau verkauft Fische")
+    
 
     def reden(self, mänx: Mänx) -> None:
-        print('"Was ist?", fragt die Wache dich.')
+        print('An einem Stand verkauft eine alte Frau Fische. ')
         opts = [
             ('"Hallo, Wer bist du?"', 'bist', 0),
-            ('"Du heißt Tom, oder?"', "tom", 1),
-            ('"Wie findest du das Wetter heute?"', "wetter", 2),
-            ('"Hey, wie geht es dir?"', "geht", 3)
+            ('"Wie findest du das Wetter heute?"', "wetter", 1),
+            ('"Wie geht es dir?"', "geht", 2)
         ]
-        opt = mänx.menu(opts, frage="Was sagst du?")
+        opt = mänx.menu(
+            "Was sagst du?", opts)
         if opt == 0:
-            print("Der Wachmann reagiert nicht.")
-            if ja_nein(mänx, " Beharrst du auf deine Frage?"):
-                mint("Die Wache seufzt. Ich heiße Mario. Mario Wittenpfäld.")
-            else:
-                mint(self.name, "Du lässt die Wache in Ruhe.")
+            print('(freundlich) "Ich heiße Maria. Und du?"')
+            d=input('')
+            print('"Das ist aber ein schöner Name."')
         elif opt == 1:
-            print("", kursiv("nein!"), "     Ich heiße Mario, Mario Wittenpfäld!")
+            print('"Schön, mein Kind."')
         elif opt == 2:
-            mint('"schön", sagte die Wache mürrisch.')
-        elif opt == 3:
-            mint('"gut", sagte die Wache.')
-            print('Sie scheint nicht allzu gesprächig zu sein.')
+            mint('"Mir geht es gut. Wie geht es dir?"')
+            k=input("")
+            if k=="gut" or "sehr gut" or "super gut" or "wirklich gut" or "wirklich sehr gut":
+                print('"Das ist aber schön."')
+            else:
+                print('"oh"')
 
     def optionen(self, mänx: Mänx) -> NSCOptionen:
         return NSC.optionen(self, mänx) + [
-            ("Reden", "reden", self.reden),
-            ("Kämpfen", "kämpfen", self.kampf)
+            ("Reden", "reden", self.reden)
+            ("Handeln", "handeln", self.handeln)
         ]
 
     def main(self, mänx: Mänx) -> None:
         print("Die Wache steht herum und geht ernst und dienstbeflissen ihrer Arbeit nach.")
         super().main(mänx)
+        
+        
+
+
+
+

@@ -7,8 +7,11 @@ from random import randint
 import random
 from xwatc.jtg.ressourcen import FRAUENNAMEN
 from xwatc.jtg.tauern import land_der_kühe
-from xwatc.jtg import groekrak, see
+from xwatc.jtg import groekrak, see, nord
 from xwatc.haendler import Preis
+from xwatc.jtg.groekrak import zugang_südost
+from xwatc.jtg import eo_nw
+import xwatc_Hauptgeschichte
 
 
 def t2(mänx: Mänx) -> None:
@@ -79,7 +82,9 @@ class Mädchen(haendler.Händler):
 
     def __init__(self) -> None:
         super().__init__("Mädchen", kauft=["Kleidung"], verkauft={
-            "Rose": Preis(1)}, gold=Preis(0), art="Mädchen")
+            "Rose": (1, Preis(1))}, gold=Preis(0), art="Mädchen",
+            direkt_handeln=True)
+        self.in_disnajenbum = True
 
     def vorstellen(self, mänx):
         print("Am Wegesrand vor dem Dorfeingang siehst du ein Mädchen in Lumpen. "
@@ -105,32 +110,41 @@ def t2_norden(mänx: Mänx) -> None:
     """Das Dorf auf dem Weg nach Norden"""
     print("Auf dem Weg kommen dir mehrfach Leute entgegen, und du kommst in ein kleines Dorf.")
     mädchen = mänx.welt.get_or_else("jtg:mädchen", Mädchen)
-    if "k" == mädchen.main(mänx):
-        mädchen.kampf(mänx)
-    elif "Mantel" in mädchen.verkauft:
-        print("Das Mädchen bedeutet dir, dass sie nur den halben Mantel braucht.")
-        print("Du schneidest den Mantel entzwei, und gibst ihr nur die Hälfte.")
-        mänx.inventar["halber Mantel"] += 1
-        mänx.titel.add("Samariter")
-    elif mädchen.inventar["Rose"] == 0:
-        print("Das Mädchen ist dankbar für das Stück Gold")
-    if mädchen.inventar["Unterhose"]:
-        print(
-            "Das Mädchen ist sichtlich verwirrt, dass du ihr eine Unterhose gegeben hast.")
-        mint("Es hält sie vor sich und mustert sie. Dann sagt sie artig danke.")
-        mänx.titel.add("Perversling")
-    print("")
+    if mädchen.in_disnajenbum and not mädchen.tot:
+        if "k" == mädchen.main(mänx):
+            mädchen.kampf(mänx)
+        elif "Mantel" in mädchen.verkauft:
+            print("Das Mädchen bedeutet dir, dass sie nur den halben Mantel braucht.")
+            print("Du schneidest den Mantel entzwei, und gibst ihr nur die Hälfte.")
+            mänx.inventar["halber Mantel"] += 1
+            mänx.titel.add("Samariter")
+        elif mädchen.inventar["Rose"] == 0:
+            print("Das Mädchen ist dankbar für das Stück Gold")
+        if mädchen.inventar["Unterhose"]:
+            print(
+                "Das Mädchen ist sichtlich verwirrt, dass du ihr eine Unterhose gegeben hast.")
+            mint("Es hält sie vor sich und mustert sie. Dann sagt sie artig danke.")
+            mänx.titel.add("Perversling")
+        print("Das Mädchen verschwindet nach Süden.")
+        mädchen.in_disnajenbum = False
+        # TODO wohin?
     disnayenbum(mänx)
 
 
 def disnayenbum(mänx: Mänx):
     mint("Du kommst im Dorf Disnayenbun an.")
-    if "osten" == scenario.lade_scenario(mänx, "disnajenbun"):
+    nord.registrieren(mänx)
+    nex = scenario.lade_scenario(mänx, "disnajenbun")
+    if "osten" == nex:
         mint("Du verlässt das Dorf Richtung Osten.")
         t2_no(mänx)
-    else:
+    elif nex == "westen":
         mint("Du verlässt das Dorf Richtung Nordwesten.")
-        t2_nw(mänx)
+        eo_nw.eo_ww_o(mänx)
+    else:  # süden
+        mint("Du verlässt das Dorf Richtung Süden.")
+        # TODO die Pfade!
+        groekrak.zugang_ost(mänx)
 
 
 def t2_süd(mänx) -> None:
@@ -173,6 +187,7 @@ def t2_süd(mänx) -> None:
               "auf den Weg durch den Wald.")
         ende_des_waldes(mänx)
 
+
 def hexer_skelett(mänx: Mänx):
     mänx.welt.setze("kennt:hexer")
     sprich("?", "Ach hallo, ein Skelett! Fühl dich hier wie zu Hause.")
@@ -180,6 +195,7 @@ def hexer_skelett(mänx: Mänx):
     sprich(leo, "Ich habe ganz vergessen, mich vorzustellen!")
     sprich(leo, "Ich bin Leo Berndoc.")
     ende_des_waldes(mänx, True)
+
 
 def haus_des_hexers(mänx: Mänx)-> None:
     print("Er bittet dich an den Tisch und gibt dir einen warmen Punsch.")
@@ -190,20 +206,20 @@ def haus_des_hexers(mänx: Mänx)-> None:
     opts = [
         (o, v, v) for (o, v) in zip((
             "Halloli! Was mach ich wohl in deinem Haus? ",
-              "Ich habe mich hier verirrt.",
-              "Ich bin nur auf der Durchreise.",
-              "Die große Liebe!",
-              
-              "Das gehst dich doch nichts an!",
+            "Ich habe mich hier verirrt.",
+            "Ich bin nur auf der Durchreise.",
+            "Die große Liebe!",
+
+            "Das gehst dich doch nichts an!",
         ),
-        ["verirrt", "halloli", "durchreise", "liebe", "an"])
+            ["verirrt", "halloli", "durchreise", "liebe", "an"])
     ]
     if mänx.welt.ist("jtg:t2"):
         opts.append(("Ich bin einfach in den Osten ­– weil da keine Menschen sind – gegangen, "
-              "und dann war da diese Oase. Da waren zwei Türen. "
-              "Ich habe mir ein Herz gefasst, bin durch die Tür gegangen und hier "
-              "bin ich. Plötzlich.", "oase", "oase"))
-    antwort = mänx.minput(opts)
+                     "und dann war da diese Oase. Da waren zwei Türen. "
+                     "Ich habe mir ein Herz gefasst, bin durch die Tür gegangen und hier "
+                     "bin ich. Plötzlich.", "oase", "oase"))
+    antwort = mänx.menu(opts)
     if antwort == "halloli":
         print("Er sagt mit einem verschwörerischen Tonfall: \"Ich verstehe.\"")
         sprich(leo, "Bleibe ruhig noch die Nacht. Hier werden sie dich nicht finden.")
@@ -420,9 +436,8 @@ class TobiacBerndoc(NSC):
         return True
 
     def optionen(self, mänx: Mänx) -> NSCOptionen:
-        return NSC.optionen(self, mänx) + [
-            ("Ihm beim Spielen zuhören", "hören", self.zuhören)
-        ]
+        yield from super().optionen(mänx)
+        yield ("Ihm beim Spielen zuhören", "hören", self.zuhören)
 
     def main(self, mänx: Mänx) -> None:
         print("Tobiac spielt auf der Orgel.")
@@ -437,6 +452,7 @@ class Waschweib(Dorfbewohner):
         self.inventar["Schnöder Ehering"] += 1
         self.inventar["Einfaches Kleid"] += 1
         self.inventar["Unterhose"] += 1
+        self.direkt_reden = True
 
 
 def zufälliges_waschweib() -> Waschweib:
@@ -495,6 +511,7 @@ def ende_des_waldes(mänx, morgen=False):
     if not morgen:
         print("Erschöpft legst du dich auf den Waldboden schlafen.")
         sleep(2)
+    print("Im Süden siehst du ein Dorf")
     süd_dorf(mänx)
 
 
@@ -516,11 +533,62 @@ def erzeuge_süd_dorf(mänx) -> Dorf:
     return d
 
 
-def süd_dorf(mänx):
-    print("Im Süden siehst du ein Dorf")
+def süd_dorf(mänx: Mänx):
     mänx.genauer(SÜD_DORF_GENAUER)
     mänx.welt.get_or_else("jtg:dorf:süd", erzeuge_süd_dorf, mänx).main(mänx)
+    ziele = [
+        ("Den Weg nach Süden zur Hauptstadt", "hauptstadt", hauptstadt_weg),
+        ("Den Weg nach Norden nach Tauern", "tauern", tauern_ww_süd),
+        ("Den Weg nach Westen nach Grökrakchöl", "grökrakchöl", zugang_südost),
+        #("Den Pfad in den Wald", "wald", wald)
+    ]
+    mänx.menu(ziele, frage="Wohin gehst du?")(mänx)
 
+def hauptstadt_weg(mänx: Mänx):
+    print("Am Wegesrand siehst du ein Schild: \"Achtung Monster!\"")
+    if mänx.ja_nein("Willst du wirklich weitergehen?"):
+        mon = random.randint(1, 3)
+        if mon == 2 or "Kinderfreund" in mänx.titel:
+            print("Plötzlich bemerkst du einen süßen Duft und ein sanftes "
+                  "Leuchten im Wald zu deiner Rechten.")
+            mint("Ehe du dich versiehst, bis du vom Weg abgekommen.")
+            print("Du hörst eine sanfte Stimme:")
+            sprich("Dryade", "Hier ist es nicht sicher, Wanderer.")
+            sprich("Dryade", "Nicht sicher für dich.", warte=True)
+            sprich("Dryade", "Schreite durch dieses Portal!")
+            if mänx.ja_nein("Ein Portal öffnet sich vor dir. Möchtest "
+                            "du hindurch?"):
+                print("Du landest an einem vertrauten Ort.")
+                mint("Es ist der Ort, wo deine Geschichte begonnen hat.")
+                xwatc_Hauptgeschichte.himmelsrichtungen(mänx)
+            else:
+                sprich("Dryade", "Vertraust du mir nicht?")
+                mint("Die Stimme verstummt, das Portal schließt sich und "
+                     "der Duft verschwindet.")
+                print("Plötzlich bist du im dunklen Wald allein.")
+                mint("Etwas schweres trifft dich an der Seite und wirft dich "
+                     "zu Boden.")
+                print("Dass es ein Stein ist, siehst du im Fallen.")
+                mint("Du kannst dich nicht mehr bewegen und du siehst im "
+                     "Augenwinkel einen Bär auf dich zukommen.")
+                raise Spielende
+        elif mon == 1:
+            mint("Ein Pack Wölfe greift dich an.")
+            print("Sie haben die umzingelt, bevor du sie bemerkt hast.")
+            if mänx.gefährten:
+                mint("Deine Gefährten sterben nach und nach.")
+            if mänx.hat_klasse("Waffe"):
+                mint("Einen Wolf kannst du noch umbringen, aber einer beißt "
+                     "dich von hinten und du sackst zusammen.")
+            else:
+                mint("Du bist den Wölfen wehrlos ausgeliefert.")
+            raise Spielende
+        else:  # mon == 3
+            mint("Du läufst mitten in einen Hinterhalt der Kobolde.")
+            print("Später wird dein Kopf als Schmuck gefunden.")
+            raise Spielende
+    else:
+        süd_dorf(mänx)
 
 def t2_no(mänx):
     print("Du kommst an einen Wegweiser.")
@@ -532,110 +600,12 @@ def t2_no(mänx):
     else:
         süd_dorf(mänx)
 
-
-def t2_nw(mänx: Mänx):
-    print("Der Weg ist gepflastert, aber er wurde lange nicht mehr gepflegt "
-          "und genutzt.")
-    mint("Immer wieder musst du umgefallenen Baumstämmen ausweichen.")
-    mint("Du kommst aus dem Wald in eine spärlich bewachsene Hügellandschaft.")
-    print("Ein schmaler Pfad biegt nach Süden ab.")
-    opts = [
-        ("norden", "Folge dem Weg nach Norden", eo_turm),
-        ("umk", "Kehre um nach Disnayenbum", disnayenbum),
-        ("süden", "Biege auf den Pfad nach Süden ab", see.zugang_nord),
-    ]
-    mänx.menu(opts, gucken="Um dich erstreckt sich eine weite Hügellandschaft,"
-              " im Norden meinst du einen Turm ausmachen zu können.")(mänx)
+def tauern_ww_süd(mänx: Mänx):
+    print("Du folgst dem Weg sehr lange den Fluss aufwärts.")
+    mint("Da kommst du an eine Kreuzung. Ein Weg führt den Fluss weiter aufwärts")
 
 
-def t2_nw_n(mänx: Mänx):
-    print("Ein schmaler Pfad biegt nach Süden ab, der Weg macht eine Biegung "
-          "nach Südosten.")
-    opts = [
-        ("umk", "Kehre um.", eo_turm),
-        ("südosten", "Folge dem Weg", disnayenbum),
-        ("süden", "Biege auf den Pfad nach Süden ab", see.zugang_nord),
-    ]
-    mänx.menu(opts, gucken="Um dich erstreckt sich eine weite Hügellandschaft,"
-              " im Norden meinst du einen Turm ausmachen zu können.")(mänx)
 
-
-def eo_turm(mänx: Mänx):
-    print("Der Weg führt geradewegs auf einen Turm zu.")
-    mint("Dieser hohe Turm steht auf einem Hügel und kann die ganze Landschaft "
-         "überblicken.")
-    print("Am Wegesrand siehst du ein Schild: "
-          "\"Hier beginnt TERRITORIUM VON EO \\Betreten verboten\"")
-    opts = [
-        ("umgehen", "Umgehe den Turm weiträumig in Richtung Norden", eo_umgehen),
-        ("turm", "Folge dem Weg auf den Turm zu", eo_turm2),
-        ("umkehren", "Gehe zurück", t2_nw_n),
-    ]
-    mänx.menu(opts, gucken="Der Turm ragt bedrohlich vor dir auf.")(mänx)
-
-
-def eo_turm2(mänx: Mänx):
-    print("Kaum kommst du in die Nähe des Turms, ruft eine laute Stimme "
-          "unfreundlich herab:")
-    sprich("Eo-Wache", "Kannst du nicht lesen, hier ist Territorium von Eo!")
-    sprich("Eo-Wache", "Kehre um oder wir müssen Gewalt anwenden!")
-    opts = [
-        ("lesen", '"Nein, Herr, ich kann nicht lesen! Tut mir leid, ich kehre'
-         ' um!"', t2_nw_n),
-        ("egal", '"Das ist mir egal, ich will hier durch!"', eo_turm_kampf),
-        ("papiere", '"Ich habe Papiere!"', eo_turm_kampf),
-    ]
-    mänx.menu(opts, gucken=[
-        "Wenn du genau hinsiehst, kannst du Schießscharten "
-        "am Turm ausmachen",
-        "Und wenn du noch genauer hinsiehst, scheint sich "
-        "dahinter etwas zu bewegen."])(mänx)
-
-def eo_turm_kampf(mänx: Mänx):
-    mint("Das scheint die Wache nicht zu überzeugen.")
-    print("Sie brüllt laut:")
-    sprich("Eo-Wache", "SCHIESSEN!")
-    print("Ungefähr 10 Pfeile werden aus dem Turm abgefeuert.")
-    mint("Davon durchbohren dich einige und du stirbst.")
-    raise Spielende
-
-def eo_umgehen(mänx: Mänx):
-    print("Du läufst vorsichtig in weitem Abstand um den Turm herum.")
-    mint("Immer wieder blickst du dich in Richtung des Turms um.")
-    if mänx.rasse == "Lavaschnecke":
-        mint("Eine Stimme spricht in deinem Kopf")
-        sprich("Gott der Lavaschnecken", "Du bist in Gefahr, fliehe, meine "
-               "kleine Lavaschnecke!")
-        if mänx.ja_nein("Fliehst du, "+kursiv("kleine Lavaschnecke")+ "(LOL)?"):
-            eo_flucht(mänx)
-            return
-    mint("Plötzlich siehst du etwas hinter dir in den Augenwinkeln.")
-    mint("Ein Messer steckt in deinem Rücken.")
-    sprich("Eo-Magierin", "Du bist hiermit wegen illegalen Eindringens nach "
-           "Eo bestraft.")
-    print("Nun, das hast du davon, dass du auf keine Warnung hörst.")
-    raise Spielende
-        
-def eo_flucht(mänx: Mänx):
-    print("Du drehst dich um, und genau vor dir taucht eine Magierin auf.")
-    mänx.welt.get_or_else("jtg:eo:magierin", eo_magierin).main()
-    t2_nw_n(mänx)
-
-
-def eo_magierin() -> NSC:
-    def kampf(_nsc, _m):
-        mint("Du stürmst auf sie los. Aber ihre Umrisse verzerren sich, und "
-             "kaum versiehst du dich, steckt ein Messer von hinten in deiner "
-             "Brust.")
-        raise Spielende
-    n= NSC("Lisc Śńeazrm", "Eo-Magierin", kampf)
-    n.dialog("hallo", '"Hallo!"', ["Nichts da 'Hallo'!", "Was suchst du hier?"])
-    n.dialog("gehe", '"Ich gehe ja schon!"', ["Ganz recht so. Komm nie wieder!"])
-    n.dialog("heiße", '"Ich heiße %&"%, wie heißt du?"', [
-            "Ich heiße Lisc.", "Mach, dass du wegkommst."
-        ])
-    return n
-    
 
 if __name__ == '__main__':
     m = Mänx()
