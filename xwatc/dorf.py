@@ -7,11 +7,12 @@ from __future__ import annotations
 from typing import List, Union, Callable, Dict, Tuple, Any, cast
 from typing import Optional as Opt
 from dataclasses import dataclass, field
-from xwatc.system import mint, schiebe_inventar, Spielende, MenuOption, sprich
+from xwatc.system import (mint, schiebe_inventar,
+                          Spielende, MenuOption, sprich, MänxFkt)
 from xwatc import system
 __author__ = "jasper"
 
-MänxFkt = Callable[[system.Mänx], Any]
+
 NSCOptionen = List[MenuOption[MänxFkt]]
 DialogFn = Callable[["NSC", system.Mänx], Opt[bool]]
 
@@ -66,7 +67,7 @@ class NSC(system.InventarBasis):
             optionen: List[MenuOption[Union[Dialog, MänxFkt]]]
             optionen = cast(Any, self.optionen(mänx))
             optionen.extend(d.zu_option() for d in self.dialoge
-                        if d.verfügbar(self, mänx))
+                            if d.verfügbar(self, mänx))
             if not optionen:
                 if start:
                     print("Du weißt nicht, was du sagen könntest.")
@@ -88,7 +89,6 @@ class NSC(system.InventarBasis):
     def sprich(self, text: str) -> None:
         """Minte mit vorgestelltem Namen"""
         system.sprich(self.name, text)
-        
 
     def dialog(self, *args, **kwargs) -> 'Dialog':
         "Erstelle einen Dialog"
@@ -100,7 +100,9 @@ class NSC(system.InventarBasis):
         """Schiebe das ganze Inventar von NSC zum Mänxen."""
         schiebe_inventar(self.inventar, mänx.inventar)
 
+
 VorList = List[Union[str, Tuple[str, int]]]
+
 
 class Dialog:
     """Ein einzelner Gesprächsfaden beim Gespräch mit einem NSC"""
@@ -197,7 +199,6 @@ class Ort:
     name: str
     text: Union[str, List[str]]
     menschen: List[NSC] = field(default_factory=list)
-    
 
     def platzangabe(self):
         if isinstance(self.text, str):
@@ -206,6 +207,7 @@ class Ort:
             for line in self.text[:-1]:
                 print(line)
             mint(self.text[-1])
+
 
 class Dorf:
     """Ein Dorf besteht aus mehreren Orten, an denen man Menschen treffen kann.

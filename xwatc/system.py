@@ -1,7 +1,9 @@
 from collections import defaultdict
-from typing import Sequence, Dict, List, Tuple, TypeVar, Callable, Any, Union,\
-    overload, Optional, Iterator, Mapping
+from typing import (Sequence, Dict, List, Tuple, TypeVar, Callable, Any, Union,
+                    Optional, Iterator, Mapping)
 from time import sleep
+
+MänxFkt = Callable[['Mänx'], Any]
 
 ITEMVERZEICHNIS = {
     "Apfel": "Obst",
@@ -265,12 +267,13 @@ class Welt:
 
     def get_tag(self) -> int:
         return int(self.tag)
-    
+
     def is_nacht(self) -> bool:
         return self.tag % 1.0 >= 0.5
-    
+
     def tick(self, uhr: float):
         self.tag += uhr
+
 
 def schiebe_inventar(start: Inventar, ziel: Inventar):
     """Schiebe alles aus start in ziel"""
