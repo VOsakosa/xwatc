@@ -57,6 +57,10 @@ Kleidung:
   T-Shirt
   Unterhose
 
+legendäre Waffe: Waffe
+  mächtige Axt
+  Schwert
+
 Metall:
   Eisen
 
@@ -67,6 +71,15 @@ Mugel:
 Nahrung:
   Pausenbrot
   Reisportion
+
+normales Werkzeug:
+  Spitzhacke
+
+normale Waffe: Waffe
+  Dolch
+  Messer
+  Normales Schwert
+  Speer
 
 Obst: Nahrung
   Apfel
@@ -106,17 +119,4 @@ Werkzeug:
 
 Zauberzutat:
   Menschenskelett
-
-legendäre Waffe: Waffe
-  Schwert
-  mächtige Axt
-
-normale Waffe: Waffe
-  Dolch
-  Messer
-  Normales Schwert
-  Speer
-
-normales Werkzeug:
-  Spitzhacke
 
