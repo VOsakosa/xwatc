@@ -10,7 +10,7 @@ from typing import List, Union, Callable, Dict, Tuple, Any, Iterator, Iterable
 from typing import Optional as Opt, Sequence
 from dataclasses import dataclass, field
 from xwatc.system import (mint, schiebe_inventar, Spielende, MenuOption,
-                          sprich, kursiv)
+                          sprich, kursiv, Welt)
 from xwatc import system
 from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
 __author__ = "jasper"
@@ -320,6 +320,9 @@ class Ort:
             for line in self.text[:-1]:
                 print(line)
             mint(self.text[-1])
+
+    def add_nsc(self, welt: Welt, name: str, fkt, *args, **kwargs):
+        self.menschen.append(welt.get_or_else(name, fkt, *args, **kwargs))
 
 
 class Dorf:
