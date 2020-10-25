@@ -10,7 +10,7 @@ from typing import List, Union, Callable, Dict, Tuple, Any, Iterator, Iterable
 from typing import Optional as Opt, Sequence
 from dataclasses import dataclass, field
 from xwatc.system import (mint, schiebe_inventar, Spielende, MenuOption,
-                          sprich, kursiv, MänxFkt)
+                          sprich, kursiv, MänxFkt, Welt)
 from xwatc import system
 from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
 __author__ = "jasper"
@@ -321,6 +321,9 @@ class Ort:
                 print(line)
             mint(self.text[-1])
 
+    def add_nsc(self, welt: Welt, name: str, fkt, *args, **kwargs):
+        self.menschen.append(welt.get_or_else(name, fkt, *args, **kwargs))
+
 
 class Dorf:
     """Ein Dorf besteht aus mehreren Orten, an denen man Menschen treffen kann.
@@ -354,9 +357,9 @@ class Dorf:
         else:
             print("Hier ist niemand.")
         optionen: List[MenuOption[Union[NSC, Ort, None]]]
-        optionen = [("Mit " + mensch.name + " reden", "r" + mensch.name.lower(),
+        optionen = [("Mit " + mensch.name + " reden", mensch.name.lower(),
                      mensch) for mensch in ort.menschen]
-        optionen.extend((f"Nach {o.name} gehen", "o" + o.name.lower(), o)
+        optionen.extend((f"Nach {o.name} gehen", o.name.lower(), o)
                         for o in self.orte if o != ort)
         optionen.append(("Ort verlassen", "fliehen", None))
         opt = mänx.menu(optionen)

@@ -8,6 +8,9 @@ from . Maria_Fischfrisch import Fischerfrau
 import random
 from xwatc.jtg.ressourcen import FRAUENNAMEN
 from xwatc.jtg import TobiacBerndoc, zufälliges_waschweib
+from xwatc.nsc.Wachen_von_Gäfdah import (MarioWittenpfäld,
+SakcaBrauc,OrfGrouundt,ThomarcAizenfjäld)
+from xwatc.nsc.Bürger_von_Gäfdah import MartinPortulakk
 
 
 GÄFDA_NAME = "Gäfda"
@@ -42,15 +45,18 @@ def erzeuge_Gäfdah(mänx) -> Dorf:
     kirche.menschen.append(mänx.welt.get_or_else(
         "lg:norden:Maria_Fischfrisch:maria_fischfrisch", Fischerfrau))
     d.orte.append(kirche)
-    schmiede.menschen.append(mänx.welt.get_or_else(
-        "jtg:m:tobiac", TobiacBerndoc))
-    d.orte.append(schmiede)
+    #schmiede.menschen.append(mänx.welt.get_or_else)
+    #d.orte.append(schmiede)
     rathaus.menschen.append(mänx.welt.get_or_else(
-        "jtg:m:tobiac", TobiacBerndoc))
+        "nsc:Wachen_von_Gäfdah:MarioWittenpfäld", MarioWittenpfäld))
+    rathaus.add_nsc(mänx.welt, "nsc:Wachen_von_Gäfdah:SakcaBrauc", SakcaBrauc)
+    rathaus.menschen.append(mänx.welt.get_or_else(
+        "nsc:Wachen_von_Gäfdah:ThomarcAizenfjäld", ThomarcAizenfjäld))
     d.orte.append(rathaus)
     haus1.menschen.append(mänx.welt.get_or_else(
-        "jtg:m:tobiac", TobiacBerndoc))
+        "nsc:Bürger_von_Gäfdah:MartinPortulakk", MartinPortulakk))
     d.orte.append(haus1)
+    d.orte[0].add_nsc(mänx.welt, "nsc:Wachen_von_Gäfdah:OrfGrouundt", OrfGrouundt)
     for _i in range(randint(2, 5)):
         w = zufälliges_waschweib()
         d.orte[0].menschen.append(w)

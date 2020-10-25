@@ -1,5 +1,5 @@
 from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner, Rückkehr
-from . gefängnis_von_gäfdah import gefängnis_von_gäfdah
+from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
 from xwatc.system import mint, kursiv, Mänx, ja_nein
 
 class SakcaBrauc(NSC):
@@ -10,6 +10,7 @@ class SakcaBrauc(NSC):
         print("Als du Anstalten machtest, deine Waffe zu zücken, "
               "schlug Sakca dir mit der Faust ins Gesicht.")
         mint("Als du daraufhin zurücktaumelst, schlägt sie dich bewusstlos.")
+        gefängnis_von_gäfdah(mänx)
 
     def reden(self, mänx: Mänx) -> Rückkehr:
         print('"Was ist?", fragt dich die Wache.')
@@ -28,7 +29,9 @@ class SakcaBrauc(NSC):
             if ja_nein(mänx, "Lässt du sie in Ruhe?"):
                 mint("Du lässt sie in Ruhe.")
             else:
-                ('Weil du sie anscheinend nicht in Ruhe lassen willst, schlägt Sakca dir ins Gesicht.')
+                mint('Weil du sie anscheinend nicht in Ruhe lassen willst, '
+                     'schlägt Sakca dir ins Gesicht und du wist bewusstlos.')
+                gefängnis_von_gäfdah(mänx)
         elif opt == 2:
             mint('"schön", sagt Sakca.')
         elif opt == 3:
@@ -49,6 +52,7 @@ class ThomarcAizenfjäld(NSC):
     def kampf(self, mänx: Mänx) -> None:
         print("Als du Anstalten machtest, deine Waffe zu zücken, "
               "schlug die Wache dir mit der flachen Seite ihres Schwertes gegen die Schläfe.")
+        gefängnis_von_gäfdah(mänx)
             
     def handeln(self, mänx: Mänx) -> None:
         print("Die Wache will gerade nicht handeln.")
@@ -81,12 +85,13 @@ class ThomarcAizenfjäld(NSC):
 
 class OrfGrouundt(NSC):
     def __init__(self):
-        super().__init__("Orf Grouudt", "Wache")
+        super().__init__("Orf Grouundt", "Wache")
 
     def kampf(self, mänx: Mänx) -> None:
         print("Als du Anstalten machtest, deine Waffe zu zücken, "
               "gibt der Wachmann dir eine so dicke Kopfnuss, dass du "
               "ohnmächtig auf das Pflaster sinkst.")
+        gefängnis_von_gäfdah(mänx)
 
 
     def reden(self, mänx: Mänx) -> Rückkehr:
@@ -111,7 +116,7 @@ class OrfGrouundt(NSC):
         return Rückkehr.WEITER_REDEN
 
     def main(self, mänx: Mänx) -> None:
-        print("Die Wache steht herum und geht ernst und dienstbeflissen ihrer Arbeit nach.")
+        print("Die Wache steht herum und plaudert mit Maria Fischfrisch.")
         super().main(mänx)
 
 
@@ -122,6 +127,7 @@ class MarioWittenpfäld(NSC):
     def kampf(self, mänx: Mänx) -> None:
         print("Als du Anstalten machtest, deine Waffe zu zücken, "
               "schlug die Wache dir mit der flachen Seite ihres Schwertes gegen die Schläfe.")
+        gefängnis_von_gäfdah(mänx)
 
     def reden(self, mänx: Mänx) -> Rückkehr:
         print('"Was ist?", fragt die Wache dich.')

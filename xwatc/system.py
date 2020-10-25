@@ -3,62 +3,13 @@ from typing import (Sequence, Dict, List, Tuple, TypeVar, Callable, Any, Union,
                     Optional, Iterator, Mapping, Set)
 from time import sleep
 import re
+from pathlib import Path
+from xwatc.untersystem.itemverzeichnis import lade_itemverzeichnis
+
 
 MänxFkt = Callable[['Mänx'], Any]
-
-ITEMVERZEICHNIS = {
-    "Apfel": "Obst",
-    "Aprikose": "Obst",
-    "Banane": "Obst",
-    "Beere": "Obst",
-    "Einfaches Kleid": "Kleidung",
-    "Eisen": "Metall",
-    "Dolch": "normale Waffe",
-    "Distelblüte": "Blume",
-    "Gänseblümchen": "Blume",
-    "Hering": "Fisch",
-    "Holz": "Holz",
-    "Hose": "Kleidung",
-    "Hühnerfleisch": "Fleisch",
-    "Klatschmohn": "Blume",
-    "Kohle": "Brennstoff",
-    "Leere": "Scherz-Item",
-    "mächtige Axt": "legendäre Waffe",
-    "Mantel": "Kleidung",
-    "Menschenskelett": "Dekoration",
-    "Messer": "normale Waffe",
-    "Mugel der Draufsicht": "Mugel",
-    "Mugel des Sprechens": "Mugel",
-    "Normales Schwert": "normale Waffe",
-    "Riesenschneckeninnereien": "Superpapierrohstoff",
-    "Riesenschneckenfleisch": "Fleisch",
-    "Ring des Berndoc": "Ring",
-    "Rose": "Blume",
-    "Sardine": "Fisch",
-    "Schild": "Rüstungsgegenstand",
-    "Schneckenschleim": "Superfolienrohstoff",
-    "Schnöder Ehering": "Ring",
-    "Scholle": "Fisch",
-    "Schwert": "legendäre Waffe",
-    "Speer": "normale Waffe",
-    "Spitzhacke": "normales Werkzeug",
-    "Stein": "Stein",
-    "Stein der aussieht wie ein Hühnerei": "Heiliges Tagesei",
-    "Stöckchen": "Holz",
-    "Talisman der Schreie": "Talisman",
-    "Unterhose": "Kleidung",
-    "Zwetschge": "Obst",
-}
-
-UNTERKLASSEN = {
-    "Fisch": "Nahrung",
-    "Fleisch": "Nahrung",
-    "legendäre Waffe": "Waffe",
-    "normale Waffe": "Waffe",
-    "Obst": "Nahrung",
-    "Ring": "Ausrüstung",
-    "Rüstungsgegenstand": "Ausrüstung",
-}
+ITEMVERZEICHNIS, UNTERKLASSEN = lade_itemverzeichnis(
+    Path(__file__).parent / "itemverzeichnis.txt")
 
 
 def get_class(item: str) -> Optional[str]:
@@ -128,6 +79,22 @@ class InventarBasis:
 
     def hat_item(self, item, anzahl=1):
         return item in self.inventar and self.inventar[item] >= anzahl
+
+
+class Karawanenfracht(InventarBasis):
+    """Die Fracht einer Karawane zeigt nicht direkt ihr Gold (, da sie keines hat)"""
+
+    def karawanenfracht_anzeigen(self):
+        import xwatc.haendler
+        ans = []
+        if not any(self.inventar.values()):
+            return "Nichts da."
+        for item, anzahl in sorted(self.inventar.items()):
+            if anzahl and item != "Gold":
+                klasse = get_class(item) or "?"
+                kosten = xwatc.haendler.ALLGEMEINE_PREISE.get(item, "?")
+                ans.append(f"{anzahl:>4}x {item:<20} ({kosten:>3}G) {klasse}")
+        return "\n".join(ans)
 
 
 class Mänx(InventarBasis):
@@ -202,8 +169,7 @@ class Mänx(InventarBasis):
     def menu(self,
              optionen: List[MenuOption[T]],
              frage: str = "",
-             gucken: Union[Sequence[str], Callable[[], Any]] =
-             ("Hier gibt es nichts zu sehen",),
+             gucken: Optional[Sequence[str]] = None,
              versteckt: Optional[Mapping[str, T]] = None) -> T:
         """Ähnlich wie Minput, nur werden jetzt Optionen als Liste gegeben.
 
@@ -233,7 +199,14 @@ class Mänx(InventarBasis):
                 elif o.startswith(eingabe):
                     kandidaten.append((o, v))
             if eingabe == "g" or eingabe == "gucken":
-                print(gucken)
+                if isinstance(gucken, str):
+                    print(gucken)
+                elif gucken:
+                    for zeile in gucken:
+                        print(zeile)
+                else:
+                    print("Hier gibt es nichts zu sehen")
+
             elif not spezial_taste(self, eingabe) and eingabe:
                 try:
                     return optionen[int(eingabe) - 1][2]
@@ -254,7 +227,7 @@ class Mänx(InventarBasis):
                 print(block)
 
     def sleep(self, länge: float, pausenzeichen="."):
-        for _i in range(int(länge/0.5)):
+        for _i in range(int(länge / 0.5)):
             print(pausenzeichen, end="", flush=True)
             sleep(0.5)
         print()
@@ -317,6 +290,7 @@ class Mänx(InventarBasis):
                             inv.inventar[ding] += anzahl
                         else:
                             print(f"Du hast kein {ding}.")
+
 
 class Gefährte:
     def __init__(self, name):
@@ -424,7 +398,14 @@ def sprich(sprecher: str, text: str, warte: bool = False):
             print(end=word, flush=True)
             sleep(0.05)
         print('"')
-        
+
+
+def malp(*text, end='\n') -> None:
+    for words in text:
+        for word in re.split(r"(\W)", str(words)):
+            print(end=word, flush=True)
+            sleep(0.05)
+    print(end=end)
 
 
 def ja_nein(mänx, frage):
