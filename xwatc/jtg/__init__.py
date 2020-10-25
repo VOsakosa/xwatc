@@ -209,7 +209,7 @@ def haus_des_hexers(mänx: Mänx)-> None:
 
             "Das gehst dich doch nichts an!",
         ),
-            ["verirrt", "halloli", "durchreise", "liebe", "an"])
+            ["halloli", "verirrt", "durchreise", "liebe", "an"])
     ]
     if mänx.welt.ist("jtg:t2"):
         opts.append(("Ich bin einfach in den Osten ­– weil da keine Menschen sind – gegangen, "
