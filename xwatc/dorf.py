@@ -289,21 +289,17 @@ class Dorfbewohner(NSC):
             print("Irgendwann ist dein Gegner bewusstlos.")
             if mänx.ja_nein("Schlägst du weiter bis er tot ist oder gehst du weg?"):
                 print("Irgendwann ist der Arme tot. Du bist ein Mörder. "
-                      "Kaltblütig hast du dich dafür entschieden einen lebendigen Menschen zu töten." 
-                "", kursiv (" zu ermorden. "), "Mörder.")
+                      "Kaltblütig hast du dich dafür entschieden einen lebendigen Menschen zu töten."
+                      "", kursiv(" zu ermorden. "), "Mörder.")
             else:
                 print("Du gehst weg.")
-                
+
         else:
             print("Diesmal bist du es, der unterliegt.")
-            a=random.randint(1,10)
-            if a!= 1:
+            a = random.randint(1, 10)
+            if a != 1:
                 mint("Als du wieder aufwachst, bist du woanders.")
                 gefängnis_von_gäfdah(mänx)
-                
-                    
-        
-                     
 
 
 @dataclass
