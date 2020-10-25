@@ -237,7 +237,7 @@ def haus_des_hexers(mänx: Mänx)-> None:
         sprich(leo, "Du bist jetzt eine wandelnde Leiche und gehorchst meinem Willen")
         raise Spielende()
     elif antwort == "durchreise":
-        sprich(leo, "Schade. Trotzdem-Schön, dich getroffen zu haben. Im Süden ist ein Dorf, "
+        sprich(leo, "Schade. Trotzdem–Schön, dich getroffen zu haben. Im Süden ist ein Dorf, "
                "da kannst du als nächstes hin.")
         sprich(leo, "Du musst einfach immer geradeaus dem schmalen Pfad folgen.")
         ende_des_waldes(mänx)
