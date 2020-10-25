@@ -9,10 +9,11 @@ from dataclasses import dataclass
 from xwatc.utils import uartikel, bartikel
 __author__ = "jasper"
 import typing
-from typing import List, Any, Optional as Opt, Tuple, cast, Iterable, Union
+from typing import List, Any, Optional as Opt, cast, Iterable, Union
 from xwatc.system import Mänx, MenuOption, MänxFkt
 
 
+@enum.unique
 class Ereignis(enum.Enum):
     KAMPF = enum.auto()
     MORD = enum.auto()
@@ -20,7 +21,7 @@ class Ereignis(enum.Enum):
 
 
 class Context(typing.Protocol):
-    def melde(self, mänx: Mänx, ereignis: Ereignis, data: Any) -> None:
+    def melde(self, mänx: Mänx, ereignis: Ereignis, data: Any) -> Any:
         """Melde ein Ereignis an den Kontext"""
 
 
@@ -167,10 +168,12 @@ class Wegkreuzung(Wegpunkt):
                  w: Opt[Richtung] = None,
                  sw: Opt[Richtung] = None,
                  so: Opt[Richtung] = None,
-                 s: Opt[Richtung] = None,):
+                 s: Opt[Richtung] = None,
+                 gucken: Opt[MänxFkt] = None):
         super().__init__()
         self.richtungen = [n, no, o, so, s, sw, w, nw]
         self.beschreibung = beschreibung
+        self.gucken = None
 
     def beschreibe(self, mänx: Mänx, richtung: Opt[int]):  # pylint: disable=unused-argument
         rs = self.richtungen
@@ -229,14 +232,16 @@ class Wegkreuzung(Wegpunkt):
     def get_nachbarn(self)->List[Wegpunkt]:
         return [ri.ziel for ri in self.richtungen if ri]
 
+
     def main(self, mänx: Mänx, von: Opt[Wegpunkt]) -> Wegpunkt:
-        if von:
-            richtung = next((
-                i for i, v in enumerate(self.richtungen) if v and v.ziel == von
-            ), default=None)
-        else:
-            richtung = None
-        self.beschreibe(mänx, richtung)
+        if von != self:
+            if von:
+                richtung = next((
+                    i for i, v in enumerate(self.richtungen) if v and v.ziel == von
+                ), default=None)
+            else:
+                richtung = None
+            self.beschreibe(mänx, richtung)
         return mänx.menu(list(self.optionen(mänx, richtung)),
                          frage="Welchem Weg nimmst du?")
 
