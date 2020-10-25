@@ -45,7 +45,6 @@ def schreibe_itemverzeichnis(pfad, items: Dict[str, str],
     klassen: DefaultDict[str, List[str]] = defaultdict(list)
     for unter, ober in classes.items():
         klassen[unter]  # pylint: disable=pointless-statement
-        klassen[ober]  # pylint: disable=pointless-statement
     for item, klasse in items.items():
         klassen[klasse].append(item)
 

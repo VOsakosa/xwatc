@@ -21,6 +21,7 @@ Buch:
 
 Fisch: Nahrung
   Hering
+  Lachs
   Sardine
   Scholle
 
@@ -54,7 +55,9 @@ Kleidung:
   Mantel
   Mütze
   Schürze
+  Socke
   T-Shirt
+  Turnschuh
   Unterhose
 
 legendäre Waffe: Waffe
@@ -86,6 +89,7 @@ Obst: Nahrung
   Aprikose
   Banane
   Beere
+  Mandarine
   Tomate
   Zwetschge
 
@@ -109,7 +113,7 @@ Superfolienrohstoff:
 Superpapierrohstoff:
   Riesenschneckeninnereien
 
-Talisman:
+Talisman: Ausrüstung
   Talisman der Schreie
 
 Waffe:
