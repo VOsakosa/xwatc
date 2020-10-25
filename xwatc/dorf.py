@@ -354,9 +354,9 @@ class Dorf:
         else:
             print("Hier ist niemand.")
         optionen: List[MenuOption[Union[NSC, Ort, None]]]
-        optionen = [("Mit " + mensch.name + " reden", "r" + mensch.name.lower(),
+        optionen = [("Mit " + mensch.name + " reden", mensch.name.lower(),
                      mensch) for mensch in ort.menschen]
-        optionen.extend((f"Nach {o.name} gehen", "o" + o.name.lower(), o)
+        optionen.extend((f"Nach {o.name} gehen", o.name.lower(), o)
                         for o in self.orte if o != ort)
         optionen.append(("Ort verlassen", "fliehen", None))
         opt = mänx.menu(optionen)
