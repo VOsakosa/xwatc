@@ -62,6 +62,8 @@ def höhle(mänx: Mänx):
         abzweigung = minput(mänx, "Du gehst tiefer und tiefer. Du stehst nun vor einer Abzweigung."
                             "Auf dem Schildchen über dem einen Weg steht \"bergbau\""
                             "und über dem anderen steht  \"monster\". (b/m)", ["b", "m"])
+    else:
+        osten(mänx)
 
         if abzweigung == "b":
             bergbau(mänx)

@@ -60,4 +60,3 @@ class Angestellte(NSC):
             self.sprich("Wieso nur?!")
             
 
-def karawane(mänx):

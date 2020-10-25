@@ -23,7 +23,7 @@ ITEMVERZEICHNIS = {
     "Leere": "Scherz-Item",
     "mächtige Axt": "legendäre Waffe",
     "Mantel": "Kleidung",
-    "Menschenskelett": "Dekoration",
+    "Menschenskelett": "Zauberzutat",
     "Messer": "normale Waffe",
     "Mugel der Draufsicht": "Mugel",
     "Mugel des Sprechens": "Mugel",
