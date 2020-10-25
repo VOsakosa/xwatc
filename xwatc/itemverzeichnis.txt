@@ -1,0 +1,122 @@
+# Xwatc-Itemverzeichnis
+
+Accessoire: Ausrüstung
+  Amulett
+  Haarband
+
+Ausrüstung:
+  Armbanduhr
+
+Blume:
+  Distelblüte
+  Gänseblümchen
+  Klatschmohn
+  Rose
+
+Brennstoff:
+  Kohle
+
+Buch:
+  Sachbuch
+
+Dekoration:
+  Menschenskelett
+
+Fisch: Nahrung
+  Hering
+  Sardine
+  Scholle
+
+Fleisch: Nahrung
+  Hühnerfleisch
+  Riesenschneckenfleisch
+
+Gemüse: Nahrung
+  Erbse
+  Karotte
+
+Heiliges Tagesei:
+  Stein der aussieht wie ein Hühnerei
+
+Holz:
+  Holz
+  Stöckchen
+
+Kleidung:
+  Anzug
+  Anzugjacke
+  BH
+  Einfaches Kleid
+  Gürtel
+  Hose
+  Kapuzenmantel
+  Kleid
+  Lederhose
+  Lederschuh
+  Lederstiefel
+  Mantel
+  Mütze
+  Schürze
+  T-Shirt
+  Unterhose
+
+Metall:
+  Eisen
+
+Mugel:
+  Mugel der Draufsicht
+  Mugel des Sprechens
+
+Nahrung:
+  Pausenbrot
+  Reisportion
+
+Obst: Nahrung
+  Apfel
+  Aprikose
+  Banane
+  Beere
+  Tomate
+  Zwetschge
+
+Ring: Ausrüstung
+  Ehering
+  Ring des Berndoc
+  Schnöder Ehering
+
+Rüstungsgegenstand: Ausrüstung
+  Schild
+
+Scherz-Item:
+  Leere
+
+Stein:
+  Stein
+
+Superfolienrohstoff:
+  Schneckenschleim
+
+Superpapierrohstoff:
+  Riesenschneckeninnereien
+
+Talisman:
+  Talisman der Schreie
+
+Waffe:
+
+Werkzeug:
+  Nagel
+
+legendäre Waffe: Waffe
+  Schwert
+  mächtige Axt
+
+normale Waffe: Waffe
+  Dolch
+  Messer
+  Normales Schwert
+  Speer
+
+normales Werkzeug:
+  Spitzhacke
+
