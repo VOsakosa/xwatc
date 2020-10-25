@@ -3,60 +3,11 @@ from typing import Sequence, Dict, List, Tuple, TypeVar, Callable, Any, Union,\
     overload, Optional, Iterator, Mapping, Set
 from time import sleep
 import re
+from pathlib import Path
+from xwatc.untersystem.itemverzeichnis import lade_itemverzeichnis
 
-ITEMVERZEICHNIS = {
-    "Apfel": "Obst",
-    "Aprikose": "Obst",
-    "Banane": "Obst",
-    "Beere": "Obst",
-    "Einfaches Kleid": "Kleidung",
-    "Eisen": "Metall",
-    "Dolch": "normale Waffe",
-    "Distelblüte": "Blume",
-    "Gänseblümchen": "Blume",
-    "Hering": "Fisch",
-    "Holz": "Holz",
-    "Hose": "Kleidung",
-    "Hühnerfleisch": "Fleisch",
-    "Klatschmohn": "Blume",
-    "Kohle": "Brennstoff",
-    "Leere": "Scherz-Item",
-    "mächtige Axt": "legendäre Waffe",
-    "Mantel": "Kleidung",
-    "Menschenskelett": "Zauberzutat",
-    "Messer": "normale Waffe",
-    "Mugel der Draufsicht": "Mugel",
-    "Mugel des Sprechens": "Mugel",
-    "Normales Schwert": "normale Waffe",
-    "Riesenschneckeninnereien": "Superpapierrohstoff",
-    "Riesenschneckenfleisch": "Fleisch",
-    "Ring des Berndoc": "Ring",
-    "Rose": "Blume",
-    "Sardine": "Fisch",
-    "Schild": "Rüstungsgegenstand",
-    "Schneckenschleim": "Superfolienrohstoff",
-    "Schnöder Ehering": "Ring",
-    "Scholle": "Fisch",
-    "Schwert": "legendäre Waffe",
-    "Speer": "normale Waffe",
-    "Spitzhacke": "normales Werkzeug",
-    "Stein": "Stein",
-    "Stein der aussieht wie ein Hühnerei": "Heiliges Tagesei",
-    "Stöckchen": "Holz",
-    "Talisman der Schreie": "Talisman",
-    "Unterhose": "Kleidung",
-    "Zwetschge": "Obst",
-}
-
-UNTERKLASSEN = {
-    "Fisch": "Nahrung",
-    "Fleisch": "Nahrung",
-    "legendäre Waffe": "Waffe",
-    "normale Waffe": "Waffe",
-    "Obst": "Nahrung",
-    "Ring": "Ausrüstung",
-    "Rüstungsgegenstand": "Ausrüstung",
-}
+ITEMVERZEICHNIS, UNTERKLASSEN = lade_itemverzeichnis(
+    Path(__file__).parent / "itemverzeichnis.txt")
 
 
 def get_class(item: str) -> Optional[str]:
@@ -76,7 +27,6 @@ T = TypeVar("T")
 Tcov = TypeVar("Tcov", covariant=True)
 MenuOption = Tuple[str, str, Tcov]
 Inventar = Dict[str, int]
-
 
 
 class InventarBasis:
@@ -131,6 +81,7 @@ class InventarBasis:
 
 class Karawanenfracht(InventarBasis):
     """Die Fracht einer Karawane zeigt nicht direkt ihr Gold (, da sie keines hat)"""
+
     def karawanenfracht_anzeigen(self):
         import xwatc.haendler
         if not any(self.inventar.values()):
@@ -141,6 +92,7 @@ class Karawanenfracht(InventarBasis):
                 kosten = xwatc.haendler.ALLGEMEINE_PREISE.get(item, "?")
                 ans.append(f"{anzahl:>4}x {item:<20} ({kosten:>3}G) {klasse}")
         return "\n".join(ans)
+
 
 class Mänx(InventarBasis):
     """Der Hauptcharakter des Spiels, alles dreht sich um ihn, er hält alle
