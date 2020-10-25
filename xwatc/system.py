@@ -200,8 +200,7 @@ class Mänx(InventarBasis):
     def menu(self,
              optionen: List[MenuOption[T]],
              frage: str = "",
-             gucken: Union[Sequence[str], Callable[[], Any]] =
-             ("Hier gibt es nichts zu sehen",),
+             gucken: Optional[Sequence[str]] = None,
              versteckt: Optional[Mapping[str, T]] = None) -> T:
         """Ähnlich wie Minput, nur werden jetzt Optionen als Liste gegeben.
 
@@ -231,7 +230,14 @@ class Mänx(InventarBasis):
                 elif o.startswith(eingabe):
                     kandidaten.append((o, v))
             if eingabe == "g" or eingabe == "gucken":
-                print(gucken)
+                if isinstance(gucken, str):
+                    print(gucken)
+                elif gucken:
+                    for zeile in gucken:
+                        print(zeile)
+                else:
+                    print("Hier gibt es nichts zu sehen")
+
             elif not spezial_taste(self, eingabe) and eingabe:
                 try:
                     return optionen[int(eingabe) - 1][2]
@@ -252,7 +258,7 @@ class Mänx(InventarBasis):
                 print(block)
 
     def sleep(self, länge: float, pausenzeichen="."):
-        for _i in range(int(länge/0.5)):
+        for _i in range(int(länge / 0.5)):
             print(pausenzeichen, end="", flush=True)
             sleep(0.5)
         print()
@@ -315,6 +321,7 @@ class Mänx(InventarBasis):
                             inv.inventar[ding] += anzahl
                         else:
                             print(f"Du hast kein {ding}.")
+
 
 class Gefährte:
     def __init__(self, name):
@@ -416,7 +423,14 @@ def sprich(sprecher: str, text: str, warte: bool = False):
             print(end=word, flush=True)
             sleep(0.05)
         print('"')
-        
+
+
+def malp(*text, end='\n') -> None:
+    for words in text:
+        for word in re.split(r"(\W)", str(words)):
+            print(end=word, flush=True)
+            sleep(0.05)
+    print(end=end)
 
 
 def ja_nein(mänx, frage):
