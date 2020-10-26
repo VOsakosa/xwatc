@@ -1,0 +1,41 @@
+StandardName = Alari|
+Alin|
+Ana|
+Anale|
+Axale|
+Banari|
+Banora|
+Beadeta|
+Bitegi|
+Caori|
+Dina|
+Emba|
+Enale|
+Federika|
+Gyuali|
+Hana|
+Hanapa|
+Icuri|
+Jen'a|
+Kanali|
+Kin|
+Lacari|
+Lila|
+Nadin|
+Rea|
+Renagi|
+Tenai|
+Tieca|
+Xeli|
+Xumi|
+Yotalan|
+Yonani|
+Yotalan|
+Zakaroni|
+Zänya|
+Zukapänja;
+
+Vorname = $StandardName;
+Nachname = $Vorname tochter;
+
+Name = $Vorname " " $Nachname
