@@ -1,5 +1,7 @@
 from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner
-from xwatc.system import mint, kursiv, Mänx, ja_nein, minput
+from xwatc.system import mint, kursiv, Mänx, ja_nein, minput, Spielende
+import random
+from xwatc.jtg import t2
 
 class MartinPortulakk(NSC):
     def __init__(self):
@@ -104,7 +106,18 @@ class MartinPortulakk(NSC):
                 mänx.inventar ["Messer"] += 1
 
         elif opt == 7:
-            mint('"gut", sagte die Wache.')
+            mint('!!!?B?Ä?B?Ä?B?Ä?B?Ä?!!!  FEHLERüłþſs')
+            mänx.erhalte("Banane", 3)
+            mänx.erhalte("Apfel", 12)
+            mänx.erhalte("Gold", 153)
+            mänx.erhalte("Ätherrose", 1)
+            mänx.erhalte("Moorfut'schlamm", 10)
+            mänx.erhalte("Erbse", 438)
+            mänx.erhalte("Truthahnfleisch", 50)
+            mänx.erhalte("JOEL@þ", 1)
+            t2(mänx)
+            
+            
             
             
 
@@ -115,7 +128,7 @@ class MartinPortulakk(NSC):
         ]
 
     def main(self, mänx: Mänx) -> None:
-        print("Die Wache steht herum und geht ernst und dienstbeflissen ihrer Arbeit nach.")
+        print("Martin Portulakk heißt Martin Portulakk und ist Bürger von Gäfdah.")
         super().main(mänx)
         
         
@@ -125,7 +138,12 @@ class RuboicHätxrik(Angestellte):
     def __init__(self) -> None:
         super().__init__("Ruboic Hätxrik", "Jäger")
         cls = type(self)
-        self.dialog("hallo1",
+        a=random.randint(1,500)
+        if a ==1:
+            ("Bevor du mit ihm reden konntest, fiel der Mann einfach tot um")
+            self.tot
+        else:
+            self.dialog("hallo1",
                     '"Hallo Ich heiße Tom"',
                     cls.reden_tom)
         
@@ -165,31 +183,22 @@ class RuboicHätxrik(Angestellte):
                     "wenn sie mit davon unterrichten würden. "
                     "Ich danke ihnen schon einmal im vorraus.",
                     cls.reden_suche2)
+        
 
     def kampf(self, mänx: Mänx) -> None:
-        self.dialog("bewusstlos",
-                    '"bewusstlos schlagen"',
-                    cls.kampf_bewusstlos)
-        self.dialog("töten", '"töten"',
-                    cls.kampf_töten)
-        self.dialog("fliehen",
-                    '"zurück"',
-                    cls.kampf_fliehen)
-        
-    def kampf_bewusstlos(self, mänx: Mänx) -> None:
-        print("Sie weicht aus.")
-        print("Wer hätte gedacht, dass sie so schnell sein konnte?")
-        mint("Dann schnellt ihr Messer vor und du verendest elendig röchelnd.")
-        raise Spielende
-        
-    def kampf_töten(self, mänx: Mänx) -> None:
-        if mänx.hat_klasse("Waffe"):
-            mint("Du tötest sie.")
+        a=random.randint(1,500)
+        if a ==1:
+            ("Bevor du ihn angreifen konntest, fiel der Mann einfach tot um")
             self.tot
+        else:
+            if ja_nein(mänx, "Der Mann richtet seine Armbrust auf dich. "
+                       "Willst du immer noch kämpfen?"):
+                mint("Er drückt ab.")
+                raise Spielende
             
-    def kampf_fliehen(self, mänx: Mänx) -> None:
-        mint('"Was ist?"')
-        
+            else:
+                mint("Gut...")
+            
 
 
 
