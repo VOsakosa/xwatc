@@ -36,10 +36,13 @@ Zakaroni|
 Zänya|
 Zukapänja;
 
-KonsonantP = "",b,p,f,v,t,d,k,k,g,n,n,m,ng,l,l,c,c,c,x,j,dj,tc,h,r
-Konsonant = $KonsonantP | $KonsonantP "y"
+KonsonantP = "",b,p,f,v,t,d,k,k,g,n,n,m,ng,l,l,c,c,c,tc
+KonsonantNoY = $KonsonantP{20} | x,j,dj,h,r
 Vokal = a,a,a,e,i,i,o,u,ä,ü,ö
-NormalSilbe = $Konsonant $Vokal
+VokalY = a,a,a,e,o,o,u,u,ä
+NormalSilbeP = $KonsonantNoY $Vokal{4} | $KonsonantP $VokalY
+NormalSilbeE = ""{10}, n{2},m,ng
+NormalSilbe = $NormalSilbeP $NormalSilbeE
 
 
 FVorname = $StandardName 

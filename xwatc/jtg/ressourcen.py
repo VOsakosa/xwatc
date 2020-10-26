@@ -81,17 +81,27 @@ def create_parser():
     def keyword(chars):
         return pp.Suppress(pp.Word(chars, exact=1))
 
+    def repeat(tokens):
+        if len(tokens) == 2:
+            return [tokens[0]] * tokens[1]
+        else:
+            return [tokens[0]]
+
     Direct = pp.Regex(r"[\w']+")("Direct") + ~pp.Literal("=")
     OrRule = pp.Forward()
     Quoted = pp.QuotedString('"') | pp.QuotedString("'")
-    Function = (pp.Optional(pp.Word(pp.alphanums)) + 
-        keyword("(") + OrRule + keyword(")")).addParseAction(Function)
+    Function = (pp.Optional(pp.Word(pp.alphanums)) +
+                keyword("(") + OrRule + keyword(")")).addParseAction(Function)
     RuleAtom = (pp.Literal("$") + pp.Word(pp.alphanums)).addParseAction(Rule)
     Atom = (RuleAtom | Quoted | Function | Direct)("Atom")
     Plus = Atom[1, ...]("Plus").addParseAction(Add)
+    Repeated = (Plus + (
+            keyword("{") + pp.pyparsing_common.integer + keyword("}")
+            )[0, 1])
+    Repeated.setParseAction(repeat)
     OrDelim = keyword("|,")
-    OrRule <<= (Plus + pp.ZeroOrMore(OrDelim + Plus) + pp.Optional(OrDelim)
-              ).addParseAction(Or)
+    OrRule <<= (Repeated + pp.ZeroOrMore(OrDelim + Repeated) + pp.Optional(OrDelim)
+                ).addParseAction(Or)
     _Rule = pp.Word(pp.alphanums) + keyword("=") + OrRule
     return pp.ZeroOrMore(_Rule + pp.Suppress(pp.Literal(";")[0, 1]))
 
@@ -109,6 +119,7 @@ def remove_apostrophe(arg: str) -> str:
     """Remove apostrophes like in an'kan, keeping ones like in "jen'a"."""
     return re.sub("'(?![aeiouyäöüáéíóú]", "", arg,
                   flags=re.RegexFlag.IGNORECASE)
+
 
 def remove_dot(arg: str) -> str:
     """Remove apostrophes like in an'kan, keeping ones like in "jen'a"."""
@@ -135,7 +146,6 @@ except pp.ParseException as err:
     print(" " * (err.column - 1) + "^")
     print(err)
     raise
-
 
 
 def zufälliger_name(regel: str="FName", rng=None) -> str:
