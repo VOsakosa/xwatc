@@ -43,8 +43,8 @@ Letainwort1 = krak|bum|op|jub|tom|ban|to|e|nin|min|cu|zu|ban|su|le|ekc|con|li
 Letainverb1 = flok|kolf|la|tikc|kap|ain
 Letainwort = $Letainwort1 "."
 Letainverb = $Letainverb1 "."
-Letainvorname = cap($Letainwort $Letainwort | $Letainwort $Letainwort $Letainwort)
-Letainnachname = cap($Letain3 | $Letain4 | $Letain5)
+Letainvorname = dot(cap($Letainwort $Letainwort | $Letainwort $Letainwort $Letainwort))
+Letainnachname = dot(cap($Letain3 | $Letain4 | $Letain5))
 Letain3Ende = jaga|jaja|gaja
 Letain2 = $Letainwort $Letainwort | $Letainverb "min"
 Letain3 = $Letainwort $Letainwort $Letainwort $Letain3Ende
@@ -55,4 +55,4 @@ Letain5 = $Letainwort $Letainwort $Letainwort $Letain2
 
 FName = $FVorname " " $FNachname
 Letainname = $Letainvorname " " $Letainnachname
-Name = $Letainname
+Name = $FName

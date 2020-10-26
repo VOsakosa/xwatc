@@ -110,6 +110,11 @@ def remove_apostrophe(arg: str) -> str:
     return re.sub("'(?![aeiouyäöüáéíóú]", "", arg,
                   flags=re.RegexFlag.IGNORECASE)
 
+def remove_dot(arg: str) -> str:
+    """Remove apostrophes like in an'kan, keeping ones like in "jen'a"."""
+    return re.sub(r"\.(?!\S)", "", arg,
+                  flags=re.RegexFlag.IGNORECASE)
+
 
 RULES = _DictWithDiagnostics()
 FUNCTIONS: Dict[str, Callable[[str], str]] = {
@@ -117,6 +122,8 @@ FUNCTIONS: Dict[str, Callable[[str], str]] = {
     "upper": str.upper,
     "lower": str.lower,
     "apo": remove_apostrophe,
+    "dot": remove_dot,
+    "nodot": lambda s: s.replace(".", ""),
 }
 try:
     with open(PATH / "namen.txt") as file:
@@ -131,7 +138,7 @@ except pp.ParseException as err:
 
 
 
-def zufälliger_name(regel: str="Frauenname", rng=None) -> str:
+def zufälliger_name(regel: str="FName", rng=None) -> str:
     if rng is None:
         rng = random.Random()
     return RULES[regel].choice(rng)
