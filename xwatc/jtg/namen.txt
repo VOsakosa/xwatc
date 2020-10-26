@@ -6,6 +6,7 @@ Axale|
 Banari|
 Banora|
 Beadeta|
+Bianka|
 Bitegi|
 Caori|
 Dina|
@@ -16,7 +17,7 @@ Gyuali|
 Hana|
 Hanapa|
 Icuri|
-Jen'a|
+"Jen'a"|
 Kanali|
 Kin|
 Lacari|
@@ -35,7 +36,15 @@ Zakaroni|
 Zänya|
 Zukapänja;
 
-FVorname = $StandardName;
+KonsonantP = "",b,p,f,v,t,d,k,k,g,n,n,m,ng,l,l,c,c,c,x,j,dj,tc,h,r
+Konsonant = $KonsonantP | $KonsonantP "y"
+Vokal = a,a,a,e,i,i,o,u,ä,ü,ö
+NormalSilbe = $Konsonant $Vokal
+
+
+FVorname = $StandardName 
+	| cap($NormalSilbe) $NormalSilbe 
+	| cap($NormalSilbe) $NormalSilbe $NormalSilbe;
 FNachname = $FVorname tochter;
 
 Letainwort1 = krak|bum|op|jub|tom|ban|to|e|nin|min|cu|zu|ban|su|le|ekc|con|li

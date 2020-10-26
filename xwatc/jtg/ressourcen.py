@@ -151,3 +151,4 @@ if __name__ == '__main__':
     rng_ = random.Random()
     for i in range(10):
         print(RULES["Name"].choice(rng_))
+    print(zufälliger_name("Letainname", rng_))
