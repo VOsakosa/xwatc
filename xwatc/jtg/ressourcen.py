@@ -1,6 +1,8 @@
 import pathlib
 import pyparsing as pp
 from functools import partial
+from typing import Callable, Dict
+import re
 
 PATH = pathlib.Path(__file__).parent.absolute()
 
@@ -17,7 +19,10 @@ def create_parser():
             self.tokens = tokens
 
         def __str__(self):
-            return "Or(" + "|".join(map(str, self.tokens)) + ")"
+            if len(self.tokens) > 1:
+                return "Or(" + "|".join(map(str, self.tokens)) + ")"
+            else:
+                return str(self.tokens[0])
 
         def __repr__(self):
             return str(self)
@@ -43,20 +48,51 @@ def create_parser():
             self.tokens = tokens
 
         def __str__(self):
-            return "Add(" + "+".join(map(str, self.tokens)) + ")"
+            if len(self.tokens) > 1:
+                return "Add(" + "+".join(map(str, self.tokens)) + ")"
+            else:
+                return str(self.tokens[0])
 
         def __repr__(self):
             return str(self)
 
         def choice(self, rng):
             return "".join(map(partial(choice, rng), self.tokens))
-    Direct = pp.Regex(r"[\w']+")("Direct")
+
+    class Function:
+        def __init__(self, tokens):
+            self.fn_name, self.argument = tokens
+            if not self.fn_name:
+                self.fn = str
+            elif self.fn_name in FUNCTIONS:
+                self.fn = FUNCTIONS[self.fn_name]
+            else:
+                raise KeyError("Unbekannte Funktion:", self.fn_name)
+
+        def __str__(self):
+            return f"{self.fn_name}({self.argument})"
+
+        def __repr__(self):
+            return str(self)
+
+        def choice(self, rng):
+            return self.fn(self.argument.choice(rng))
+
+    def keyword(chars):
+        return pp.Suppress(pp.Word(chars, exact=1))
+
+    Direct = pp.Regex(r"[\w']+")("Direct") + ~pp.Literal("=")
+    OrRule = pp.Forward()
     Quoted = pp.QuotedString('"') | pp.QuotedString("'")
+    Function = (pp.Optional(pp.Word(pp.alphanums)) + 
+        keyword("(") + OrRule + keyword(")")).addParseAction(Function)
     RuleAtom = (pp.Literal("$") + pp.Word(pp.alphanums)).addParseAction(Rule)
-    Atom = (RuleAtom | Quoted | Direct)("Atom")
+    Atom = (RuleAtom | Quoted | Function | Direct)("Atom")
     Plus = Atom[1, ...]("Plus").addParseAction(Add)
-    OrRule = pp.delimitedList(Plus, "|").addParseAction(Or)
-    _Rule = pp.Word(pp.alphanums) + pp.Suppress(pp.Literal("=")) + OrRule
+    OrDelim = keyword("|,")
+    OrRule <<= (Plus + pp.ZeroOrMore(OrDelim + Plus) + pp.Optional(OrDelim)
+              ).addParseAction(Or)
+    _Rule = pp.Word(pp.alphanums) + keyword("=") + OrRule
     return pp.ZeroOrMore(_Rule + pp.Suppress(pp.Literal(";")[0, 1]))
 
 
@@ -69,11 +105,30 @@ class _DictWithDiagnostics(dict):
         raise KeyError(f"Unbekannte Regel: {key}")
 
 
-with open(PATH / "namen.txt") as file:
-    RULES = _DictWithDiagnostics()
-    parsed_rules = iter(Rules.parseFile(file, True))
-    for rule_name, rule in zip(parsed_rules, parsed_rules):
-        RULES[rule_name] = rule
+def remove_apostrophe(arg: str) -> str:
+    """Remove apostrophes like in an'kan, keeping ones like in "jen'a"."""
+    return re.sub("'(?![aeiouyäöüáéíóú]", "", arg,
+                  flags=re.RegexFlag.IGNORECASE)
+
+
+RULES = _DictWithDiagnostics()
+FUNCTIONS: Dict[str, Callable[[str], str]] = {
+    "cap": str.capitalize,
+    "upper": str.upper,
+    "lower": str.lower,
+    "apo": remove_apostrophe,
+}
+try:
+    with open(PATH / "namen.txt") as file:
+        parsed_rules = iter(Rules.parseFile(file, True))
+        for rule_name, rule_fn in zip(parsed_rules, parsed_rules):
+            RULES[rule_name] = rule_fn
+except pp.ParseException as err:
+    print(err.line)
+    print(" " * (err.column - 1) + "^")
+    print(err)
+    raise
+
 
 
 def zufälliger_name(regel: str="Frauenname", rng=None) -> str:
