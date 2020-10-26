@@ -6,7 +6,6 @@ from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner, Dialog
 from random import randint
 from . Maria_Fischfrisch import Fischerfrau
 import random
-from xwatc.jtg.ressourcen import FRAUENNAMEN
 from xwatc.jtg import TobiacBerndoc, Waschweib
 from xwatc.nsc.Wachen_von_Gäfdah import (MarioWittenpfäld,
 SakcaBrauc,OrfGrouundt,ThomarcAizenfjäld)

@@ -1,6 +1,7 @@
 import pathlib
 import pyparsing as pp
 from functools import partial
+import random
 from typing import Callable, Dict
 import re
 
@@ -156,7 +157,6 @@ def zufälliger_name(regel: str="FName", rng=None) -> str:
 
 if __name__ == '__main__':
     from pprint import pprint
-    import random
     pprint(RULES)
     rng_ = random.Random()
     for i in range(10):
