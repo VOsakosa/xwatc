@@ -36,7 +36,8 @@ class MartinPortulakk(NSC):
             ('"Still oder ich töte dich!"', "töte", 6),
             ('(beruhigend)"Sei leise. '
              'Wenn du die Wachen rufst töte ich '
-             'dich schneller als du "muck" sagst."', "muck", 7),
+             'dich schneller als du "muck" sagst.', "muck", 7),
+            ('Tut mir Leid, das war ein Missverständnis', "Missverständnis", 8),
         ]
         opt = mänx.menu(opts, frage="Was sagst du?")
         if opt == 0:
@@ -115,4 +116,137 @@ class MartinPortulakk(NSC):
 
     def main(self, mänx: Mänx) -> None:
         print("Die Wache steht herum und geht ernst und dienstbeflissen ihrer Arbeit nach.")
+        super().main(mänx)
+        
+        
+        
+        
+class RuboicHätxrik(Angestellte):
+    def __init__(self) -> None:
+        super().__init__("Ruboic Hätxrik", "Jäger")
+        cls = type(self)
+        self.dialog("hallo1",
+                    '"Hallo Ich heiße Tom"',
+                    cls.reden_tom)
+        
+        self.dialog("hallo2",
+                    '"Hallo Ich heiße Makc"',
+                    cls.reden_makc)
+        
+        self.dialog("hallo3",
+                    '"Hallo Ich heiße Thierca"',
+                    cls.reden_thierca)
+        
+        self.dialog("hallo4",
+                    '"Hallo Ich heiße Ares"',
+                    cls.reden_ares)
+        
+        self.dialog("hallo5",
+                    '"Hallo, wie heißt du?"',
+                    cls.reden_hallo)
+        
+        self.dialog("geht", '"Wie geht es dir?"',
+                    cls.reden_geht)
+        self.dialog("wetter",
+                    '"Wie findest du das Wetter heute?"', cls.reden_wetter)
+        self.dialog("agaga",
+                    "Aggagagaggagrrrrrrrr!!!!  Ähäsifowipppfff Ich binne v'ückt bööö...",
+                    cls.reden_agaga)
+        self.dialog("suche",
+                    "Hallo Ich such so 'nen sabbernden Verrückten. "
+                    "Haste'n geseh'n",
+                    cls.reden_suche1)
+        self.dialog("suche2",
+                    "Tag. "
+                    "Ich hätte eine Frage. "
+                    "Hier soll es einen Verrückten geben, "
+                    "so einen sabbernden. Haben sie zufälligerweise einen gesehen? "!
+                    "Wenn ja wäre es sehr nett, "
+                    "wenn sie mit davon unterrichten würden. "
+                    "Ich danke ihnen schon einmal im vorraus.",
+                    cls.reden_suche2)
+
+    def kampf(self, mänx: Mänx) -> None:
+        self.dialog("bewusstlos",
+                    '"bewusstlos schlagen"',
+                    cls.kampf_bewusstlos)
+        self.dialog("töten", '"töten"',
+                    cls.kampf_töten)
+        self.dialog("fliehen",
+                    '"zurück"',
+                    cls.kampf_fliehen)
+        
+    def kampf_bewusstlos(self, mänx: Mänx) -> None:
+        print("Sie weicht aus.")
+        print("Wer hätte gedacht, dass sie so schnell sein konnte?")
+        mint("Dann schnellt ihr Messer vor und du verendest elendig röchelnd.")
+        raise Spielende
+        
+    def kampf_töten(self, mänx: Mänx) -> None:
+        if mänx.hat_klasse("Waffe"):
+            mint("Du tötest sie.")
+            self.tot
+            
+    def kampf_fliehen(self, mänx: Mänx) -> None:
+        mint('"Was ist?"')
+        
+
+
+
+    def vorstellen(self, mänx: Mänx) -> None:
+        mint('"Tag. Was ist?"')
+
+    def reden_tom(self, mänx: Mänx) -> None:
+        print('"Was kümnmert dich das?"')
+        if ja_nein(mänx, "Beharrst du auf deine Frage"):
+            mint('"Gut und hau jetzt ab!"')
+    
+    def reden_makc(self, mänx: Mänx) -> None:
+        print('"Was kümnmert dich das?"')
+        if ja_nein(mänx, "Beharrst du auf deine Frage"):
+            mint('"Gut und hau jetzt ab!"')
+            
+    def reden_thierca(self, mänx: Mänx) -> None:
+        print('"Was kümnmert dich das?"')
+        if ja_nein(mänx, "Beharrst du auf deine Frage"):
+            mint('"Gut und hau jetzt ab!"')
+            
+    def reden_ares(self, mänx: Mänx) -> None:
+        print('"Was kümnmert dich das?"')
+        if ja_nein(mänx, "Beharrst du auf deine Frage"):
+            mint('"Gut und hau jetzt ab!"')
+            
+    def reden_hallo(self, mänx: Mänx) -> None:
+        print('"Was kümnmert dich das?"')
+        if ja_nein(mänx, "Beharrst du auf deine Frage"):
+            mint('"Gut und hau jetzt ab!"')
+            
+    def reden_geht(self, mänx: Mänx) -> None:
+        print('"Was kümnmert dich das?"')
+        if ja_nein(mänx, "Beharrst du auf deine Frage"):
+            mint('"Gut und hau jetzt ab!"')
+            
+    def reden_agaga(self, mänx: Mänx) -> None:
+        print('"Was kümnmert dich das?"')
+        if ja_nein(mänx, "Beharrst du auf deine Frage"):
+            mint('"Gut und hau jetzt ab!"')
+            
+    def reden_suche1(self, mänx: Mänx) -> None:
+        print('"Was kümnmert dich das?"')
+        if ja_nein(mänx, "Beharrst du auf deine Frage"):
+            mint('"Gut und hau jetzt ab!"')
+            
+    def reden_suche2(self, mänx: Mänx) -> None:
+        print('"Was kümnmert dich das?"')
+        if ja_nein(mänx, "Beharrst du auf deine Frage"):
+            mint('"Gut und hau jetzt ab!"')
+            
+    def reden_geht(self, mänx: Mänx) -> None:
+    print('"Was kümnmert dich das?"')
+    if ja_nein(mänx, "Beharrst du auf deine Frage"):
+        mint('"Gut und hau jetzt ab!"')
+
+
+    def main(self, mänx: Mänx) -> None:
+        print('"Tag. Was ist?"')
         super().main(mänx)
