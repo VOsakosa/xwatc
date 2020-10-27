@@ -97,8 +97,8 @@ def create_parser():
     Atom = (RuleAtom | Quoted | Function | Direct)("Atom")
     Plus = Atom[1, ...]("Plus").addParseAction(Add)
     Repeated = (Plus + (
-            keyword("{") + pp.pyparsing_common.integer + keyword("}")
-            )[0, 1])
+        keyword("{") + pp.pyparsing_common.integer + keyword("}")
+    )[0, 1])
     Repeated.setParseAction(repeat)
     OrDelim = keyword("|,")
     OrRule <<= (Repeated + pp.ZeroOrMore(OrDelim + Repeated) + pp.Optional(OrDelim)
