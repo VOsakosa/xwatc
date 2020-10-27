@@ -2,6 +2,8 @@ from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner
 from xwatc.system import mint, kursiv, Mänx, ja_nein, minput, Spielende
 import random
 from xwatc.jtg import t2
+from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
+import xwatc_Hauptgeschichte
 
 class MartinPortulakk(NSC):
     def __init__(self):
@@ -134,14 +136,14 @@ class MartinPortulakk(NSC):
         
         
         
-class RuboicHätxrik(Angestellte):
+class RuboicHätxrik(NSC):
     def __init__(self) -> None:
         super().__init__("Ruboic Hätxrik", "Jäger")
         cls = type(self)
         a=random.randint(1,500)
         if a ==1:
             ("Bevor du mit ihm reden konntest, fiel der Mann einfach tot um")
-            self.tot
+            self.tot=True
         else:
             self.dialog("hallo1",
                     '"Hallo Ich heiße Tom"',
@@ -172,13 +174,13 @@ class RuboicHätxrik(Angestellte):
                     cls.reden_agaga)
         self.dialog("suche",
                     "Hallo Ich such so 'nen sabbernden Verrückten. "
-                    "Haste'n geseh'n",
+                    "Haste'n geseh'n?",
                     cls.reden_suche1)
         self.dialog("suche2",
                     "Tag. "
                     "Ich hätte eine Frage. "
                     "Hier soll es einen Verrückten geben, "
-                    "so einen sabbernden. Haben sie zufälligerweise einen gesehen? "!
+                    "so einen sabbernden. Haben sie zufälligerweise einen gesehen? "
                     "Wenn ja wäre es sehr nett, "
                     "wenn sie mit davon unterrichten würden. "
                     "Ich danke ihnen schon einmal im vorraus.",
@@ -189,7 +191,7 @@ class RuboicHätxrik(Angestellte):
         a=random.randint(1,500)
         if a ==1:
             ("Bevor du ihn angreifen konntest, fiel der Mann einfach tot um")
-            self.tot
+            self.tot=True
         else:
             if ja_nein(mänx, "Der Mann richtet seine Armbrust auf dich. "
                        "Willst du immer noch kämpfen?"):
@@ -206,25 +208,56 @@ class RuboicHätxrik(Angestellte):
         mint('"Tag. Was ist?"')
 
     def reden_tom(self, mänx: Mänx) -> None:
-        print('"Was kümnmert dich das?"')
-        if ja_nein(mänx, "Beharrst du auf deine Frage"):
-            mint('"Gut und hau jetzt ab!"')
+        mint("Tja mi kans egal sän")
     
     def reden_makc(self, mänx: Mänx) -> None:
-        print('"Was kümnmert dich das?"')
-        if ja_nein(mänx, "Beharrst du auf deine Frage"):
-            mint('"Gut und hau jetzt ab!"')
-            
+        mint('"makc ja?, ich hatte mall so nen soon." '
+             'Der Mann drückt dir etwas in die Hand. '
+             'Dann, '
+             'ganz plötzlich fängt er an zu röcheln und fällt tot um.  ')
+        self.tot=True
+        mänx.erhalte("Aphrodiikensamen",5)    
     def reden_thierca(self, mänx: Mänx) -> None:
-        print('"Was kümnmert dich das?"')
-        if ja_nein(mänx, "Beharrst du auf deine Frage"):
-            mint('"Gut und hau jetzt ab!"')
+        mint('"thiersca ja?, du erinnnest mich an men Tochterle. Wisst de?!" '
+             'Der Mann drückt dir etwas in die Hand. '
+             'Dann, '
+             'ganz plötzlich fängt er an zu röcheln und fällt tot um.  ')
+        self.tot=True
+        mänx.erhalte("Bantoriitensamen",5)
             
     def reden_ares(self, mänx: Mänx) -> None:
-        print('"Was kümnmert dich das?"')
-        if ja_nein(mänx, "Beharrst du auf deine Frage"):
-            mint('"Gut und hau jetzt ab!"')
-            
+        mint("Ares?", kursiv("Du?!"), "bist es?")
+        a=random.randint(1,500)
+        if a ==1:
+            ("Plötzlich fiel der Mann einfach tot um")
+            self.tot=True
+        else:
+            a=random.randint(1,40)
+            if a==1:
+                print("Plötzlich sprach der Mann mit einer monotonen, hölzernen Stimme.")
+                mint('"HALLO;ENTITÄT §===(§"/F LANGE '
+                     '', kursiv("ggrrrpfft") , 'NICHT MEHR GESE'
+                     '', kursiv("bbpfftgr"), 'HEN'
+                     '', kursiv("ährrkrtg"), '"')
+                mänx.erhalte("Leere",5)
+                mänx.erhalte("NOEL@þ",1)
+                mänx.erhalte("Lichtschwert",1)
+                mänx.erhalte("Honigpastete",5)
+                print("NOEL hinterlässt dir eine Nachricht:")
+                mint("", kursiv("Komm zu mir, komm/komm/komm/komm/"
+                                "komm/komm/komm\komm\komm\komm\komm\/"
+                                "komm\komm\komm\komm\komm\komm\komm/\/"
+                                "komm\komm/komm\komm/komm zu mir"), "")
+                if ja_nein(mänx, "Willst du mitkommen?"):
+                    print('Irgendwo schien jemand sich zu freuen.')
+                    kursiv('"Du wirst es sicherlich nicht bereuen."')
+                    b=random.randint(1,4)
+                    if b==1:
+                        gefängnis_von_gäfdah
+                    if b==2:
+                        xwatc_Hauptgeschichte.himmelsrichtungen(mänx)
+                
+                
     def reden_hallo(self, mänx: Mänx) -> None:
         print('"Was kümnmert dich das?"')
         if ja_nein(mänx, "Beharrst du auf deine Frage"):
@@ -251,9 +284,9 @@ class RuboicHätxrik(Angestellte):
             mint('"Gut und hau jetzt ab!"')
             
     def reden_geht(self, mänx: Mänx) -> None:
-    print('"Was kümnmert dich das?"')
-    if ja_nein(mänx, "Beharrst du auf deine Frage"):
-        mint('"Gut und hau jetzt ab!"')
+        print('"Was kümnmert dich das?"')
+        if ja_nein(mänx, "Beharrst du auf deine Frage"):
+            mint('"Gut und hau jetzt ab!"')
 
 
     def main(self, mänx: Mänx) -> None:
