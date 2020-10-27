@@ -1,0 +1,70 @@
+StandardName = Alari|
+Alin|
+Ana|
+Anale|
+Axale|
+Banari|
+Banora|
+Beadeta|
+Bianka|
+Bitegi|
+Caori|
+Dina|
+Emba|
+Enale|
+Federika|
+Gyuali|
+Hana|
+Hanapa|
+Icuri|
+"Jen'a"|
+Kanali|
+Kin|
+Lacari|
+Lila|
+Nadin|
+Rea|
+Renagi|
+Tenai|
+Tieca|
+Xeli|
+Xumi|
+Yotalan|
+Yonani|
+Yotalan|
+Zakaroni|
+Zänya|
+Zukapänja;
+
+KonsonantP = "",b,p,f,v,t,d,k,k,g,n,n,m,ng,l,l,c,c,c,tc
+KonsonantNoY = $KonsonantP{20} | x,j,dj,h,r
+Vokal = a,a,a,e,i,i,o,u,ä,ü,ö
+VokalY = a,a,a,e,o,o,u,u,ä
+NormalSilbeP = $KonsonantNoY $Vokal{4} | $KonsonantP $VokalY
+NormalSilbeE = ""{10}, n{2},m,ng
+NormalSilbe = $NormalSilbeP $NormalSilbeE
+
+
+FVorname = $StandardName 
+	| cap($NormalSilbe) $NormalSilbe 
+	| cap($NormalSilbe) $NormalSilbe $NormalSilbe;
+FNachname = $FVorname tochter;
+
+Letainwort1 = krak|bum|op|jub|tom|ban|to|e|nin|min|cu|zu|ban|su|le|ekc|con|li
+	|wug|ja|taikc|kcon|chi|mot|mein
+Letainverb1 = flok|kolf|la|tikc|kap|ain
+Letainwort = $Letainwort1 "."
+Letainverb = $Letainverb1 "."
+Letainvorname = dot(cap($Letainwort $Letainwort | $Letainwort $Letainwort $Letainwort))
+Letainnachname = dot(cap($Letain3 | $Letain4 | $Letain5))
+Letain3Ende = jaga|jaja|gaja
+Letain2 = $Letainwort $Letainwort | $Letainverb "min"
+Letain3 = $Letainwort $Letainwort $Letainwort $Letain3Ende
+Letain4 = $Letainwort $Letainwort $Letain3Ende
+	| $Letainwort $Letainwort $Letain2
+	| $Letainwort $Letainwort $Letain2 "ja"
+Letain5 = $Letainwort $Letainwort $Letainwort $Letain2
+
+FName = $FVorname " " $FNachname
+Letainname = $Letainvorname " " $Letainnachname
+Name = $FName
