@@ -1,5 +1,7 @@
 from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner
-from xwatc.system import mint, kursiv, Mänx, ja_nein, minput
+from xwatc.system import mint, kursiv, Mänx, ja_nein, minput, Spielende
+import random
+from xwatc.jtg import t2
 
 class MartinPortulakk(NSC):
     def __init__(self):
@@ -36,7 +38,8 @@ class MartinPortulakk(NSC):
             ('"Still oder ich töte dich!"', "töte", 6),
             ('(beruhigend)"Sei leise. '
              'Wenn du die Wachen rufst töte ich '
-             'dich schneller als du "muck" sagst."', "muck", 7),
+             'dich schneller als du "muck" sagst.', "muck", 7),
+            ('Tut mir Leid, das war ein Missverständnis', "Missverständnis", 8),
         ]
         opt = mänx.menu(opts, frage="Was sagst du?")
         if opt == 0:
@@ -103,7 +106,18 @@ class MartinPortulakk(NSC):
                 mänx.inventar ["Messer"] += 1
 
         elif opt == 7:
-            mint('"gut", sagte die Wache.')
+            mint('!!!?B?Ä?B?Ä?B?Ä?B?Ä?!!!  FEHLERüłþſs')
+            mänx.erhalte("Banane", 3)
+            mänx.erhalte("Apfel", 12)
+            mänx.erhalte("Gold", 153)
+            mänx.erhalte("Ätherrose", 1)
+            mänx.erhalte("Moorfut'schlamm", 10)
+            mänx.erhalte("Erbse", 438)
+            mänx.erhalte("Truthahnfleisch", 50)
+            mänx.erhalte("JOEL@þ", 1)
+            t2(mänx)
+            
+            
             
             
 
@@ -114,5 +128,134 @@ class MartinPortulakk(NSC):
         ]
 
     def main(self, mänx: Mänx) -> None:
-        print("Die Wache steht herum und geht ernst und dienstbeflissen ihrer Arbeit nach.")
+        print("Martin Portulakk heißt Martin Portulakk und ist Bürger von Gäfdah.")
+        super().main(mänx)
+        
+        
+        
+        
+class RuboicHätxrik(Angestellte):
+    def __init__(self) -> None:
+        super().__init__("Ruboic Hätxrik", "Jäger")
+        cls = type(self)
+        a=random.randint(1,500)
+        if a ==1:
+            ("Bevor du mit ihm reden konntest, fiel der Mann einfach tot um")
+            self.tot
+        else:
+            self.dialog("hallo1",
+                    '"Hallo Ich heiße Tom"',
+                    cls.reden_tom)
+        
+        self.dialog("hallo2",
+                    '"Hallo Ich heiße Makc"',
+                    cls.reden_makc)
+        
+        self.dialog("hallo3",
+                    '"Hallo Ich heiße Thierca"',
+                    cls.reden_thierca)
+        
+        self.dialog("hallo4",
+                    '"Hallo Ich heiße Ares"',
+                    cls.reden_ares)
+        
+        self.dialog("hallo5",
+                    '"Hallo, wie heißt du?"',
+                    cls.reden_hallo)
+        
+        self.dialog("geht", '"Wie geht es dir?"',
+                    cls.reden_geht)
+        self.dialog("wetter",
+                    '"Wie findest du das Wetter heute?"', cls.reden_wetter)
+        self.dialog("agaga",
+                    "Aggagagaggagrrrrrrrr!!!!  Ähäsifowipppfff Ich binne v'ückt bööö...",
+                    cls.reden_agaga)
+        self.dialog("suche",
+                    "Hallo Ich such so 'nen sabbernden Verrückten. "
+                    "Haste'n geseh'n",
+                    cls.reden_suche1)
+        self.dialog("suche2",
+                    "Tag. "
+                    "Ich hätte eine Frage. "
+                    "Hier soll es einen Verrückten geben, "
+                    "so einen sabbernden. Haben sie zufälligerweise einen gesehen? "!
+                    "Wenn ja wäre es sehr nett, "
+                    "wenn sie mit davon unterrichten würden. "
+                    "Ich danke ihnen schon einmal im vorraus.",
+                    cls.reden_suche2)
+        
+
+    def kampf(self, mänx: Mänx) -> None:
+        a=random.randint(1,500)
+        if a ==1:
+            ("Bevor du ihn angreifen konntest, fiel der Mann einfach tot um")
+            self.tot
+        else:
+            if ja_nein(mänx, "Der Mann richtet seine Armbrust auf dich. "
+                       "Willst du immer noch kämpfen?"):
+                mint("Er drückt ab.")
+                raise Spielende
+            
+            else:
+                mint("Gut...")
+            
+
+
+
+    def vorstellen(self, mänx: Mänx) -> None:
+        mint('"Tag. Was ist?"')
+
+    def reden_tom(self, mänx: Mänx) -> None:
+        print('"Was kümnmert dich das?"')
+        if ja_nein(mänx, "Beharrst du auf deine Frage"):
+            mint('"Gut und hau jetzt ab!"')
+    
+    def reden_makc(self, mänx: Mänx) -> None:
+        print('"Was kümnmert dich das?"')
+        if ja_nein(mänx, "Beharrst du auf deine Frage"):
+            mint('"Gut und hau jetzt ab!"')
+            
+    def reden_thierca(self, mänx: Mänx) -> None:
+        print('"Was kümnmert dich das?"')
+        if ja_nein(mänx, "Beharrst du auf deine Frage"):
+            mint('"Gut und hau jetzt ab!"')
+            
+    def reden_ares(self, mänx: Mänx) -> None:
+        print('"Was kümnmert dich das?"')
+        if ja_nein(mänx, "Beharrst du auf deine Frage"):
+            mint('"Gut und hau jetzt ab!"')
+            
+    def reden_hallo(self, mänx: Mänx) -> None:
+        print('"Was kümnmert dich das?"')
+        if ja_nein(mänx, "Beharrst du auf deine Frage"):
+            mint('"Gut und hau jetzt ab!"')
+            
+    def reden_geht(self, mänx: Mänx) -> None:
+        print('"Was kümnmert dich das?"')
+        if ja_nein(mänx, "Beharrst du auf deine Frage"):
+            mint('"Gut und hau jetzt ab!"')
+            
+    def reden_agaga(self, mänx: Mänx) -> None:
+        print('"Was kümnmert dich das?"')
+        if ja_nein(mänx, "Beharrst du auf deine Frage"):
+            mint('"Gut und hau jetzt ab!"')
+            
+    def reden_suche1(self, mänx: Mänx) -> None:
+        print('"Was kümnmert dich das?"')
+        if ja_nein(mänx, "Beharrst du auf deine Frage"):
+            mint('"Gut und hau jetzt ab!"')
+            
+    def reden_suche2(self, mänx: Mänx) -> None:
+        print('"Was kümnmert dich das?"')
+        if ja_nein(mänx, "Beharrst du auf deine Frage"):
+            mint('"Gut und hau jetzt ab!"')
+            
+    def reden_geht(self, mänx: Mänx) -> None:
+    print('"Was kümnmert dich das?"')
+    if ja_nein(mänx, "Beharrst du auf deine Frage"):
+        mint('"Gut und hau jetzt ab!"')
+
+
+    def main(self, mänx: Mänx) -> None:
+        print('"Tag. Was ist?"')
         super().main(mänx)
