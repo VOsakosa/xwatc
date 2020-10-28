@@ -1,6 +1,7 @@
 from time import sleep
 from xwatc import haendler
 from xwatc import scenario
+from xwatc import weg
 from xwatc.system import Mänx, minput, ja_nein, Spielende, mint, sprich, kursiv
 from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner, Dialog
 from random import randint
@@ -17,8 +18,38 @@ import xwatc_Hauptgeschichte
 def t2(mänx: Mänx) -> None:
     """Jaspers Teilgeschichte"""
     print("Es erwartet dich Vogelgezwitscher.")
-    sleep(1)
-    lichtung(mänx)
+    weg.wegsystem(mänx, "jtg:mitte")
+
+
+@weg.gebiet("jtg:mitte")
+def erzeuge_mitte(mänx: Mänx) -> 'weg.Wegpunkt':
+    westw = weg.Weg(2, weg.WegAdapter(None, groekrak.zugang_ost), None)
+    bogen = weg.Wegkreuzung(w=weg.Richtung(westw))
+    west = weg.Wegkreuzung()
+    west.verbinde_mit_weg(bogen, 0.4, "s", typ=weg.Wegtyp.WEG)
+
+    nordw = weg.Weg(5, weg.WegAdapter(None, disnayenbum), None)
+    nordk = weg.Wegkreuzung(n=weg.Richtung(nordw))
+    nordk.verbinde_mit_weg(west, 3, "sw", "n")
+
+    süd = weg.WegAdapter(None, t2_süd)
+
+    lichtung = weg.Wegkreuzung(s=weg.Richtung(süd, typ=weg.Wegtyp.PFAD))
+    lichtung.verbinde_mit_weg(nordk, 3, "n", typ=weg.Wegtyp.PFAD)
+    lichtung.verbinde_mit_weg(west, 4, "w", typ=weg.Wegtyp.TRAMPELPFAD)
+    lichtung.add_beschreibung(
+        "Du befindest sich auf einer Lichtung in einem Wald.", nur=[None])
+    lichtung.add_beschreibung(
+        "Du kommst auf eine Lichtung.", außer=[None, "o"])
+    lichtung.add_beschreibung((
+        "Ein schmaler Pfad führt nach Norden.",
+        "Im Osten ist Dickicht.",
+        "Im Westen und Süden ist nichts besonderes."
+        ))
+    
+    return lichtung
+    
+
 
 def lichtung(mänx: Mänx) -> None:
     print("Du befindest sich auf einer Lichtung in einem Wald.")
@@ -34,7 +65,7 @@ def lichtung(mänx: Mänx) -> None:
             mint("Du findest Blumen auf der Lichtung.")
             mänx.erhalte("Gänseblümchen", 3)
         mint("Wenn du genau hinsiehst, erkennst du, dass hier ein Pfad von "
-             "Norden nach Süden auf einen von Westen trifft. Im Osten sind sind "
+             "Norden nach Süden auf einen von Westen trifft. Im Osten sind "
              "nur Büsche.")
 
     while cont:
@@ -544,6 +575,7 @@ def süd_dorf(mänx: Mänx):
     ]
     mänx.menu(ziele, frage="Wohin gehst du?")(mänx)
 
+
 def hauptstadt_weg(mänx: Mänx):
     print("Am Wegesrand siehst du ein Schild: \"Achtung Monster!\"")
     if mänx.ja_nein("Willst du wirklich weitergehen?"):
@@ -590,6 +622,7 @@ def hauptstadt_weg(mänx: Mänx):
     else:
         süd_dorf(mänx)
 
+
 def t2_no(mänx):
     print("Du kommst an einen Wegweiser.")
     print("Der Weg gabelt sich an einem kleinen Fluss, links führt der Weg "
@@ -600,11 +633,10 @@ def t2_no(mänx):
     else:
         süd_dorf(mänx)
 
+
 def tauern_ww_süd(mänx: Mänx):
     print("Du folgst dem Weg sehr lange den Fluss aufwärts.")
     mint("Da kommst du an eine Kreuzung. Ein Weg führt den Fluss weiter aufwärts")
-
-
 
 
 if __name__ == '__main__':

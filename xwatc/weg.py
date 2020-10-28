@@ -90,8 +90,14 @@ class Weg(_Strecke):
     def __init__(self, länge: float, p1: Opt[Wegpunkt], p2: Opt[Wegpunkt],
                  monster_tag: Opt[List[MonsterChance]] = None,
                  monster_nachts: Opt[List[MonsterChance]] = None):
+        """
+        :param länge: Länge in Minuten
+        :param p1: Startpunkt
+        :param p2: Endpunkt
+        :param monster_tag: Monster, die am Tag auftauchen
+        """
         super().__init__(p1, p2)
-        self.länge = länge
+        self.länge = länge / 24
         self.monster_tag = monster_tag
         self.monster_nachts = monster_nachts
 
@@ -168,7 +174,7 @@ class Wegtyp(enum.Enum):
 @dataclass
 class Richtung:
     ziel: Wegpunkt
-    zielname: str
+    zielname: str = ""
     typ: Wegtyp = Wegtyp.WEG
 
 
@@ -234,7 +240,8 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                  so: Opt[Richtung] = None,
                  s: Opt[Richtung] = None,
                  gucken: Opt[MänxFkt] = None,
-                 kreuzung_beschreiben: bool = False):
+                 kreuzung_beschreiben: bool = False,
+                 immer_fragen: bool = False):
         # TODO gucken
         super().__init__()
         self.richtungen = [n, no, o, so, s, sw, w, nw]
@@ -244,19 +251,20 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         self.beschreibungen: List[Beschreibung] = []
         self.menschen: List['xwatc.dorf.NSC'] = []
         self.gucken = gucken
+        self.immer_fragen = immer_fragen
         self.kreuzung_beschreiben = kreuzung_beschreiben
 
     def add_beschreibung(self,
                          geschichte: Union[Sequence[str], MänxFkt],
-                         nur: Opt[Sequence[str]] = None,
-                         außer: Opt[Sequence[str]] = None):
+                         nur: Opt[Sequence[Opt[str]]] = None,
+                         außer: Opt[Sequence[Opt[str]]] = None):
         self.beschreibungen.append(Beschreibung(geschichte, nur, außer))
 
     def beschreibe(self, mänx: Mänx, richtung: Opt[int]):
         ri_name = HIMMELSRICHTUNG_KURZ[richtung] if richtung is not None else None
         for beschreibung in self.beschreibungen:
             beschreibung.beschreibe(mänx, ri_name)
-        if self.kreuzung_beschreiben:
+        if self.kreuzung_beschreiben or not self.beschreibungen:
             self.beschreibe_kreuzung(richtung)
 
     def beschreibe_kreuzung(self, richtung: Opt[int]):  # pylint: disable=unused-argument
@@ -305,7 +313,11 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                 riabs = (rirel + von) % 8
             himri = HIMMELSRICHTUNGEN[riabs]
             ri = self.richtungen[riabs]
-            if ri:
+            if not ri:
+                continue
+            if riabs == von:
+                yield ("Umkehren", "fliehen", ri.ziel)
+            else:
                 if ri.zielname:
                     ziel = ri.zielname + " im " + himri
                 else:
@@ -325,8 +337,33 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
             else:
                 richtung = None
             self.beschreibe(mänx, richtung)
-        return mänx.menu(list(self.optionen(mänx, richtung)),
-                         frage="Welchem Weg nimmst du?")
+        opts = list(self.optionen(mänx, richtung))
+        if not self.immer_fragen and ((richtung is None) + len(opts)) <= 2:
+            return opts[0][2]
+        return mänx.menu(opts, frage="Welchem Weg nimmst du?")
+
+    def verbinde(self,  # pylint: disable=arguments-differ
+                 anderer: Wegpunkt, richtung: str = "",
+                 typ: Wegtyp = Wegtyp.WEG, ziel: str = ""):
+        if richtung:
+            ri = HIMMELSRICHTUNG_KURZ.index(richtung)
+            anderer.verbinde(self)
+            self.richtungen[ri] = Richtung(anderer, ziel, typ)
+
+    def verbinde_mit_weg(self, nach: Wegkreuzung, länge: float, richtung,
+                         richtung2=None, typ: Wegtyp = Wegtyp.WEG,
+                         beschriftung_hin: str = "",
+                         beschriftung_zurück: str = "",
+                         **kwargs):
+        """Verbinde zwei Kreuzungen mit einem Weg."""
+        ri = HIMMELSRICHTUNG_KURZ.index(richtung)
+        if richtung2 is None:
+            ri2 = (ri + 4) % 8
+        weg = Weg(länge, self, nach, **kwargs)
+        assert not (self.richtungen[ri] or nach.richtungen[ri]
+                    ), "Überschreibt bisherigen Weg."
+        self.richtungen[ri] = Richtung(weg, beschriftung_hin, typ=typ)
+        nach.richtungen[ri] = Richtung(weg, beschriftung_zurück, typ=typ)
 
 
 class WegAdapter(_Strecke):
@@ -401,6 +438,7 @@ def wegsystem(mänx: Mänx, start: Union[Wegpunkt, str]) -> None:
         try:
             mänx.context = wp
             last, wp = wp, wp.main(mänx, von=last)
+            mänx.welt.tick(1 / 96)
         finally:
             mänx.context = None
     wp.weiter(mänx)  # type: ignore
