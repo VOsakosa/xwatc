@@ -226,6 +226,8 @@ class Beschreibung:
         else:
             return nur
 
+def cap(a: str) -> str:
+    return a[:1].upper() + a[1:]
 
 class Wegkreuzung(Wegpunkt, InventarBasis):
     OPTS = [4, 3, 5, 2, 6, 1, 7, 0]
@@ -281,10 +283,10 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                 atyp = cast(Richtung, rs[andere]).typ
                 if andere == gegen:
                     if rit != atyp:
-                        print(rit.text(True, 1).capitalize(),
+                        print(cap(rit.text(True, 1)),
                               "wird zu", atyp.text(False, 3))
                 else:
-                    print(rit.text(True, 1), "biegt nach",
+                    print(cap(rit.text(True, 1)), "biegt nach",
                           HIMMELSRICHTUNGEN[andere], "ab", end="")
                     if rit != atyp:
                         print(" und wird zu", atyp.text(False, 3))
@@ -294,14 +296,14 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                 print("Du kommst an eine Kreuzung.")
                 for i, ri in enumerate(rs):
                     if ri and i != richtung:
-                        print(ri.typ.text(False, 1).capitalize(), "führt nach",
+                        print(cap(ri.typ.text(False, 1)), "führt nach",
                               HIMMELSRICHTUNGEN[i] + ".")
 
         else:
             print("Du kommst auf eine Wegkreuzung.")
             for i, ri in enumerate(rs):
                 if ri:
-                    print(ri.typ.text(False, 1).capitalize(), "führt nach",
+                    print(cap(ri.typ.text(False, 1)), "führt nach",
                           HIMMELSRICHTUNGEN[i] + ".")
 
     def optionen(self, mänx: Mänx,  # pylint: disable=unused-argument
@@ -322,7 +324,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                     ziel = ri.zielname + " im " + himri
                 else:
                     ziel = himri
-                yield (ri.typ.text(True, 4).capitalize() + " nach " + ziel,
+                yield (cap(ri.typ.text(True, 4)) + " nach " + ziel,
                        himri.lower(), ri.ziel)
 
     def get_nachbarn(self)->List[Wegpunkt]:
@@ -333,7 +335,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
             if von:
                 richtung = next((
                     i for i, v in enumerate(self.richtungen) if v and v.ziel == von
-                ), default=None)
+                ), None)
             else:
                 richtung = None
             self.beschreibe(mänx, richtung)
@@ -350,8 +352,10 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
             anderer.verbinde(self)
             self.richtungen[ri] = Richtung(anderer, ziel, typ)
 
-    def verbinde_mit_weg(self, nach: Wegkreuzung, länge: float, richtung,
-                         richtung2=None, typ: Wegtyp = Wegtyp.WEG,
+    def verbinde_mit_weg(self, nach: Wegkreuzung, länge: float,
+                         richtung: str,
+                         richtung2: Opt[str] = None,
+                         typ: Wegtyp = Wegtyp.WEG,
                          beschriftung_hin: str = "",
                          beschriftung_zurück: str = "",
                          **kwargs):
@@ -359,11 +363,13 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         ri = HIMMELSRICHTUNG_KURZ.index(richtung)
         if richtung2 is None:
             ri2 = (ri + 4) % 8
+        else:
+            ri2 = HIMMELSRICHTUNG_KURZ.index(richtung2)
         weg = Weg(länge, self, nach, **kwargs)
-        assert not (self.richtungen[ri] or nach.richtungen[ri]
+        assert not (self.richtungen[ri] or nach.richtungen[ri2]
                     ), "Überschreibt bisherigen Weg."
         self.richtungen[ri] = Richtung(weg, beschriftung_hin, typ=typ)
-        nach.richtungen[ri] = Richtung(weg, beschriftung_zurück, typ=typ)
+        nach.richtungen[ri2] = Richtung(weg, beschriftung_zurück, typ=typ)
 
 
 class WegAdapter(_Strecke):
@@ -417,7 +423,7 @@ class Gebietsende(_Strecke):
 def get_gebiet(mänx: Mänx, name_or_gebiet: Union[Wegpunkt, str]):
     if isinstance(name_or_gebiet, str):
         return mänx.welt.get_or_else(
-            "weg:" + name_or_gebiet, GEBIETE[name_or_gebiet])
+            "weg:" + name_or_gebiet, GEBIETE[name_or_gebiet], mänx)
     else:
         return name_or_gebiet
 
