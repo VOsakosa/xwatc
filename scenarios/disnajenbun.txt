@@ -6,7 +6,7 @@ X: Mauer;Ｘ;X;.;bn
 .: @Stein ;. ;.;gu
 i: @Weizen;í ;í;gn
 
-a: jtg:fred   ;🨀 ;M;.;gb
+a: jtg:fred   ;長;M;.;gb
 b: jtg:axtmann;斧;M
 c: jtg:mieko  ;人;M
 m: jtg:nomuh  ;牛;k;i;bn

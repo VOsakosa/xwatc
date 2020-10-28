@@ -29,6 +29,7 @@ Fleisch: Nahrung
   Riesenschneckenfleisch
 
 Gemüse: Nahrung
+  Bohne
   Erbse
   Karotte
 

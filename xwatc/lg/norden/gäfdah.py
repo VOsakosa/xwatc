@@ -6,8 +6,7 @@ from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner, Dialog
 from random import randint
 from . Maria_Fischfrisch import Fischerfrau
 import random
-from xwatc.jtg.ressourcen import FRAUENNAMEN
-from xwatc.jtg import TobiacBerndoc, zufälliges_waschweib
+from xwatc.jtg import TobiacBerndoc, Waschweib
 from xwatc.nsc.Wachen_von_Gäfdah import (MarioWittenpfäld,
 SakcaBrauc,OrfGrouundt,ThomarcAizenfjäld)
 from xwatc.nsc.Bürger_von_Gäfdah import MartinPortulakk
@@ -58,7 +57,7 @@ def erzeuge_Gäfdah(mänx) -> Dorf:
     d.orte.append(haus1)
     d.orte[0].add_nsc(mänx.welt, "nsc:Wachen_von_Gäfdah:OrfGrouundt", OrfGrouundt)
     for _i in range(randint(2, 5)):
-        w = zufälliges_waschweib()
+        w = Waschweib()
         d.orte[0].menschen.append(w)
     # TODO weitere Objekte
     return d
