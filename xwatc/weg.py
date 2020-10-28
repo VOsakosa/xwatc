@@ -10,8 +10,13 @@ from xwatc.utils import uartikel, bartikel
 __author__ = "jasper"
 import typing
 from typing import List, Any, Optional as Opt, cast, Iterable, Union, Sequence,\
-    Collection
+    Collection, Callable, Dict, Tuple
 from xwatc.system import Mänx, MenuOption, MänxFkt, InventarBasis, malp, mint
+
+
+GEBIETE: Dict[str, Callable[[Mänx], Wegpunkt]] = {}
+# Die Verbindungen zwischen Gebieten
+EINTRITTSPUNKTE: Dict[Tuple[str, str], 'Gebietsende'] = {}
 
 
 @enum.unique
@@ -38,6 +43,32 @@ class Wegpunkt(Context, typing.Protocol):
     def main(self, mänx: Mänx, von: Opt[Wegpunkt]) -> Union[Wegpunkt, WegEnde]:
         """Betrete den Wegpunkt mit mänx aus von."""
 
+    def verbinde(self, anderer: Wegpunkt):
+        """Verbinde den Wegpunkt mit anderer. Nur für Wegpunkte mit nur einer
+        Seite"""
+
+
+class _Strecke(Wegpunkt):
+    def __init__(self, p1: Opt[Wegpunkt], p2: Opt[Wegpunkt] = None):
+        super().__init__()
+        self.p1 = self._verbinde(p1)
+        self.p2 = self._verbinde(p2)
+
+    def _verbinde(self, anderer: Opt[Wegpunkt]) -> Opt[Wegpunkt]:
+        """Ruft anderer.verbinde(self) auf."""
+        if anderer:
+            anderer.verbinde(self)
+        return anderer
+
+    def get_nachbarn(self) -> List[Wegpunkt]:
+        return [a for a in (self.p1, self.p2) if a]
+
+    def verbinde(self, anderer: Wegpunkt):
+        if not self.p1:
+            self.p1 = anderer
+        elif self.p1 != anderer and not self.p2:
+            self.p2 = anderer
+
 
 class MonsterChance:
     """Eine Möglichkeit eines Monsterzusammenstoßes."""
@@ -52,22 +83,17 @@ class MonsterChance:
         self.geschichte(mänx)
 
 
-class Weg(Wegpunkt):
+class Weg(_Strecke):
     """Ein Weg hat zwei Enden und dient dazu, die Länge der Reise darzustellen.
     Zwei Menschen auf dem Weg zählen als nicht benachbart."""
 
-    def __init__(self, länge: float, p1: Wegpunkt, p2: Wegpunkt,
+    def __init__(self, länge: float, p1: Opt[Wegpunkt], p2: Opt[Wegpunkt],
                  monster_tag: Opt[List[MonsterChance]] = None,
                  monster_nachts: Opt[List[MonsterChance]] = None):
-        super().__init__()
+        super().__init__(p1, p2)
         self.länge = länge
-        self.p1 = p1
-        self.p2 = p2
         self.monster_tag = monster_tag
         self.monster_nachts = monster_nachts
-
-    def get_nachbarn(self) -> List[Wegpunkt]:
-        return [self.p1, self.p2]
 
     def melde(self, mänx: Mänx, ereignis: Ereignis,
               data: Any) -> None:  # pylint: disable=unused-argument
@@ -115,8 +141,10 @@ class Weg(Wegpunkt):
             weg_rest -= 1 / 48 if mänx.welt.is_nacht() else 1 / 24
 
         if richtung:
+            assert self.p2, "Loses Ende!"
             return self.p2
         else:
+            assert self.p1, "Loses Ende!"
             return self.p1
 
 
@@ -205,13 +233,18 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                  sw: Opt[Richtung] = None,
                  so: Opt[Richtung] = None,
                  s: Opt[Richtung] = None,
-                 gucken: Opt[MänxFkt] = None):
+                 gucken: Opt[MänxFkt] = None,
+                 kreuzung_beschreiben: bool = False):
         # TODO gucken
         super().__init__()
         self.richtungen = [n, no, o, so, s, sw, w, nw]
+        for ri in self.richtungen:
+            if ri:
+                ri.ziel.verbinde(self)
         self.beschreibungen: List[Beschreibung] = []
         self.menschen: List['xwatc.dorf.NSC'] = []
-        self.gucken = None
+        self.gucken = gucken
+        self.kreuzung_beschreiben = kreuzung_beschreiben
 
     def add_beschreibung(self,
                          geschichte: Union[Sequence[str], MänxFkt],
@@ -223,6 +256,8 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         ri_name = HIMMELSRICHTUNG_KURZ[richtung] if richtung is not None else None
         for beschreibung in self.beschreibungen:
             beschreibung.beschreibe(mänx, ri_name)
+        if self.kreuzung_beschreiben:
+            self.beschreibe_kreuzung(richtung)
 
     def beschreibe_kreuzung(self, richtung: Opt[int]):  # pylint: disable=unused-argument
         rs = self.richtungen
@@ -294,26 +329,73 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                          frage="Welchem Weg nimmst du?")
 
 
-class WegAdapter(Wegpunkt):
+class WegAdapter(_Strecke):
     """Ein Übergang von Wegesystem zum normalen System."""
 
-    def __init__(self, nächster: Wegpunkt, zurück: MänxFkt):
-        super().__init__()
-        self.nächster = nächster
+    def __init__(self, nächster: Opt[Wegpunkt], zurück: MänxFkt):
+        super().__init__(nächster, None)
         self.zurück = zurück
-
-    def get_nachbarn(self) -> List[Wegpunkt]:
-        return [self.nächster]
 
     def main(self, mänx: Mänx, von: Opt[Wegpunkt]) -> Union[Wegpunkt, WegEnde]:
         if von:
             return WegEnde(self.zurück)
-        return self.nächster
+        assert self.p1, "Loses Ende"
+        return self.p1
 
 
-def wegsystem(mänx: Mänx, start: Wegpunkt) -> None:
+class Gebietsende(_Strecke):
+    """Das Ende eines Gebietes ist der Anfang eines anderen."""
+
+    def __init__(self, von: Opt[Wegpunkt], gebiet: str,
+                 port: str, nach: str):
+        """Erzeuge ein Gebietsende.
+
+        >>> Gebietsende(None, "jtg:mitte", "mit-gkh", "jtg:gkh")
+        """
+        super().__init__(von, None)
+        self.gebiet = gebiet
+        self.nach = nach
+        self.port = port
+        self.von = von
+        assert ((self.gebiet, self.port) not in EINTRITTSPUNKTE
+                ), "Eintrittspunkt existiert schon!"
+        EINTRITTSPUNKTE[self.gebiet, self.port] = self
+        assert self.gebiet in GEBIETE, f"Unbekanntes Gebiet: {self.gebiet}"
+        assert nach in GEBIETE, f"Unbekanntes Gebiet: {nach}"
+
+    def main(self, mänx: Mänx, von: Opt[Wegpunkt]) -> Wegpunkt:
+        if self.p2:
+            return self.p2
+        else:
+            get_gebiet(mänx, self.nach)
+            try:
+                self.p2 = EINTRITTSPUNKTE[self.nach, self.port].von
+                assert self.p2, "Loses Ende!"
+            except KeyError:
+                raise KeyError("Erstellen des Gebietes ")
+            else:
+                return self.p2
+
+
+def get_gebiet(mänx: Mänx, name_or_gebiet: Union[Wegpunkt, str]):
+    if isinstance(name_or_gebiet, str):
+        return mänx.welt.get_or_else(
+            "weg:" + name_or_gebiet, GEBIETE[name_or_gebiet])
+    else:
+        return name_or_gebiet
+
+
+def gebiet(name: str):
+    """Dekorator für Gebietserzeugungsfunktionen."""
+    def wrapper(funk):
+        GEBIETE[name] = funk
+        return funk
+    return wrapper
+
+
+def wegsystem(mänx: Mänx, start: Union[Wegpunkt, str]) -> None:
     """Startet das Wegsystem mit mänx am Wegpunkt start."""
-    wp: Union[Wegpunkt, WegEnde] = start
+    wp: Union[Wegpunkt, WegEnde] = get_gebiet(mänx, start)
     last = None
     while not isinstance(wp, WegEnde):
         try:
