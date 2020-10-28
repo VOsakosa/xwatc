@@ -9,8 +9,9 @@ from dataclasses import dataclass
 from xwatc.utils import uartikel, bartikel
 __author__ = "jasper"
 import typing
-from typing import List, Any, Optional as Opt, cast, Iterable, Union
-from xwatc.system import Mänx, MenuOption, MänxFkt
+from typing import List, Any, Optional as Opt, cast, Iterable, Union, Sequence,\
+    Collection
+from xwatc.system import Mänx, MenuOption, MänxFkt, InventarBasis, malp, mint
 
 
 @enum.unique
@@ -138,9 +139,9 @@ class Wegtyp(enum.Enum):
 
 @dataclass
 class Richtung:
-    typ: Wegtyp
     ziel: Wegpunkt
     zielname: str
+    typ: Wegtyp = Wegtyp.WEG
 
 
 HIMMELSRICHTUNGEN = [a + "en" for a in (
@@ -156,11 +157,46 @@ HIMMELSRICHTUNGEN = [a + "en" for a in (
 HIMMELSRICHTUNG_KURZ = ["n", "no", "o", "so", "s", "sw", "w", "nw"]
 
 
-class Wegkreuzung(Wegpunkt):
+class Beschreibung:
+    geschichte: Union[Sequence[str], MänxFkt]
+
+    def __init__(self,
+                 geschichte: Union[Sequence[str], MänxFkt],
+                 nur: Opt[Collection[Opt[str]]] = None,
+                 außer: Opt[Collection[Opt[str]]] = None):
+        if isinstance(geschichte, str):
+            self.geschichte = [geschichte]
+        else:
+            self.geschichte = geschichte
+        if nur and außer:
+            raise TypeError("Nur und außer können nicht gleichzeitig gegeben "
+                            "sein.")
+        self.nur = self._nur(nur)
+        self.außer = self._nur(außer)
+
+    def beschreibe(self, mänx: Mänx, von: Opt[str]):
+        if (not self.nur or von in self.nur) and (
+                not self.außer or von not in self.außer):
+            if callable(self.geschichte):
+                return self.geschichte(mänx)
+            else:
+                for g in self.geschichte[:-1]:
+                    malp(g)
+                mint(self.geschichte[-1])
+        return None
+
+    @staticmethod
+    def _nur(nur: Opt[Collection[Opt[str]]]) -> Opt[Collection[Opt[str]]]:
+        if isinstance(nur, str):
+            return [nur]
+        else:
+            return nur
+
+
+class Wegkreuzung(Wegpunkt, InventarBasis):
     OPTS = [4, 3, 5, 2, 6, 1, 7, 0]
 
     def __init__(self,
-                 beschreibung: Opt[str] = None,
                  n: Opt[Richtung] = None,
                  nw: Opt[Richtung] = None,
                  no: Opt[Richtung] = None,
@@ -170,12 +206,25 @@ class Wegkreuzung(Wegpunkt):
                  so: Opt[Richtung] = None,
                  s: Opt[Richtung] = None,
                  gucken: Opt[MänxFkt] = None):
+        # TODO gucken
         super().__init__()
         self.richtungen = [n, no, o, so, s, sw, w, nw]
-        self.beschreibung = beschreibung
+        self.beschreibungen: List[Beschreibung] = []
+        self.menschen: List['xwatc.dorf.NSC'] = []
         self.gucken = None
 
-    def beschreibe(self, mänx: Mänx, richtung: Opt[int]):  # pylint: disable=unused-argument
+    def add_beschreibung(self,
+                         geschichte: Union[Sequence[str], MänxFkt],
+                         nur: Opt[Sequence[str]] = None,
+                         außer: Opt[Sequence[str]] = None):
+        self.beschreibungen.append(Beschreibung(geschichte, nur, außer))
+
+    def beschreibe(self, mänx: Mänx, richtung: Opt[int]):
+        ri_name = HIMMELSRICHTUNG_KURZ[richtung] if richtung is not None else None
+        for beschreibung in self.beschreibungen:
+            beschreibung.beschreibe(mänx, ri_name)
+
+    def beschreibe_kreuzung(self, richtung: Opt[int]):  # pylint: disable=unused-argument
         rs = self.richtungen
         if richtung is not None:
             rit = cast(Richtung, rs[richtung]).typ
@@ -231,7 +280,6 @@ class Wegkreuzung(Wegpunkt):
 
     def get_nachbarn(self)->List[Wegpunkt]:
         return [ri.ziel for ri in self.richtungen if ri]
-
 
     def main(self, mänx: Mänx, von: Opt[Wegpunkt]) -> Wegpunkt:
         if von != self:
