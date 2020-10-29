@@ -50,7 +50,8 @@ FVorname = $StandardName
 	| cap($NormalSilbe) $NormalSilbe $NormalSilbe;
 FNachname = $FVorname tochter;
 
-Letainwort1 = krak|bum|op|jub|tom|ban|to|e|nin|min|cu|zu|ban|su|le|ekc|con|li
+Letainwort1 = krak|bum|op|jub|tom|ban|to|e|nin|min|ge|gi|ce|ci|pät|mun|mün
+    |sünd|änt|wün|fant|rund|rär|rät|brum|ta{5}|hel|ahr|ba|cu|zu|ban|su|le|ekc|con|li
 	|wug|ja|taikc|kcon|chi|mot|mein
 Letainverb1 = flok|kolf|la|tikc|kap|ain
 Letainwort = $Letainwort1 "."
