@@ -2,7 +2,7 @@
 NSCs für Disnajenbun
 Created on 18.10.2020
 """
-from xwatc.system import Mänx, mint, Spielende, InventarBasis, sprich, malp
+from xwatc.system import Mänx, mint, Spielende, InventarBasis, sprich, malp, register
 from xwatc.dorf import NSC, Dorfbewohner, Rückkehr
 import random
 import re
@@ -10,22 +10,6 @@ from typing import Optional
 from xwatc.scenario import Scenario
 from xwatc import jtg
 __author__ = "jasper"
-REGISTER = {}
-
-# TODO Vorstellen!
-
-
-def register(name):
-    def do_register(fkt):
-        REGISTER[name] = fkt
-        return fkt
-    return do_register
-
-
-def registrieren(mänx: Mänx):
-    for name, fkt in REGISTER.items():
-        if name not in mänx.welt.objekte:
-            mänx.welt.objekte[name] = fkt()
 
 
 def frage_melken(nsc: NSC, _mänx: Mänx):

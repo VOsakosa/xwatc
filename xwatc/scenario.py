@@ -102,10 +102,12 @@ class Feld:
             return True
         else:
             assert isinstance(self.obj, str)
-            if self.obj in mänx.welt.objekte:
-                return mänx.welt.objekte[self.obj].main(mänx) or False
-            else:
+            try:
+                obj = mänx.welt.obj(self.obj)
+            except KeyError:
                 return False
+            else:
+                return obj.main(mänx) or False
 
     def move_obj(self, other: 'Feld'):
         self.zeichen, other.zeichen = other.zeichen, self.zeichen
