@@ -11,7 +11,6 @@ from xwatc.jtg import groekrak, see, nord
 from xwatc.haendler import Preis
 from xwatc.jtg.groekrak import zugang_südost
 from xwatc.jtg import eo_nw
-import xwatc_Hauptgeschichte
 
 
 def t2(mänx: Mänx) -> None:
@@ -562,6 +561,7 @@ def hauptstadt_weg(mänx: Mänx):
                             "du hindurch?"):
                 print("Du landest an einem vertrauten Ort.")
                 mint("Es ist der Ort, wo deine Geschichte begonnen hat.")
+                import xwatc_Hauptgeschichte
                 xwatc_Hauptgeschichte.himmelsrichtungen(mänx)
             else:
                 sprich("Dryade", "Vertraust du mir nicht?")

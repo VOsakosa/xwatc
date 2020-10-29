@@ -63,9 +63,7 @@ def create_parser():
     class Function:
         def __init__(self, tokens):
             self.fn_name, self.argument = tokens
-            if not self.fn_name:
-                self.fn = str
-            elif self.fn_name in FUNCTIONS:
+            if self.fn_name in FUNCTIONS:
                 self.fn = FUNCTIONS[self.fn_name]
             else:
                 raise KeyError("Unbekannte Funktion:", self.fn_name)
@@ -78,6 +76,12 @@ def create_parser():
 
         def choice(self, rng):
             return self.fn(self.argument.choice(rng))
+    
+    def function(tokens):
+        if len(tokens) == 1:
+            return tokens[0]
+        else:
+            return Function(tokens)
 
     def keyword(chars):
         return pp.Suppress(pp.Word(chars, exact=1))
@@ -91,10 +95,10 @@ def create_parser():
     Direct = pp.Regex(r"[\w']+")("Direct") + ~pp.Literal("=")
     OrRule = pp.Forward()
     Quoted = pp.QuotedString('"') | pp.QuotedString("'")
-    Function = (pp.Optional(pp.Word(pp.alphanums)) +
-                keyword("(") + OrRule + keyword(")")).addParseAction(Function)
+    _Function = (pp.Optional(pp.Word(pp.alphanums)) +
+                keyword("(") + OrRule + keyword(")")).addParseAction(function)
     RuleAtom = (pp.Literal("$") + pp.Word(pp.alphanums)).addParseAction(Rule)
-    Atom = (RuleAtom | Quoted | Function | Direct)("Atom")
+    Atom = (RuleAtom | Quoted | _Function | Direct)("Atom")
     Plus = Atom[1, ...]("Plus").addParseAction(Add)
     Repeated = (Plus + (
         keyword("{") + pp.pyparsing_common.integer + keyword("}")
@@ -118,7 +122,7 @@ class _DictWithDiagnostics(dict):
 
 def remove_apostrophe(arg: str) -> str:
     """Remove apostrophes like in an'kan, keeping ones like in "jen'a"."""
-    return re.sub("'(?![aeiouyäöüáéíóú]", "", arg,
+    return re.sub("'(?![aeiouyäöüáéíóú])", "", arg,
                   flags=re.RegexFlag.IGNORECASE)
 
 

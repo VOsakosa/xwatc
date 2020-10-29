@@ -2,7 +2,7 @@
 NSCs für Disnajenbun
 Created on 18.10.2020
 """
-from xwatc.system import Mänx, mint, Spielende, InventarBasis, sprich
+from xwatc.system import Mänx, mint, Spielende, InventarBasis, sprich, malp
 from xwatc.dorf import NSC, Dorfbewohner, Rückkehr
 import random
 import re
@@ -180,6 +180,17 @@ def axtmann() -> NSC:
     }, vorstellen=["Ein großer Mann hat eine Kapuze tief ins Gesicht gezogen.",
                    "Auffällig ist eine große Axt, die er in der Hand hält."])
     n.dialog("hallo", '"Hallo"', [".."])
+    n.dialog("axt", '"Du hast aber ein große Axt."',
+             lambda _m, _n: malp("Der Mann wirkt ein wenig stolz."))
+    n.dialog("heißt", '"Wie heißt du?"', [".."], "hallo")
+
+    def dlg_brian(nsc, _m):
+        nsc.name = "Brían"
+        malp("Brían nickt leicht.")
+        nsc.sprich("..", warte=True)
+    n.dialog("brian", '"Du heißt Brían, oder?"', dlg_brian
+             ).wenn_var("kennt:jtg:axtmann")
+
     return n
 
 
@@ -305,6 +316,11 @@ def kirie() -> NSC:
         m.inventar["Talisman des Verstehens"] -= 1
         n.inventar["Talisman des Verstehens"] += 1
 
+    def axtmann_r(n, m):
+        m.welt.setze("kennt:jtg:axtmann")
+        n.sprich("Meinst du Brían?")
+        n.sprich("Er heißt Brían und beschützt unser Dorf.", warte=True)
+
     n.dialog("hallo", '"Hallo"', ("Hallo, Alter!",))
     n.dialog("heißt", '"...und wie heißt du?',
              ["Kirie!"], "hallo").wiederhole(1)
@@ -316,6 +332,8 @@ def kirie() -> NSC:
         lambda n, m: n.freundlich > 10 and n.hat_item("Talisman des Verstehens"))
     n.dialog("talismanzurück", 'Talisman zurückgeben', talisman_zurück).wenn(
         lambda n, m: m.hat_item("Talisman des Verstehens"))
+    n.dialog("axtmann", '"Wie heißt der Mann mit der Axt?"', axtmann_r).wenn(
+        lambda n, m: m.welt.am_leben("jtg:axtmann"))
     return n
 
 
@@ -352,9 +370,10 @@ def lina() -> NSC:
     def starren(n, m: Mänx):
         if n.freundlich > 0:
             n.freundlich -= 1
-            print("Sie wirft dir einen Blick zu und du wendet schnell den Blick ab.")
+            print("Sie wirft dir einen Blick zu und du wendest schnell den Blick ab.")
         elif n.wurde_bestarrt:
-            n.sprich("BRÀIN!")
+            n.sprich("BRíAN!")
+            m.welt.setze("kennt:jtg:axtmann")
             mint("Der Mann mit der Axt stürmt herein und gibt dir eines auf die "
                  "Mütze.")
             print("Du wirst ohnmächtig")
@@ -363,7 +382,8 @@ def lina() -> NSC:
             mint("Du wachst erst am nächsten Tag auf.")
             return Rückkehr.VERLASSEN
         else:
-            n.sprich("Freundchen, hör damit auf oder ich rufe Bràin.")
+            m.welt.setze("kennt:jtg:axtmann")
+            n.sprich("Freundchen, hör damit auf oder ich rufe Brían.")
             n.wurde_bestarrt = True
 
     n.dialog("brüste", 'auf die Brüste starren', starren).wenn(
