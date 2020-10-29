@@ -262,6 +262,12 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                          außer: Opt[Sequence[Opt[str]]] = None):
         self.beschreibungen.append(Beschreibung(geschichte, nur, außer))
 
+    def add_effekt(self,
+                         geschichte: Union[Sequence[str], MänxFkt],
+                         nur: Opt[Sequence[Opt[str]]] = None,
+                         außer: Opt[Sequence[Opt[str]]] = None):
+        self.beschreibungen.append(Beschreibung(geschichte, nur, außer))
+
     def beschreibe(self, mänx: Mänx, richtung: Opt[int]):
         ri_name = HIMMELSRICHTUNG_KURZ[richtung] if richtung is not None else None
         for beschreibung in self.beschreibungen:

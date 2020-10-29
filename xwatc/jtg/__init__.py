@@ -2,6 +2,7 @@ from time import sleep
 from xwatc import haendler
 from xwatc import scenario
 from xwatc import weg
+from xwatc import system
 from xwatc.system import Mänx, minput, ja_nein, Spielende, mint, sprich, kursiv
 from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner, Dialog
 from random import randint
@@ -12,6 +13,7 @@ from xwatc.jtg import groekrak, see, nord
 from xwatc.haendler import Preis
 from xwatc.jtg.groekrak import zugang_südost
 from xwatc.jtg import eo_nw
+from xwatc.untersystem.acker import Wildpflanze
 
 
 def t2(mänx: Mänx) -> None:
@@ -19,11 +21,27 @@ def t2(mänx: Mänx) -> None:
     print("Es erwartet dich Vogelgezwitscher.")
     weg.wegsystem(mänx, "jtg:mitte")
 
+def lichtung_gucken(mänx: Mänx):
+    if not mänx.welt.ist("jtg:var:gänseblümchen"):
+        mänx.welt.setze("jtg:var:gänseblümchen")
+        mint("Du findest Blumen auf der Lichtung.")
+        mänx.erhalte("Gänseblümchen", 3)
+    mint("Wenn du genau hinsiehst, erkennst du, dass hier ein Pfad von "
+         "Norden nach Süden auf einen von Westen trifft. Im Osten sind "
+         "nur Büsche.")
+
+@system.register("jtg:beeren")
+def beeren() -> Wildpflanze:
+    return Wildpflanze(2, {"Beere":10}, "Du findest Beeren.")
 
 @weg.gebiet("jtg:mitte")
 def erzeuge_mitte(mänx: Mänx) -> 'weg.Wegpunkt':
     westw = weg.Weg(2, weg.WegAdapter(None, groekrak.zugang_ost), None)
     bogen = weg.Wegkreuzung(w=weg.Richtung(westw))
+    bogen.add_beschreibung("Der Weg macht nach einer Weile eine Biegung "
+                           "nach rechts.", nur="n")
+    bogen.add_beschreibung("Der Weg macht einen Bogen nach links, nach Norden.",
+                           nur="w")
     west = weg.Wegkreuzung()
     west.verbinde_mit_weg(bogen, 0.4, "s", typ=weg.Wegtyp.WEG)
 
@@ -32,8 +50,13 @@ def erzeuge_mitte(mänx: Mänx) -> 'weg.Wegpunkt':
     nordk.verbinde_mit_weg(west, 3, "sw", "n")
 
     süd = weg.WegAdapter(None, t2_süd)
+    osten = weg.Wegkreuzung()
+    osten.add_effekt(system.Besuche("jtg:beeren").main)
+    osten.add_beschreibung("Du kommst hier nicht weiter. Umkehren?")
 
-    lichtung = weg.Wegkreuzung(s=weg.Richtung(süd, typ=weg.Wegtyp.PFAD))
+    lichtung = weg.Wegkreuzung(
+        s=weg.Richtung(süd, typ=weg.Wegtyp.PFAD),
+        gucken=lichtung_gucken)
     lichtung.verbinde_mit_weg(nordk, 3, "n", typ=weg.Wegtyp.PFAD)
     lichtung.verbinde_mit_weg(west, 4, "w", typ=weg.Wegtyp.TRAMPELPFAD)
     lichtung.add_beschreibung(
@@ -46,65 +69,11 @@ def erzeuge_mitte(mänx: Mänx) -> 'weg.Wegpunkt':
         "Im Westen und Süden ist nichts besonderes."
         ))
     
+    osten.verbinde(lichtung, "w", weg.Wegtyp.TRAMPELPFAD)
+    lichtung.verbinde(osten, "o", weg.Wegtyp.TRAMPELPFAD)
     return lichtung
     
-
-
-def lichtung(mänx: Mänx) -> None:
-    print("Du befindest sich auf einer Lichtung in einem Wald.")
-    mint("Ein schmaler Pfad führt nach Norden.")
-    print("Im Osten ist Dickicht.")
-    print("Im Westen und Süden ist nichts besonderes.")
-    beeren = False
-    cont = True
-
-    def gucken():
-        if not mänx.welt.ist("jtg:var:gänseblümchen"):
-            mänx.welt.setze("jtg:var:gänseblümchen")
-            mint("Du findest Blumen auf der Lichtung.")
-            mänx.erhalte("Gänseblümchen", 3)
-        mint("Wenn du genau hinsiehst, erkennst du, dass hier ein Pfad von "
-             "Norden nach Süden auf einen von Westen trifft. Im Osten sind "
-             "nur Büsche.")
-
-    while cont:
-        cont = False
-        richtung = minput(
-            mänx, "Gehst du nach Norden, Osten, Westen oder Süden? "
-            "norden/süden/westen/osten/gucken",
-            ["osten", "süden", "westen", "norden", "gucken", "g"])
-        if richtung == "norden":
-            print("Der kleine Pfad stößt spitz auf einen Weg von links.")
-            weiter = minput(
-                mänx,
-                "Willst du dem Weg folgen [f] oder scharf links abbiegen?[abb]",
-                ["f", "abb"])
-            if weiter == "f":
-                t2_norden(mänx)
-            else:
-                # TODO umkehren ermöglichen
-                print("Der Weg macht nach einer Weile eine Biegung nach "
-                      "rechts.")
-                groekrak.zugang_ost(mänx)
-        elif richtung == "osten":
-            if not beeren:
-                print("Du findest Beeren.")
-                mänx.inventar["Beere"] += 10
-                mint("Aber du kommst hier nicht weiter.")
-            minput(mänx, "Umkehren?")
-            cont = True
-            beeren = True
-        elif richtung == "gucken" or richtung == "g":
-            gucken()
-            cont = True
-        elif richtung == "süden":
-            t2_süd(mänx)
-        else:  # Westen
-            print("Du triffst auf einen Weg.")
-            if mänx.minput("Rechts oder Links?", ["r", "l"]) == "r":
-                t2_norden(mänx)
-            else:
-                groekrak.zugang_ost(mänx)
+# TODO: print("Der kleine Pfad stößt spitz auf einen Weg von links.")
 
 
 class Mädchen(haendler.Händler):
@@ -163,7 +132,6 @@ def t2_norden(mänx: Mänx) -> None:
 
 def disnayenbum(mänx: Mänx):
     mint("Du kommst im Dorf Disnayenbun an.")
-    nord.registrieren(mänx)
     nex = scenario.lade_scenario(mänx, "disnajenbun")
     if "osten" == nex:
         mint("Du verlässt das Dorf Richtung Osten.")
