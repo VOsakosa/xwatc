@@ -5,11 +5,14 @@ from time import sleep
 import re
 from pathlib import Path
 from xwatc.untersystem.itemverzeichnis import lade_itemverzeichnis
+import typing
 
 
 MänxFkt = Callable[['Mänx'], Any]
 ITEMVERZEICHNIS, UNTERKLASSEN = lade_itemverzeichnis(
     Path(__file__).parent / "itemverzeichnis.txt")
+
+_OBJEKT_REGISTER: Dict[str, Callable[[], 'HatMain']] = {}
 
 
 def get_class(item: str) -> Optional[str]:
@@ -330,6 +333,15 @@ class Welt:
         return name in self.objekte and (
             not isinstance(self.objekte[name], dorf.NSC) or
             not self.objekte[name].tot)
+    
+    def obj(self, name: str) -> Any:
+        """Hole ein registriertes oder existentes Objekt."""
+        if name in self.objekte:
+            return self.objekte[name]
+        elif name in _OBJEKT_REGISTER:
+            return _OBJEKT_REGISTER[name]()
+        else:
+            raise KeyError(f"Das Objekt {name} existiert nicht.")
 
     def nächster_tag(self, tage: int = 1):
         self.tag = int(self.tag + tage)
@@ -349,6 +361,28 @@ def schiebe_inventar(start: Inventar, ziel: Inventar):
     for item, anzahl in start.items():
         ziel[item] += anzahl
     start.clear()
+
+class HatMain(typing.Protocol):
+    def main(self, mänx: Mänx):
+        pass
+
+class Besuche:
+    def __init__(self, objekt_name: str):
+        self.objekt_name = objekt_name
+        assert self.objekt_name in _OBJEKT_REGISTER
+    
+    def main(self, mänx: Mänx):
+        mänx.welt.obj(self.objekt_name).main(mänx)
+
+
+Decorator = Callable[[T], T]
+
+def register(name: str) -> Decorator[Callable[[], HatMain]]:
+    def wrapper(func):
+        # assert name not in _OBJEKT_REGISTER,("Doppelte Registrierung " + name)
+        _OBJEKT_REGISTER[name] = func
+        return func
+    return wrapper
 # EIN- und AUSGABE
 
 
