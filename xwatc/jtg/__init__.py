@@ -5,13 +5,12 @@ from xwatc.system import Mänx, minput, ja_nein, Spielende, mint, sprich, kursiv
 from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner, Dialog
 from random import randint
 import random
-from xwatc.jtg.ressourcen import FRAUENNAMEN
+from xwatc.jtg.ressourcen import zufälliger_name
 from xwatc.jtg.tauern import land_der_kühe
 from xwatc.jtg import groekrak, see, nord
 from xwatc.haendler import Preis
 from xwatc.jtg.groekrak import zugang_südost
 from xwatc.jtg import eo_nw
-import xwatc_Hauptgeschichte
 
 
 def t2(mänx: Mänx) -> None:
@@ -209,7 +208,7 @@ def haus_des_hexers(mänx: Mänx)-> None:
 
             "Das gehst dich doch nichts an!",
         ),
-            ["verirrt", "halloli", "durchreise", "liebe", "an"])
+            ["halloli", "verirrt", "durchreise", "liebe", "an"])
     ]
     if mänx.welt.ist("jtg:t2"):
         opts.append(("Ich bin einfach in den Osten ­– weil da keine Menschen sind – gegangen, "
@@ -443,23 +442,27 @@ class TobiacBerndoc(NSC):
 
 
 class Waschweib(Dorfbewohner):
-    def __init__(self, name: str):
+    def __init__(self):
+        name = zufälliger_name()
         super().__init__(name, geschlecht=False)
         self.art = "Hausfrau"
-        self.inventar["Schnöder Ehering"] += 1
+        self.verheiratet = random.random() > 0.4
+        if self.verheiratet:
+            self.inventar["Schnöder Ehering"] += 1
+        elif random.random() > 0.5:
+            self.inventar["Gänseblümchen"] += 5
         self.inventar["Einfaches Kleid"] += 1
         self.inventar["Unterhose"] += 1
+        self.inventar["BH" if random.random() < 0.6 else "Großer BH"] += 1
+        if random.random() > 0.8:
+            self.inventar["Haarband"] += 1
+            self.inventar["Armband"] += 2
+        self.inventar["Socke"] += 2
+        self.gold += max(0, random.randint(-4, 10))
         self.direkt_reden = True
 
 
-def zufälliges_waschweib() -> Waschweib:
-    name = "{} {}tochter".format(
-        random.choice(FRAUENNAMEN), random.choice(FRAUENNAMEN))
-    w = Waschweib(name)
-    if random.random() > 0.8:
-        w.inventar["Haarband"] += 1
-    w.gold += max(0, random.randint(-4, 10))
-    return w
+zufälliges_waschweib = Waschweib
 
 
 def süd_dorf_wo(nsc: NSC, _mänx: Mänx):
@@ -523,7 +526,7 @@ def erzeuge_süd_dorf(mänx) -> Dorf:
         "jtg:m:tobiac", TobiacBerndoc))
     d.orte.append(kirche)
     for _i in range(randint(2, 5)):
-        w = zufälliges_waschweib()
+        w = Waschweib()
         w.dialoge.extend(SÜD_DORF_DIALOGE)
         d.orte[0].menschen.append(w)
     # TODO weitere Objekte
@@ -541,6 +544,7 @@ def süd_dorf(mänx: Mänx):
     ]
     mänx.menu(ziele, frage="Wohin gehst du?")(mänx)
 
+
 def hauptstadt_weg(mänx: Mänx):
     print("Am Wegesrand siehst du ein Schild: \"Achtung Monster!\"")
     if mänx.ja_nein("Willst du wirklich weitergehen?"):
@@ -557,6 +561,7 @@ def hauptstadt_weg(mänx: Mänx):
                             "du hindurch?"):
                 print("Du landest an einem vertrauten Ort.")
                 mint("Es ist der Ort, wo deine Geschichte begonnen hat.")
+                import xwatc_Hauptgeschichte
                 xwatc_Hauptgeschichte.himmelsrichtungen(mänx)
             else:
                 sprich("Dryade", "Vertraust du mir nicht?")
@@ -587,6 +592,7 @@ def hauptstadt_weg(mänx: Mänx):
     else:
         süd_dorf(mänx)
 
+
 def t2_no(mänx):
     print("Du kommst an einen Wegweiser.")
     print("Der Weg gabelt sich an einem kleinen Fluss, links führt der Weg "
@@ -597,11 +603,10 @@ def t2_no(mänx):
     else:
         süd_dorf(mänx)
 
+
 def tauern_ww_süd(mänx: Mänx):
     print("Du folgst dem Weg sehr lange den Fluss aufwärts.")
     mint("Da kommst du an eine Kreuzung. Ein Weg führt den Fluss weiter aufwärts")
-
-
 
 
 if __name__ == '__main__':

@@ -53,7 +53,7 @@ def zugang_südost(mänx: Mänx):
 def grökrak(mänx: Mänx):
     if mänx.ja_nein("Willst du die Festung betreten?"):
         gkrak = mänx.welt.get_or_else("jgt:dorf:grökrakchöl", erzeuge_grökrak)
-        gkrak.main()
+        # gkrak.main()
 
 
 def erzeuge_grökrak():

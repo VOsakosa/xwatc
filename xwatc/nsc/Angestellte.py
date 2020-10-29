@@ -43,7 +43,10 @@ class MinkajaOrekano(Angestellte):
         raise Spielende
         
     def kampf_töten(self, mänx: Mänx) -> None:
-        if mänx.hat_klasse("Waffe"):         
+        if mänx.hat_klasse("Waffe"):
+            mint("Du tötest sie.")
+            self.tot
+            
     def kampf_fliehen(self, mänx: Mänx) -> None:
         mint('"Was ist?"')
         
@@ -51,7 +54,7 @@ class MinkajaOrekano(Angestellte):
 
 
     def vorstellen(self, mänx: Mänx) -> None:
-        mint('"Was ist?"')
+        mint('"Tag. Was ist?"')
 
     def reden_geige(self, mänx: Mänx) -> None:
         mint('"Ja. Warum fragst du?"')
