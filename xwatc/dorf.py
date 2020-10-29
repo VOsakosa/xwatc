@@ -10,12 +10,12 @@ from typing import List, Union, Callable, Dict, Tuple, Any, Iterator, Iterable
 from typing import Optional as Opt, Sequence
 from dataclasses import dataclass, field
 from xwatc.system import (mint, schiebe_inventar, Spielende, MenuOption,
-                          sprich, kursiv, Welt)
+                          sprich, kursiv, MänxFkt, Welt)
 from xwatc import system
 from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
 __author__ = "jasper"
 
-MänxFkt = Callable[[system.Mänx], Any]
+
 NSCOptionen = Iterable[MenuOption[MänxFkt]]
 DialogFn = Callable[["NSC", system.Mänx], Opt[bool]]
 RunType = Union['Dialog', MänxFkt, 'Rückkehr']
@@ -169,7 +169,7 @@ class NSC(system.InventarBasis):
 
     def sprich(self, text: str, *args, **kwargs) -> None:
         """Minte mit vorgestelltem Namen"""
-        system.sprich(self.name, text, *args, **kwargs)  # type: ignore
+        system.sprich(self.name, text, *args, **kwargs)
 
     def dialog(self, *args, **kwargs) -> 'Dialog':
         "Erstelle einen Dialog"
