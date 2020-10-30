@@ -192,7 +192,7 @@ class Malp:
     text: str
     warte: bool = False
     def __call__(self):
-        malp(text, warte=warte)
+        malp(self.text, warte=self.warte)
 
 class Dialog:
     """Ein einzelner Gesprächsfaden beim Gespräch mit einem NSC"""
