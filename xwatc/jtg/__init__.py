@@ -3,7 +3,8 @@ from xwatc import haendler
 from xwatc import scenario
 from xwatc import weg
 from xwatc import system
-from xwatc.system import Mänx, minput, ja_nein, Spielende, mint, sprich, kursiv
+from xwatc.system import (Mänx, minput, ja_nein, register,
+                          Spielende, mint, sprich, kursiv, malp)
 from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner, Dialog
 from random import randint
 import random
@@ -21,6 +22,7 @@ def t2(mänx: Mänx) -> None:
     print("Es erwartet dich Vogelgezwitscher.")
     weg.wegsystem(mänx, "jtg:mitte")
 
+
 def lichtung_gucken(mänx: Mänx):
     if not mänx.welt.ist("jtg:var:gänseblümchen"):
         mänx.welt.setze("jtg:var:gänseblümchen")
@@ -30,9 +32,11 @@ def lichtung_gucken(mänx: Mänx):
          "Norden nach Süden auf einen von Westen trifft. Im Osten sind "
          "nur Büsche.")
 
+
 @system.register("jtg:beeren")
 def beeren() -> Wildpflanze:
-    return Wildpflanze(2, {"Beere":10}, "Du findest Beeren.")
+    return Wildpflanze(2, {"Beere": 10}, "Du findest Beeren.")
+
 
 @weg.gebiet("jtg:mitte")
 def erzeuge_mitte(mänx: Mänx) -> 'weg.Wegpunkt':
@@ -67,15 +71,16 @@ def erzeuge_mitte(mänx: Mänx) -> 'weg.Wegpunkt':
         "Ein schmaler Pfad führt nach Norden.",
         "Im Osten ist Dickicht.",
         "Im Westen und Süden ist nichts besonderes."
-        ))
-    
+    ))
+
     osten.verbinde(lichtung, "w", weg.Wegtyp.TRAMPELPFAD)
     lichtung.verbinde(osten, "o", weg.Wegtyp.TRAMPELPFAD)
     return lichtung
-    
+
 # TODO: print("Der kleine Pfad stößt spitz auf einen Weg von links.")
 
 
+@register("jtg:mädchen")
 class Mädchen(haendler.Händler):
     """Mädchen am Weg nach Norden."""
 
@@ -96,35 +101,42 @@ class Mädchen(haendler.Händler):
         print("Das Mädchen ist schwach. Niemand hindert dich daran, sie "
               "auf offener Straße zu schlagen.")
         print("Sie hat nichts außer ihren Lumpen.", end="")
-        if self.verkauft["Rose"]:
+        if self.hat_item("Rose"):
             print(
                 ", die Blume, die sie dir verkaufen wollte, ist beim Kampf zertreten worden.")
         else:
             print(".")
-        del self.verkauft["Rose"]
+        del self.inventar["Rose"]
         self.plündern(mänx)
+
+    def verkaufen(self, mänx: Mänx, name: str, preis: Preis, anzahl: int=1)->bool:
+        ans = super().verkaufen(mänx, name, preis, anzahl=anzahl)
+        if ans and name == "Unterhose":
+            malp("Das Mädchen ist sichtlich verwirrt, dass "
+                 "du ihr eine Unterhose gegeben hast.")
+            mint("Es hält sie vor sich und mustert sie. Dann sagt sie artig danke.")
+            mänx.titel.add("Samariter")
+        elif ans and name == "Mantel":
+            malp("Das Mädchen bedeutet dir, dass sie nur den halben Mantel braucht.")
+            malp("Du schneidest den Mantel entzwei, und gibst ihr nur die Hälfte.")
+            mänx.inventar["halber Mantel"] += 1
+            mänx.titel.add("Samariter")
+        return ans
+
+    def kaufen(self, mänx: Mänx, name: str, anzahl: int=1)->bool:
+        ans = super().kaufen(mänx, name, anzahl=anzahl)
+        if ans and name == "Rose":
+            malp("Das Mädchen ist dankbar für das Stück Gold")
+        return ans
 
 
 def t2_norden(mänx: Mänx) -> None:
     """Das Dorf auf dem Weg nach Norden"""
     print("Auf dem Weg kommen dir mehrfach Leute entgegen, und du kommst in ein kleines Dorf.")
-    mädchen = mänx.welt.get_or_else("jtg:mädchen", Mädchen)
+    mädchen = mänx.welt.obj("jtg:mädchen")
     if mädchen.in_disnajenbum and not mädchen.tot:
-        if "k" == mädchen.main(mänx):
-            mädchen.kampf(mänx)
-        elif "Mantel" in mädchen.verkauft:
-            print("Das Mädchen bedeutet dir, dass sie nur den halben Mantel braucht.")
-            print("Du schneidest den Mantel entzwei, und gibst ihr nur die Hälfte.")
-            mänx.inventar["halber Mantel"] += 1
-            mänx.titel.add("Samariter")
-        elif mädchen.inventar["Rose"] == 0:
-            print("Das Mädchen ist dankbar für das Stück Gold")
-        if mädchen.inventar["Unterhose"]:
-            print(
-                "Das Mädchen ist sichtlich verwirrt, dass du ihr eine Unterhose gegeben hast.")
-            mint("Es hält sie vor sich und mustert sie. Dann sagt sie artig danke.")
-            mänx.titel.add("Perversling")
-        print("Das Mädchen verschwindet nach Süden.")
+        mädchen.main(mänx)
+        malp("Das Mädchen verschwindet nach Süden.")
         mädchen.in_disnajenbum = False
         # TODO wohin?
     disnayenbum(mänx)
