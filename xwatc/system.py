@@ -27,8 +27,16 @@ T = TypeVar("T")
 Tcov = TypeVar("Tcov", covariant=True)
 MenuOption = Tuple[str, str, Tcov]
 Inventar = Dict[str, int]
-
-
+class Persönlichkeit:
+    """ Deine Pesönlichkeit innerhalb des Spieles """
+    def __init__ (self, *arggs, ** kwargs):
+        self.ehrlichkeit = 0
+        self.stolz = 0
+        self.arroganz = 0
+        self.vertrauenswürdigkeit = 0
+        self.hilfsbereischaft = 0
+        self.mut = 0
+        
 class InventarBasis:
     """Ein Ding mit Inventar"""
     inventar: Inventar
@@ -94,7 +102,7 @@ class Karawanenfracht(InventarBasis):
         return "\n".join(ans)
 
 
-class Mänx(InventarBasis):
+class Mänx(InventarBasis, Persönlichkeit):
     """Der Hauptcharakter des Spiels, alles dreht sich um ihn, er hält alle
     Information."""
 

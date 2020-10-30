@@ -3,7 +3,7 @@ from xwatc.lg.norden import norden
 from xwatc.lg.westen import westen
 from xwatc.lg.osten import osten
 from xwatc.lg.süden import süden
-from xwatc.system import Mänx, minput, Spielende, mint
+from xwatc.system import Mänx, minput, Spielende, mint, malp, 
 import random
 
 
