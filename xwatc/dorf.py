@@ -9,7 +9,7 @@ import random
 from typing import List, Union, Callable, Dict, Tuple, Any, Iterator, Iterable
 from typing import Optional as Opt, Sequence
 from dataclasses import dataclass, field
-from xwatc.system import (mint, schiebe_inventar, Spielende, MenuOption,
+from xwatc.system import (mint, malp, schiebe_inventar, Spielende, MenuOption,
                           sprich, kursiv, MänxFkt, Welt)
 from xwatc import system
 from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
@@ -126,12 +126,15 @@ class NSC(system.InventarBasis):
                 ans = ans2
         elif use_print:
             for g in geschichte[:-1]:
-                print(g)
+                malp(g)
             mint(geschichte[-1])
         else:
-            for g in geschichte[:-1]:
-                self.sprich(g)
-            self.sprich(geschichte[-1], warte=True)
+            for g in geschichte:
+                if isinstance(g, Malp):
+                    g()
+                else:
+                    self.sprich(g)
+            mint()
         return ans
 
     def _main(self, mänx: system.Mänx) -> Any:
@@ -184,6 +187,12 @@ class NSC(system.InventarBasis):
 
 VorList = List[Union[str, Tuple[str, int]]]
 
+@dataclass
+class Malp:
+    text: str
+    warte: bool = False
+    def __call__(self):
+        malp(text, warte=warte)
 
 class Dialog:
     """Ein einzelner Gesprächsfaden beim Gespräch mit einem NSC"""
@@ -194,8 +203,9 @@ class Dialog:
                  text: str,
                  geschichte: Union[DialogFn, List[str]],
                  vorherige: Union[str, None, VorList] = None,
-                 wiederhole: int = 0):
-        # TODO mindestfreundlichkeit
+                 wiederhole: int = 0,
+                 min_freundlich: Opt[int] = None):
+        self.min_freundlich = min_freundlich
         self.name = name
         self.text = text
         self.geschichte = geschichte
@@ -241,6 +251,9 @@ class Dialog:
                 bed_name, anzahl = bed
                 if nsc.dialog_anzahl.get(bed_name, 0) < anzahl:
                     return False
+        if (self.min_freundlich is not None and
+                nsc.freundlich < self.min_freundlich):
+            return False
         if self.wenn_fn:
             return bool(self.wenn_fn(nsc, mänx))
         return True

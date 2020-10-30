@@ -438,12 +438,15 @@ def sprich(sprecher: str, text: str, warte: bool = False):
         print('"')
 
 
-def malp(*text, end='\n') -> None:
+def malp(*text, end='\n', warte=False) -> None:
     for words in text:
         for word in re.split(r"(\W)", str(words)):
             print(end=word, flush=True)
             sleep(0.05)
-    print(end=end)
+    if warte:
+        mint(end)
+    else:
+        print(end=end)
 
 
 def ja_nein(mänx, frage):
