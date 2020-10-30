@@ -132,6 +132,7 @@ class Händler(NSC):
     def handeln(self, mänx: Mänx) -> Rückkehr:
         """Lass Spieler mit Mänx handeln"""
         while True:
+            mänx.tutorial("handel")
             a = minput(mänx, "handel>", lower=False)
             al = a.lower()
             if al.startswith("k ") or al.startswith("kaufe "):

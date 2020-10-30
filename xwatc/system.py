@@ -5,6 +5,7 @@ from time import sleep
 import re
 from pathlib import Path
 from xwatc.untersystem.itemverzeichnis import lade_itemverzeichnis
+from xwatc.untersystem import hilfe
 import typing
 
 
@@ -235,10 +236,17 @@ class Mänx(InventarBasis):
             sleep(0.5)
         print()
 
+    def tutorial(self, art: str) -> None:
+        if not self.welt.ist("tutorial:" + art):
+            for zeile in hilfe.HILFEN[art]:
+                print(zeile)
+            self.welt.setze("tutorial:" + art)
+
     def inventar_zugriff(self, inv: InventarBasis,
                          nimmt: Union[bool, Sequence[str]] = False) -> None:
         """Ein Menu, um auf ein anderes Inventar zuzugreifen."""
         print(inv.erweitertes_inventar())
+        self.tutorial("inventar_zugriff")
         while True:
             a = self.minput(">", lower=False)
             if a == "z" or a == "zurück" or a == "f":
@@ -415,6 +423,25 @@ def spezial_taste(mänx: Mänx, taste: str) -> bool:
         print(mänx.missionen_zeigen())
     elif taste == "sterben":
         mänx.lebenswille = 0
+    elif taste == "hilfe":
+        print("Entkomme mit 'sofort sterben'. Nebeneffekt: Tod.")
+        print("Wenn du einfach nur Hilfe zu irgendwas haben willst, schreibe"
+              " 'hilfe [frage]'.")
+    elif taste.startswith("hilfe "):
+        args = taste[6:]
+        if args.lower() in hilfe.HILFEN:
+            for line in hilfe.HILFEN[args.lower()]:
+                print(line)
+        elif any(args == inv.lower() for inv in mänx.inventar
+                 ) and args in hilfe.ITEM_HILFEN:
+            lines = hilfe.ITEM_HILFEN[args]
+            if isinstance(lines, str):
+                print(lines)
+            else:
+                for line in lines:
+                    print(line)
+        else:
+            print("Keine Hilfe für", args, "gefunden.")
     elif taste == "sofort sterben":
         raise Spielende()
     else:

@@ -225,6 +225,8 @@ class Scenario:
         clear = False
         while not ans:
             self.print_feld(clear)
+            if not clear:
+                mänx.tutorial("scenario")
             clear = True
             arg = mänx.minput(">")
             if arg == "w":
