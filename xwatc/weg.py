@@ -9,8 +9,9 @@ from dataclasses import dataclass
 from xwatc.utils import uartikel, bartikel
 __author__ = "jasper"
 import typing
-from typing import List, Any, Optional as Opt, cast, Iterable, Union, Sequence,\
-    Collection, Callable, Dict, Tuple
+from typing import (List, Any, Optional as Opt, cast, Iterable, Union, Sequence,
+                    Collection, Callable, Dict, Tuple, NewType, Mapping,
+                    overload)
 from xwatc.system import Mänx, MenuOption, MänxFkt, InventarBasis, malp, mint
 
 
@@ -228,28 +229,52 @@ class Beschreibung:
         else:
             return nur
 
+
 def cap(a: str) -> str:
     return a[:1].upper() + a[1:]
+
+
+RiIn = Union[None, Wegpunkt, Richtung]
+_NotSpecifiedT = NewType("_NotSpecifiedT", object)
+_NSpec = _NotSpecifiedT(object())
+OpRiIn = Union[RiIn, _NotSpecifiedT]
+
+
+def _to_richtung(richtung: RiIn) -> Opt[Richtung]:
+    if isinstance(richtung, Richtung) or richtung is None:
+        return richtung
+    else:
+        return Richtung(ziel=richtung)
+
 
 class Wegkreuzung(Wegpunkt, InventarBasis):
     OPTS = [4, 3, 5, 2, 6, 1, 7, 0]
 
     def __init__(self,
-                 n: Opt[Richtung] = None,
-                 nw: Opt[Richtung] = None,
-                 no: Opt[Richtung] = None,
-                 o: Opt[Richtung] = None,
-                 w: Opt[Richtung] = None,
-                 sw: Opt[Richtung] = None,
-                 so: Opt[Richtung] = None,
-                 s: Opt[Richtung] = None,
+                 n: OpRiIn = _NSpec,
+                 nw: OpRiIn = _NSpec,
+                 no: OpRiIn = _NSpec,
+                 o: OpRiIn = _NSpec,
+                 w: OpRiIn = _NSpec,
+                 sw: OpRiIn = _NSpec,
+                 so: OpRiIn = _NSpec,
+                 s: OpRiIn = _NSpec,
+                 andere: Opt[Mapping[str, RiIn]] = None,
                  gucken: Opt[MänxFkt] = None,
                  kreuzung_beschreiben: bool = False,
                  immer_fragen: bool = False):
         # TODO gucken
         super().__init__()
-        self.richtungen = [n, no, o, so, s, sw, w, nw]
-        for ri in self.richtungen:
+        richtungen = [n, no, o, so, s, sw, w, nw]
+        if andere:
+            self.nachbarn = {name: _to_richtung(v)
+                             for name, v in andere.items()}
+        else:
+            self.nachbarn = {}
+        for richtung, name in zip(richtungen, HIMMELSRICHTUNG_KURZ):
+            if richtung is not _NSpec:
+                self.nachbarn[name] = _to_richtung(cast(RiIn, richtung))
+        for ri in self.nachbarn.values():
             if ri:
                 ri.ziel.verbinde(self)
         self.beschreibungen: List[Beschreibung] = []
@@ -265,9 +290,9 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         self.beschreibungen.append(Beschreibung(geschichte, nur, außer))
 
     def add_effekt(self,
-                         geschichte: Union[Sequence[str], MänxFkt],
-                         nur: Opt[Sequence[Opt[str]]] = None,
-                         außer: Opt[Sequence[Opt[str]]] = None):
+                   geschichte: Union[Sequence[str], MänxFkt],
+                   nur: Opt[Sequence[Opt[str]]] = None,
+                   außer: Opt[Sequence[Opt[str]]] = None):
         self.beschreibungen.append(Beschreibung(geschichte, nur, außer))
 
     def beschreibe(self, mänx: Mänx, richtung: Opt[int]):
@@ -277,8 +302,29 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         if self.kreuzung_beschreiben or not self.beschreibungen:
             self.beschreibe_kreuzung(richtung)
 
+    @overload
+    def __getitem__(self, i: slice) -> List[Opt[Richtung]]: ...
+
+    @overload
+    def __getitem__(self, i: int) -> Opt[Richtung]: ...
+
+    @overload
+    def __getitem__(self, i: str) -> Richtung: ...
+
+    def __getitem__(self, i):
+        if isinstance(i, slice):
+            return [self.nachbarn.get(hri) for hri in HIMMELSRICHTUNG_KURZ[i]]
+        elif isinstance(i, int):
+            return self.nachbarn.get(HIMMELSRICHTUNG_KURZ[i])
+        elif isinstance(i, str):
+            ans = self.nachbarn[i]
+            if ans is None:
+                raise ValueError(f"Loses Ende: {i} nicht besetzt")
+            return ans
+        raise TypeError(i, "must be str, int or slice.")
+
     def beschreibe_kreuzung(self, richtung: Opt[int]):  # pylint: disable=unused-argument
-        rs = self.richtungen
+        rs = self[:]
         if richtung is not None:
             rit = cast(Richtung, rs[richtung]).typ
             gegen = (richtung + 4) % 8
@@ -322,7 +368,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
             else:
                 riabs = (rirel + von) % 8
             himri = HIMMELSRICHTUNGEN[riabs]
-            ri = self.richtungen[riabs]
+            ri: Opt[Richtung] = self[riabs]
             if not ri:
                 continue
             if riabs == von:
@@ -336,13 +382,13 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                        himri.lower(), ri.ziel)
 
     def get_nachbarn(self)->List[Wegpunkt]:
-        return [ri.ziel for ri in self.richtungen if ri]
+        return [ri.ziel for ri in self.nachbarn.values() if ri]
 
     def main(self, mänx: Mänx, von: Opt[Wegpunkt]) -> Wegpunkt:
         if von != self:
             if von:
                 richtung = next((
-                    i for i, v in enumerate(self.richtungen) if v and v.ziel == von
+                    i for i, v in enumerate(self[:]) if v and v.ziel == von
                 ), None)
             else:
                 richtung = None
@@ -356,9 +402,13 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                  anderer: Wegpunkt, richtung: str = "",
                  typ: Wegtyp = Wegtyp.WEG, ziel: str = ""):
         if richtung:
-            ri = HIMMELSRICHTUNG_KURZ.index(richtung)
             anderer.verbinde(self)
-            self.richtungen[ri] = Richtung(anderer, ziel, typ)
+            self.nachbarn[richtung] = Richtung(anderer, ziel, typ)
+        else:
+            for key, val in self.nachbarn.items():
+                if val is None:
+                    self.nachbarn[key] = Richtung(anderer, ziel, typ)
+                    break
 
     def verbinde_mit_weg(self, nach: Wegkreuzung, länge: float,
                          richtung: str,
@@ -368,16 +418,17 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                          beschriftung_zurück: str = "",
                          **kwargs):
         """Verbinde zwei Kreuzungen mit einem Weg."""
-        ri = HIMMELSRICHTUNG_KURZ.index(richtung)
+
         if richtung2 is None:
-            ri2 = (ri + 4) % 8
+            ri = HIMMELSRICHTUNG_KURZ.index(richtung)
+            ri2 = HIMMELSRICHTUNG_KURZ[(ri + 4) % 8]
         else:
-            ri2 = HIMMELSRICHTUNG_KURZ.index(richtung2)
+            ri2 = richtung2
         weg = Weg(länge, self, nach, **kwargs)
-        assert not (self.richtungen[ri] or nach.richtungen[ri2]
+        assert not (self.nachbarn[richtung] or nach.nachbarn[ri2]
                     ), "Überschreibt bisherigen Weg."
-        self.richtungen[ri] = Richtung(weg, beschriftung_hin, typ=typ)
-        nach.richtungen[ri2] = Richtung(weg, beschriftung_zurück, typ=typ)
+        self.nachbarn[richtung] = Richtung(weg, beschriftung_hin, typ=typ)
+        nach.nachbarn[ri2] = Richtung(weg, beschriftung_zurück, typ=typ)
 
 
 class WegAdapter(_Strecke):
@@ -401,7 +452,8 @@ class WegAdapter(_Strecke):
 class Gebietsende(_Strecke):
     """Das Ende eines Gebietes ist der Anfang eines anderen."""
 
-    def __init__(self, von: Opt[Wegpunkt], gebiet: str,
+    def __init__(self, von: Opt[Wegpunkt],
+                 gebiet: str,  # pylint: disable=redefined-outer-name
                  port: str, nach: str):
         """Erzeuge ein Gebietsende.
 
