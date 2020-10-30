@@ -1,13 +1,18 @@
 from collections import defaultdict
-from typing import Sequence, Dict, List, Tuple, TypeVar, Callable, Any, Union,\
-    overload, Optional, Iterator, Mapping, Set
+from typing import (Sequence, Dict, List, Tuple, TypeVar, Callable, Any, Union,
+                    Optional, Iterator, Mapping, Set)
 from time import sleep
 import re
 from pathlib import Path
 from xwatc.untersystem.itemverzeichnis import lade_itemverzeichnis
+import typing
 
+
+MänxFkt = Callable[['Mänx'], Any]
 ITEMVERZEICHNIS, UNTERKLASSEN = lade_itemverzeichnis(
     Path(__file__).parent / "itemverzeichnis.txt")
+
+_OBJEKT_REGISTER: Dict[str, Callable[[], 'HatMain']] = {}
 
 
 def get_class(item: str) -> Optional[str]:
@@ -92,6 +97,7 @@ class Karawanenfracht(InventarBasis):
 
     def karawanenfracht_anzeigen(self):
         import xwatc.haendler
+        ans = []
         if not any(self.inventar.values()):
             return "Nichts da."
         for item, anzahl in sorted(self.inventar.items()):
@@ -242,7 +248,7 @@ class Mänx(InventarBasis, Persönlichkeit):
         """Ein Menu, um auf ein anderes Inventar zuzugreifen."""
         print(inv.erweitertes_inventar())
         while True:
-            a = self.minput(">")
+            a = self.minput(">", lower=False)
             if a == "z" or a == "zurück" or a == "f":
                 return
             co, _, rest = a.partition(" ")
@@ -254,7 +260,7 @@ class Mänx(InventarBasis, Persönlichkeit):
                     return
                 elif len(args) == 1:
                     ding = args[0]
-                    if ding in inv.inventar:
+                    if inv.hat_item(ding):
                         self.erhalte(ding, inv.inventar[ding], inv)
                     else:
                         print(f"Kein {ding} da.")
@@ -266,7 +272,7 @@ class Mänx(InventarBasis, Persönlichkeit):
                     except (AssertionError, ValueError):
                         print("Gebe eine positive Anzahl an.")
                     else:
-                        if ding in inv.inventar:
+                        if inv.hat_item(ding, anzahl):
                             self.erhalte(ding, anzahl, inv)
                         else:
                             print(f"Kein {ding} da.")
@@ -277,7 +283,7 @@ class Mänx(InventarBasis, Persönlichkeit):
                     print("Du kannst hier nichts hereingeben")
                 elif len(args) == 1:
                     ding = args[0]
-                    if ding in self.inventar:
+                    if self.hat_item(ding):
                         inv.inventar[ding] = self.inventar[ding]
                         self.inventar[ding] = 0
                     else:
@@ -295,6 +301,8 @@ class Mänx(InventarBasis, Persönlichkeit):
                             inv.inventar[ding] += anzahl
                         else:
                             print(f"Du hast kein {ding}.")
+            if not any(inv.items()):
+                return
 
 
 class Gefährte:
@@ -309,7 +317,7 @@ class Welt:
         self.inventar: Dict[str, int] = {}
         self.name = name
         self.objekte: Dict[str, Any] = {}
-        self.inventar["generell:tag"] = 0
+        self.tag = 0.0
 
     def setze(self, name: str) -> None:
         """Setze eine Welt-Variable"""
@@ -335,12 +343,29 @@ class Welt:
         return name in self.objekte and (
             not isinstance(self.objekte[name], dorf.NSC) or
             not self.objekte[name].tot)
+    
+    def obj(self, name: str) -> Any:
+        """Hole ein registriertes oder existentes Objekt."""
+        if name in self.objekte:
+            return self.objekte[name]
+        elif name in _OBJEKT_REGISTER:
+            obj = _OBJEKT_REGISTER[name]()
+            self.objekte[name] = obj
+            return obj
+        else:
+            raise KeyError(f"Das Objekt {name} existiert nicht.")
 
     def nächster_tag(self, tage: int = 1):
-        self.inventar["generell:tag"] += tage
+        self.tag = int(self.tag + tage)
 
     def get_tag(self) -> int:
-        return self.inventar["generell:tag"]
+        return int(self.tag)
+
+    def is_nacht(self) -> bool:
+        return self.tag % 1.0 >= 0.5
+
+    def tick(self, uhr: float):
+        self.tag += uhr
 
 
 def schiebe_inventar(start: Inventar, ziel: Inventar):
@@ -348,6 +373,28 @@ def schiebe_inventar(start: Inventar, ziel: Inventar):
     for item, anzahl in start.items():
         ziel[item] += anzahl
     start.clear()
+
+class HatMain(typing.Protocol):
+    def main(self, mänx: Mänx):
+        pass
+
+class Besuche:
+    def __init__(self, objekt_name: str):
+        self.objekt_name = objekt_name
+        assert self.objekt_name in _OBJEKT_REGISTER
+    
+    def main(self, mänx: Mänx):
+        mänx.welt.obj(self.objekt_name).main(mänx)
+
+
+Decorator = Callable[[T], T]
+
+def register(name: str) -> Decorator[Callable[[], HatMain]]:
+    def wrapper(func):
+        # assert name not in _OBJEKT_REGISTER,("Doppelte Registrierung " + name)
+        _OBJEKT_REGISTER[name] = func
+        return func
+    return wrapper
 # EIN- und AUSGABE
 
 

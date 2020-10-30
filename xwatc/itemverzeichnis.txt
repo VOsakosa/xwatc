@@ -21,6 +21,7 @@ Buch:
 
 Fisch: Nahrung
   Hering
+  Lachs
   Sardine
   Scholle
 
@@ -55,8 +56,14 @@ Kleidung:
   Mantel
   Mütze
   Schürze
+  Socke
   T-Shirt
+  Turnschuh
   Unterhose
+
+legendäre Waffe: Waffe
+  mächtige Axt
+  Schwert
 
 Metall:
   Eisen
@@ -69,11 +76,21 @@ Nahrung:
   Pausenbrot
   Reisportion
 
+normales Werkzeug:
+  Spitzhacke
+
+normale Waffe: Waffe
+  Dolch
+  Messer
+  Normales Schwert
+  Speer
+
 Obst: Nahrung
   Apfel
   Aprikose
   Banane
   Beere
+  Mandarine
   Tomate
   Zwetschge
 
@@ -97,7 +114,7 @@ Superfolienrohstoff:
 Superpapierrohstoff:
   Riesenschneckeninnereien
 
-Talisman:
+Talisman: Ausrüstung
   Talisman der Schreie
 
 Waffe:
@@ -107,17 +124,4 @@ Werkzeug:
 
 Zauberzutat:
   Menschenskelett
-
-legendäre Waffe: Waffe
-  Schwert
-  mächtige Axt
-
-normale Waffe: Waffe
-  Dolch
-  Messer
-  Normales Schwert
-  Speer
-
-normales Werkzeug:
-  Spitzhacke
 

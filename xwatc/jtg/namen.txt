@@ -8,9 +8,11 @@ KonsonantNoY = $KonsonantP{20} | x,j,dj,h,r
 Vokal = a,a,a,e,i,i,o,u,ä,ü,ö
 VokalY = a,a,a,e,o,o,u,u,ä
 EndVokal = a{10}, i{4}, e,e
+MEndVokal = o{4},e{2},a,eman,on,anin
 NormalSilbeP = $KonsonantNoY $Vokal{4} | $KonsonantP $VokalY
 Endung = n{5}, m, m, ng
 NormalSilbeE = ""{10}| $Endung "'"
+MSilbeE = $KonsonantNoY $MEndVokal
 NormalSilbe = $NormalSilbeP $NormalSilbeE
 EndSilbe = $KonsonantNoY $EndVokal
 KurzName = $NormalSilbeP ($EndVokal | $Endung)
@@ -22,11 +24,17 @@ FVorname = apo(cap($StandardName
 	| $NormalSilbeP $EndSilbe $NormalSilbeE 
 	| $NormalSilbeP $NormalSilbe $EndSilbe
 	| $NormalSilbeP $NormalSilbe $EndSilbe $NormalSilbeE));
+MVorname = apo(cap(
+		$NormalSilbeP $MEndVokal |
+		$NormalSilbe $MSilbeE {2}|
+		$NormalSilbe $NormalSilbe $MSilbeE
+	));
 FNachname = $FVorname tohoa{3} | $FVorname engke;
+MNachname = $MVorname son{3} | $MVorname engke;
 
 Letainwort1 = krak|bum|op|jub|tom|ban|to|e|nin|min|ge|gi|ce|ci|pät|mun|mün
     |sünd|änt|wün|fant|rund|rär|rät|brum|ta{5}|hel|ahr|ba|cu|zu|ban|su|le|ekc|con|li
-	|wug|ja|taikc|kcon|chi|mot|mein
+	|wug|ja|taikc|kcon|chi|mot|mein|o{3}|a{2}
 Letainverb1 = flok|kolf|la|tikc|kap|ain
 Letainwort = $Letainwort1 "."
 Letainverb = $Letainverb1 "."
@@ -41,5 +49,6 @@ Letain4 = $Letainwort $Letainwort $Letain3Ende
 Letain5 = $Letainwort $Letainwort $Letainwort $Letain2
 
 FName = $FVorname " " $FNachname
+MName = $MVorname " " $MNachname
 Letainname = $Letainvorname " " $Letainnachname
-Name = $FName
+Name = $FName | $MName
