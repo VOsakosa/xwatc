@@ -240,7 +240,7 @@ class Mänx(InventarBasis):
         """Ein Menu, um auf ein anderes Inventar zuzugreifen."""
         print(inv.erweitertes_inventar())
         while True:
-            a = self.minput(">")
+            a = self.minput(">", lower=False)
             if a == "z" or a == "zurück" or a == "f":
                 return
             co, _, rest = a.partition(" ")
@@ -252,7 +252,7 @@ class Mänx(InventarBasis):
                     return
                 elif len(args) == 1:
                     ding = args[0]
-                    if ding in inv.inventar:
+                    if inv.hat_item(ding):
                         self.erhalte(ding, inv.inventar[ding], inv)
                     else:
                         print(f"Kein {ding} da.")
@@ -264,7 +264,7 @@ class Mänx(InventarBasis):
                     except (AssertionError, ValueError):
                         print("Gebe eine positive Anzahl an.")
                     else:
-                        if ding in inv.inventar:
+                        if inv.hat_item(ding, anzahl):
                             self.erhalte(ding, anzahl, inv)
                         else:
                             print(f"Kein {ding} da.")
@@ -275,7 +275,7 @@ class Mänx(InventarBasis):
                     print("Du kannst hier nichts hereingeben")
                 elif len(args) == 1:
                     ding = args[0]
-                    if ding in self.inventar:
+                    if self.hat_item(ding):
                         inv.inventar[ding] = self.inventar[ding]
                         self.inventar[ding] = 0
                     else:
@@ -293,6 +293,8 @@ class Mänx(InventarBasis):
                             inv.inventar[ding] += anzahl
                         else:
                             print(f"Du hast kein {ding}.")
+            if not any(inv.items()):
+                return
 
 
 class Gefährte:

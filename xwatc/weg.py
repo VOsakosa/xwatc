@@ -17,6 +17,7 @@ from xwatc.system import Mänx, MenuOption, MänxFkt, InventarBasis, malp, mint
 GEBIETE: Dict[str, Callable[[Mänx], Wegpunkt]] = {}
 # Die Verbindungen zwischen Gebieten
 EINTRITTSPUNKTE: Dict[Tuple[str, str], 'Gebietsende'] = {}
+ADAPTER: Dict[str, 'WegAdapter'] = {}
 
 
 @enum.unique
@@ -167,6 +168,7 @@ class Wegtyp(enum.Enum):
         return self.value[1]  # pylint: disable=unsubscriptable-object
 
     def text(self, bestimmt: bool, fall: int) -> str:
+        # TODO Kasus der Adjektive
         return ((bartikel if bestimmt else uartikel)(self.geschlecht, fall)
                 + " " + self.value[0])  # pylint: disable=unsubscriptable-object
 
@@ -381,9 +383,13 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
 class WegAdapter(_Strecke):
     """Ein Übergang von Wegesystem zum normalen System."""
 
-    def __init__(self, nächster: Opt[Wegpunkt], zurück: MänxFkt):
+    def __init__(self, nächster: Opt[Wegpunkt], zurück: MänxFkt,
+                 name: str = ""):
         super().__init__(nächster, None)
         self.zurück = zurück
+        self.name = name
+        if name:
+            ADAPTER[name] = self
 
     def main(self, mänx: Mänx, von: Opt[Wegpunkt]) -> Union[Wegpunkt, WegEnde]:
         if von:
@@ -426,8 +432,10 @@ class Gebietsende(_Strecke):
                 return self.p2
 
 
-def get_gebiet(mänx: Mänx, name_or_gebiet: Union[Wegpunkt, str]):
+def get_gebiet(mänx: Mänx, name_or_gebiet: Union[Wegpunkt, str]) -> Wegpunkt:
     if isinstance(name_or_gebiet, str):
+        if name_or_gebiet in ADAPTER:
+            return ADAPTER[name_or_gebiet]
         return mänx.welt.get_or_else(
             "weg:" + name_or_gebiet, GEBIETE[name_or_gebiet], mänx)
     else:
