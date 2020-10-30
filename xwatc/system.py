@@ -339,7 +339,9 @@ class Welt:
         if name in self.objekte:
             return self.objekte[name]
         elif name in _OBJEKT_REGISTER:
-            return _OBJEKT_REGISTER[name]()
+            obj = _OBJEKT_REGISTER[name]()
+            self.objekte[name] = obj
+            return obj
         else:
             raise KeyError(f"Das Objekt {name} existiert nicht.")
 

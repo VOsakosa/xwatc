@@ -39,8 +39,9 @@ def beeren() -> Wildpflanze:
 
 
 @weg.gebiet("jtg:mitte")
-def erzeuge_mitte(mänx: Mänx) -> 'weg.Wegpunkt':
-    westw = weg.Weg(2, weg.WegAdapter(None, groekrak.zugang_ost), None)
+def erzeuge_mitte(_mänx: Mänx) -> 'weg.Wegpunkt':
+    westw = weg.Weg(2, weg.WegAdapter(None, groekrak.zugang_ost, 
+                                      "jtg:mitte:west"), None)
     bogen = weg.Wegkreuzung(w=weg.Richtung(westw))
     bogen.add_beschreibung("Der Weg macht nach einer Weile eine Biegung "
                            "nach rechts.", nur="n")
@@ -49,7 +50,7 @@ def erzeuge_mitte(mänx: Mänx) -> 'weg.Wegpunkt':
     west = weg.Wegkreuzung()
     west.verbinde_mit_weg(bogen, 0.4, "s", typ=weg.Wegtyp.WEG)
 
-    nordw = weg.Weg(5, weg.WegAdapter(None, disnayenbum), None)
+    nordw = weg.Weg(5, weg.WegAdapter(None, t2_norden, "jtg:mitte:nord"), None)
     nordk = weg.Wegkreuzung(n=weg.Richtung(nordw))
     nordk.verbinde_mit_weg(west, 3, "sw", "n")
 
@@ -153,8 +154,7 @@ def disnayenbum(mänx: Mänx):
         eo_nw.eo_ww_o(mänx)
     else:  # süden
         mint("Du verlässt das Dorf Richtung Süden.")
-        # TODO die Pfade!
-        groekrak.zugang_ost(mänx)
+        weg.wegsystem(mänx, "jtg:mitte:nord")
 
 
 def t2_süd(mänx) -> None:
