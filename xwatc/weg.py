@@ -7,13 +7,13 @@ import enum
 import random
 from dataclasses import dataclass
 from xwatc.utils import uartikel, bartikel
-__author__ = "jasper"
 import typing
 from typing import (List, Any, Optional as Opt, cast, Iterable, Union, Sequence,
                     Collection, Callable, Dict, Tuple, NewType, Mapping,
-                    overload)
+                    overload, runtime_checkable)
 from xwatc.system import Mänx, MenuOption, MänxFkt, InventarBasis, malp, mint
-
+from xwatc import dorf
+__author__ = "jasper"
 
 GEBIETE: Dict[str, Callable[[Mänx], Wegpunkt]] = {}
 # Die Verbindungen zwischen Gebieten
@@ -38,6 +38,7 @@ class WegEnde:
     weiter: MänxFkt
 
 
+@runtime_checkable
 class Wegpunkt(Context, typing.Protocol):
     def get_nachbarn(self) -> List[Wegpunkt]:
         return []
@@ -262,7 +263,8 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                  andere: Opt[Mapping[str, RiIn]] = None,
                  gucken: Opt[MänxFkt] = None,
                  kreuzung_beschreiben: bool = False,
-                 immer_fragen: bool = False):
+                 immer_fragen: bool = False,
+                 menschen: Opt[Sequence[dorf.NSC]] = None):
         # TODO gucken
         super().__init__()
         richtungen = [n, no, o, so, s, sw, w, nw]
@@ -278,7 +280,10 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
             if ri:
                 ri.ziel.verbinde(self)
         self.beschreibungen: List[Beschreibung] = []
-        self.menschen: List['xwatc.dorf.NSC'] = []
+        if menschen:
+            self.menschen = list(menschen)
+        else:
+            self.menschen = []
         self.gucken = gucken
         self.immer_fragen = immer_fragen
         self.kreuzung_beschreiben = kreuzung_beschreiben
@@ -361,7 +366,11 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                           HIMMELSRICHTUNGEN[i] + ".")
 
     def optionen(self, mänx: Mänx,  # pylint: disable=unused-argument
-                 von: Opt[int]) -> Iterable[MenuOption[Wegpunkt]]:
+                 von: Opt[int]) -> Iterable[MenuOption[
+                     Union[Wegpunkt, 'dorf.NSC']]]:
+        for mensch in self.menschen:
+            yield ("Mit " + mensch.name + " reden", mensch.name.lower(),
+                   mensch)
         for rirel in self.OPTS:
             if von is None:
                 riabs = rirel
@@ -395,8 +404,14 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
             self.beschreibe(mänx, richtung)
         opts = list(self.optionen(mänx, richtung))
         if not self.immer_fragen and ((richtung is None) + len(opts)) <= 2:
-            return opts[0][2]
-        return mänx.menu(opts, frage="Welchem Weg nimmst du?")
+            if isinstance(opts[0][2], Wegpunkt):
+                return opts[0][2]
+        ans = mänx.menu(opts, frage="Welchem Weg nimmst du?")
+        if isinstance(ans, Wegpunkt):
+            return ans
+        elif isinstance(ans, dorf.NSC):
+            ans.main(mänx)
+        return self
 
     def verbinde(self,  # pylint: disable=arguments-differ
                  anderer: Wegpunkt, richtung: str = "",
@@ -425,7 +440,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         else:
             ri2 = richtung2
         weg = Weg(länge, self, nach, **kwargs)
-        assert not (self.nachbarn[richtung] or nach.nachbarn[ri2]
+        assert not (self.nachbarn.get(richtung) or nach.nachbarn.get(ri2)
                     ), "Überschreibt bisherigen Weg."
         self.nachbarn[richtung] = Richtung(weg, beschriftung_hin, typ=typ)
         nach.nachbarn[ri2] = Richtung(weg, beschriftung_zurück, typ=typ)
@@ -485,6 +500,7 @@ class Gebietsende(_Strecke):
 
 
 def get_gebiet(mänx: Mänx, name_or_gebiet: Union[Wegpunkt, str]) -> Wegpunkt:
+    """Lade ein Gebiet von seinem Namen."""
     if isinstance(name_or_gebiet, str):
         if name_or_gebiet in ADAPTER:
             return ADAPTER[name_or_gebiet]

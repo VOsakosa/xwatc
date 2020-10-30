@@ -8,11 +8,12 @@ from enum import Enum
 import random
 from typing import List, Union, Callable, Dict, Tuple, Any, Iterator, Iterable
 from typing import Optional as Opt, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from xwatc.system import (mint, malp, schiebe_inventar, Spielende, MenuOption,
                           sprich, kursiv, MänxFkt, Welt)
 from xwatc import system
 from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
+from xwatc import weg
 __author__ = "jasper"
 
 
@@ -187,12 +188,15 @@ class NSC(system.InventarBasis):
 
 VorList = List[Union[str, Tuple[str, int]]]
 
+
 @dataclass
 class Malp:
     text: str
     warte: bool = False
+
     def __call__(self):
         malp(self.text, warte=self.warte)
+
 
 class Dialog:
     """Ein einzelner Gesprächsfaden beim Gespräch mit einem NSC"""
@@ -315,22 +319,22 @@ class Dorfbewohner(NSC):
                 gefängnis_von_gäfdah(mänx)
 
 
-@dataclass
-class Ort:
+class Ort(weg.Wegkreuzung):
     """Ein Ort im Dorf, wo sich Menschen aufhalten können"""
-    name: str
-    text: Union[str, List[str]]
-    menschen: List[NSC] = field(default_factory=list)
 
-    def platzangabe(self):
-        if isinstance(self.text, str):
-            mint(self.text)
-        else:
-            for line in self.text[:-1]:
-                print(line)
-            mint(self.text[-1])
+    def __init__(self,
+                 name: str,
+                 text: Opt[Sequence[str]] = None,
+                 menschen: Opt[List[NSC]] = None):
+        super().__init__(menschen=menschen)
+        self.name = name
+        if text:
+            if isinstance(text, str):
+                text = [text]
+            self.add_beschreibung(text)
 
-    def add_nsc(self, welt: Welt, name: str, fkt, *args, **kwargs):
+    def add_nsc(self, welt: Welt, name: str, fkt: Callable[..., NSC],
+                *args, **kwargs):
         self.menschen.append(welt.get_or_else(name, fkt, *args, **kwargs))
 
 
@@ -359,6 +363,7 @@ class Dorf:
 
     def ort_main(self, mänx, ort: Ort) -> Opt[Ort]:
         ort.menschen[:] = filter(lambda m: not m.tot, ort.menschen)
+        ort.beschreibe(mänx, None)
         if ort.menschen:
             print("Hier sind:")
             for mensch in ort.menschen:
