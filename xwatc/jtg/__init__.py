@@ -410,6 +410,7 @@ SÜD_DORF_GENAUER = [
 SÜD_DORF_NAME = "Scherenfeld"
 
 
+@register("jtg:m:tobiac")
 class TobiacBerndoc(NSC):
     def __init__(self) -> None:
         super().__init__("Tobiac Berndoc", "Orgelspieler")
@@ -586,21 +587,19 @@ def ende_des_waldes(mänx, morgen=False):
 
 
 def erzeuge_süd_dorf(mänx) -> Dorf:
-    d = Dorf(SÜD_DORF_NAME)
-    kirche = Ort("Kirche", [
+    do = Dorf(SÜD_DORF_NAME)
+    kirche = Ort("Kirche", do, [
         "Du bist in einer kleinen Kirche.",
         # Tobiac tot?
         "Im Hauptschiff ist niemand, aber du hörst die Orgel"
     ])
-    kirche.menschen.append(mänx.welt.get_or_else(
-        "jtg:m:tobiac", TobiacBerndoc))
-    d.orte.append(kirche)
+    mänx.welt.obj("jtg:m:tobiac").ort = kirche
     for _i in range(randint(2, 5)):
         w = Waschweib()
         w.dialoge.extend(SÜD_DORF_DIALOGE)
-        d.orte[0].menschen.append(w)
+        w.ort = do.orte[0]
     # TODO weitere Objekte
-    return d
+    return do
 
 
 def süd_dorf(mänx: Mänx):
