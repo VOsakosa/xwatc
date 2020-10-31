@@ -1,9 +1,10 @@
-from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner
+from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner, Rückkehr
 from xwatc.system import mint, kursiv, Mänx, ja_nein, minput, Spielende
 import random
 from xwatc.jtg import t2
 from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
 import xwatc_Hauptgeschichte
+
 
 class MartinPortulakk(NSC):
     def __init__(self):
@@ -16,19 +17,15 @@ class MartinPortulakk(NSC):
         elif mänx.hat_klasse("Werkzeug"):
             mint('Du tötest den Mann. '
                  'Doch bevor er stirbt, ruft er noch: '
-                 '"', kursiv ("Wachen!"), '", '
+                 '"', kursiv("Wachen!"), '", '
                  'und schon ist das Haus umstellt...')
-            
+
         else:
             print("Du stürzt auf ihn zu und schlägst auf ihn ein.")
-            print('Doch dann schreit er: ', kursiv('"Wache!"'), ', und schon ist das Haus umstellt...')
-            
-        
-        
-            
+            print('Doch dann schreit er: ', kursiv('"Wache!"'),
+                  ', und schon ist das Haus umstellt...')
 
-
-    def reden(self, mänx: Mänx) -> None:
+    def reden(self, mänx: Mänx) -> Rückkehr:
         print('(ängstlich) "Was machst du in meinem Haus?!')
         opts = [
             ('"Ich tue dir nichts. Ich habe mich verirrt."', 'verirrt', 0),
@@ -52,60 +49,64 @@ class MartinPortulakk(NSC):
                 mint(self.name, "Du lässt die Wache in Ruhe.")
         elif opt == 1:
             print('Der Mann entspannte sich. "Nein" Siegbert wohnt in Haus Nr.5')
-            
+
         elif opt == 2:
-            mint('Ängstlich blickte der Mann sich um. "Schön... ', kursiv('Wachen!'), '"')
+            mint('Ängstlich blickte der Mann sich um. "Schön... ',
+                 kursiv('Wachen!'), '"')
             print("Kaum rief er war das Haus schon umstellt.")
-            
+
         elif opt == 3:
-            mint('Ängstlich blickte der Mann sich um. "Gut... ', kursiv('Wachen!'), '"')
+            mint('Ängstlich blickte der Mann sich um. "Gut... ',
+                 kursiv('Wachen!'), '"')
             print("Kaum rief er war das Haus schon umstellt.")
-            
+
         elif opt == 4:
-            mint('', kursiv('"Hilfe! Wachen!"'), ', schrie der Mann aus voller Kehle')
+            mint('', kursiv('"Hilfe! Wachen!"'),
+                 ', schrie der Mann aus voller Kehle')
             print("Und kaum rief er war das Haus schon umstellt.")
 
         elif opt == 5:
-            mint('Unsicher blickte der Mann sich um. "Gut... ', kursiv('Wachen!'), '"')
+            mint('Unsicher blickte der Mann sich um. "Gut... ',
+                 kursiv('Wachen!'), '"')
             print("Kaum rief er war das Haus schon umstellt.")
 
         elif opt == 6:
             mint('Still und ängstlich quetschte der Mann sich in eine Ecke seines Hauses.')
             print("Was tust du nun?")
-            a=minput(mänx, "Durchsuchst du die Hütte, "
-                     "bringst du den Mann um, "
-                     "versuchst du mit ihm zu reden oder fliehst du? (d/um/r/f)", ["d", "um", "r", "f"])
-            if a=='d':
+            a = minput(mänx, "Durchsuchst du die Hütte, "
+                       "bringst du den Mann um, "
+                       "versuchst du mit ihm zu reden oder fliehst du? (d/um/r/f)", ["d", "um", "r", "f"])
+            if a == 'd':
                 mint("Du findest Kleidung, Fisch, Gemüse und Zeug.")
-                #so ist es schöner
+                # so ist es schöner
                 # d = {"Socke": 8, "Hose":2}
                 # for name, anzahl in d.items():
                 #    mänx.inventar[name] += anzahl
-                mänx.inventar ["Socke"] += 8
-                mänx.inventar ["Hose"] += 2
-                mänx.inventar ["Hemd"] += 3
-                mänx.inventar ["Seil"] += 1
-                mänx.inventar ["Wollmütze"] += 1
-                mänx.inventar ["Mantel"] += 2
-                mänx.inventar ["Unterhose"] += 3
-                mänx.inventar ["Stiefel"] += 2
-                mänx.inventar ["Hering"] += 23
-                mänx.inventar ["Forelle"] += 13
-                mänx.inventar ["Lachs"] +=6
-                mänx.inventar ["Hecht"] += 1
-                mänx.inventar ["Piranha"] += 1
-                mänx.inventar ["Blaufisch"] += 5
-                mänx.inventar ["Geistfisch"] += 1
-                mänx.inventar ["Kartoffel"] += 45
-                mänx.inventar ["Karotte"] += 28
-                mänx.inventar ["Aubergine"] += 12
-                mänx.inventar ["Tomate"] += 18
-                mänx.inventar ["Angel"] += 1
-                mänx.inventar ["Glücksbringer eines Bauern"] += 1
-                mänx.inventar ["Schaufel"] += 1
-                mänx.inventar ["Harke"] += 1
-                mänx.inventar ["Rechen"] += 1
-                mänx.inventar ["Messer"] += 1
+                mänx.inventar["Socke"] += 8
+                mänx.inventar["Hose"] += 2
+                mänx.inventar["Hemd"] += 3
+                mänx.inventar["Seil"] += 1
+                mänx.inventar["Wollmütze"] += 1
+                mänx.inventar["Mantel"] += 2
+                mänx.inventar["Unterhose"] += 3
+                mänx.inventar["Stiefel"] += 2
+                mänx.inventar["Hering"] += 23
+                mänx.inventar["Forelle"] += 13
+                mänx.inventar["Lachs"] += 6
+                mänx.inventar["Hecht"] += 1
+                mänx.inventar["Piranha"] += 1
+                mänx.inventar["Blaufisch"] += 5
+                mänx.inventar["Geistfisch"] += 1
+                mänx.inventar["Kartoffel"] += 45
+                mänx.inventar["Karotte"] += 28
+                mänx.inventar["Aubergine"] += 12
+                mänx.inventar["Tomate"] += 18
+                mänx.inventar["Angel"] += 1
+                mänx.inventar["Glücksbringer eines Bauern"] += 1
+                mänx.inventar["Schaufel"] += 1
+                mänx.inventar["Harke"] += 1
+                mänx.inventar["Rechen"] += 1
+                mänx.inventar["Messer"] += 1
 
         elif opt == 7:
             mint('!!!?B?Ä?B?Ä?B?Ä?B?Ä?!!!  FEHLERüłþſs')
@@ -118,21 +119,8 @@ class MartinPortulakk(NSC):
             mänx.erhalte("Truthahnfleisch", 50)
             mänx.erhalte("JOEL@þ", 1)
             t2(mänx)
-            
-            
-            
-            
-
-    def optionen(self, mänx: Mänx) -> NSCOptionen:
-        return NSC.optionen(self, mänx) + [
-            ("Reden", "reden", self.reden),
-            ("Kämpfen", "kämpfen", self.kampf),
-        ]
+        return Rückkehr.VERLASSEN
 
     def main(self, mänx: Mänx) -> None:
         print("Martin Portulakk heißt Martin Portulakk und ist Bürger von Gäfdah.")
         super().main(mänx)
-        
-        
-        
-        

@@ -1,7 +1,7 @@
 from typing import List, Optional as Op, NewType, Dict, cast, Tuple
 
 from xwatc.dorf import NSC, NSCOptionen, Rückkehr
-from xwatc.system import Mänx, minput, ja_nein, get_class
+from xwatc.system import Mänx, minput, ja_nein, get_class, Inventar
 
 ALLGEMEINE_PREISE = {
     "Speer": 50,
@@ -23,7 +23,8 @@ Klasse = str
 class Händler(NSC):
     def __init__(self, name, kauft: Op[List[Klasse]],
                  verkauft: Dict[Item, Tuple[int, int]], gold: int,
-                 art="Händler", direkt_handeln: bool = False):
+                 art="Händler", direkt_handeln: bool = False,
+                 startinventar: Op[Inventar] = None):
         """Neuer Händler namens *name*, der Sachen aus den Kategorien *kauft* kauft.
         *verkauft* ist das Inventar. *gold* ist die Anzahl von Gold."""
         super().__init__(name, art)
@@ -33,6 +34,9 @@ class Händler(NSC):
         for ware, (anzahl, preis) in verkauft.items():
             self.verkauft[ware] = Preis(preis)
             self.inventar[ware] += anzahl
+        if startinventar:
+            for item, anzahl in startinventar.items():
+                self.inventar[item] += anzahl
         self.gold = gold
         self.rückkauf = False
         self.direkt_handeln = direkt_handeln
@@ -128,6 +132,7 @@ class Händler(NSC):
     def handeln(self, mänx: Mänx) -> Rückkehr:
         """Lass Spieler mit Mänx handeln"""
         while True:
+            mänx.tutorial("handel")
             a = minput(mänx, "handel>", lower=False)
             al = a.lower()
             if al.startswith("k ") or al.startswith("kaufe "):

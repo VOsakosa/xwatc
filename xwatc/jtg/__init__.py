@@ -5,6 +5,7 @@ from xwatc import weg
 from xwatc import system
 from xwatc.system import (Mänx, minput, ja_nein, register,
                           Spielende, mint, sprich, kursiv, malp)
+from xwatc import dorf
 from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner, Dialog
 from random import randint
 import random
@@ -40,7 +41,7 @@ def beeren() -> Wildpflanze:
 
 @weg.gebiet("jtg:mitte")
 def erzeuge_mitte(_mänx: Mänx) -> 'weg.Wegpunkt':
-    westw = weg.Weg(2, weg.WegAdapter(None, groekrak.zugang_ost, 
+    westw = weg.Weg(2, weg.WegAdapter(None, groekrak.zugang_ost,
                                       "jtg:mitte:west"), None)
     bogen = weg.Wegkreuzung(w=weg.Richtung(westw))
     bogen.add_beschreibung("Der Weg macht nach einer Weile eine Biegung "
@@ -83,13 +84,66 @@ def erzeuge_mitte(_mänx: Mänx) -> 'weg.Wegpunkt':
 
 @register("jtg:mädchen")
 class Mädchen(haendler.Händler):
-    """Mädchen am Weg nach Norden."""
+    """Mädchen am Weg nach Norden.
+
+    Stand: Bürger
+    Familie: Vater, Onkel, Opa, Oma
+    Hintergrund: Nach dem Tod ihrer Mutter (Kauffrau) wollte ihr Vater
+        (Sekretär)
+         sie schnell loswerden
+        und dazu an den nächstbesten verheiraten. Sie floh nach Norden.
+    """
 
     def __init__(self) -> None:
         super().__init__("Mädchen", kauft=["Kleidung"], verkauft={
-            "Rose": (1, Preis(1))}, gold=Preis(0), art="Mädchen",
-            direkt_handeln=True)
+                "Rose": (1, Preis(1))
+            }, gold=Preis(0), art="Mädchen",
+            direkt_handeln=True, startinventar={
+                "BH": 1,
+                "Unterhose": 1,
+                "Socke": 2,
+                "Schuh": 2,
+        })
         self.in_disnajenbum = True
+        self.dialog("hallo", "Hallo, kann ich dir helfen?", Mädchen.hallo)
+        self.dialog("rose", "Woher hast du die Rose?",
+                    ["Die Rosen wachsen hier im Wald, aber es ist gefährlich,"
+                     " sie zu holen."], "hallo")
+        self.dialog("woher", "Woher kommst du?",
+                    ["Ich komme aus Grökrakchöl, das liegt im Süden."],
+                    "hallo", wiederhole=1)
+        self.dialog("heißt", "Wie heißt du?", Mädchen.heißt, "hallo")
+        self.dialog("allein", "Warum bist du allein? Hast du einen Grund, nicht nach "
+                    "*Grökaköl zurückkehren zu können?",
+                    [
+                        dorf.Malp("Das Mädchen zögert etwas."), 
+                        "Ich ...",
+                        "Ich bin geflohen. Nach dem Tod meiner Mutter hatte "
+                        "meine Familie finanzielle Schwierigkeiten.",
+                        "Ich sollte verheiratet werden.",
+                        "Darüber gerieten wir in Streit, und ich floh, um "
+                        "zu meinen Großeltern in Gibon zu kommen."
+                     ], "woher", min_freundlich=10)
+        self.dialog("verstehen", "Das ist ja schrecklich! Ich helfe dir, nach "
+                    "Gibon zu kommen.", Mädchen.helfen, "allein")
+
+    def hallo(self, _mänx: Mänx):
+        if self.hat_item("Rose"):
+            self.sprich("Willst du für ein Gold eine Rose kaufen?")
+            mint("Das Mädchen spricht leise und vorsichtig, mit merkbar "
+                 "schlechten Gewissen, denn eine Rose ist kein ganzes Gold "
+                 "wert.")
+        else:
+            self.sprich("Du hast mir mit dem Gold schon genug geholfen.")
+            mint("Sie nickt mit dem Kopf, um dir zu danken.")
+    
+    def heißt(self, _mänx: Mänx):
+        self.name = "Älen Kafuga"
+        self.sprich("Älen, Älen Kafuga", warte=True)
+
+    def helfen(self, mänx: Mänx):
+        frage = self.name + ': "Willst du auch nach Gibon?"'
+        # TODO rest
 
     def vorstellen(self, mänx):
         print("Am Wegesrand vor dem Dorfeingang siehst du ein Mädchen in Lumpen. "
@@ -116,18 +170,20 @@ class Mädchen(haendler.Händler):
             malp("Das Mädchen ist sichtlich verwirrt, dass "
                  "du ihr eine Unterhose gegeben hast.")
             mint("Es hält sie vor sich und mustert sie. Dann sagt sie artig danke.")
-            mänx.titel.add("Samariter")
+            mänx.titel.add("Perversling")
         elif ans and name == "Mantel":
             malp("Das Mädchen bedeutet dir, dass sie nur den halben Mantel braucht.")
             malp("Du schneidest den Mantel entzwei, und gibst ihr nur die Hälfte.")
             mänx.inventar["halber Mantel"] += 1
             mänx.titel.add("Samariter")
+            self.freundlich += 10
         return ans
 
     def kaufen(self, mänx: Mänx, name: str, anzahl: int=1)->bool:
         ans = super().kaufen(mänx, name, anzahl=anzahl)
         if ans and name == "Rose":
             malp("Das Mädchen ist dankbar für das Stück Gold")
+            self.freundlich += 10
         return ans
 
 
@@ -354,6 +410,7 @@ SÜD_DORF_GENAUER = [
 SÜD_DORF_NAME = "Scherenfeld"
 
 
+@register("jtg:m:tobiac")
 class TobiacBerndoc(NSC):
     def __init__(self) -> None:
         super().__init__("Tobiac Berndoc", "Orgelspieler")
@@ -530,21 +587,19 @@ def ende_des_waldes(mänx, morgen=False):
 
 
 def erzeuge_süd_dorf(mänx) -> Dorf:
-    d = Dorf(SÜD_DORF_NAME)
-    kirche = Ort("Kirche", [
+    do = Dorf(SÜD_DORF_NAME)
+    kirche = Ort("Kirche", do, [
         "Du bist in einer kleinen Kirche.",
         # Tobiac tot?
         "Im Hauptschiff ist niemand, aber du hörst die Orgel"
     ])
-    kirche.menschen.append(mänx.welt.get_or_else(
-        "jtg:m:tobiac", TobiacBerndoc))
-    d.orte.append(kirche)
+    mänx.welt.obj("jtg:m:tobiac").ort = kirche
     for _i in range(randint(2, 5)):
         w = Waschweib()
         w.dialoge.extend(SÜD_DORF_DIALOGE)
-        d.orte[0].menschen.append(w)
+        w.ort = do.orte[0]
     # TODO weitere Objekte
-    return d
+    return do
 
 
 def süd_dorf(mänx: Mänx):

@@ -10,8 +10,12 @@ Ausrüstung:
 Blume:
   Distelblüte
   Gänseblümchen
+  Hahnenfuß
   Klatschmohn
+  Löwenzahn
+  Margarite
   Rose
+  Tulpe
 
 Brennstoff:
   Kohle
@@ -44,7 +48,6 @@ Holz:
 Kleidung:
   Anzug
   Anzugjacke
-  BH
   Einfaches Kleid
   Gürtel
   Hose
@@ -55,11 +58,22 @@ Kleidung:
   Lederstiefel
   Mantel
   Mütze
+  Schal
+  Schuh
   Schürze
   Socke
-  T-Shirt
   Turnschuh
+  
+Unterwäsche: Kleidung
+  BH
+  Dicke Unterhose
+  Großer BH
   Unterhose
+  Windel
+
+Oberbekleidung: Kleidung
+  Leinenhemd
+  T-Shirt
 
 legendäre Waffe: Waffe
   mächtige Axt

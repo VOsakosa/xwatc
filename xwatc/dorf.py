@@ -8,11 +8,12 @@ from enum import Enum
 import random
 from typing import List, Union, Callable, Dict, Tuple, Any, Iterator, Iterable
 from typing import Optional as Opt, Sequence
-from dataclasses import dataclass, field
-from xwatc.system import (mint, schiebe_inventar, Spielende, MenuOption,
+from dataclasses import dataclass
+from xwatc.system import (mint, malp, schiebe_inventar, Spielende, MenuOption,
                           sprich, kursiv, MänxFkt, Welt)
 from xwatc import system
 from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
+from xwatc import weg
 __author__ = "jasper"
 
 
@@ -32,6 +33,7 @@ class Rückkehr(Enum):
 class NSC(system.InventarBasis):
     name: str
     art: str
+    _ort: Opt[weg.Wegkreuzung]
 
     def __init__(self,
                  name: str,
@@ -40,7 +42,8 @@ class NSC(system.InventarBasis):
                  fliehen: Opt[Callable[[system.Mänx], None]] = None,
                  direkt_reden: bool = False, freundlich: int = 0,
                  startinventar: Opt[Dict[str, int]] = None,
-                 vorstellen: Opt[DialogGeschichte] = None):
+                 vorstellen: Opt[DialogGeschichte] = None,
+                 ort: Opt[weg.Wegkreuzung] = None):
         super().__init__()
         self.name = name
         self.art = art
@@ -53,6 +56,8 @@ class NSC(system.InventarBasis):
         self.dialoge: List[Dialog] = []
         self.dialog_anzahl: Dict[str, int] = {}
         self.fliehen_fn = fliehen
+        self._ort = None
+        self.ort = ort
         if startinventar:
             for a, i in startinventar.items():
                 self.inventar[a] += i
@@ -126,12 +131,15 @@ class NSC(system.InventarBasis):
                 ans = ans2
         elif use_print:
             for g in geschichte[:-1]:
-                print(g)
+                malp(g)
             mint(geschichte[-1])
         else:
-            for g in geschichte[:-1]:
-                self.sprich(g)
-            self.sprich(geschichte[-1], warte=True)
+            for g in geschichte:
+                if isinstance(g, Malp):
+                    g()
+                else:
+                    self.sprich(g)
+            mint()
         return ans
 
     def _main(self, mänx: system.Mänx) -> Any:
@@ -181,8 +189,33 @@ class NSC(system.InventarBasis):
         """Schiebe das ganze Inventar von NSC zum Mänxen."""
         schiebe_inventar(self.inventar, mänx.inventar)
 
+    @property
+    def ort(self)-> Opt[weg.Wegkreuzung]:
+        return self._ort
+
+    @ort.setter
+    def ort(self, ort: Opt[weg.Wegkreuzung]) -> None:
+        if self._ort is not None:
+            try:
+                self._ort.menschen.remove(self)
+            except ValueError:
+                pass
+        self._ort = ort
+        if ort is not None:
+            if self not in ort.menschen:
+                ort.menschen.append(self)
+
 
 VorList = List[Union[str, Tuple[str, int]]]
+
+
+@dataclass
+class Malp:
+    text: str
+    warte: bool = False
+
+    def __call__(self):
+        malp(self.text, warte=self.warte)
 
 
 class Dialog:
@@ -194,8 +227,9 @@ class Dialog:
                  text: str,
                  geschichte: Union[DialogFn, List[str]],
                  vorherige: Union[str, None, VorList] = None,
-                 wiederhole: int = 0):
-        # TODO mindestfreundlichkeit
+                 wiederhole: int = 0,
+                 min_freundlich: Opt[int] = None):
+        self.min_freundlich = min_freundlich
         self.name = name
         self.text = text
         self.geschichte = geschichte
@@ -241,6 +275,9 @@ class Dialog:
                 bed_name, anzahl = bed
                 if nsc.dialog_anzahl.get(bed_name, 0) < anzahl:
                     return False
+        if (self.min_freundlich is not None and
+                nsc.freundlich < self.min_freundlich):
+            return False
         if self.wenn_fn:
             return bool(self.wenn_fn(nsc, mänx))
         return True
@@ -251,8 +288,9 @@ class Dialog:
 
 class Dorfbewohner(NSC):
     def __init__(self, name: str, geschlecht: bool, **kwargs):
-        super().__init__(name, "Dorfbewohner" if geschlecht
-                         else "Dorfbewohnerin", **kwargs)
+        kwargs.setdefault("art", "Dorfbewohner" if geschlecht
+                         else "Dorfbewohnerin")
+        super().__init__(name, **kwargs)
         self.geschlecht = geschlecht
         self.dialog("hallo", "Hallo", lambda n, _:
                     sprich(n.name, f"Hallo, ich bin {n.name}. "
@@ -302,23 +340,39 @@ class Dorfbewohner(NSC):
                 gefängnis_von_gäfdah(mänx)
 
 
-@dataclass
-class Ort:
+class Ort(weg.Wegkreuzung):
     """Ein Ort im Dorf, wo sich Menschen aufhalten können"""
-    name: str
-    text: Union[str, List[str]]
-    menschen: List[NSC] = field(default_factory=list)
 
-    def platzangabe(self):
-        if isinstance(self.text, str):
-            mint(self.text)
+    def __init__(self,
+                 name: str,
+                 dorf: Union[None, Dorf, Ort],
+                 text: Opt[Sequence[str]] = None,
+                 menschen: Opt[List[NSC]] = None):
+        super().__init__(menschen=menschen)
+        self.name = name
+        if text:
+            if isinstance(text, str):
+                text = [text]
+            self.add_beschreibung(text)
+        if isinstance(dorf, Ort):
+            self.dorf: Opt[Dorf] = dorf.dorf
         else:
-            for line in self.text[:-1]:
-                print(line)
-            mint(self.text[-1])
+            self.dorf = dorf
+        if self.dorf:
+            self.dorf.orte.append(self)
 
-    def add_nsc(self, welt: Welt, name: str, fkt, *args, **kwargs):
-        self.menschen.append(welt.get_or_else(name, fkt, *args, **kwargs))
+    def verbinde(self,
+                 anderer: weg.Wegpunkt, richtung: str="",
+                 typ: weg.Wegtyp=weg.Wegtyp.WEG, ziel: str=""):
+        if isinstance(anderer, Ort) and not richtung:
+            anderer.nachbarn[self.name] = weg.Richtung(self)
+            self.nachbarn[anderer.name] = weg.Richtung(anderer)
+        else:
+            super().verbinde(anderer, richtung=richtung, typ=typ, ziel=ziel)
+
+    def add_nsc(self, welt: Welt, name: str, fkt: Callable[..., NSC],
+                *args, **kwargs):
+        welt.get_or_else(name, fkt, *args, **kwargs).ort = self
 
 
 class Dorf:
@@ -330,7 +384,8 @@ class Dorf:
         if orte:
             self.orte = orte
         else:
-            self.orte = [Ort("Draußen", "Du bist draußen.")]
+            self.orte = []
+            Ort("draußen", self, "Du bist draußen.")
         self.name = name
 
     def main(self, mänx) -> None:
@@ -346,6 +401,7 @@ class Dorf:
 
     def ort_main(self, mänx, ort: Ort) -> Opt[Ort]:
         ort.menschen[:] = filter(lambda m: not m.tot, ort.menschen)
+        ort.beschreibe(mänx, None)
         if ort.menschen:
             print("Hier sind:")
             for mensch in ort.menschen:
