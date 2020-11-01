@@ -4,7 +4,7 @@ from xwatc import scenario
 from xwatc import weg
 from xwatc import system
 from xwatc.system import (Mänx, minput, ja_nein, register,
-                          Spielende, mint, sprich, kursiv, malp)
+                          Spielende, mint, sprich, kursiv, malp, get_classes)
 from xwatc import dorf
 from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner, Dialog
 from random import randint
@@ -16,6 +16,7 @@ from xwatc.haendler import Preis
 from xwatc.jtg.groekrak import zugang_südost
 from xwatc.jtg import eo_nw
 from xwatc.untersystem.acker import Wildpflanze
+from xwatc.weg import Ereignis
 
 
 def t2(mänx: Mänx) -> None:
@@ -96,8 +97,8 @@ class Mädchen(haendler.Händler):
 
     def __init__(self) -> None:
         super().__init__("Mädchen", kauft=["Kleidung"], verkauft={
-                "Rose": (1, Preis(1))
-            }, gold=Preis(0), art="Mädchen",
+            "Rose": (1, Preis(1))
+        }, gold=Preis(0), art="Mädchen",
             direkt_handeln=True, startinventar={
                 "BH": 1,
                 "Unterhose": 1,
@@ -116,14 +117,14 @@ class Mädchen(haendler.Händler):
         self.dialog("allein", "Warum bist du allein? Hast du einen Grund, nicht nach "
                     "*Grökaköl zurückkehren zu können?",
                     [
-                        dorf.Malp("Das Mädchen zögert etwas."), 
+                        dorf.Malp("Das Mädchen zögert etwas."),
                         "Ich ...",
                         "Ich bin geflohen. Nach dem Tod meiner Mutter hatte "
                         "meine Familie finanzielle Schwierigkeiten.",
                         "Ich sollte verheiratet werden.",
                         "Darüber gerieten wir in Streit, und ich floh, um "
                         "zu meinen Großeltern in Gibon zu kommen."
-                     ], "woher", min_freundlich=10)
+                    ], "woher", min_freundlich=10)
         self.dialog("verstehen", "Das ist ja schrecklich! Ich helfe dir, nach "
                     "Gibon zu kommen.", Mädchen.helfen, "allein")
 
@@ -136,7 +137,7 @@ class Mädchen(haendler.Händler):
         else:
             self.sprich("Du hast mir mit dem Gold schon genug geholfen.")
             mint("Sie nickt mit dem Kopf, um dir zu danken.")
-    
+
     def heißt(self, _mänx: Mänx):
         self.name = "Älen Kafuga"
         self.sprich("Älen, Älen Kafuga", warte=True)
@@ -533,6 +534,103 @@ class Waschweib(Dorfbewohner):
         self.direkt_reden = True
 
 
+def gar_kampf(nsc, mänx: Mänx) -> None:
+    nsc.sprich("Hilfe!")
+    nsc.freundlich -= 40
+    if nsc.ort:
+        hilfe = nsc.ort.melde(mänx, Ereignis.KAMPF, [nsc])
+        if hilfe:
+            malp("Sofort eilen Leute zur Hilfe.")
+            malp("Du siehst dich umzingelt.")
+            if mänx.ja_nein("Ergibst du dich?"):
+                nsc.sprich("Warum hast du mich angegriffen?")
+                rechtfertigen(mänx, nsc, hilfe)
+            else:
+                malp("Du wirst schnell überwältigt, aber weil du zu "
+                     "stark bist, können sie dich leider nicht lebendig "
+                     "fangen.")
+                raise Spielende
+            return
+        else:
+            malp("Gerade ist niemand da, der helfen könnte.")
+    else:
+        malp("Hier ist niemand, der helfen könnte.")
+    malp("Du bringst ihn um und plünderst ihn aus.")
+    nsc.plündern(mänx)
+    nsc.tot = True
+
+
+def rechtfertigen(mänx: Mänx, nsc, hilfe):
+    opts = [
+        ("Weil du lecker aussahst.", "lecker", "mord"),
+        ("Mir war gerade danach", "danach", "mord"),
+        ("Du hast mich schief angeguckt.", "schief", "mord"),
+        ("Er hat mich bestohlen!", "diebstahl", "diebstahl"),
+        ("Tut mir leid, kommt nie wieder vor!", "tut", "ent"),
+        ("Er hat mich bespuckt!", "bespuckt", "bespuckt"),
+    ]
+    random.shuffle(opts)
+    ans = mänx.menu(opts)
+    if ans == "mord":
+        hilfe[0].sprich("Das ist keine gute Rechtfertigung!")
+        hilfe[0].sprich("Mord dulden wir hier nicht.")
+        raise Spielende  # TODO: Verbrecher
+    elif ans == "diebstahl":
+        val = ""
+        while not val:
+            val = mänx.minput(hilfe[0].name + ': "Was soll er denn gestohlen haben?"',
+                         lower=False)
+        if {"Kleidung", "Nahrung"} & set(get_classes(val)):
+            hilfe[0].sprich("Kleidung oder Essen zu stehlen ist kein Verbrechen,"
+                            " das man "
+                            "mit Waffengewalt lösen sollte.")
+            hilfe[0].sprich("Wir lassen dich diesmal gehen.")
+        else:
+            hilfe[0].sprich("Durchsuchen wir ihn!")
+            if nsc.hat_item(val):
+                hilfe[0].sprich("Er hat tatsächlich ein/-e {val}")
+                nsc.erhalte(val, von=nsc)
+            else:
+                hilfe[0].sprich("Du lügst. Der Junge ist unschuldig.")
+                hilfe[0].sprich("Mord dulden wir hier nicht.")
+                raise Spielende
+    elif ans == "ent":
+        hilfe[0].sprich("Hoffen wir das mal.")
+        for helfer in hilfe:
+            helfer.freundlich -= 40
+    else:  # ans == "bespuckt":
+        hilfe[0].sprich("Das ist kein Grund, einfach auf jemanden loszugehen!")
+        try:
+            if nsc.ort.dorf.name == SÜD_DORF_NAME:
+                hilfe[0].sprich("Tu das nie wieder!")
+                return
+        except AttributeError:
+            pass
+        hilfe[0].sprich("Du hast unseren kleinen Gaa angegriffen, das "
+                        "verzeihen wir dir nicht!")
+        raise Spielende
+
+
+@register("jtg:süd:garnichts")
+def garnichts() -> NSC:
+    nichts = NSC("Gaa Nix", "Junge", gar_kampf, direkt_reden=True,
+                 startinventar=dict(
+                     Schuh=1,
+                     Socke=2,
+                     Tomate=4,
+                     Banane=2,
+                     Ring=1,
+                     Lederhose=1,
+                     Unterhose=1,
+                     Leinenhemd=1,
+                     Oberhemd=1,
+                 ),
+                 vorstellen=[
+                     "Ein sommersprössiger Junge mit braunen Haaren "
+                 ])
+    return nichts
+
+
 zufälliges_waschweib = Waschweib
 
 
@@ -594,6 +692,7 @@ def erzeuge_süd_dorf(mänx) -> Dorf:
         "Im Hauptschiff ist niemand, aber du hörst die Orgel"
     ])
     mänx.welt.obj("jtg:m:tobiac").ort = kirche
+    mänx.welt.obj("jtg:süd:garnichts").ort = kirche
     for _i in range(randint(2, 5)):
         w = Waschweib()
         w.dialoge.extend(SÜD_DORF_DIALOGE)
