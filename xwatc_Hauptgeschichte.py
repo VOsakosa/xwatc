@@ -19,7 +19,6 @@ def waffe_wählen(mänx: Mänx):
         rosse = mänx.minput("Naja, willst du eigentlich ein Mensch sein?")
         if rosse == "ja"or rosse == "j":
             malp("Na, dann ist ja alles gut.")
-            
         elif rosse == "nein" or rosse == "n":
             a = random.randint(1, 11)
             if a != 11:
@@ -42,6 +41,9 @@ def waffe_wählen(mänx: Mänx):
         malp("Jetzt bist du der Besitzer eines Schwertes namens Seralic. "
               "Möglicherweise erweist es sich ja "
               "als magisches Schwert.")
+    elif not waffe:
+        malp("Du wählst nicht? Ok.")
+        waffe = "leere"
     else:
         malp(f'Hier liegt kein/e/er "{waffe}"!')
         waffe = "Leere"
