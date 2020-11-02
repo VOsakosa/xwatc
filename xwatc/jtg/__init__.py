@@ -124,8 +124,8 @@ class Mädchen(haendler.Händler):
                         "Ich sollte verheiratet werden.",
                         "Darüber gerieten wir in Streit, und ich floh, um "
                         "zu meinen Großeltern in Gibon zu kommen."
-                    ], "woher", min_freundlich=10)
-        self.dialog("verstehen", "Das ist ja schrecklich! Ich helfe dir, nach "
+                    ], "woher", min_freundlich=10, wiederhole=1)
+        self.dialog("helfen", "Das ist ja schrecklich! Ich helfe dir, nach "
                     "Gibon zu kommen.", Mädchen.helfen, "allein")
 
     def hallo(self, _mänx: Mänx):
@@ -143,8 +143,72 @@ class Mädchen(haendler.Händler):
         self.sprich("Älen, Älen Kafuga", warte=True)
 
     def helfen(self, mänx: Mänx):
-        frage = self.name + ': "Willst du auch nach Gibon?"'
-        # TODO rest
+        self.sprich('Willst du auch nach Gibon?')
+        opts = [
+            ("irgendwann", 
+             '"Nein, ich erkunde hier die Gegend, irgendwann werde ich nach Gibon kommen."',
+             "Kann ich dann trotzdem mit dir mit? Es macht mir nichts aus, "
+             "wenn wir nicht direkt nach Gibon gehen."),
+            ("ja", '"Ja"', "Dann gehe ich mit dir mit."),
+            ("nein", '"Nein, aber ich kann dich trotzdem dahin bringen."',
+             "Ist das wirklich in Ordnung? Danke!")
+        ]
+        antwort = mänx.menu(opts)
+        self.sprich(antwort)
+        self.werde_gefährte()
+        mänx.add_gefährte(self)
+
+    def werde_gefährte(self):
+        self.dialoge.clear()
+        self.dialog("gibon", '"Wo ist Gibon eigentlich?"',
+                    ["In Tauern, direkt hinter der Grenze.",
+                     "Tauern liegt im Nordosten von Jotungard."])
+        self.dialog("umarmen", '"Kann ich dich umarmen?"', Mädchen.umarmen,
+                    min_freundlich=30)
+        # TODO mehr Gefährten-Dialoge, u.A. Bewaffnung
+        
+
+    def umarmen(self, mänx: Mänx):
+        if self.freundlich >= 80:
+            self.sprich("Gerne?")
+            malp("Ihr umarmt euch")
+            return
+        opts = [
+            ("einfach so", '"Einfach so."', "e"),
+            ("einsam", '"Ich bin etwas einsam."', "einsam"),
+            ("mag", '"Ich mag dich."', "mag"),
+            ("kalt", '"Mir ist kalt."', "kalt"),
+        ]
+        ans = mänx.menu(opts, '„Warum?"')
+        if ans == "e":
+            self.sprich("Äh, okay...")
+            malp("Du umarmst sie kurz. Sie schaut weg.")
+        elif ans == "einsam":
+            self.sprich("..")
+            malp("Ihr umarmt euch.")
+            self.sprich("Ich auch.", wie="flüstert")
+            self.add_freundlich(10, 60)
+        elif ans == "mag":
+            if self.freundlich >= 60:
+                self.sprich("Das ist so plötzlich", wie="errötet")
+                self.sprich("..")
+                self.sprich("Ich mag dich auch.")
+                # unverbindlich?
+                malp("Ihr umarmt euch")
+                self.freundlich += 20
+            else:
+                self.sprich("Sagst du so etwas zu jedem Mädchen, das dir "
+                            "über den Weg läuft?", warte=True)
+                malp("Sie stößt dich weg.")
+                self.add_freundlich(-2, 30)
+        else:  # "kalt"
+            if len(mänx.gefährten) <= 2:
+                self.sprich("Naja, mir ist auch kalt.")
+                malp("Ihr wärmt euch gegenseitig.")
+                self.add_freundlich(5, 40)
+            else:
+                self.sprich("Hier sind genug andere Ninen. Warum mich?")
+                malp("Sie geht davon.")
 
     def vorstellen(self, mänx):
         print("Am Wegesrand vor dem Dorfeingang siehst du ein Mädchen in Lumpen. "

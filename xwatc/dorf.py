@@ -179,6 +179,16 @@ class NSC(system.InventarBasis):
         """Minte mit vorgestelltem Namen"""
         system.sprich(self.name, text, *args, **kwargs)
 
+    def add_freundlich(self, wert: int, grenze: int) -> None:
+        """Füge Freundlichkeit hinzu, aber überschreite nicht die Grenze."""
+        if (wert > 0) == (self.freundlich > grenze):
+            return
+        elif wert > 0:
+            self.freundlich = min(grenze, wert + self.freundlich)
+        else:
+            self.freundlich = max(grenze, wert + self.freundlich)
+            
+
     def dialog(self, *args, **kwargs) -> 'Dialog':
         "Erstelle einen Dialog"
         dia = Dialog(*args, **kwargs)

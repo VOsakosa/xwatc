@@ -7,6 +7,8 @@ from pathlib import Path
 from xwatc.untersystem.itemverzeichnis import lade_itemverzeichnis
 from xwatc.untersystem import hilfe
 import typing
+if typing.TYPE_CHECKING:
+    from xwatc import dorf
 
 
 MänxFkt = Callable[['Mänx'], Any]
@@ -114,9 +116,10 @@ class Mänx(InventarBasis, Persönlichkeit):
     Information."""
 
     def __init__(self) -> None:
+        
         super().__init__()
         self.gebe_startinventar()
-        self.gefährten: List['Gefährte'] = []
+        self.gefährten: List['dorf.NSC'] = []
         self.titel: Set[str] = set()
         self.lebenswille = 10
         self.fähigkeiten: Set[str] = set()
@@ -312,11 +315,8 @@ class Mänx(InventarBasis, Persönlichkeit):
             if not any(inv.items()):
                 return
 
-
-class Gefährte:
-    def __init__(self, name):
-        self.name = name
-
+    def add_gefährte(self, gefährte: 'dorf.NSC'):
+        self.gefährten.append(gefährte)
 
 class Welt:
     """Speichert den Zustand der Welt, in der sich der Hauptcharakter befindet."""
@@ -462,15 +462,17 @@ def mint(*text):
     input(" ".join(str(t) for t in text))
 
 
-def sprich(sprecher: str, text: str, warte: bool = False):
+def sprich(sprecher: str, text: str, warte: bool = False, wie: str = ""):
+    if wie:
+        sprecher += f"({wie})"
     if warte:
-        mint(f'{sprecher}: "{text}"')
+        mint(f'{sprecher}: »{text}«')
     else:
-        print(end=f'{sprecher}: "')
+        print(end=f'{sprecher}: »')
         for word in re.split(r"(\W)", text):
             print(end=word, flush=True)
             sleep(0.05)
-        print('"')
+        print('«')
 
 
 def malp(*text, end='\n', warte=False) -> None:

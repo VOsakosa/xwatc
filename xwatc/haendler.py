@@ -1,7 +1,7 @@
 from typing import List, Optional as Op, NewType, Dict, cast, Tuple
 
 from xwatc.dorf import NSC, NSCOptionen, Rückkehr
-from xwatc.system import Mänx, minput, ja_nein, get_class, Inventar
+from xwatc.system import Mänx, minput, ja_nein, get_classes, Inventar
 
 ALLGEMEINE_PREISE = {
     "Speer": 50,
@@ -56,7 +56,8 @@ class Händler(NSC):
 
     def kann_kaufen(self, name: str):
         """Prüft, ob der Händler *name* ankauft."""
-        return self.kauft is None or get_class(name) in self.kauft
+        return self.kauft is None or any(
+            cls in self.kauft for cls in get_classes(name))
 
     def verkaufen(self, mänx: Mänx, name: str, preis: Preis, anzahl: int = 1) -> bool:
         """Mänx verkauft an Händler"""
