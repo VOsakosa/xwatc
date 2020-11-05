@@ -21,7 +21,7 @@ NSCOptionen = Iterable[MenuOption[MänxFkt]]
 DialogFn = Callable[["NSC", system.Mänx], Opt[bool]]
 RunType = Union['Dialog', MänxFkt, 'Rückkehr']
 _MainOpts = List[MenuOption[RunType]]
-DialogGeschichte = Union[Sequence[str], DialogFn]
+DialogGeschichte = Union[Sequence[Union['Malp', str]], DialogFn]
 
 
 class Rückkehr(Enum):
@@ -87,8 +87,13 @@ class NSC(system.InventarBasis):
 
     def dialog_optionen(self, mänx: system.Mänx) -> Iterator[MenuOption[Dialog]]:
         for d in self.dialoge:
-            if d.verfügbar(self, mänx):
+            if not d.direkt and d.verfügbar(self, mänx):
                 yield d.zu_option()
+
+    def direkte_dialoge(self, mänx: system.Mänx) -> Iterator[Dialog]:
+        for d in self.dialoge:
+            if d.direkt and d.verfügbar(self, mänx):
+                yield d
 
     def main(self, mänx: system.Mänx) -> Any:
         """Starte die Interaktion mit dem Mänxen."""
@@ -144,6 +149,10 @@ class NSC(system.InventarBasis):
 
     def _main(self, mänx: system.Mänx) -> Any:
         """Das Hauptmenu, möglicherweise ist Reden direkt an."""
+        if self.direkt_reden:
+            for dia in self.direkte_dialoge(mänx):
+                if self._run(dia, mänx) != Rückkehr.WEITER_REDEN:
+                    return
         while True:
             opts: _MainOpts
             opts = list(self.optionen(mänx))
@@ -161,6 +170,10 @@ class NSC(system.InventarBasis):
             self.kennt_spieler = True
         ans = Rückkehr.WEITER_REDEN
         start = True
+        for dia in self.direkte_dialoge(mänx):
+            ans = self._run(dia, mänx)
+            if ans != Rückkehr.WEITER_REDEN:
+                return ans
         while ans == Rückkehr.WEITER_REDEN:
             optionen: List[MenuOption[Union[Dialog, Rückkehr]]]
             optionen = list(self.dialog_optionen(mänx))
@@ -187,7 +200,6 @@ class NSC(system.InventarBasis):
             self.freundlich = min(grenze, wert + self.freundlich)
         else:
             self.freundlich = max(grenze, wert + self.freundlich)
-            
 
     def dialog(self, *args, **kwargs) -> 'Dialog':
         "Erstelle einen Dialog"
@@ -224,7 +236,7 @@ class Malp:
     text: str
     warte: bool = False
 
-    def __call__(self):
+    def __call__(self, *__):
         malp(self.text, warte=self.warte)
 
 
@@ -235,10 +247,21 @@ class Dialog:
     def __init__(self,
                  name: str,
                  text: str,
-                 geschichte: Union[DialogFn, List[str]],
+                 geschichte: DialogGeschichte,
                  vorherige: Union[str, None, VorList] = None,
-                 wiederhole: int = 0,
-                 min_freundlich: Opt[int] = None):
+                 wiederhole: Opt[int] = None,
+                 min_freundlich: Opt[int] = None,
+                 direkt: bool = False):
+        """
+        :param name: Der kurze Name des Dialogs
+        :param text: Der lange Text in der Option
+        :param geschichte: Das, was beim Dialog passiert. Kann DialogFn sein
+            oder eine Liste von Strings und Malps, die dann gesagt werden.
+        :param vorherige: Liste von Dialogen, die schon gesagt sein müssen
+        :param min_freundlich: Mindestfreundlichkeit für den Dialog
+        :param direkt: Wenn wahr, redet der Mänx dich an, statt du ihn.
+        """
+        self.direkt = direkt
         self.min_freundlich = min_freundlich
         self.name = name
         self.text = text
@@ -252,7 +275,10 @@ class Dialog:
             self.vorherige = []
 
         self.wenn_fn = None
-        self.anzahl = wiederhole
+        if wiederhole is None:
+            self.anzahl = 1 if direkt else 0
+        else:
+            self.anzahl = wiederhole
 
     def wenn(self, fn: DialogFn) -> 'Dialog':
         self.wenn_fn = fn
@@ -297,9 +323,11 @@ class Dialog:
 
 
 class Dorfbewohner(NSC):
+    """Ein NSC, der Hallo sagt."""
+
     def __init__(self, name: str, geschlecht: bool, **kwargs):
         kwargs.setdefault("art", "Dorfbewohner" if geschlecht
-                         else "Dorfbewohnerin")
+                          else "Dorfbewohnerin")
         super().__init__(name, **kwargs)
         self.geschlecht = geschlecht
         self.dialog("hallo", "Hallo", lambda n, _:

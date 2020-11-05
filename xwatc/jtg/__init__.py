@@ -17,6 +17,7 @@ from xwatc.jtg.groekrak import zugang_südost
 from xwatc.jtg import eo_nw
 from xwatc.untersystem.acker import Wildpflanze
 from xwatc.weg import Ereignis
+from typing import List, Tuple
 
 
 def t2(mänx: Mänx) -> None:
@@ -104,6 +105,7 @@ class Mädchen(haendler.Händler):
                 "Unterhose": 1,
                 "Socke": 2,
                 "Schuh": 2,
+                "Lumpen": 1,
         })
         self.in_disnajenbum = True
         self.dialog("hallo", "Hallo, kann ich dir helfen?", Mädchen.hallo)
@@ -144,13 +146,14 @@ class Mädchen(haendler.Händler):
 
     def helfen(self, mänx: Mänx):
         self.sprich('Willst du auch nach Gibon?')
+        opts: List[Tuple[str, str, str]]
         opts = [
-            ("irgendwann", 
-             '"Nein, ich erkunde hier die Gegend, irgendwann werde ich nach Gibon kommen."',
+            ('»irgendwann«', "irgendwann",
+             '"Nein, ich erkunde hier die Gegend, irgendwann werde ich nach Gibon kommen."'
              "Kann ich dann trotzdem mit dir mit? Es macht mir nichts aus, "
              "wenn wir nicht direkt nach Gibon gehen."),
-            ("ja", '"Ja"', "Dann gehe ich mit dir mit."),
-            ("nein", '"Nein, aber ich kann dich trotzdem dahin bringen."',
+            ('ja', "»ja«",  "Dann gehe ich mit dir mit."),
+            ('»Nein, aber ich kann dich trotzdem dahin bringen.«', "»nein«",
              "Ist das wirklich in Ordnung? Danke!")
         ]
         antwort = mänx.menu(opts)
@@ -159,14 +162,36 @@ class Mädchen(haendler.Händler):
         mänx.add_gefährte(self)
 
     def werde_gefährte(self):
+        """Mache das Mädchen zum Gefährten."""
         self.dialoge.clear()
         self.dialog("gibon", '"Wo ist Gibon eigentlich?"',
                     ["In Tauern, direkt hinter der Grenze.",
                      "Tauern liegt im Nordosten von Jotungard."])
         self.dialog("umarmen", '"Kann ich dich umarmen?"', Mädchen.umarmen,
                     min_freundlich=30)
-        # TODO mehr Gefährten-Dialoge, u.A. Bewaffnung
-        
+        self.dialog("großeltern", '"Wie sind deine Großeltern so?"',
+                    ["Mein Aba ist ein strenger Mann. Er schätzt Disziplin "
+                     "über alles, aber er ist eigentlich ganz nett.",
+                     "Meine Ama ist emotional sehr intelligent. Sie ergänzen "
+                     "sich echt gut.",
+                     "Ich habe sie selten gesehen, weil sie weit weg wohnen "
+                     "und sie meinen Vater nicht schätzten."
+                     ])
+        self.dialog("grökrakchöl", '„Hast du keine Bekannten mehr in Grökrakchöl?"',
+                    ["Nein, zumindest keine, die ich sehr gut kenne.",
+                     ])
+        self.dialog("waffe", '', [
+            "Ich hätte gerne eine Waffe.",
+            "Ich muss mich doch irgendwie wehren können."
+            "Dann kann ich dir auch helfen."
+        ], direkt=True, wiederhole=0).wenn(
+            lambda n, __: not n.hat_klasse("Waffe"))
+        self.in_disnajenbum = False
+
+    def optionen(self, mänx: Mänx) -> NSCOptionen:
+        if self.in_disnajenbum:
+            yield ("handeln", "handel", self.handeln)
+        yield from NSC.optionen(self, mänx)
 
     def umarmen(self, mänx: Mänx):
         if self.freundlich >= 80:
@@ -643,7 +668,7 @@ def rechtfertigen(mänx: Mänx, nsc, hilfe):
         val = ""
         while not val:
             val = mänx.minput(hilfe[0].name + ': "Was soll er denn gestohlen haben?"',
-                         lower=False)
+                              lower=False)
         if {"Kleidung", "Nahrung"} & set(get_classes(val)):
             hilfe[0].sprich("Kleidung oder Essen zu stehlen ist kein Verbrechen,"
                             " das man "

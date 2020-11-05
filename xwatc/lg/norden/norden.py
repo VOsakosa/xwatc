@@ -1,6 +1,6 @@
 from time import sleep
 import xwatc_Hauptgeschichte as xwatc
-from xwatc.system import Mänx, minput, Gefährte, ja_nein, Spielende
+from xwatc.system import Mänx, minput, ja_nein, Spielende
 from xwatc.lg.norden.gäfdah import erzeuge_Gäfdah
 
 

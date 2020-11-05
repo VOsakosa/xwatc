@@ -479,7 +479,7 @@ def malp(*text, end='\n', warte=False) -> None:
     for words in text:
         for word in re.split(r"(\W)", str(words)):
             print(end=word, flush=True)
-            sleep(0.05)
+            sleep(0.04)
     if warte:
         mint(end)
     else:
