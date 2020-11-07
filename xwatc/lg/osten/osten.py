@@ -62,16 +62,16 @@ def höhle(mänx: Mänx):
         abzweigung = minput(mänx, "Du gehst tiefer und tiefer. Du stehst nun vor einer Abzweigung."
                             "Auf dem Schildchen über dem einen Weg steht \"bergbau\""
                             "und über dem anderen steht  \"monster\". (b/m)", ["b", "m"])
-    else:
-        osten(mänx)
-
         if abzweigung == "b":
             bergbau(mänx)
         else:
             monster(mänx)
-    mint("Urplötzlich fängt die Luft um dich herum an zu flimmern. Und dann...")
-    mänx.welt.setze("jtg:flimmern")
-    jaspersteilgeschichte.t2(mänx)
+        mint("Urplötzlich fängt die Luft um dich herum an zu flimmern. Und dann...")
+        mänx.welt.setze("jtg:flimmern")
+        jaspersteilgeschichte.t2(mänx)
+    else:
+        osten(mänx)
+
 
 def bergbau(mänx: Mänx):
     print("Du nimmst dir eine Spitzhacke und fängst an den Stein zu bearbeiten. Warte eine Minute.")
@@ -79,61 +79,60 @@ def bergbau(mänx: Mänx):
     mänx.inventar["Spitzhacke"] += 1
     mänx.inventar["Stein"] += 4
     minput(mänx, "Du bekommst Zeug")
-    bopo = minput(mänx, "Arbeitest du weiter?", ["j", "ja", "n", "nein"])
-    if bopo == "j" or "ja":
+    if mänx.ja_nein("Arbeitest du weiter?"):
         sleep(59)
         a = random.randint(1, 120)
         if 1 <= a <= 27:
-            mint("Du bekommst ein bischen Stein")
+            mint("Du bekommst ein bisschen Stein")
             mänx.inventar["Stein"] += 4
-    
+
         elif 27 <= a <= 54:
             mint("Du bekommst ein wenig Stein")
             mänx.inventar["Stein"] += 5
-    
+
         elif 54 <= a <= 81:
             mint("Du bekommst 6 Steine")
             mänx.inventar["Stein"] += 6
-    
+
         elif 81 <= a <= 90:
             mint("Du bekommst ein bisschen Kohle")
             mänx.inventar["Kohle"] += 3
             mänx.inventar["Stein"] += 1
-    
+
         elif 90 <= a <= 99:
             mint("Du bekommst ein wenig Kohle")
             mänx.inventar["Kohle"] += 4
             mänx.inventar["Stein"] += 1
-    
+
         elif 99 <= a <= 108:
             mint("Du findest eine winzige Kohleader!")
             mänx.inventar["Kohle"] += 5
             mänx.inventar["Stein"] += 1
-    
+
         elif 108 <= a <= 111:
             mint("Du findest zwei Eisenklumpen")
             mänx.inventar["Eisen"] += 2
             mänx.inventar["Stein"] += 1
-    
+
         elif 111 <= a <= 114:
             mint("Du findest drei Eisenklumpen")
             mänx.inventar["Eisen"] += 3
             mänx.inventar["Stein"] += 1
-    
+
         elif 114 <= a <= 117:
             mint("Du findest fünf Eisenklumpen")
             mänx.inventar["Eisen"] += 5
             mänx.inventar["Stein"] += 1
-    
+
         elif a == 118:
-            mint(
-                "Du arbeitest in der Mine und bautest gerade eine Kohlemine ab, da findest du etwas:")
+            mint("Du arbeitest in der Mine und bautest gerade eine Kohlemine "
+                 "ab, da findest du etwas:")
             mint("Du traust deinen Augen nicht: ",
                  kursiv("ein Diamant!"), "")
             mänx.inventar["Diamant"] += 1
             mänx.inventar["Kohle"] += 20
             mänx.inventar["Stein"] += 1
-    
+
         elif a == 119:
             mint("Plötzlich stößt du auf einen Hohlraum.")
             l = input(
@@ -143,7 +142,7 @@ def bergbau(mänx: Mänx):
                 mint("Doch kaum draußen angekommen fällst du in Ohnmacht. "
                      "Wieder aufgewacht, bist du an einem anderen Ort.")
                 jaspersteilgeschichte.t2(mänx)
-    
+
             else:
                 mint("Du verbreiterst den Durchgang. "
                      "Hinter ihm findest du einen Hohlraum von der Größe eines Sarges. "
@@ -178,16 +177,17 @@ def bergbau(mänx: Mänx):
                 mänx.inventar["Talisman der Schreie"] += 1
                 mänx.inventar["Spitzhacke"] -= 1
                 jaspersteilgeschichte.t2(mänx)
-    
+
             else:
                 print("OK dann eben nicht.")
                 mint("Ich denke mal du solltest ",
                      kursiv("verschwinden!"), "")
                 mänx.inventar["Stein"] += 30
                 jaspersteilgeschichte.t2(mänx)
-    
+
     else:
         mint("OK")
+
 
 def monster(mänx: Mänx):
     mint("Du hörst ein Klatschen.")
