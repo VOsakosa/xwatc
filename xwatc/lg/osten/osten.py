@@ -57,7 +57,8 @@ def osten(mänx: Mänx):
 
 
 def höhle(mänx: Mänx):
-    mint("In der Höhle ist es dunkel, aber es gibt sauberes Wasser und hier wachsen essbare Pilze.")
+    mint("In der Höhle ist es dunkel, aber es gibt sauberes Wasser und "
+         "hier wachsen essbare Pilze.")
     if ja_nein(mänx, "Willst du die Höhle erkunden?"):
         abzweigung = minput(mänx, "Du gehst tiefer und tiefer. Du stehst nun vor einer Abzweigung."
                             "Auf dem Schildchen über dem einen Weg steht \"bergbau\""
