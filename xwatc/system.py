@@ -475,8 +475,13 @@ def sprich(sprecher: str, text: str, warte: bool = False, wie: str = ""):
         print('«')
 
 
-def malp(*text, end='\n', warte=False) -> None:
+def malp(*text, sep=" ", end='\n', warte=False) -> None:
+    start = False
     for words in text:
+        if start:
+            print(end=sep)
+        else:
+            start = True
         for word in re.split(r"(\W)", str(words)):
             print(end=word, flush=True)
             sleep(0.04)

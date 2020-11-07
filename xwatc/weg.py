@@ -6,7 +6,7 @@ from __future__ import annotations
 import enum
 import random
 from dataclasses import dataclass
-from xwatc.utils import uartikel, bartikel
+from xwatc.utils import uartikel, bartikel, adj_endung
 import typing
 from typing import (List, Any, Optional as Opt, cast, Iterable, Union, Sequence,
                     Collection, Callable, Dict, Tuple, NewType, Mapping,
@@ -159,9 +159,9 @@ class Weg(_Strecke):
 
 class Wegtyp(enum.Enum):
     STRASSE = "Straße", "f"
-    ALTE_STRASSE = "alte Straße", "f"
+    ALTE_STRASSE = "alt# Straße", "f"
     WEG = "Weg", "m"
-    VERFALLENER_WEG = "verfallener Weg", "m"
+    VERFALLENER_WEG = "verfallen# Weg", "m"
     PFAD = "Pfad", "m"
     TRAMPELPFAD = "Trampelpfad", "m"
 
@@ -170,9 +170,26 @@ class Wegtyp(enum.Enum):
         return self.value[1]  # pylint: disable=unsubscriptable-object
 
     def text(self, bestimmt: bool, fall: int) -> str:
-        # TODO Kasus der Adjektive
+        nom = self.value[0]  # pylint: disable=unsubscriptable-object
+        if "#" in nom:
+            nom = nom.replace("#", adj_endung(bestimmt, self.geschlecht, fall))
         return ((bartikel if bestimmt else uartikel)(self.geschlecht, fall)
-                + " " + self.value[0])  # pylint: disable=unsubscriptable-object
+                + " " + nom)
+
+    def __format__(self, format_spec: str) -> str:
+        if 2 <= len(format_spec) <= 3:
+            fall = int(format_spec[1])
+            if format_spec[0] == "g":
+                ans = bartikel(self.geschlecht, fall)
+            else:
+                bestimmt = format_spec[0] == '1'
+                ans = self.text(bestimmt, fall)
+            if format_spec[2:] in ("1", "c"):
+                return cap(ans)
+            else:
+                return ans
+        else:
+            return super().__format__(format_spec)
 
 
 @dataclass
@@ -328,42 +345,52 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
             return ans
         raise TypeError(i, "must be str, int or slice.")
 
+    def _finde_texte(self, richtung: int) -> List[str]:
+        rs = self[richtung:] + self[:richtung]
+        ans: List[str] = []
+        min_arten = 8
+        for flt, txt in WEGPUNKTE_TEXTE:
+            typen: Dict[int, Wegtyp] = {}
+            art_count = 0
+            for stp, tp in zip(rs, flt):
+                if tp == 0 and stp is None:
+                    continue
+                elif tp != 0 and stp is not None:
+                    if tp in typen:
+                        if typen[tp] != stp.typ:
+                            break
+                    else:
+                        art_count += 1
+                        typen[tp] = stp.typ
+                else:
+                    break
+            else:
+                if art_count < min_arten:
+                    ans.clear()
+                elif art_count > min_arten:
+                    continue
+                ans.append(txt.format(w=typen))
+        return ans
+
     def beschreibe_kreuzung(self, richtung: Opt[int]):  # pylint: disable=unused-argument
         rs = self[:]
         if richtung is not None:
-            rit = cast(Richtung, rs[richtung]).typ
-            gegen = (richtung + 4) % 8
-            iri = sum(map(bool, rs))
-            if iri == 1:
-                print("Sackgasse.")
-            elif iri == 2:
-                andere = next(i for i, v in enumerate(rs)
-                              if v and i != richtung)
-                atyp = cast(Richtung, rs[andere]).typ
-                if andere == gegen:
-                    if rit != atyp:
-                        print(cap(rit.text(True, 1)),
-                              "wird zu", atyp.text(False, 3))
-                else:
-                    print(cap(rit.text(True, 1)), "biegt nach",
-                          HIMMELSRICHTUNGEN[andere], "ab", end="")
-                    if rit != atyp:
-                        print(" und wird zu", atyp.text(False, 3))
-                    else:
-                        print(".")
+            texte = self._finde_texte(richtung)
+            if texte:
+                malp(random.choice(texte))
             else:
-                print("Du kommst an eine Kreuzung.")
+                malp("Du kommst an eine Kreuzung.")
                 for i, ri in enumerate(rs):
                     if ri and i != richtung:
-                        print(cap(ri.typ.text(False, 1)), "führt nach",
-                              HIMMELSRICHTUNGEN[i] + ".")
+                        malp(cap(ri.typ.text(False, 1)), "führt nach",
+                             HIMMELSRICHTUNGEN[i] + ".")
 
         else:
-            print("Du kommst auf eine Wegkreuzung.")
+            malp("Du kommst auf eine Wegkreuzung.")
             for i, ri in enumerate(rs):
                 if ri:
-                    print(cap(ri.typ.text(False, 1)), "führt nach",
-                          HIMMELSRICHTUNGEN[i] + ".")
+                    malp(cap(ri.typ.text(False, 1)), " führt nach ",
+                         HIMMELSRICHTUNGEN[i] + ".")
 
     def optionen(self, mänx: Mänx,  # pylint: disable=unused-argument
                  von: Opt[int]) -> Iterable[MenuOption[
@@ -381,7 +408,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
             if not ri:
                 continue
             if riabs == von:
-                yield ("Umkehren", "fliehen", ri.ziel)
+                yield ("Umkehren", himri.lower(), ri.ziel)
             else:
                 if ri.zielname:
                     ziel = ri.zielname + " im " + himri
@@ -530,3 +557,33 @@ def wegsystem(mänx: Mänx, start: Union[Wegpunkt, str]) -> None:
         finally:
             mänx.context = None
     wp.weiter(mänx)  # type: ignore
+
+
+WEGPUNKTE_TEXTE: List[Tuple[List[int], str]] = [
+
+    ([1, 0, 0, 0, 2, 0, 0, 0], "{w[1]:111} wird zu {w[2]:03}"),
+    # Kurven
+    ([1, 1, 0, 0, 0, 0, 0, 0],
+     "{w[1]:111} macht eine scharfe Biegung nach links."),
+    ([1, 0, 1, 0, 0, 0, 0, 0],
+     "{w[1]:111} biegt nach links ab."),
+    ([1, 0, 1, 0, 0, 0, 0, 0],
+     "Du biegst nach links ab."),
+    ([1, 0, 0, 1, 0, 0, 0, 0],
+     "{w[1]:111} macht eine leichte Biegung nach links."),
+    ([1, 0, 0, 0, 1, 0, 0, 0], "{w[1]:111} führt weiter geradeaus."),
+    ([1, 0, 0, 0, 0, 1, 0, 0],
+     "{w[1]:111} macht eine leichte Biegung nach rechts."),
+    ([1, 0, 0, 0, 0, 0, 1, 0],
+     "{w[1]:111} biegt nach rechts ab."),
+    ([1, 0, 0, 0, 0, 0, 0, 1],
+     "{w[1]:111} macht eine scharfe Biegung nach rechts."),
+    # T-Kreuzungen
+    ([1, 0, 2, 0, 0, 0, 2, 0], "{w[1]:111} endet orthogonal an {w[2]:03}."),
+    ([1, 2, 0, 0, 0, 2, 0, 0], "{w[1]:111} mündet in {w[2]:04}, {w[2]:g1} von "
+     "scharf links nach rechts führt."),
+    ([1, 2, 0, 0, 2, 0, 0, 0], "{w[1]:111} vereinigt sich mit {w[2]:03}, der geradeaus "
+     "weiterführt."),
+    ([1, 0, 2, 0, 1, 0, 2, 0], "{w[2]:011} kreuzt senkrecht."),
+    ([1, 0, 0, 0, 0, 0, 0, 0], "Eine Sackgasse.")
+]

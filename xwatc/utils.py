@@ -16,6 +16,7 @@ def uartikel(geschlecht: str, fall: int = 1):
     else:
         return "einer"
 
+
 def bartikel(geschlecht: str, fall: int = 1):
     if geschlecht == "n":
         return ["dem", "das", "des"][fall % 3]
@@ -23,7 +24,21 @@ def bartikel(geschlecht: str, fall: int = 1):
         return ["den", "der", "des", "dem"][fall % 4]
     elif fall == 1 or fall == 4:
         return "die"
-    elif fall == 2 or fall==3 and geschlecht == "f":
+    elif fall == 2 or fall == 3 and geschlecht == "f":
         return "der"
     else:
         return "den"
+
+
+def adj_endung(schwach: int, geschlecht: str, fall: int = 1):
+    if fall == 2 or fall == 3 or geschlecht == "p":
+        return "en"
+    elif geschlecht == "m":
+        if fall == 4:
+            return "en"
+        elif schwach:
+            return "er"
+        return "e"
+    elif geschlecht == "n" and schwach:
+        return "es"
+    return "e"
