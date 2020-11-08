@@ -6,7 +6,7 @@ import sys
 if __name__ == "__main__":
     sys.path.append("..")
 
-from xwatc import system
+from xwatc import system, weg
 
 SCENARIO_ORT = os.path.join(os.path.dirname(__file__), "../scenarios")
 
@@ -40,7 +40,9 @@ Spieler = _SpielerTyp(object())
 class ScenarioEnde:
     def __init__(self, tot=False, nächstes=None, ergebnis=None):
         self.tot = tot
+        # Nächstes Scenario
         self.nächstes = nächstes
+        # Scenario-Ergebnis
         self.ergebnis = ergebnis
 
 
@@ -225,6 +227,8 @@ class Scenario:
         clear = False
         while not ans:
             self.print_feld(clear)
+            if not clear:
+                mänx.tutorial("scenario")
             clear = True
             arg = mänx.minput(">")
             if arg == "w":
@@ -257,11 +261,31 @@ def lade_scenario(mänx, path):
             return ans.ergebnis
     return None
 
-
+class ScenarioWegpunkt(weg.Wegkreuzung):
+    """Macht ein Scenario zu einem Wegpunkt"""
+    def __init__(self, scenario: Union[str, Scenario], *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if isinstance(scenario, str):
+            path = scenario
+            if not path.endswith(".txt"):
+                path += ".txt"
+            path = os.path.join(SCENARIO_ORT, path)
+            self.scenario = Scenario.laden(path)
+        else:
+            self.scenario = scenario
+    
+    def main(self, mänx: Mänx, von: Op[weg.Wegpunkt]) -> weg.Wegpunkt:
+        # TODO von könnte für verschiedene Spawnpunkte genutzt werden
+        ans = self.scenario.einleiten(mänx)
+        if ans.tot:
+            raise system.Spielende()
+        elif ans.ergebnis:
+            return self[ans.ergebnis].ziel
+        else:
+            raise RuntimeError("Scenario endete ohne Ergebnis!")
+        
 if __name__ == '__main__':
-    from xwatc.jtg.nord import registrieren
     m = system.Mänx()
-    registrieren(m)
     try:
         erg = lade_scenario(m, "disnajenbun")
     except system.Spielende:

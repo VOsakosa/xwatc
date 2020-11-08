@@ -1,7 +1,7 @@
 from time import sleep
 import xwatc_Hauptgeschichte as xwatc
 from xwatc.system import Mänx, minput, Gefährte, ja_nein, mint, Spielende
-from xwatc import jaspersteilgeschichte
+from xwatc import jtg
 import random
 
 def miasteigeschichte(mänx):
