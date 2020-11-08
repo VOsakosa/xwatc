@@ -22,23 +22,29 @@ def erzeuge_Gäfdah(mänx) -> Dorf:
     
     ])
     
-    schmiede = Ort("Schmiede", [
-        "Du kommst in einen warmen, kleinen Raum, der irgendwie gemütlich wirkt und nach Schweiß riecht."
+    Schenke = Ort("Schenke", [
+        "Du bist in einer Schenke.",
+        "Sie ist voll von grölenden und betrunkenden Leuten."
         
-        "Hinter der Theke steht ein bulliger Mann und verkauft wohl Waffen, Rüstungen und Anderes."
+    
+    ])
+    schmiede = Ort("Schmiede", [
+        "Du kommst in einen warmen, kleinen Raum, der irgendwie gemütlich wirkt und nach Schweiß riecht.",
+        
+        "Hinter der Theke steht ein bulliger Mann und verkauft wohl Waffen, Rüstungen und Anderes.",
     
     ])
     
     rathaus = Ort("Rathaus", [
         "Du kommst in ein großes Haus mit Marmorfußboden.",
         
-        "Drei Wachen kommen auf dich zu."
+        "Drei Wachen kommen auf dich zu.",
         
     
     ])
     
     haus1 = Ort("Haus Nummer1", [
-        "Du kommst in ein kleines Haus."
+        "Du kommst in ein kleines Haus.",
     
     ])
     kirche.menschen.append(mänx.welt.get_or_else(
@@ -49,6 +55,7 @@ def erzeuge_Gäfdah(mänx) -> Dorf:
     rathaus.menschen.append(mänx.welt.get_or_else(
         "nsc:Wachen_von_Gäfdah:MarioWittenpfäld", MarioWittenpfäld))
     rathaus.add_nsc(mänx.welt, "nsc:Wachen_von_Gäfdah:SakcaBrauc", SakcaBrauc)
+    schenke.add_nsc(mänx.welt, "nsc:Freiwild:RuboicHätxrik", RuboicHätxrik)
     rathaus.menschen.append(mänx.welt.get_or_else(
         "nsc:Wachen_von_Gäfdah:ThomarcAizenfjäld", ThomarcAizenfjäld))
     d.orte.append(rathaus)

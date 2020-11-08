@@ -32,12 +32,14 @@ def sgh(mänx):
         mänx.erhalte("Salami", 3)
         mänx.erhalte("Zähe Bohnen", 1)
         mänx.erhalte("Äntorenmedäille", 1)
+    else:
+        mint("OK, dann nicht.")
         
         
         
 class RuboicHätxrik(NSC):
     def __init__(self) -> None:
-        super().__init__("Ruboic Hätxrik", "Jäger")
+        super().__init__("Ruboic Hätxrik", "Äntor")
         cls = type(self)
         a=random.randint(1,500)
         if a ==1:
@@ -91,6 +93,7 @@ class RuboicHätxrik(NSC):
         if a ==1:
             ("Bevor du ihn angreifen konntest, fiel der Mann einfach tot um")
             self.tot=True
+            sgh(mänx)
         else:
             if ja_nein(mänx, "Der Mann richtet seine Armbrust auf dich. "
                        "Willst du immer noch kämpfen?"):
@@ -115,7 +118,8 @@ class RuboicHätxrik(NSC):
              'Dann, '
              'ganz plötzlich fällt er um und beginnt röchelnd zu verenden.  ')
         self.tot=True
-        mänx.erhalte("Aphrodiikensamen",5)    
+        mänx.erhalte("Aphrodiikensamen",5)
+        sgh(mänx)
     def reden_thierca(self, mänx: Mänx) -> None:
         mint('"thiersca ja?, du erinnnest mich an men Tochterle. Wisst de?!" '
              'Der Mann drückt dir etwas in die Hand. '
@@ -123,6 +127,7 @@ class RuboicHätxrik(NSC):
              'ganz plötzlich fängt er an zu röcheln und fällt tot um.  ')
         self.tot=True
         mänx.erhalte("Bantoriitensamen",5)
+        sgh(mänx)
             
     def reden_ares(self, mänx: Mänx) -> None:
         mint("Ares?", kursiv("Du?!"), "bist es?")
@@ -130,6 +135,7 @@ class RuboicHätxrik(NSC):
         if a ==1:
             ("Plötzlich fiel der Mann einfach tot um")
             self.tot=True
+            sgh(mänx)
         else:
             a=random.randint(1,40)
             if a==1:
@@ -157,22 +163,56 @@ class RuboicHätxrik(NSC):
                         xwatc_Hauptgeschichte.himmelsrichtungen(mänx)
                     else:
                         t2(mänx)
+                else:
+                    mint("", kursiv ("Das"), "wirst du bereuen.")
+                    raise Spielende
+            elif a==2:
+                mänx.erhalte("Apfel",5)
+                mänx.erhalte("Kometenstein",1)
+                mänx.erhalte("Speer",1)
+                mänx.erhalte("Honigpastete",5)
+                
+            elif a==3:
+                mänx.erhalte("Leere",5)
+                mänx.erhalte("Spielzeugauto",1)
+                mänx.erhalte("Holzente",1)
+                mänx.erhalte("Hering",5)
+                
+            elif a==4:
+                mänx.erhalte("Gänseblümchen",5)
+                mänx.erhalte("Rose",1)
+                mänx.erhalte("Löwenzahn",1)
+                mänx.erhalte("Distelblüte",5)
+                
+            elif a==5:
+                mänx.erhalte("Mächtige Axt",1)
+                mänx.erhalte("Schwert",1)
+                mänx.erhalte("Lichtschwert",1)
+                mänx.erhalte("Speer",1)
+                
+            else:
+                mänx.erhalte("Mantel",5)
+                mänx.erhalte("Hose",1)
+                mänx.erhalte("Unterhose",1)
+                mänx.erhalte("Honigpastete",5)
+                
+        mint("Der Mann stirbt")
+        self.tot = True
+        sgh(mänx)
+                
                 
                 
     def reden_hallo(self, mänx: Mänx) -> None:
-        print('"Was kümnmert dich das?"')
-        if ja_nein(mänx, "Beharrst du auf deine Frage"):
-            mint('"Gut und hau jetzt ab!"')
+        mint('"Äch ben Hätrik"')
             
     def reden_geht(self, mänx: Mänx) -> None:
-        print('"Was kümnmert dich das?"')
-        if ja_nein(mänx, "Beharrst du auf deine Frage"):
-            mint('"Gut und hau jetzt ab!"')
+        mint("Mi gätc gout.")
             
     def reden_agaga(self, mänx: Mänx) -> None:
-        print('"Was kümnmert dich das?"')
-        if ja_nein(mänx, "Beharrst du auf deine Frage"):
-            mint('"Gut und hau jetzt ab!"')
+        print("Der Mann runzelt die Stirn.")
+        mint('"Was willst du?"')
+        print("Dann weiten sich seine Augen und er rennt davon.")
+        self.tot = True
             
     def reden_suche1(self, mänx: Mänx) -> None:
         print('"Was kümnmert dich das?"')
