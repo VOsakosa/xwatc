@@ -1,5 +1,5 @@
 from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner
-from xwatc.system import mint, kursiv, Mänx, ja_nein, minput, Spielende
+from xwatc.system import mint, kursiv, Mänx, ja_nein, minput, Spielende, malp
 import random
 from xwatc.jtg import t2
 from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
@@ -69,7 +69,8 @@ class RuboicHätxrik(NSC):
         self.dialog("geht", '"Wie geht es dir?"',
                     cls.reden_geht)
         self.dialog("wetter",
-                    '"Wie findest du das Wetter heute?"', cls.reden_wetter)
+                    '"Wie findest du das Wetter heute?"',
+                    cls.reden_wetter)
         self.dialog("agaga",
                     "Aggagagaggagrrrrrrrr!!!!  Ähäsifowipppfff Ich binne v'ückt bööö...",
                     cls.reden_agaga)
@@ -139,7 +140,7 @@ class RuboicHätxrik(NSC):
         else:
             a=random.randint(1,40)
             if a==1:
-                print("Plötzlich sprach der Mann mit einer monotonen, hölzernen Stimme.")
+                malp("Plötzlich sprach der Mann mit einer monotonen, hölzernen Stimme.")
                 mint('"HALLO;ENTITÄT §===(§"/F LANGE '
                      '', kursiv("ggrrrpfft") , 'NICHT MEHR GESE'
                      '', kursiv("bbpfftgr"), 'HEN'
@@ -148,13 +149,13 @@ class RuboicHätxrik(NSC):
                 mänx.erhalte("NOEL@þ",1)
                 mänx.erhalte("Lichtschwert",1)
                 mänx.erhalte("Honigpastete",5)
-                print("NOEL hinterlässt dir eine Nachricht:")
+                malp("NOEL hinterlässt dir eine Nachricht:")
                 mint("", kursiv("Komm zu mir, komm/komm/komm/komm/"
                                 "komm/komm/komm\komm\komm\komm\komm\/"
                                 "komm\komm\komm\komm\komm\komm\komm/\/"
                                 "komm\komm/komm\komm/komm zu mir"), "")
                 if ja_nein(mänx, "Willst du mitkommen?"):
-                    print('Irgendwo schien jemand sich zu freuen.')
+                    malp('Irgendwo schien jemand sich zu freuen.')
                     kursiv('"Du wirst es sicherlich nicht bereuen."')
                     b=random.randint(1,4)
                     if b==1:
@@ -209,24 +210,28 @@ class RuboicHätxrik(NSC):
         mint("Mi gätc gout.")
             
     def reden_agaga(self, mänx: Mänx) -> None:
-        print("Der Mann runzelt die Stirn.")
+        malp("Der Mann runzelt die Stirn.")
         mint('"Was willst du?"')
-        print("Dann weiten sich seine Augen und er rennt davon.")
+        malp("Dann weiten sich seine Augen und er rennt davon.")
         self.tot = True
             
     def reden_suche1(self, mänx: Mänx) -> None:
-        print('"Was kümnmert dich das?"')
+        malp('"Was kümnmert dich das?"')
         if ja_nein(mänx, "Beharrst du auf deine Frage"):
             mint('"Gut und hau jetzt ab!"')
             
     def reden_suche2(self, mänx: Mänx) -> None:
-        print('"Was kümnmert dich das?"')
+        malp('"Was kümnmert dich das?"')
         if ja_nein(mänx, "Beharrst du auf deine Frage"):
             mint('"Gut und hau jetzt ab!"')
+    
+    def reden_wetter(self, mänx: Mänx) -> None:
+        mint("Gut, ne und?")
             
 
 
 
     def main(self, mänx: Mänx) -> None:
-        print('"Tag. Was ist?"')
+        malp('"Der Mensch, welchen du ansprachest, ist in einen dicken Bärenpelzmantel gekleidet."')
+        mint("Er ist wohl ein Äntor, ein Jäger.")
         super().main(mänx)

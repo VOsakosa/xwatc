@@ -10,7 +10,11 @@ from xwatc.utils import uartikel, bartikel
 import typing
 from typing import (List, Any, Optional as Opt, cast, Iterable, Union, Sequence,
                     Collection, Callable, Dict, Tuple, NewType, Mapping,
-                    overload, runtime_checkable)
+                    overload)
+try:
+    from typing import Protocol
+except ImportError:
+    from typing_extensions import runtime_checkable, Protocol
 from xwatc.system import Mänx, MenuOption, MänxFkt, InventarBasis, malp, mint
 from xwatc import dorf
 __author__ = "jasper"
@@ -28,7 +32,7 @@ class Ereignis(enum.Enum):
     DIEBSTAHL = enum.auto()
 
 
-class Context(typing.Protocol):
+class Context(Protocol):
     def melde(self, mänx: Mänx, ereignis: Ereignis, data: Any) -> Any:
         """Melde ein Ereignis an den Kontext"""
 
@@ -39,7 +43,7 @@ class WegEnde:
 
 
 @runtime_checkable
-class Wegpunkt(Context, typing.Protocol):
+class Wegpunkt(Context, Protocol):
     def get_nachbarn(self) -> List[Wegpunkt]:
         return []
 

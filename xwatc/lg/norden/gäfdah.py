@@ -6,6 +6,7 @@ from xwatc.jtg import Waschweib
 from xwatc.nsc.Wachen_von_Gäfdah import (MarioWittenpfäld,
                                          SakcaBrauc, OrfGrouundt, ThomarcAizenfjäld)
 from xwatc.nsc.Bürger_von_Gäfdah import MartinPortulakk
+from xwatc.nsc.Freiwild import RuboicHätxrik
 
 
 GÄFDA_NAME = "Gäfda"
@@ -25,7 +26,7 @@ def erzeuge_Gäfdah(mänx:  Mänx) -> Dorf:
         "Du bist in einer Kirche.",
 
     ])
-    Schenke = Ort("Schenke", d, [
+    schenke = Ort("Schenke", d, [
         "Du bist in einer Schenke.",
         "Sie ist voll von grölenden und betrunkenden Leuten."
         
