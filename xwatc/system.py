@@ -121,7 +121,7 @@ class Mänx(InventarBasis, Persönlichkeit):
         self.gebe_startinventar()
         self.gefährten: List['dorf.NSC'] = []
         self.titel: Set[str] = set()
-        self.lebenswille = 10
+        self.lebenspunkte = 100
         self.fähigkeiten: Set[str] = set()
         self.welt = Welt("bliblablux")
         self.missionen: List[None] = list()
@@ -171,9 +171,6 @@ class Mänx(InventarBasis, Persönlichkeit):
         self.inventar[item] += anzahl
         if von:
             von.inventar[item] -= anzahl
-
-    def will_weiterleben(self):
-        return self.lebenswille > 0
 
     def minput(self, *args, **kwargs):
         return minput(self, *args, **kwargs)
@@ -429,8 +426,6 @@ def spezial_taste(mänx: Mänx, taste: str) -> bool:
         print(mänx.erweitertes_inventar())
     elif taste == "q":
         print(mänx.missionen_zeigen())
-    elif taste == "sterben":
-        mänx.lebenswille = 0
     elif taste == "hilfe":
         print("Entkomme mit 'sofort sterben'. Nebeneffekt: Tod.")
         print("Wenn du einfach nur Hilfe zu irgendwas haben willst, schreibe"
@@ -450,7 +445,7 @@ def spezial_taste(mänx: Mänx, taste: str) -> bool:
                     print(line)
         else:
             print("Keine Hilfe für", args, "gefunden.")
-    elif taste == "sofort sterben":
+    elif taste == "sterben" or taste == "sofort sterben":
         raise Spielende()
     else:
         return False

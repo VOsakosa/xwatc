@@ -65,7 +65,7 @@ def main():
             print("Du bist tot")
             ende = True
         else:
-            ende = not mänx.will_weiterleben()
+            ende = False
         print("Hier ist die Geschichte zu Ende.")
         if mänx.titel:
             print("Du hast folgende Titel erhalten:", ", ".join(mänx.titel))
