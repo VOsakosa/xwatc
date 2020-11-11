@@ -7,33 +7,7 @@ import xwatc_Hauptgeschichte
 
 
 
-def sgh(mänx):
-    if ja_nein(mänx, "Durchsuchst du den Mann?"):
-        mänx.erhalte("Äntorenmantel", 1)
-        mänx.erhalte("Äntorenstiefel", 2)
-        mänx.erhalte("Socken", 4)
-        mänx.erhalte("Gold", 89)
-        mänx.erhalte("Saphir", 1)
-        mänx.erhalte("Äntorenhelm", 1)
-        mänx.erhalte("Lederbeutel", 1)
-        mänx.erhalte("Dolch", 1)
-        mänx.erhalte("Messer", 5)
-        mänx.erhalte("Bozear", 8)
-        mänx.erhalte("Dicke Unterhose", 1)
-        mänx.erhalte("Äntorenhose", 1)
-        mänx.erhalte("Ring der Medusa", 1)
-        mänx.erhalte("Äntorenklinge", 1)
-        mänx.erhalte("Äntorenlangbogen", 1)
-        mänx.erhalte("Äntorenkurzbogen", 1)
-        mänx.erhalte("Pfeile", 198)
-        mänx.erhalte("Brot", 3)
-        mänx.erhalte("Salzhering", 5)
-        mänx.erhalte("Salzlachs", 3)
-        mänx.erhalte("Salami", 3)
-        mänx.erhalte("Zähe Bohnen", 1)
-        mänx.erhalte("Äntorenmedäille", 1)
-    else:
-        mint("OK, dann nicht.")
+
         
         
         
@@ -87,6 +61,34 @@ class RuboicHätxrik(NSC):
                     "wenn sie mit davon unterrichten würden. "
                     "Ich danke ihnen schon einmal im vorraus.",
                     cls.reden_suche2)
+        
+    def sgh(mänx):
+    if ja_nein(mänx, "Durchsuchst du den Mann?"):
+        mänx.erhalte("Äntorenmantel", 1)
+        mänx.erhalte("Äntorenstiefel", 2)
+        mänx.erhalte("Socken", 4)
+        mänx.erhalte("Gold", 89)
+        mänx.erhalte("Saphir", 1)
+        mänx.erhalte("Äntorenhelm", 1)
+        mänx.erhalte("Lederbeutel", 1)
+        mänx.erhalte("Dolch", 1)
+        mänx.erhalte("Messer", 5)
+        mänx.erhalte("Bozear", 8)
+        mänx.erhalte("Dicke Unterhose", 1)
+        mänx.erhalte("Äntorenhose", 1)
+        mänx.erhalte("Ring der Medusa", 1)
+        mänx.erhalte("Äntorenklinge", 1)
+        mänx.erhalte("Äntorenlangbogen", 1)
+        mänx.erhalte("Äntorenkurzbogen", 1)
+        mänx.erhalte("Pfeile", 198)
+        mänx.erhalte("Brot", 3)
+        mänx.erhalte("Salzhering", 5)
+        mänx.erhalte("Salzlachs", 3)
+        mänx.erhalte("Salami", 3)
+        mänx.erhalte("Zähe Bohnen", 1)
+        mänx.erhalte("Äntorenmedäille", 1)
+    else:
+        mint("OK, dann nicht.")
         
 
     def kampf(self, mänx: Mänx) -> None:
@@ -216,14 +218,19 @@ class RuboicHätxrik(NSC):
         self.tot = True
             
     def reden_suche1(self, mänx: Mänx) -> None:
-        malp('"Was kümnmert dich das?"')
-        if ja_nein(mänx, "Beharrst du auf deine Frage"):
-            mint('"Gut und hau jetzt ab!"')
+        mint("...")
+        malp("Der Mann scheint Angst zu haben.")
+        malp("Du kannst seine Angst förmlich", kursiv(" riechen"),".", mint(""), "")
+        print("", malp("Schließlich ren"), "nt er weg", mint(""))
+        self.tot = True
             
     def reden_suche2(self, mänx: Mänx) -> None:
-        malp('"Was kümnmert dich das?"')
-        if ja_nein(mänx, "Beharrst du auf deine Frage"):
-            mint('"Gut und hau jetzt ab!"')
+        print("D", malp("er Man"), "n bl", malp("ickt "), "zu d", "ir hoch")
+        malp("Angst steht in seinen Augen geschrieben.")
+        sleep(4)
+        mint("Von der einen Sekunde auf die andere ist er verschwunden.")
+        self.tot = True
+        
     
     def reden_wetter(self, mänx: Mänx) -> None:
         mint("Gut, ne und?")
