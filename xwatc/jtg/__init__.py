@@ -283,7 +283,7 @@ def t2_norden(mänx: Mänx) -> None:
     mädchen = mänx.welt.obj("jtg:mädchen")
     if mädchen.in_disnajenbum and not mädchen.tot:
         mädchen.main(mänx)
-        malp("Das Mädchen verschwindet nach Süden.")
+        malp("Das Mädchen verschwindet nach Norden.")
         mädchen.in_disnajenbum = False
         # TODO wohin?
     disnayenbum(mänx)
@@ -512,7 +512,7 @@ class TobiacBerndoc(NSC):
                     '"Kannst du mir beibringen, Orgel zu spielen?"',
                     cls.reden_lernen)
         self.dialog("leo", '"Was ist dein Verhältnis zu Leo Berndoc?"',
-                    cls.reden_leo).wenn(lambda n, m: m.welt.ist("kennt:hexer"))
+                    cls.reden_leo).wenn_var("kennt:hexer")
         self.dialog("wetter",
                     '"Wie findest du das Wetter heute?"', cls.reden_wetter)
         self.dialog('ring',
