@@ -152,8 +152,8 @@ class Mädchen(haendler.Händler):
              '"Nein, ich erkunde hier die Gegend, irgendwann werde ich nach Gibon kommen."'
              "Kann ich dann trotzdem mit dir mit? Es macht mir nichts aus, "
              "wenn wir nicht direkt nach Gibon gehen."),
-            ('ja', "»ja«",  "Dann gehe ich mit dir mit."),
-            ('»Nein, aber ich kann dich trotzdem dahin bringen.«', "»nein«",
+            ("»ja«", 'ja', "Dann gehe ich mit dir mit."),
+            ("»nein«", '»Nein, aber ich kann dich trotzdem dahin bringen.«', 
              "Ist das wirklich in Ordnung? Danke!")
         ]
         antwort = mänx.menu(opts)

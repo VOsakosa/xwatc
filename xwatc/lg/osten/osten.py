@@ -60,9 +60,9 @@ def höhle(mänx: Mänx):
     mint("In der Höhle ist es dunkel, aber es gibt sauberes Wasser und "
          "hier wachsen essbare Pilze.")
     if ja_nein(mänx, "Willst du die Höhle erkunden?"):
-        abzweigung = minput(mänx, "Du gehst tiefer und tiefer. Du stehst nun vor einer Abzweigung."
-                            "Auf dem Schildchen über dem einen Weg steht \"bergbau\""
-                            "und über dem anderen steht  \"monster\". (b/m)", ["b", "m"])
+        abzweigung = minput(mänx, "Du gehst tiefer und tiefer. Du stehst nun vor einer Abzweigung. "
+                            "Auf dem Schildchen über dem einen Weg steht \"bergbau\" "
+                            "und über dem anderen steht \"monster\". (b/m)", ["b", "m"])
         if abzweigung == "b":
             bergbau(mänx)
         else:
