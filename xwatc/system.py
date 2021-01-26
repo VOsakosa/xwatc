@@ -382,9 +382,14 @@ def schiebe_inventar(start: Inventar, ziel: Inventar):
         ziel[item] += anzahl
     start.clear()
 
-class HatMain(typing.Protocol):
-    def main(self, mänx: Mänx):
-        pass
+if hasattr(typing, "Protocol"):
+    class HatMain(typing.Protocol):
+        def main(self, mänx: Mänx):
+            pass
+else:
+    class HatMain:
+        def main(self, mänx: Mänx):
+            pass
 
 class Besuche:
     def __init__(self, objekt_name: str):

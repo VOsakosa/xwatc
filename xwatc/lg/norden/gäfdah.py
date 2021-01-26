@@ -6,6 +6,7 @@ from xwatc.jtg import Waschweib
 from xwatc.nsc.Wachen_von_Gäfdah import (MarioWittenpfäld,
                                          SakcaBrauc, OrfGrouundt, ThomarcAizenfjäld)
 from xwatc.nsc.Bürger_von_Gäfdah import MartinPortulakk
+from xwatc.nsc.Freiwild import RuboicHätxrik
 
 
 GÄFDA_NAME = "Gäfda"
@@ -25,11 +26,16 @@ def erzeuge_Gäfdah(mänx:  Mänx) -> Dorf:
         "Du bist in einer Kirche.",
 
     ])
-
+    schenke = Ort("Schenke", d, [
+        "Du bist in einer Schenke.",
+        "Sie ist voll von grölenden und betrunkenden Leuten."
+        
+    
+    ])
     schmiede = Ort("Schmiede", d, [
-        "Du kommst in einen warmen, kleinen Raum, der irgendwie gemütlich wirkt und nach Schweiß riecht."
-
-        "Hinter der Theke steht ein bulliger Mann und verkauft wohl Waffen, Rüstungen und Anderes."
+        "Du kommst in einen warmen, kleinen Raum, der irgendwie gemütlich wirkt und nach Schweiß riecht.",
+        
+        "Hinter der Theke steht ein bulliger Mann und verkauft wohl Waffen, Rüstungen und Anderes.",
 
     ])
     mänx.welt.obj("lg:norden:robert").ort = schmiede
@@ -44,7 +50,6 @@ def erzeuge_Gäfdah(mänx:  Mänx) -> Dorf:
 
     haus1 = Ort("Haus Nummer1", d, [
         "Du kommst in ein kleines Haus."
-
     ])
     mänx.welt.get_or_else(
         "lg:norden:Maria_Fischfrisch:maria_fischfrisch", Fischerfrau).ort = kirche
@@ -53,6 +58,7 @@ def erzeuge_Gäfdah(mänx:  Mänx) -> Dorf:
     rathaus.add_nsc(mänx.welt,
                     "nsc:Wachen_von_Gäfdah:MarioWittenpfäld", MarioWittenpfäld)
     rathaus.add_nsc(mänx.welt, "nsc:Wachen_von_Gäfdah:SakcaBrauc", SakcaBrauc)
+    schenke.add_nsc(mänx.welt, "nsc:Freiwild:RuboicHätxrik", RuboicHätxrik)
     rathaus.add_nsc(mänx.welt,
                     "nsc:Wachen_von_Gäfdah:ThomarcAizenfjäld", ThomarcAizenfjäld)
     haus1.add_nsc(mänx.welt,
