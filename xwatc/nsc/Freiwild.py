@@ -55,10 +55,11 @@ class RuboicHätxrik(NSC):
                     "Hier soll es einen Verrückten geben, "
                     "so einen sabbernden. Haben sie zufälligerweise einen gesehen? "
                     "Wenn ja wäre es sehr nett, "
-                    "wenn sie mit davon unterrichten würden. "
+                    "wenn sie mich davon unterrichten würden. "
                     "Ich danke ihnen schon einmal im vorraus.",
                     cls.reden_suche2)
-        
+    
+    @staticmethod
     def sgh(mänx):
         if ja_nein(mänx, "Durchsuchst du den Mann?"):
             mänx.erhalte("Äntorenmantel", 1)
@@ -83,7 +84,7 @@ class RuboicHätxrik(NSC):
             mänx.erhalte("Salzlachs", 3)
             mänx.erhalte("Salami", 3)
             mänx.erhalte("Zähe Bohnen", 1)
-            mänx.erhalte("Äntorenmedäille", 1)
+            mänx.erhalte("Äntorenmedaille", 1)
         
     
         else:
