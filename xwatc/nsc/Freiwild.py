@@ -15,10 +15,7 @@ class RuboicHätxrik(NSC):
     def __init__(self) -> None:
         super().__init__("Ruboic Hätxrik", "Äntor")
         cls = type(self)
-        a=random.randint(1,500)
-        if a ==1:
-            ("Bevor du mit ihm reden konntest, fiel der Mann einfach tot um")
-            self.tot=True
+        
         else:
             self.dialog("hallo1",
                     '"Hallo Ich heiße Tom"',
@@ -112,6 +109,10 @@ class RuboicHätxrik(NSC):
 
 
     def vorstellen(self, mänx: Mänx) -> None:
+        a=random.randint(1,500)
+        if a ==1:
+            print("Bevor du mit ihm reden konntest, fiel der Mann einfach tot um")
+            self.tot=True
         mint('"Tag. Äch ben Hätrik"')
 
     def reden_tom(self, mänx: Mänx) -> None:
