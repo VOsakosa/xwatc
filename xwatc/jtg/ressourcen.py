@@ -99,16 +99,16 @@ def create_parser():
                 keyword("(") + OrRule + keyword(")")).addParseAction(function)
     RuleAtom = (pp.Literal("$") + pp.Word(pp.alphanums)).addParseAction(Rule)
     Atom = (RuleAtom | Quoted | _Function | Direct)("Atom")
-    Plus = Atom[1, ...]("Plus").addParseAction(Add)
-    Repeated = (Plus + (
+    Plus = pp.OneOrMore(Atom)("Plus").addParseAction(Add)
+    Repeated = (Plus + pp.Optional(
         keyword("{") + pp.pyparsing_common.integer + keyword("}")
-    )[0, 1])
+    ))
     Repeated.setParseAction(repeat)
     OrDelim = keyword("|,")
     OrRule <<= (Repeated + pp.ZeroOrMore(OrDelim + Repeated) + pp.Optional(OrDelim)
                 ).addParseAction(Or)
     _Rule = pp.Word(pp.alphanums) + keyword("=") + OrRule
-    return pp.ZeroOrMore(_Rule + pp.Suppress(pp.Literal(";")[0, 1]))
+    return pp.ZeroOrMore(_Rule + pp.Suppress(pp.Optional(pp.Literal(";"))))
 
 
 Rules = create_parser()

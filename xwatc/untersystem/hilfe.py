@@ -16,7 +16,7 @@ HANDELSMENU = [
     "Der Befehl a zeigt eine Auslage, mit 'k [Anzahl] [Item]' kannst du "
     "kaufen und mit 'v [Anzahl] [Item]' verkaufen.",
     "Verlasse den Händler mit 'f'. ",
-    "Vergiss nicht, mit ihn normal zu *r*eden!"
+    "Vergiss nicht, mit ihm normal zu *r*eden!"
 ]
 
 INVENTAR_ZUGRIFF = [
