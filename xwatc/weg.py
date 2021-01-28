@@ -12,7 +12,7 @@ from typing import (List, Any, Optional as Opt, cast, Iterable, Union, Sequence,
                     Collection, Callable, Dict, Tuple, NewType, Mapping,
                     overload)
 try:
-    from typing import Protocol
+    from typing import Protocol, runtime_checkable
 except ImportError:
     from typing_extensions import runtime_checkable, Protocol
 from xwatc.system import Mänx, MenuOption, MänxFkt, InventarBasis, malp, mint
