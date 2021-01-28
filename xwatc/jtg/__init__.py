@@ -17,6 +17,7 @@ from xwatc.jtg.groekrak import zugang_südost
 from xwatc.jtg import eo_nw
 from xwatc.untersystem.acker import Wildpflanze
 from xwatc.weg import Ereignis
+from xwatc.jtg import mitose
 from typing import List, Tuple
 
 
@@ -53,7 +54,8 @@ def erzeuge_mitte(_mänx: Mänx) -> 'weg.Wegpunkt':
     west = weg.Wegkreuzung()
     west.verbinde_mit_weg(bogen, 0.4, "s", typ=weg.Wegtyp.WEG)
 
-    nordw = weg.Weg(5, weg.WegAdapter(None, t2_norden, "jtg:mitte:nord"), None)
+    nordw = weg.Weg(
+        5, weg.Gebietsende(None, "jtg:mitte", "mitose-mitte", "jtg:mitose"))
     nordk = weg.Wegkreuzung(n=weg.Richtung(nordw))
     nordk.verbinde_mit_weg(west, 3, "sw", "n")
 
@@ -153,7 +155,7 @@ class Mädchen(haendler.Händler):
              "Kann ich dann trotzdem mit dir mit? Es macht mir nichts aus, "
              "wenn wir nicht direkt nach Gibon gehen."),
             ("»ja«", 'ja', "Dann gehe ich mit dir mit."),
-            ("»nein«", '»Nein, aber ich kann dich trotzdem dahin bringen.«', 
+            ("»nein«", '»Nein, aber ich kann dich trotzdem dahin bringen.«',
              "Ist das wirklich in Ordnung? Danke!")
         ]
         antwort = mänx.menu(opts)

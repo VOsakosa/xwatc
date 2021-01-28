@@ -412,6 +412,12 @@ class Ort(weg.Wegkreuzung):
                 *args, **kwargs):
         welt.get_or_else(name, fkt, *args, **kwargs).ort = self
 
+    def __repr__(self):
+        if self.dorf:
+            return f"Ort {self.name} von {self.dorf.name}"
+        else:
+            return f"Ort {self.name}, Teil keines Dorfes"
+
 
 class Dorf:
     """Ein Dorf besteht aus mehreren Orten, an denen man Menschen treffen kann.

@@ -76,6 +76,10 @@ class _Strecke(Wegpunkt):
         elif self.p1 != anderer and not self.p2:
             self.p2 = anderer
 
+    def __repr__(self):
+        return (f"{type(self).__name__} von {type(self.p1).__name__} "
+                f"nach {type(self.p2).__name__}")
+
 
 class MonsterChance:
     """Eine Möglichkeit eines Monsterzusammenstoßes."""
@@ -94,11 +98,13 @@ class Weg(_Strecke):
     """Ein Weg hat zwei Enden und dient dazu, die Länge der Reise darzustellen.
     Zwei Menschen auf dem Weg zählen als nicht benachbart."""
 
-    def __init__(self, länge: float, p1: Opt[Wegpunkt], p2: Opt[Wegpunkt],
+    def __init__(self, länge: float,
+                 p1: Opt[Wegpunkt] = None,
+                 p2: Opt[Wegpunkt] = None,
                  monster_tag: Opt[List[MonsterChance]] = None,
                  monster_nachts: Opt[List[MonsterChance]] = None):
         """
-        :param länge: Länge in Minuten
+        :param länge: Länge in Stunden
         :param p1: Startpunkt
         :param p2: Endpunkt
         :param monster_tag: Monster, die am Tag auftauchen
@@ -286,6 +292,16 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                  kreuzung_beschreiben: bool = False,
                  immer_fragen: bool = False,
                  menschen: Opt[Sequence[dorf.NSC]] = None):
+        """Erzeuge eine neue Wegkreuzung
+        :param n,nw,no,o,w,sw,s,so: Nachbarn nach Himmelsrichtungen
+        :param andere: weitere Nachbarn
+        :param gucken: das passiert beim gucken
+        :param kreuzung_beschreiben: Ob die Kreuzung sich anhand ihrer
+        angrenzenden Wege beschreiben soll.
+        :param immer_fragen: immer fragen, wie weitergegangen werden soll, auch
+        wenn es keine Abzweigung ist
+        :param menschen: Menschen, die an der Wegkreuzung stehen und angesprochen werden können.
+        """
         # TODO gucken
         super().__init__()
         richtungen = [n, no, o, so, s, sw, w, nw]
@@ -313,6 +329,8 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                          geschichte: Union[Sequence[str], MänxFkt],
                          nur: Opt[Sequence[Opt[str]]] = None,
                          außer: Opt[Sequence[Opt[str]]] = None):
+        """Füge eine Beschreibung hinzu, die immer abgespielt wird, wenn
+        der Wegpunkt betreten wird."""
         self.beschreibungen.append(Beschreibung(geschichte, nur, außer))
 
     def add_effekt(self,
@@ -322,6 +340,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         self.beschreibungen.append(Beschreibung(geschichte, nur, außer))
 
     def beschreibe(self, mänx: Mänx, richtung: Opt[int]):
+        """Beschreibe die Kreuzung von richtung kommend."""
         ri_name = HIMMELSRICHTUNG_KURZ[richtung] if richtung is not None else None
         for beschreibung in self.beschreibungen:
             beschreibung.beschreibe(mänx, ri_name)
@@ -350,6 +369,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         raise TypeError(i, "must be str, int or slice.")
 
     def _finde_texte(self, richtung: int) -> List[str]:
+        """Finde die Beschreibungstexte, die auf die Kreuzung passen."""
         rs = self[richtung:] + self[:richtung]
         ans: List[str] = []
         min_arten = 8
@@ -377,6 +397,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         return ans
 
     def beschreibe_kreuzung(self, richtung: Opt[int]):  # pylint: disable=unused-argument
+        """Beschreibe die Kreuzung anhand ihrer Form."""
         rs = self[:]
         if richtung is not None:
             texte = self._finde_texte(richtung)
@@ -509,12 +530,19 @@ class Gebietsende(_Strecke):
         self.gebiet = gebiet
         self.nach = nach
         self.port = port
-        self.von = von
         assert ((self.gebiet, self.port) not in EINTRITTSPUNKTE
                 ), "Eintrittspunkt existiert schon!"
         EINTRITTSPUNKTE[self.gebiet, self.port] = self
         assert self.gebiet in GEBIETE, f"Unbekanntes Gebiet: {self.gebiet}"
         assert nach in GEBIETE, f"Unbekanntes Gebiet: {nach}"
+
+    @property
+    def von(self) -> Opt[Wegpunkt]:
+        return self.p1
+
+    @von.setter
+    def von(self, wegpunkt: Opt[Wegpunkt]):
+        self.p1 = wegpunkt
 
     def main(self, mänx: Mänx, von: Opt[Wegpunkt]) -> Wegpunkt:
         if self.p2:
@@ -542,7 +570,12 @@ def get_gebiet(mänx: Mänx, name_or_gebiet: Union[Wegpunkt, str]) -> Wegpunkt:
 
 
 def gebiet(name: str):
-    """Dekorator für Gebietserzeugungsfunktionen."""
+    """Dekorator für Gebietserzeugungsfunktionen.
+
+    >>>@gebiet("jtg:banane")
+    >>>def erzeuge_banane(mänx: Mänx)-> Wegpunkt:
+    >>>    ...
+    """
     def wrapper(funk):
         GEBIETE[name] = funk
         return funk

@@ -481,6 +481,7 @@ def sprich(sprecher: str, text: str, warte: bool = False, wie: str = ""):
 
 
 def malp(*text, sep=" ", end='\n', warte=False) -> None:
+    """Angenehm zu lesender, langsamer Print."""
     start = False
     for words in text:
         if start:
