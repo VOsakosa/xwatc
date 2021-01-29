@@ -9,8 +9,8 @@ ALLGEMEINE_PREISE = {
     "Sardine": 5,
     "Gänseblümchen": 3,
     "Löwenzahn": 2,
-    "Distelblüte": 10,
-    "Rose": 20,
+    "Distelblüte": 6,
+    "Rose": 8,
     "Aorenblume": 80,
     "Atctenrose": 350
     

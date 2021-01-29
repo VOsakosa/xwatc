@@ -446,13 +446,12 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         return [ri.ziel for ri in self.nachbarn.values() if ri]
 
     def main(self, mänx: Mänx, von: Opt[Wegpunkt]) -> Wegpunkt:
+        richtung = None
         if von != self:
             if von:
                 richtung = next((
                     i for i, v in enumerate(self[:]) if v and v.ziel == von
                 ), None)
-            else:
-                richtung = None
             self.beschreibe(mänx, richtung)
         opts = list(self.optionen(mänx, richtung))
         if not self.immer_fragen and ((richtung is None) + len(opts)) <= 2:
