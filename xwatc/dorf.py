@@ -109,7 +109,8 @@ class NSC(system.InventarBasis):
         if isinstance(option, Dialog):
             dlg = option
             dlg_anzahl = self.dialog_anzahl
-            ans = self._call_geschichte(mänx, dlg.geschichte)
+            ans = self._call_geschichte(mänx, dlg.geschichte, 
+                                        dlg.geschichte_text)
             dlg_anzahl[dlg.name] = dlg_anzahl.setdefault(dlg.name, 0) + 1
             self.kennt_spieler = True
             return ans
@@ -126,8 +127,19 @@ class NSC(system.InventarBasis):
 
     def _call_geschichte(self, mänx: system.Mänx,
                          geschichte: DialogGeschichte,
+                         text: Sequence[Union['Malp', str]] = (),
                          use_print: bool = False) -> Rückkehr:
         ans = Rückkehr.WEITER_REDEN
+        if text:
+            if use_print:
+                for g in text:
+                    malp(g)
+            else:
+                for g in text:
+                    if isinstance(g, Malp):
+                        g()
+                    else:
+                        self.sprich(g)
         if callable(geschichte):
             ans2 = geschichte(self, mänx)
             if ans2 is False:
@@ -251,12 +263,14 @@ class Dialog:
                  vorherige: Union[str, None, VorList] = None,
                  wiederhole: Opt[int] = None,
                  min_freundlich: Opt[int] = None,
-                 direkt: bool = False):
+                 direkt: bool = False,
+                 effekt: Opt[DialogFn] = None):
         """
         :param name: Der kurze Name des Dialogs
         :param text: Der lange Text in der Option
         :param geschichte: Das, was beim Dialog passiert. Kann DialogFn sein
             oder eine Liste von Strings und Malps, die dann gesagt werden.
+        :param effekt: Passiert zusätzlich noch nach geschichte.
         :param vorherige: Liste von Dialogen, die schon gesagt sein müssen
         :param min_freundlich: Mindestfreundlichkeit für den Dialog
         :param direkt: Wenn wahr, redet der Mänx dich an, statt du ihn.
@@ -265,7 +279,16 @@ class Dialog:
         self.min_freundlich = min_freundlich
         self.name = name
         self.text = text
-        self.geschichte = geschichte
+        if effekt:
+            if callable(geschichte):
+                raise TypeError("Geschichte und Effekt dürfen nicht beides "
+                                "Funktionen sein.")
+            self.geschichte: DialogGeschichte = effekt
+            self.geschichte_text = geschichte
+        else:
+            self.geschichte = geschichte
+            self.geschichte_text = None
+        self.effekt = effekt
         self.vorherige: VorList
         if isinstance(vorherige, str):
             self.vorherige = [vorherige]
