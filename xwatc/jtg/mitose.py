@@ -19,8 +19,10 @@ from xwatc import jtg
 from xwatc import haendler
 from xwatc.haendler import Preis
 from xwatc.weg import Wegkreuzung
-from typing import List, Tuple
+from typing import List, Tuple, Union, Sequence
 __author__ = "jasper"
+
+GEFUNDEN = "quest:saxaring:gefunden"
 
 
 @register("jtg:saxa")
@@ -48,6 +50,19 @@ def erzeuge_saxa():
              ["Im Wald östlich von hier.",
               "Ein Pfad führt bis zur Stelle.",
               "Bei der Kreuzung musst du rechts abbiegen."], "bedrückt")
+
+    def gefunden(n, m):
+        n.add_freundlich(40, 100)
+        n.erhalte("Saxas Ehering", von=m)
+    n.dialog("gefunden", "Ich habe deinen Ring gefunden.",
+             ["Danke!", "Das bedeutet uns sehr viel."],
+             effekt=gefunden).wenn_var(GEFUNDEN).wenn(
+                 lambda n, m: m.hat_item("Saxas Ehering"))
+    n.dialog("verloren", "Ich habe deinen Ring gefunden, aber wieder verloren.",
+             ["Was soll das jetzt heißen?", "Hast du ihn etwa verkauft?"],
+             effekt=lambda n, m: n.add_freundlich(-30, -20)
+             ).wenn_var(GEFUNDEN).wenn(
+                 lambda n, m: not m.hat_item("Saxas Ehering"))
     return n
 
 
@@ -88,7 +103,7 @@ def kräutergebiet(mänx: Mänx):
     malp("Der Weg endet an einer Lichtung, die mit Kräutern bewachsen ist.")
     ring = (
         mänx.welt.ist("quest:saxaring") and
-        not mänx.welt.ist("quest:saxaring:gefunden")
+        not mänx.welt.ist(GEFUNDEN)
     )
     if ring:
         if mänx.ja_nein("Willst du nach dem Ring suchen?"):
@@ -196,7 +211,7 @@ class Mädchen(haendler.Händler):
 
     def helfen(self, mänx: Mänx):
         self.sprich('Willst du auch nach Gibon?')
-        opts: List[Tuple[str, str, str]]
+        opts: List[Tuple[str, str, Sequence[Union[str, Malp]]]]
         opts = [
             ('»irgendwann«', "irgendwann",
              [Malp('"Nein, ich erkunde hier die Gegend, irgendwann werde ich '
@@ -207,7 +222,7 @@ class Mädchen(haendler.Händler):
             ("»nein«", '»Nein, aber ich kann dich trotzdem dahin bringen.«',
              "Ist das wirklich in Ordnung? Danke!")
         ]
-        antwort = mänx.menu(opts)
+        antwort = mänx.menu(opts)  # TODO kaputt
         self.sprich(antwort)
         self.werde_gefährte()
         mänx.add_gefährte(self)

@@ -127,7 +127,7 @@ class NSC(system.InventarBasis):
 
     def _call_geschichte(self, mänx: system.Mänx,
                          geschichte: DialogGeschichte,
-                         text: Sequence[Union['Malp', str]] = (),
+                         text: Opt[Sequence[Union['Malp', str]]] = (),
                          use_print: bool = False) -> Rückkehr:
         ans = Rückkehr.WEITER_REDEN
         if text:
@@ -284,7 +284,7 @@ class Dialog:
                 raise TypeError("Geschichte und Effekt dürfen nicht beides "
                                 "Funktionen sein.")
             self.geschichte: DialogGeschichte = effekt
-            self.geschichte_text = geschichte
+            self.geschichte_text: Opt[Sequence[Union['Malp', str]]] = geschichte
         else:
             self.geschichte = geschichte
             self.geschichte_text = None
@@ -304,7 +304,12 @@ class Dialog:
             self.anzahl = wiederhole
 
     def wenn(self, fn: DialogFn) -> 'Dialog':
-        self.wenn_fn = fn
+        if self.wenn_fn:
+            def neue_wenn(n,m, wf=self.wenn_fn):
+                return wf(n,m) and fn(n,m)
+            self.wenn_fn = neue_wenn
+        else:
+            self.wenn_fn = fn
         return self
 
     def wenn_var(self, *welt_variabeln: str) -> 'Dialog':
