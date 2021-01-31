@@ -56,6 +56,13 @@ def erzeuge_mitte(_mänx: Mänx) -> 'weg.Wegpunkt':
     nordw = weg.Weg(
         5, weg.Gebietsende(None, "jtg:mitte", "mitose-mitte", "jtg:mitose"))
     nordk = weg.Wegkreuzung(n=weg.Richtung(nordw))
+    nordk.add_beschreibung(
+        ("Der kleine Pfad stößt spitz auf einen Weg von links.",),
+        nur="s")
+    nordk.add_beschreibung(
+        ("Eine kleiner Pfad biegt nach links ab.",
+         "Der Weg macht derweil eine leichte Biegung nach Südwesten."),
+        nur="n")
     nordk.verbinde_mit_weg(west, 3, "sw", "n")
 
     süd = weg.WegAdapter(None, t2_süd)
@@ -81,8 +88,6 @@ def erzeuge_mitte(_mänx: Mänx) -> 'weg.Wegpunkt':
     osten.verbinde(lichtung, "w", weg.Wegtyp.TRAMPELPFAD)
     lichtung.verbinde(osten, "o", weg.Wegtyp.TRAMPELPFAD)
     return lichtung
-
-# TODO: print("Der kleine Pfad stößt spitz auf einen Weg von links.")
 
 
 

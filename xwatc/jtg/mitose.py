@@ -35,35 +35,49 @@ def erzeuge_saxa():
                 "Kappe": 1,
                 "Hose": 1,
                 "Gold": 14,
-            }, vorstellen="Eine Holzfällerin von ungefähr 40 Jahren steht vor dir.")
-    n.dialog("hallo", "Hallo", "Hallo, ich bin Saxa.")
+            }, vorstellen=[
+                "Eine Holzfällerin von ungefähr 40 Jahren steht vor dir."])
+    n.dialog("hallo", "Hallo", ["Hallo, ich bin Saxa."])
     n.dialog("bedrückt", "Bedrückt dich etwas?",
              [
                  "Ich habe beim Kräutersammeln meinen Ehering im Wald verloren.",
                  "Er hat uns beiden immer Glück gebracht.",
                  "Du bist doch ein Abenteurer, kannst du den Ring finden?"
-             ])
-    # Dialog für Ehering-Suche
+             ], effekt=lambda n, m: m.welt.setze("quest:saxaring"))
+    n.dialog("wo", "Wo warst du Kräuter sammeln?",
+             ["Im Wald östlich von hier.",
+              "Ein Pfad führt bis zur Stelle.",
+              "Bei der Kreuzung musst du rechts abbiegen."], "bedrückt")
     return n
+
 
 @weg.gebiet("jtg:mitose")
 def erzeuge_norddörfer(mänx: Mänx):
-    zur_mitte = weg.Gebietsende(None, "jtg:mitose", "mitose-mitte", "jtg:mitte")
+    zur_mitte = weg.Gebietsende(
+        None, "jtg:mitose", "mitose-mitte", "jtg:mitte")
     mitose = Dorf("Mitose")
     mitose_ort = mitose.orte[0]
     mitose_ort.verbinde(zur_mitte, "s")
+    mitose_ort.beschreibungen.clear()
+    mitose_ort.add_beschreibung([
+        "Du bist im Ort Mitose.",
+        "Ein Weg führt in Nord-Süd-Richtung durch das Dorf.",
+        "Es gibt einen Pfad nach Osten in den Wald hinein."])
     mitose_ort.menschen.append(mänx.welt.obj("jtg:saxa"))
     mitose_ort.menschen.append(mänx.welt.obj("jtg:mädchen"))
-    
+
     mitose_ort.verbinde(
         weg.Weg(
             0.5, weg.WegAdapter(None, t2_norden, "jtg:mitose:nord")), "n")
-    
+
     kraut = Wegkreuzung(immer_fragen=True)
     kraut.add_effekt(kräutergebiet)
     kili = Wegkreuzung(immer_fragen=True)
     kili.add_effekt(mänx.welt.obj("jtg:kiliwolf").main)
     waldkreuz = Wegkreuzung()
+    waldkreuz.add_beschreibung("Der Pfad gabelt sich.", nur="o")
+    waldkreuz.add_beschreibung("Du kommst zurück an die Gabelung",
+                               nur=["sw", "nw"])
     kraut.verbinde_mit_weg(waldkreuz, 0.25, "so", typ=weg.Wegtyp.PFAD)
     kili.verbinde_mit_weg(waldkreuz, 0.35, "no", typ=weg.Wegtyp.PFAD)
     waldkreuz.verbinde_mit_weg(mitose_ort, 0.4, "o", typ=weg.Wegtyp.PFAD)
@@ -73,29 +87,30 @@ def kräutergebiet(mänx: Mänx):
     """Der Ort, wo Kräuter und der Ring zu finden sind."""
     malp("Der Weg endet an einer Lichtung, die mit Kräutern bewachsen ist.")
     ring = (
-        mänx.welt.ist("quest:saxaring") and 
+        mänx.welt.ist("quest:saxaring") and
         not mänx.welt.ist("quest:saxaring:gefunden")
-        )
+    )
     if ring:
         if mänx.ja_nein("Willst du nach dem Ring suchen?"):
-            mänx.welt.tick(1/48)
+            mänx.welt.tick(1 / 48)
             malp("Du suchst eine Weile, bis du ihn von einem Kraut verdeckt findest.")
             mänx.welt.setze("quest:saxaring:gefunden")
             mänx.erhalte("Saxas Ehering")
     if mänx.ja_nein("Pflückst du einige Kräuter?"):
-        mänx.welt.tick(1/96)
+        mänx.welt.tick(1 / 96)
         treffen = False
         if mänx.welt.is_nacht():
             treffen = mänx.welt.obj("jtg:kiliwolf").main(mänx)
         if not treffen:
             mänx.erhalte("Xaozja", 14)
 
+
 @register("jtg:kiliwolf")
 class Kiliwolf(HatMain):
     def __init__(self):
         super().__init__()
         self.auftauchen = 0.0
-        
+
     def main(self, mänx: Mänx) -> bool:
         if mänx.welt.tag >= self.auftauchen:
             self.auftauchen = mänx.welt.tag + 4
@@ -105,6 +120,7 @@ class Kiliwolf(HatMain):
             # TODO
             return True
         return False
+
 
 def t2_norden(mänx: Mänx) -> None:
     """Das Dorf auf dem Weg nach Norden"""
@@ -116,6 +132,7 @@ def t2_norden(mänx: Mänx) -> None:
         mädchen.in_disnajenbum = False
         # TODO wohin?
     jtg.disnayenbum(mänx)
+
 
 @register("jtg:mädchen")
 class Mädchen(haendler.Händler):
@@ -183,9 +200,9 @@ class Mädchen(haendler.Händler):
         opts = [
             ('»irgendwann«', "irgendwann",
              [Malp('"Nein, ich erkunde hier die Gegend, irgendwann werde ich '
-             'nach Gibon kommen."'),
-             "Kann ich dann trotzdem mit dir mit? Es macht mir nichts aus, "
-             "wenn wir nicht direkt nach Gibon gehen."]),
+                   'nach Gibon kommen."'),
+              "Kann ich dann trotzdem mit dir mit? Es macht mir nichts aus, "
+              "wenn wir nicht direkt nach Gibon gehen."]),
             ("»ja«", 'ja', "Dann gehe ich mit dir mit."),
             ("»nein«", '»Nein, aber ich kann dich trotzdem dahin bringen.«',
              "Ist das wirklich in Ordnung? Danke!")
@@ -311,4 +328,3 @@ class Mädchen(haendler.Händler):
             malp("Das Mädchen ist dankbar für das Gold")
             self.freundlich += 10
         return ans
-
