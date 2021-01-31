@@ -4,6 +4,7 @@ from . import norden
 from . import Maria_Fischfrisch
 
 
+
 def fischerfraumassaker(mänx: Mänx) -> None:
     if mänx.hat_item("Speer"):
         Kampf = minput(mänx, "Du bohrst der Alten deinen Speer in den Rücken, worauf sie mit entsetzten Augen "
@@ -33,9 +34,7 @@ def fischerfraumassaker(mänx: Mänx) -> None:
         mänx.welt.setze("Fischerfraugewarnt")
         raise Spielende()
 
-
 def schwert_massaker(mänx: Mänx) -> None:
-    from xwatc_Hauptgeschichte import himmelsrichtungen
     print("Du streckst die Alte mit deinem Schwert nieder, worauf es dunkelrot "
           "zu pulsieren anfängt. Du lachst bösartig wärend "
           "sich über dir Gewitterwolken sammeln. Die Wachen weichen angsterfüllt zurück.")
@@ -67,26 +66,9 @@ def schwert_massaker(mänx: Mänx) -> None:
             mänx.inventar["Schild"] += 2
             mänx.inventar["Eisenhelm"] += 2
         elif a == "w":
-            print("Du bist wieder dort wo "
-                  "alles anfing. Nun stehs"
-                  "t du vor einer Lebensve"
-                  "rändernden Entscheidung.")
-            weg = minput(
-                mänx, "Schmeißt du das Schwert weg oder nicht?j/n", ["j", "n"])
-
-            if weg == "j":
-                print("Es ist als würde eine schwere Last von dir abfallen.")
-
-                mänx.inventar["Schwert"] -= 1
-                himmelsrichtungen(mänx)
-            else:  # elif weg=="n":
-                print("Du grinst. Und eine Stimme meldet sich "
-                      "in den Tiefen von dir. Du spürst wie et"
-                      "was dein Gewissen auffrisst. Die Stimme"
-                      "fängt an zu lachen. Dieses Lachen... wa"
-                      "r eindeutig böse und skrupellos. Und du"
-                      "... stimmst in das Lachen ein.")
-                himmelsrichtungen(mänx)
+            entscheidung(mänx)
+        else: # Umbringen
+            pass
 
     elif massaker == "au":
         print("Du bekommst eine Menge Zeug")
@@ -98,24 +80,27 @@ def schwert_massaker(mänx: Mänx) -> None:
         mint("Tja... Pass in Zukunft auf, anstatt dir feindlich gesinnten Wachen den Rücken zu zeigen...")
         raise Spielende
 
-    elif massaker == "w":
-        print("Du bist wieder dort wo "
+    else:  # massaker == "w":
+        entscheidung(mänx)
+    
+def entscheidung(mänx: Mänx):
+    from xwatc_Hauptgeschichte import himmelsrichtungen
+    print("Du bist wieder dort wo "
               "alles anfing. Nun stehs"
               "t du vor einer Lebensve"
               "rändernden Entscheidung.")
-        weg = minput(
-            mänx, "Schmeißt du das Schwert weg oder nicht?j/n", ["j", "n"])
+    weg = mänx.ja_nein("Schmeißt du das Schwert weg oder nicht?j/n")
 
-        if weg == "j":
-            print("Es ist als würde eine schwere Last von dir abfallen.")
+    if weg:
+        print("Es ist als würde eine schwere Last von dir abfallen.")
 
-            mänx.inventar["Schwert"] -= 1
-            himmelsrichtungen(mänx)
-        else:  # elif weg=="n":
-            print("Du grinst. Und eine Stimme meldet sich "
-                  "in den Tiefen von dir. Du spürst wie et"
-                  "was dein Gewissen auffrisst. Die Stimme"
-                  "fängt an zu lachen. Dieses Lachen wa"
-                  "r eindeutig böse und skrupellos. Und du"
-                  " stimmst in das Lachen ein.")
-            himmelsrichtungen(mänx)
+        mänx.inventar["Schwert"] -= 1
+        himmelsrichtungen(mänx)
+    else:  # elif weg=="n":
+        print("Du grinst. Und eine Stimme meldet sich "
+              "in den Tiefen von dir. Du spürst wie et"
+              "was dein Gewissen auffrisst. Die Stimme"
+              "fängt an zu lachen. Dieses Lachen wa"
+              "r eindeutig böse und skrupellos. Und du"
+              " stimmst in das Lachen ein.")
+        himmelsrichtungen(mänx)
