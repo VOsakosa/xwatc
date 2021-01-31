@@ -30,6 +30,7 @@ class Ereignis(enum.Enum):
     KAMPF = enum.auto()
     MORD = enum.auto()
     DIEBSTAHL = enum.auto()
+    SCHLAFEN = enum.auto()
 
 
 class Context(Protocol):
@@ -155,7 +156,7 @@ class Weg(_Strecke):
                 weg_rest = self.länge - weg_rest
             if mänx.welt.is_nacht():
                 if mänx.ja_nein("Willst du ruhen?"):
-                    # TODO Monster beim Schlafen!
+                    self.melde(mänx, Ereignis.SCHLAFEN, {})
                     mänx.welt.nächster_tag()
             weg_rest -= 1 / 48 if mänx.welt.is_nacht() else 1 / 24
 
@@ -228,7 +229,8 @@ class Beschreibung:
     def __init__(self,
                  geschichte: Union[Sequence[str], MänxFkt],
                  nur: Opt[Collection[Opt[str]]] = None,
-                 außer: Opt[Collection[Opt[str]]] = None):
+                 außer: Opt[Collection[Opt[str]]] = None,
+                 warten: bool = False):
         if isinstance(geschichte, str):
             self.geschichte = [geschichte]
         else:
@@ -238,6 +240,7 @@ class Beschreibung:
                             "sein.")
         self.nur = self._nur(nur)
         self.außer = self._nur(außer)
+        self.warten= warten
 
     def beschreibe(self, mänx: Mänx, von: Opt[str]):
         if (not self.nur or von in self.nur) and (
@@ -247,7 +250,10 @@ class Beschreibung:
             else:
                 for g in self.geschichte[:-1]:
                     malp(g)
-                mint(self.geschichte[-1])
+                if self.warten:
+                    mint(self.geschichte[-1])
+                else:
+                    malp(self.geschichte[-1])
         return None
 
     @staticmethod
@@ -328,16 +334,21 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
     def add_beschreibung(self,
                          geschichte: Union[Sequence[str], MänxFkt],
                          nur: Opt[Sequence[Opt[str]]] = None,
-                         außer: Opt[Sequence[Opt[str]]] = None):
+                         außer: Opt[Sequence[Opt[str]]] = None,
+                         warten: bool = False):
         """Füge eine Beschreibung hinzu, die immer abgespielt wird, wenn
         der Wegpunkt betreten wird."""
-        self.beschreibungen.append(Beschreibung(geschichte, nur, außer))
+        self.beschreibungen.append(
+            Beschreibung(geschichte, nur, außer, warten))
 
     def add_effekt(self,
                    geschichte: Union[Sequence[str], MänxFkt],
                    nur: Opt[Sequence[Opt[str]]] = None,
-                   außer: Opt[Sequence[Opt[str]]] = None):
-        self.beschreibungen.append(Beschreibung(geschichte, nur, außer))
+                   außer: Opt[Sequence[Opt[str]]] = None,
+                   warten: bool = True):
+        """Füge eine Geschichte hinzu, die passiert, wenn der Ort betreten
+        wird."""
+        self.beschreibungen.append(Beschreibung(geschichte, nur, außer, warten))
 
     def beschreibe(self, mänx: Mänx, richtung: Opt[int]):
         """Beschreibe die Kreuzung von richtung kommend."""
@@ -420,6 +431,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
     def optionen(self, mänx: Mänx,  # pylint: disable=unused-argument
                  von: Opt[int]) -> Iterable[MenuOption[
                      Union[Wegpunkt, 'dorf.NSC']]]:
+        """Sammelt Optionen, wie der Mensch sich verhalten kann."""
         for mensch in self.menschen:
             yield ("Mit " + mensch.name + " reden", mensch.name.lower(),
                    mensch)
