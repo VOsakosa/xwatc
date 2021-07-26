@@ -1,17 +1,18 @@
 """Karvapedo: Ein Geschichts-Spiel"""
+from __future__ import annotations
 import os
-from typing import Tuple, List, Optional as Opt, TextIO
+from typing import Tuple, List, Optional as Opt, TextIO, Protocol, Sequence
 
 import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
-SPEICHER_VERZEICHNIS = os.path.join(os.path.dirname(__file__), "saves")
+SPEICHER_VERZEICHNIS = os.path.join(os.path.dirname(__file__), "..", "saves")
 
 TextId = str
 TextInhalt = str
-Möglichkeiten = List[Tuple[str, TextId]]
+Möglichkeiten = Sequence[Tuple[str, TextId]]
 Text = Tuple[TextInhalt, Möglichkeiten]
 
 
@@ -21,12 +22,17 @@ class Geschichte(Protocol):
     def save(self, _file: TextIO):
         """Speichert die Geschichte"""
 
-    def load(self, _file: TextIO):
+    @staticmethod
+    def load(_file: TextIO) -> Geschichte:
         """Lädt die Geschichte aus der Datei. Der Geschichtenname ist
         bereits eingelesen."""
 
-    def finde_text(self) -> Text:
+    def finde_text(self, textid: TextId) -> Text:
         """Führe einen Text aus."""
+    
+    def starts(self) -> Möglichkeiten:
+        """"""
+        return []
 
 
 class Karvapedo:
@@ -66,20 +72,26 @@ class Karvapedo:
             self.grid.add(button)
 
     def button_clicked(self, _button: Gtk.Button, text: TextId):
+        from karvapedo.parse import GeladeneGeschichte
         if text.startswith("!lade"):
+            os.makedirs(SPEICHER_VERZEICHNIS, exist_ok=True)
             text = text[5:]
             datei = os.path.join(SPEICHER_VERZEICHNIS, text)
             with open(datei, "r") as file:
                 stand = file.readline().strip()
+            self.geschichte = GeladeneGeschichte()
             self.stand = text
             self.text(stand)
-        elif text == "!neu":
+        elif text.startswith("!neu"):
+            os.makedirs(SPEICHER_VERZEICHNIS, exist_ok=True)
+            text = text[4:]
+            self.geschichte = GeladeneGeschichte()
             nr = 1
             bestehend = os.listdir(SPEICHER_VERZEICHNIS)
             while str(nr) in bestehend:
                 nr += 1
             self.stand = str(nr)
-            self.text("1")
+            self.text(text)
         else:
             self.text(text)
 
@@ -98,6 +110,8 @@ class Karvapedo:
             return hauptmenu()
         elif name == "lade":
             return lade()
+        elif name == "neu":
+            return self.neu()
         elif name == "0":
             return ("Karvapedo ist eine Sammlung von Geschichten, bei denen du meist geringen und teils "
                     "gewaltigen Einfluss auf das Geschehen hast."), [("weiter", "hauptmenu")]
@@ -114,18 +128,23 @@ class Karvapedo:
             return self.geschichte.finde_text(name)
         else:
             raise KeyError(f"Unbekannte Geschichte: {name}")
+    
+    def neu(self) -> Text:
+        from karvapedo.parse import GeladeneGeschichte
+        geschichten = [GeladeneGeschichte()]
+        return "",[(a, "!neu" + b) for g in geschichten for a,b in g.starts()]
 
 
 def hauptmenu() -> Text:
     return "", [
-        ("Neue Geschichte", "!neu"),
+        ("Neue Geschichte", "neu"),
         ("Lade Geschichte", "lade")
     ]
 
 
 def lade() -> Text:
     os.makedirs(SPEICHER_VERZEICHNIS, exist_ok=True)
-    stände = os.listdir(SPEICHER_VERZEICHNIS)
+    stände = sorted(os.listdir(SPEICHER_VERZEICHNIS))
     inhalt = "" if stände else "Du hast keine Speicherstände"
     mgn = [(stand, "!lade" + stand)
            for stand in stände] + [("Zurück", "hauptmenu")]
