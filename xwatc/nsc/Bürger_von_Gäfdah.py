@@ -7,9 +7,9 @@ import xwatc_Hauptgeschichte
 
 
 class MartinPortulakk(NSC):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("Martin Portulakk", "Bürger")
-        self.position=haus
+        self.position="Haus"
 
     def kampf(self, mänx: Mänx) -> None:
         if mänx.hat_klasse("Waffe", "legendäre Waffe"):

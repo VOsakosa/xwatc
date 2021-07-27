@@ -31,6 +31,7 @@ class Rückkehr(Enum):
 
 
 class NSC(system.InventarBasis):
+    """Ein NSC hat ein Inventar und verschiedene Dialoge."""
     name: str
     art: str
     _ort: Opt[weg.Wegkreuzung]
@@ -109,7 +110,7 @@ class NSC(system.InventarBasis):
         if isinstance(option, Dialog):
             dlg = option
             dlg_anzahl = self.dialog_anzahl
-            ans = self._call_geschichte(mänx, dlg.geschichte, 
+            ans = self._call_geschichte(mänx, dlg.geschichte,
                                         dlg.geschichte_text)
             dlg_anzahl[dlg.name] = dlg_anzahl.setdefault(dlg.name, 0) + 1
             self.kennt_spieler = True
@@ -305,8 +306,8 @@ class Dialog:
 
     def wenn(self, fn: DialogFn) -> 'Dialog':
         if self.wenn_fn:
-            def neue_wenn(n,m, wf=self.wenn_fn):
-                return wf(n,m) and fn(n,m)
+            def neue_wenn(n, m, wf=self.wenn_fn):
+                return wf(n, m) and fn(n, m)
             self.wenn_fn = neue_wenn
         else:
             self.wenn_fn = fn
@@ -358,11 +359,17 @@ class Dorfbewohner(NSC):
                           else "Dorfbewohnerin")
         super().__init__(name, **kwargs)
         self.geschlecht = geschlecht
-        self.dialog("hallo", "Hallo", lambda n, _:
-                    sprich(n.name, f"Hallo, ich bin {n.name}. "
-                           "Freut mich, dich kennenzulernen.") or True).wiederhole(1)
-        self.dialog("hallo2", "Hallo", lambda n, _:
-                    sprich(n.name, "Hallo nochmal!") or True, "hallo")
+
+        def hallo(n, m):
+            sprich(n.name, f"Hallo, ich bin {n.name}. "
+                   "Freut mich, dich kennenzulernen.")
+            return True
+        self.dialog("hallo", "Hallo", hallo).wiederhole(1)
+
+        def hallo2(n, m):
+            sprich(n.name, f"Hallo nochmal!")
+            return True
+        self.dialog("hallo2", "Hallo", hallo2, "hallo")
 
     def kampf(self, mänx: system.Mänx) -> None:
         if self.kampf_fn:
