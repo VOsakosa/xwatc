@@ -16,10 +16,9 @@ def waffe_wählen(mänx: Mänx):
         mint("Im Laufe des Spieles kannst du allerdings weitere Spezies "
               "und Völker freischalten!")
 
-        rosse = mänx.minput("Naja, willst du eigentlich ein Mensch sein?")
-        if rosse == "ja"or rosse == "j":
+        if mänx.ja_nein("Naja, willst du eigentlich ein Mensch sein?"):
             malp("Na, dann ist ja alles gut.")
-        elif rosse == "nein" or rosse == "n":
+        else:
             a = random.randint(1, 11)
             if a != 11:
                 malp("Tja, Pech gehabt. Du bist trotzdem einer.")
@@ -66,12 +65,12 @@ def main():
             ende = True
         else:
             ende = not mänx.will_weiterleben()
-        print("Hier ist die Geschichte zu Ende.")
+        malp("Hier ist die Geschichte zu Ende.")
         if mänx.titel:
-            print("Du hast folgende Titel erhalten:", ", ".join(mänx.titel))
+            malp("Du hast folgende Titel erhalten:", ", ".join(mänx.titel))
         if not ende:
             mänx.inventar_leeren()
-            print("Aber keine Sorge, du wirst wiedergeboren")
+            malp("Aber keine Sorge, du wirst wiedergeboren")
 
 
 def himmelsrichtungen(mänx):
