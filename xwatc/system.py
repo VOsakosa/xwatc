@@ -387,11 +387,12 @@ if hasattr(typing, "Protocol"):
         def main(self, mänx: Mänx):
             pass
 else:
-    class HatMain:
+    class HatMain:  # type: ignore
         def main(self, mänx: Mänx):
             pass
 
 class Besuche:
+    """Mache ein Objekt aus dem Objektregister ein HatMain-object."""
     def __init__(self, objekt_name: str):
         self.objekt_name = objekt_name
         assert self.objekt_name in _OBJEKT_REGISTER
