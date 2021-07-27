@@ -11,6 +11,8 @@ if TYPE_CHECKING:
     from xwatc.system import Mänx, MenuOption
 
 T = TypeVar("T")
+
+
 def menu(mänx: Mänx,
          optionen: list[MenuOption[T]],
          frage: str = "",
@@ -98,7 +100,7 @@ def spezial_taste(mänx: Mänx, taste: str) -> bool:
         print("Wenn du einfach nur Hilfe zu irgendwas haben willst, schreibe"
               " 'hilfe [frage]'.")
     elif taste.startswith("hilfe "):
-        
+
         args = taste[6:]
         if args.lower() in hilfe.HILFEN:
             for line in hilfe.HILFEN[args.lower()]:
