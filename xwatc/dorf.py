@@ -192,18 +192,25 @@ class NSC(system.InventarBasis):
             optionen = list(self.dialog_optionen(mänx))
             if not optionen:
                 if start:
-                    print("Du weißt nicht, was du sagen könntest.")
+                    malp("Du weißt nicht, was du sagen könntest.")
                 else:
-                    print("Du hast nichts mehr zu sagen.")
+                    malp("Du hast nichts mehr zu sagen.")
                 return Rückkehr.ZURÜCK
             optionen.append(("Zurück", "f", Rückkehr.ZURÜCK))
             ans = self._run(mänx.menu(optionen), mänx)
             start = False
         return ans
 
-    def sprich(self, text: str, *args, **kwargs) -> None:
+    def sprich(self, text: str|Iterable[str|Malp], *args, **kwargs) -> None:
         """Minte mit vorgestelltem Namen"""
-        system.sprich(self.name, text, *args, **kwargs)
+        if isinstance(text, str):
+            system.sprich(self.name, text, *args, **kwargs)
+        else:
+            for block in text:
+                if isinstance(block, Malp):
+                    block = block.text
+                system.sprich(self.name, block, *args, **kwargs)
+                    
 
     def add_freundlich(self, wert: int, grenze: int) -> None:
         """Füge Freundlichkeit hinzu, aber überschreite nicht die Grenze."""
@@ -251,6 +258,9 @@ class Malp:
 
     def __call__(self, *__):
         malp(self.text, warte=self.warte)
+    
+    def __str__(self) -> str:
+        return self.text
 
 
 class Dialog:
@@ -397,16 +407,16 @@ class Dorfbewohner(NSC):
                     mint("Aber sie wehrt sich tödlich.")
                 raise Spielende
         elif random.randint(1, 6) != 1:
-            print("Irgendwann ist dein Gegner bewusstlos.")
+            malp("Irgendwann ist dein Gegner bewusstlos.")
             if mänx.ja_nein("Schlägst du weiter bis er tot ist oder gehst du weg?"):
-                print("Irgendwann ist der Arme tot. Du bist ein Mörder. "
+                malp("Irgendwann ist der Arme tot. Du bist ein Mörder. "
                       "Kaltblütig hast du dich dafür entschieden einen lebendigen Menschen zu töten."
                       "", kursiv(" zu ermorden. "), "Mörder.")
             else:
-                print("Du gehst weg.")
+                malp("Du gehst weg.")
 
         else:
-            print("Diesmal bist du es, der unterliegt.")
+            malp("Diesmal bist du es, der unterliegt.")
             a = random.randint(1, 10)
             if a != 1:
                 mint("Als du wieder aufwachst, bist du woanders.")
@@ -468,7 +478,7 @@ class Dorf:
         self.name = name
 
     def main(self, mänx) -> None:
-        print(f"Du bist in {self.name}. Möchtest du einen der Orte betreten oder "
+        malp(f"Du bist in {self.name}. Möchtest du einen der Orte betreten oder "
               "draußen bleiben?")
         orte: List[MenuOption[Opt[Ort]]]
         orte = [(ort.name, ort.name.lower(), ort) for ort in self.orte]
@@ -482,11 +492,11 @@ class Dorf:
         ort.menschen[:] = filter(lambda m: not m.tot, ort.menschen)
         ort.beschreibe(mänx, None)
         if ort.menschen:
-            print("Hier sind:")
+            malp("Hier sind:")
             for mensch in ort.menschen:
-                print(f"{mensch.name}, {mensch.art}")
+                malp(f"{mensch.name}, {mensch.art}")
         else:
-            print("Hier ist niemand.")
+            malp("Hier ist niemand.")
         optionen: List[MenuOption[Union[NSC, Ort, None]]]
         optionen = [("Mit " + mensch.name + " reden", mensch.name.lower(),
                      mensch) for mensch in ort.menschen]

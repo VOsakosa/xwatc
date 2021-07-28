@@ -168,7 +168,7 @@ class Mänx(InventarBasis, Persönlichkeit):
             anzahl = min(anzahl, von.inventar[item])
             if not anzahl:
                 return
-        print(f"Du erhältst {anzahl} {item}")
+        malp(f"Du erhältst {anzahl} {item}")
         self.inventar[item] += anzahl
         if von:
             von.inventar[item] -= anzahl
@@ -203,24 +203,25 @@ class Mänx(InventarBasis, Persönlichkeit):
         t = self.minput("Genauer? (Schreibe irgendwas für ja)")
         if t and t not in ("nein", "n"):
             for block in text:
-                print(block)
+                malp(block)
 
     def sleep(self, länge: float, pausenzeichen="."):
+        # TODO: noch eine Anzeigevariante
         for _i in range(int(länge / 0.5)):
             print(pausenzeichen, end="", flush=True)
             sleep(0.5)
-        print()
+        malp()
 
     def tutorial(self, art: str) -> None:
         if not self.welt.ist("tutorial:" + art):
             for zeile in hilfe.HILFEN[art]:
-                print(zeile)
+                malp(zeile)
             self.welt.setze("tutorial:" + art)
 
     def inventar_zugriff(self, inv: InventarBasis,
                          nimmt: Union[bool, Sequence[str]] = False) -> None:
         """Ein Menu, um auf ein anderes Inventar zuzugreifen."""
-        print(inv.erweitertes_inventar())
+        malp(inv.erweitertes_inventar())
         self.tutorial("inventar_zugriff")
         while True:
             a = self.minput(">", lower=False)
@@ -238,44 +239,44 @@ class Mänx(InventarBasis, Persönlichkeit):
                     if inv.hat_item(ding):
                         self.erhalte(ding, inv.inventar[ding], inv)
                     else:
-                        print(f"Kein {ding} da.")
+                        malp(f"Kein {ding} da.")
                 elif len(args) == 2:
                     ding = args[1]
                     try:
                         anzahl = int(args[0])
                         assert anzahl > 0
                     except (AssertionError, ValueError):
-                        print("Gebe eine positive Anzahl an.")
+                        malp("Gebe eine positive Anzahl an.")
                     else:
                         if inv.hat_item(ding, anzahl):
                             self.erhalte(ding, anzahl, inv)
                         else:
-                            print(f"Kein {ding} da.")
+                            malp(f"Kein {ding} da.")
             elif co == "a" or co == "auslage":
-                print(inv.erweitertes_inventar())
+                malp(inv.erweitertes_inventar())
             elif co == "g" or co == "geben":
                 if not nimmt:
-                    print("Du kannst hier nichts hereingeben")
+                    malp("Du kannst hier nichts hereingeben")
                 elif len(args) == 1:
                     ding = args[0]
                     if self.hat_item(ding):
                         inv.inventar[ding] = self.inventar[ding]
                         self.inventar[ding] = 0
                     else:
-                        print(f"Du hast kein {ding}.")
+                        malp(f"Du hast kein {ding}.")
                 elif len(args) == 2:
                     ding = args[1]
                     try:
                         anzahl = int(args[0])
                         assert anzahl > 0
                     except (AssertionError, ValueError):
-                        print("Gebe eine positive Anzahl an.")
+                        malp("Gebe eine positive Anzahl an.")
                     else:
                         if self.hat_item(ding, anzahl):
                             self.inventar[ding] -= anzahl
                             inv.inventar[ding] += anzahl
                         else:
-                            print(f"Du hast kein {ding}.")
+                            malp(f"Du hast kein {ding}.")
             if not any(inv.items()):
                 return
 

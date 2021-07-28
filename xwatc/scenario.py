@@ -1,6 +1,6 @@
 from typing import List, Optional as Op, Union, NewType, Dict
 import os.path
-from xwatc.system import Mänx
+from xwatc.system import Mänx, malp
 import sys
 
 if __name__ == "__main__":
@@ -240,7 +240,7 @@ class Scenario:
             elif arg == "a":
                 ans = self.bewege_spieler(mänx, 0, -1)
             else:
-                print("Hä? Was is'n 'n", repr(arg))
+                malp("Hä? Was is'n 'n", repr(arg))
         if mänx.context is self:
             mänx.context = None
         return ans
@@ -289,6 +289,6 @@ if __name__ == '__main__':
     try:
         erg = lade_scenario(m, "disnajenbun")
     except system.Spielende:
-        print("Du bist tot")
+        malp("Du bist tot")
     else:
-        print(f"Es geht mit {erg} weiter.")
+        malp(f"Es geht mit {erg} weiter.")

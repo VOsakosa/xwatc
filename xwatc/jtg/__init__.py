@@ -22,7 +22,7 @@ from typing import List, Tuple
 
 def t2(mänx: Mänx) -> None:
     """Jaspers Teilgeschichte"""
-    print("Es erwartet dich Vogelgezwitscher.")
+    malp("Es erwartet dich Vogelgezwitscher.")
     weg.wegsystem(mänx, "jtg:mitte")
 
 
@@ -106,19 +106,19 @@ def disnayenbum(mänx: Mänx):
 
 
 def t2_süd(mänx) -> None:
-    print("Der Wald wird immer dunkler.")
+    malp("Der Wald wird immer dunkler.")
     mint("Ein kalter Wind weht. Das Vogelgezwitscher der Lichtung kommt dir nun "
          "wie ein kurzer Traum vor.")
     mint("Es wird immer dunkler.")
-    print("Plötzlich siehst du ein Licht in der Ferne.")
+    malp("Plötzlich siehst du ein Licht in der Ferne.")
     haus = ja_nein(mänx, "Gehst du zum Licht?")
     if haus:
-        print("Es ist eine einsame, einstöckige Hütte, aus der das Licht kam. "
+        malp("Es ist eine einsame, einstöckige Hütte, aus der das Licht kam. "
               "Vor dir ist die Rückseite des Hauses, "
               "an der sich Feuerholz stapelt.")
         haus = ja_nein(mänx, "Klopfst du an die Tür?")
     if haus:
-        print("Ein junger Mann begrüßt dich an der Tür.")
+        malp("Ein junger Mann begrüßt dich an der Tür.")
         if mänx.rasse == "Skelett":
             hexer_skelett(mänx)
         else:
@@ -126,20 +126,20 @@ def t2_süd(mänx) -> None:
                 '?: "Ein Wanderer? Komm herein, du siehst ganz durchgefroren aus."[k/r/f]',
                 list("krf"))
             if aktion == "f":
-                print("Du rennst weg, als hätte der bloße Anblick "
+                malp("Du rennst weg, als hätte der bloße Anblick "
                       "des jungen Manns dich verschreckt.")
-                print('Jetzt denkt der Arme sich bestimmt: "Bin ich so hässlich '
+                malp('Jetzt denkt der Arme sich bestimmt: "Bin ich so hässlich '
                       'oder schrecklich, dass Leute auf den '
                       'ersten Blick abhauen?"')
-                print("Aber dir ist das egal, die unbekannte Gefahr ist abgewehrt.")
+                malp("Aber dir ist das egal, die unbekannte Gefahr ist abgewehrt.")
                 ende_des_waldes(mänx)
             elif aktion == "k":
-                print('?: "Ein/e Inquisitor/in? Dafür musst du früher aufstehen!"')
+                malp('?: "Ein/e Inquisitor/in? Dafür musst du früher aufstehen!"')
                 hexer_kampf(mänx)
             else:  # "r"
                 haus_des_hexers(mänx)
     else:
-        print("Dem, der auch immer hinter dem Licht steckt, sollte man nicht "
+        malp("Dem, der auch immer hinter dem Licht steckt, sollte man nicht "
               "trauen, befindest du und machst "
               "dich weiter "
               "auf den Weg durch den Wald.")
@@ -156,7 +156,7 @@ def hexer_skelett(mänx: Mänx):
 
 
 def haus_des_hexers(mänx: Mänx)-> None:
-    print("Er bittet dich an den Tisch und gibt dir einen warmen Punsch.")
+    malp("Er bittet dich an den Tisch und gibt dir einen warmen Punsch.")
     mänx.welt.setze("kennt:hexer")
     leo = 'Leo Berndoc'
     sprich(leo, "Ich bin Leo Berndoc.")
@@ -179,9 +179,9 @@ def haus_des_hexers(mänx: Mänx)-> None:
                      "bin ich. Plötzlich.", "oase", "oase"))
     antwort = mänx.menu(opts)
     if antwort == "halloli":
-        print("Er sagt mit einem verschwörerischen Tonfall: \"Ich verstehe.\"")
+        malp("Er sagt mit einem verschwörerischen Tonfall: \"Ich verstehe.\"")
         sprich(leo, "Bleibe ruhig noch die Nacht. Hier werden sie dich nicht finden.")
-        print("Du entschließt dich, mitzumachen. Am nächsten Tag verlässt du "
+        malp("Du entschließt dich, mitzumachen. Am nächsten Tag verlässt du "
               "schnell das Haus, bevor der Schwindel "
               "auffliegt")
         ende_des_waldes(mänx, True)
@@ -191,10 +191,10 @@ def haus_des_hexers(mänx: Mänx)-> None:
         sprich(leo, "...")
         sleep(1)
         sprich(leo, "Ich habe ein Gästebett. Da kannst du schlafen.")
-        print("Dein erstes Bett in dieser Welt ist schön weich.")
+        malp("Dein erstes Bett in dieser Welt ist schön weich.")
         sleep(3)
-        print("Als du am nächsten Morgen aufwachst, fühlst du dich schwach und kalt.")
-        print("Leo steht vor dir.")
+        malp("Als du am nächsten Morgen aufwachst, fühlst du dich schwach und kalt.")
+        malp("Leo steht vor dir.")
         sprich(leo, "Du bist jetzt eine wandelnde Leiche und gehorchst meinem Willen")
         raise Spielende()
     elif antwort == "durchreise":
@@ -234,22 +234,22 @@ def haus_des_hexers(mänx: Mänx)-> None:
                 sprich(leo, "Interessant.")
                 sprich(leo, "Ich habe ein Gästebett. Da kannst du schlafen.")
                 sprich(leo, "Im Süden ist ein Dorf, lauf einfach weiter geradeaus.")
-                print("Dein erstes Bett in dieser Welt ist schön weich.")
+                malp("Dein erstes Bett in dieser Welt ist schön weich.")
                 sleep(5)
                 ende_des_waldes(mänx, True)
     else:  # oase
         sprich(leo, "Interessant.")
-        print("Er wirkt sichtlich überfordert.")
+        malp("Er wirkt sichtlich überfordert.")
         sprich(leo, "Das muss eine Tür der Qual sein..., oder war es Wal der Qual...")
         sleep(0.3)
         sprich(leo, "Aber was hat ein Wal hier zu suchen?")
-        print("Du hast ihn sichtlich verwirrt.")
+        malp("Du hast ihn sichtlich verwirrt.")
         mint("Er zeigt noch auf ein Gästezimmer, dann geht er vor "
              "sich hin brabbelnd in sein Zimmer")
         mint("Im Bett denkst du über deinen heutigen Tag nach. Du sinkst "
              "in einen unruhigen Schlaf.")
         sleep(5)
-        print("Früh am Morgen verlässt du eilig das Haus.")
+        malp("Früh am Morgen verlässt du eilig das Haus.")
         mint("Aber du siehst noch einen Ring auf dem Tisch.")
         if ja_nein(mänx, "Steckst du ihn ein?"):
             mänx.erhalte("Ring des Berndoc")
@@ -258,34 +258,34 @@ def haus_des_hexers(mänx: Mänx)-> None:
 
 
 def hexer_kampf(mänx):
-    print("Der Mann spricht einen schnellen Zauberspruch. Dir wird unglaublich kalt.")
+    malp("Der Mann spricht einen schnellen Zauberspruch. Dir wird unglaublich kalt.")
     if mänx.get_kampfkraft() > 2000:
-        print("Aber du bist stärker.")
-        print("Du besiegst den Mann und plünderst sein Haus.")
+        malp("Aber du bist stärker.")
+        malp("Du besiegst den Mann und plünderst sein Haus.")
         mänx.erhalte("Gold", 120)
         mänx.erhalte("Mantel", 3)
         mänx.erhalte("Unterhose", 7)
         mänx.erhalte("Banane", 1)
         mänx.erhalte("Menschenskelett", 3)
-        print("Du findest einen Ring. In ihm steht eingraviert: "
+        malp("Du findest einen Ring. In ihm steht eingraviert: "
               "\"Ich hasse dich, Dongmin!\"")
         mänx.erhalte("Ring des Berndoc")
-        print("Du entscheidest dich, nach Süden weiter zu gehen.")
+        malp("Du entscheidest dich, nach Süden weiter zu gehen.")
         sleep(2)
     else:
-        print("Du kannst dich kaum bewegen. Er tritt auf dich drauf.")
+        malp("Du kannst dich kaum bewegen. Er tritt auf dich drauf.")
         sleep(0.5)
-        print("Dein Rücken tut weh")
+        malp("Dein Rücken tut weh")
         sleep(0.5)
-        print("Aber er zeigt Gnade. ", end="")
+        malp("Aber er zeigt Gnade. ", end="")
         hose = mänx.inventar["Unterhose"]
         if hose:
-            print("Er zieht dich bis auf die Unterhose aus", end="")
+            malp("Er zieht dich bis auf die Unterhose aus", end="")
 
         else:
-            print("Er zieht dich aus, verzieht das Gesicht, als er sieht, "
+            malp("Er zieht dich aus, verzieht das Gesicht, als er sieht, "
                   "dass du keine Unterhose trägst", end="")
-        print(" und wirft dich im Süden des Waldes auf den Boden")
+        malp(" und wirft dich im Süden des Waldes auf den Boden")
         mänx.inventar.clear()
         mänx.inventar["Unterhose"] = hose
     ende_des_waldes(mänx)
@@ -324,14 +324,14 @@ class TobiacBerndoc(NSC):
 
     def kampf(self, mänx: Mänx) -> None:
         if mänx.hat_klasse("Waffe", "magische Waffe"):
-            print("Er ist so sehr in sein Orgelspiel vertieft, dass er seinen "
+            malp("Er ist so sehr in sein Orgelspiel vertieft, dass er seinen "
                   "Tod nicht kommen sieht.")
             mint("Er fällt auf die Klaviatur, und "
                  "sein letztes Lied endet jäh in einer langen Dissonanz.")
             mint("Er hatte nichts von Wert an sich.")
             self.tot = True
         else:
-            print("Du prügelst auf ihn ein, aber er wehrt sich nicht.")
+            malp("Du prügelst auf ihn ein, aber er wehrt sich nicht.")
             if ja_nein(mänx, "Machst du weiter?"):
                 mint("Du schlägst ihn bewusstlos")
 
@@ -343,9 +343,9 @@ class TobiacBerndoc(NSC):
         mint("Du gibt dich der Melodie hin.")
 
     def vorstellen(self, mänx: Mänx) -> None:
-        print("Tobiac spielt erst noch den Satz zu Ende.")
+        malp("Tobiac spielt erst noch den Satz zu Ende.")
         sleep(2)
-        print("Er spricht mit leiser Stimme.")
+        malp("Er spricht mit leiser Stimme.")
         sprich(self.name, f"Hallo, ich bin {self.name}.")
         sprich("Du", "Ich bin $&%!")
 
@@ -372,7 +372,7 @@ class TobiacBerndoc(NSC):
 
     def reden_wetter(self, mänx: Mänx) -> None:  # pylint: disable=unused-argument
         sprich(self.name + "(zögert kurz)", "Schön sonnig, nicht?")
-        print("Draußen war es bewölkt.")
+        malp("Draußen war es bewölkt.")
         mint("Wie lange war Tobiac wohl nicht mehr draußen?")
 
     def reden_leo(self, mänx: Mänx):  # pylint: disable=unused-argument
@@ -385,7 +385,7 @@ class TobiacBerndoc(NSC):
     def ring_zeigen(self, mänx: Mänx) -> bool:
         self.sprich("Das ist doch der Ring unserer Familie!")
         self.sprich("Warte. Ich werde nicht fragen, wo du ihn her hast.")
-        print("Du gibst ihm den Ring des Berndoc")
+        malp("Du gibst ihm den Ring des Berndoc")
         self.inventar["Ring des Berndoc"] += 1
         mänx.inventar["Ring des Berndoc"] -= 1
         return True
@@ -399,8 +399,8 @@ class TobiacBerndoc(NSC):
         yield ("Ihm beim Spielen zuhören", "hören", self.zuhören)
 
     def main(self, mänx: Mänx) -> None:
-        print("Tobiac spielt auf der Orgel.")
-        print("Die Melodie klingt ungewöhnlich, aber sehr schön.")
+        malp("Tobiac spielt auf der Orgel.")
+        malp("Die Melodie klingt ungewöhnlich, aber sehr schön.")
         super().main(mänx)
 
 
@@ -567,11 +567,11 @@ SÜD_DORF_DIALOGE = [
 
 def ende_des_waldes(mänx, morgen=False):
     mänx.welt.nächster_tag()
-    print("Der Wald wird schnell viel weniger unheimlich")
+    malp("Der Wald wird schnell viel weniger unheimlich")
     if not morgen:
-        print("Erschöpft legst du dich auf den Waldboden schlafen.")
+        malp("Erschöpft legst du dich auf den Waldboden schlafen.")
         sleep(2)
-    print("Im Süden siehst du ein Dorf")
+    malp("Im Süden siehst du ein Dorf")
     süd_dorf(mänx)
 
 
@@ -605,20 +605,20 @@ def süd_dorf(mänx: Mänx):
 
 
 def hauptstadt_weg(mänx: Mänx):
-    print("Am Wegesrand siehst du ein Schild: \"Achtung Monster!\"")
+    malp("Am Wegesrand siehst du ein Schild: \"Achtung Monster!\"")
     if mänx.ja_nein("Willst du wirklich weitergehen?"):
         mon = random.randint(1, 3)
         if mon == 2 or "Kinderfreund" in mänx.titel:
-            print("Plötzlich bemerkst du einen süßen Duft und ein sanftes "
+            malp("Plötzlich bemerkst du einen süßen Duft und ein sanftes "
                   "Leuchten im Wald zu deiner Rechten.")
             mint("Ehe du dich versiehst, bis du vom Weg abgekommen.")
-            print("Du hörst eine sanfte Stimme:")
+            malp("Du hörst eine sanfte Stimme:")
             sprich("Dryade", "Hier ist es nicht sicher, Wanderer.")
             sprich("Dryade", "Nicht sicher für dich.", warte=True)
             sprich("Dryade", "Schreite durch dieses Portal!")
             if mänx.ja_nein("Ein Portal öffnet sich vor dir. Möchtest "
                             "du hindurch?"):
-                print("Du landest an einem vertrauten Ort.")
+                malp("Du landest an einem vertrauten Ort.")
                 mint("Es ist der Ort, wo deine Geschichte begonnen hat.")
                 import xwatc_Hauptgeschichte
                 xwatc_Hauptgeschichte.himmelsrichtungen(mänx)
@@ -626,16 +626,16 @@ def hauptstadt_weg(mänx: Mänx):
                 sprich("Dryade", "Vertraust du mir nicht?")
                 mint("Die Stimme verstummt, das Portal schließt sich und "
                      "der Duft verschwindet.")
-                print("Plötzlich bist du im dunklen Wald allein.")
+                malp("Plötzlich bist du im dunklen Wald allein.")
                 mint("Etwas schweres trifft dich an der Seite und wirft dich "
                      "zu Boden.")
-                print("Dass es ein Stein ist, siehst du im Fallen.")
+                malp("Dass es ein Stein ist, siehst du im Fallen.")
                 mint("Du kannst dich nicht mehr bewegen und du siehst im "
                      "Augenwinkel einen Bär auf dich zukommen.")
                 raise Spielende
         elif mon == 1:
             mint("Ein Pack Wölfe greift dich an.")
-            print("Sie haben die umzingelt, bevor du sie bemerkt hast.")
+            malp("Sie haben die umzingelt, bevor du sie bemerkt hast.")
             if mänx.gefährten:
                 mint("Deine Gefährten sterben nach und nach.")
             if mänx.hat_klasse("Waffe"):
@@ -646,15 +646,15 @@ def hauptstadt_weg(mänx: Mänx):
             raise Spielende
         else:  # mon == 3
             mint("Du läufst mitten in einen Hinterhalt der Kobolde.")
-            print("Später wird dein Kopf als Schmuck gefunden.")
+            malp("Später wird dein Kopf als Schmuck gefunden.")
             raise Spielende
     else:
         süd_dorf(mänx)
 
 
 def t2_no(mänx):
-    print("Du kommst an einen Wegweiser.")
-    print("Der Weg gabelt sich an einem kleinen Fluss, links führt der Weg "
+    malp("Du kommst an einen Wegweiser.")
+    malp("Der Weg gabelt sich an einem kleinen Fluss, links führt der Weg "
           "den Fluss aufwärts zum 'Land der aufrechten Kühe' und rechts "
           "führt der Weg nach flussabwärts nach '" + SÜD_DORF_NAME + "'")
     if mänx.minput("Gehst du nach links oder rechts", ["links", "rechts"]) == "links":
@@ -664,7 +664,7 @@ def t2_no(mänx):
 
 
 def tauern_ww_süd(mänx: Mänx):
-    print("Du folgst dem Weg sehr lange den Fluss aufwärts.")
+    malp("Du folgst dem Weg sehr lange den Fluss aufwärts.")
     mint("Da kommst du an eine Kreuzung. Ein Weg führt den Fluss weiter aufwärts")
 
 

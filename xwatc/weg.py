@@ -11,10 +11,7 @@ import typing
 from typing import (List, Any, Optional as Opt, cast, Iterable, Union, Sequence,
                     Collection, Callable, Dict, Tuple, NewType, Mapping,
                     overload)
-try:
-    from typing import runtime_checkable, Protocol
-except ImportError:
-    from typing_extensions import runtime_checkable, Protocol
+from typing import runtime_checkable, Protocol
 from xwatc.system import Mänx, MenuOption, MänxFkt, InventarBasis, malp, mint
 from xwatc import dorf
 __author__ = "jasper"

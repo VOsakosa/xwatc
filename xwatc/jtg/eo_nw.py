@@ -3,18 +3,18 @@ Die Geschichte an der Grenze von EO (nicht passierbar).
 Created on 21.10.2020
 """
 __author__ = "jasper"
-from xwatc.system import mint, Mänx, sprich, kursiv, Spielende
+from xwatc.system import mint, Mänx, sprich, kursiv, Spielende, malp
 from xwatc.dorf import NSC
 from . import see
 from .. import jtg
 
 
 def eo_ww_o(mänx: Mänx):
-    print("Der Weg ist gepflastert, aber er wurde lange nicht mehr gepflegt "
+    malp("Der Weg ist gepflastert, aber er wurde lange nicht mehr gepflegt "
           "und genutzt.")
     mint("Immer wieder musst du umgefallenen Baumstämmen ausweichen.")
     mint("Du kommst aus dem Wald in eine spärlich bewachsene Hügellandschaft.")
-    print("Ein schmaler Pfad biegt nach Süden ab.")
+    malp("Ein schmaler Pfad biegt nach Süden ab.")
     opts = [
         ("Folge dem Weg nach Norden", "norden",  eo_turm),
         ("Kehre um nach Disnayenbum", "umk", jtg.disnayenbum),
@@ -25,7 +25,7 @@ def eo_ww_o(mänx: Mänx):
 
 
 def eo_ww_n(mänx: Mänx):
-    print("Ein schmaler Pfad biegt nach Süden ab, der Weg macht eine Biegung "
+    malp("Ein schmaler Pfad biegt nach Süden ab, der Weg macht eine Biegung "
           "nach Südosten.")
     opts = [
         ("Kehre um.", "umk",  eo_turm),
@@ -37,10 +37,10 @@ def eo_ww_n(mänx: Mänx):
 
 
 def eo_turm(mänx: Mänx):
-    print("Der Weg führt geradewegs auf einen Turm zu.")
+    malp("Der Weg führt geradewegs auf einen Turm zu.")
     mint("Dieser hohe Turm steht auf einem Hügel und kann die ganze Landschaft "
          "überblicken.")
-    print("Am Wegesrand siehst du ein Schild: "
+    malp("Am Wegesrand siehst du ein Schild: "
           "\"Hier beginnt TERRITORIUM VON EO \\Betreten verboten\"")
     opts = [
         ("Umgehe den Turm weiträumig in Richtung Norden", "umgehen", eo_umgehen),
@@ -51,7 +51,7 @@ def eo_turm(mänx: Mänx):
 
 
 def eo_turm2(mänx: Mänx):
-    print("Kaum kommst du in die Nähe des Turms, ruft eine laute Stimme "
+    malp("Kaum kommst du in die Nähe des Turms, ruft eine laute Stimme "
           "unfreundlich herab:")
     sprich("Eo-Wache", "Kannst du nicht lesen, hier ist Territorium von Eo!")
     sprich("Eo-Wache", "Kehre um oder wir müssen Gewalt anwenden!")
@@ -70,15 +70,15 @@ def eo_turm2(mänx: Mänx):
 
 def eo_turm_kampf(mänx: Mänx):
     mint("Das scheint die Wache nicht zu überzeugen.")
-    print("Sie brüllt laut:")
+    malp("Sie brüllt laut:")
     sprich("Eo-Wache", "SCHIESSEN!")
-    print("Ungefähr 10 Pfeile werden aus dem Turm abgefeuert.")
+    malp("Ungefähr 10 Pfeile werden aus dem Turm abgefeuert.")
     mint("Davon durchbohren dich einige und du stirbst.")
     raise Spielende
 
 
 def eo_umgehen(mänx: Mänx):
-    print("Du läufst vorsichtig in weitem Abstand um den Turm herum.")
+    malp("Du läufst vorsichtig in weitem Abstand um den Turm herum.")
     mint("Immer wieder blickst du dich in Richtung des Turms um.")
     if mänx.rasse == "Lavaschnecke":
         mint("Eine Stimme spricht in deinem Kopf")
@@ -91,12 +91,12 @@ def eo_umgehen(mänx: Mänx):
     mint("Ein Messer steckt in deinem Rücken.")
     sprich("Eo-Magierin", "Du bist hiermit wegen illegalen Eindringens nach "
            "Eo bestraft.")
-    print("Nun, das hast du davon, dass du auf keine Warnung hörst.")
+    malp("Nun, das hast du davon, dass du auf keine Warnung hörst.")
     raise Spielende
 
 
 def eo_flucht(mänx: Mänx):
-    print("Du drehst dich um, und genau vor dir taucht eine Magierin auf.")
+    malp("Du drehst dich um, und genau vor dir taucht eine Magierin auf.")
     mänx.welt.get_or_else("jtg:eo:magierin", eo_magierin).main(mänx)
     eo_ww_n(mänx)
 

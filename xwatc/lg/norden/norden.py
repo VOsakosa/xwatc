@@ -1,11 +1,11 @@
 from time import sleep
 import xwatc_Hauptgeschichte as xwatc
-from xwatc.system import Mänx, minput, ja_nein, Spielende
+from xwatc.system import Mänx, minput, ja_nein, Spielende, malp
 from xwatc.lg.norden.gäfdah import erzeuge_Gäfdah
 
 
 def Gäfdah(mänx):
-    print("Du wanderst 9 Tage lang gen Norden, bis du zu einem kleinen Fischerdorf "
+    malp("Du wanderst 9 Tage lang gen Norden, bis du zu einem kleinen Fischerdorf "
           "kommst.")
     mänx.welt.get_or_else("Gäfdah", erzeuge_Gäfdah, mänx).main(mänx)
 
@@ -22,22 +22,22 @@ def norden(mänx):
                     mänx.inventar[fisch.capitalize()] += 1
                     mänx.inventar["Gold"] -= 5
             else:
-                print("Du hast nicht genug Geld dafür")
+                malp("Du hast nicht genug Geld dafür")
         else:
             break
     if antwort == "w":
-        print("Du gehst weiter und triffst auf einen Bettler.")
+        malp("Du gehst weiter und triffst auf einen Bettler.")
         if mänx.hat_item("Gold"):
-            print("Du kannst ihm ein Stück Geld geben oder "
+            malp("Du kannst ihm ein Stück Geld geben oder "
                   "weitergehen.")
             if ja_nein(mänx, "Gibst du ihm Geld?"):
                 mänx.inventar["Gold"] -= 1
-                print("Der Bettler blickt dich dankend an.")
-                print("Du erhältst einen Stein der Bettlerfreundschaft.")
+                malp("Der Bettler blickt dich dankend an.")
+                malp("Du erhältst einen Stein der Bettlerfreundschaft.")
                 mänx.inventar["Stein der Bettlerfreundschaft"] += 1
 
         else:
-            print("Du hast leider kein Geld.")
+            malp("Du hast leider kein Geld.")
 
         entscheidung = minput(mänx, "Du wanderst durch das kleine Dorf. Einige Gassenjungen "
                               "folgen dir. Bleibst du im Dorf oder gehst du weiter? "
@@ -56,10 +56,10 @@ def norden(mänx):
                 k = minput(
                     mänx, "Gehst du in Richtung Westen oder in Richtung Osten? (w/o", ["w", "o"])
                 if k == "w":
-                    print("Hallo")
+                    malp("Hallo")
 
             if weg == "w":
-                print("Du gehst weiter in Richtung Norden")
+                malp("Du gehst weiter in Richtung Norden")
 
         elif entscheidung == "bleiben":
             pass
@@ -75,4 +75,4 @@ if __name__ == '__main__':
     try:
         norden(Mänx())
     except Spielende:
-        print("Du bist übrigens tot.")
+        malp("Du bist übrigens tot.")

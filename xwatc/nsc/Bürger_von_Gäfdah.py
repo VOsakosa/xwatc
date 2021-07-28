@@ -1,5 +1,5 @@
 from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner, Rückkehr
-from xwatc.system import mint, kursiv, Mänx, ja_nein, minput, Spielende
+from xwatc.system import mint, kursiv, Mänx, ja_nein, minput, Spielende, malp
 import random
 from xwatc.jtg import t2
 from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
@@ -22,12 +22,12 @@ class MartinPortulakk(NSC):
                  'und schon ist das Haus umstellt...')
 
         else:
-            print("Du stürzt auf ihn zu und schlägst auf ihn ein.")
-            print('Doch dann schreit er: ', kursiv('"Wache!"'),
+            malp("Du stürzt auf ihn zu und schlägst auf ihn ein.")
+            malp('Doch dann schreit er: ', kursiv('"Wache!"'),
                   ', und schon ist das Haus umstellt...')
 
     def reden(self, mänx: Mänx) -> Rückkehr:
-        print('(ängstlich) "Was machst du in meinem Haus?!')
+        malp('(ängstlich) "Was machst du in meinem Haus?!')
         opts = [
             ('"Ich tue dir nichts. Ich habe mich verirrt."', 'verirrt', 0),
             ('"Beruhige dich! Du bist doch Siegbert, oder?"', "siegbert", 1),
@@ -43,37 +43,37 @@ class MartinPortulakk(NSC):
         ]
         opt = mänx.menu(opts, frage="Was sagst du?")
         if opt == 0:
-            print("Der Wachmann reagiert nicht.")
+            malp("Der Wachmann reagiert nicht.")
             if ja_nein(mänx, " Beharrst du auf deine Frage?"):
                 mint("Die Wache seufzt. Ich heiße Mario. Mario Wittenpfäld.")
             else:
                 mint(self.name, "Du lässt die Wache in Ruhe.")
         elif opt == 1:
-            print('Der Mann entspannte sich. "Nein" Siegbert wohnt in Haus Nr.5')
+            malp('Der Mann entspannte sich. "Nein" Siegbert wohnt in Haus Nr.5')
 
         elif opt == 2:
             mint('Ängstlich blickte der Mann sich um. "Schön... ',
                  kursiv('Wachen!'), '"')
-            print("Kaum rief er war das Haus schon umstellt.")
+            malp("Kaum rief er war das Haus schon umstellt.")
 
         elif opt == 3:
             mint('Ängstlich blickte der Mann sich um. "Gut... ',
                  kursiv('Wachen!'), '"')
-            print("Kaum rief er war das Haus schon umstellt.")
+            malp("Kaum rief er war das Haus schon umstellt.")
 
         elif opt == 4:
             mint('', kursiv('"Hilfe! Wachen!"'),
                  ', schrie der Mann aus voller Kehle')
-            print("Und kaum rief er war das Haus schon umstellt.")
+            malp("Und kaum rief er war das Haus schon umstellt.")
 
         elif opt == 5:
             mint('Unsicher blickte der Mann sich um. "Gut... ',
                  kursiv('Wachen!'), '"')
-            print("Kaum rief er war das Haus schon umstellt.")
+            malp("Kaum rief er war das Haus schon umstellt.")
 
         elif opt == 6:
             mint('Still und ängstlich quetschte der Mann sich in eine Ecke seines Hauses.')
-            print("Was tust du nun?")
+            malp("Was tust du nun?")
             a = minput(mänx, "Durchsuchst du die Hütte, "
                        "bringst du den Mann um, "
                        "versuchst du mit ihm zu reden oder fliehst du? (d/um/r/f)", ["d", "um", "r", "f"])
@@ -123,5 +123,5 @@ class MartinPortulakk(NSC):
         return Rückkehr.VERLASSEN
 
     def main(self, mänx: Mänx) -> None:
-        print("Martin Portulakk heißt Martin Portulakk und ist Bürger von Gäfdah.")
+        malp("Martin Portulakk heißt Martin Portulakk und ist Bürger von Gäfdah.")
         super().main(mänx)

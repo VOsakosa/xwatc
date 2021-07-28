@@ -139,7 +139,7 @@ class Kiliwolf(HatMain):
 
 def t2_norden(mänx: Mänx) -> None:
     """Das Dorf auf dem Weg nach Norden"""
-    print("Auf dem Weg kommen dir mehrfach Leute entgegen, und du kommst in ein kleines Dorf.")
+    malp("Auf dem Weg kommen dir mehrfach Leute entgegen, und du kommst in ein kleines Dorf.")
     mädchen = mänx.welt.obj("jtg:mädchen")
     if mädchen.in_disnajenbum and not mädchen.tot:
         mädchen.main(mänx)
@@ -302,21 +302,21 @@ class Mädchen(haendler.Händler):
                 malp("Sie geht davon.")
 
     def vorstellen(self, mänx):
-        print("Am Wegesrand vor dem Dorfeingang siehst du ein Mädchen in Lumpen. "
+        malp("Am Wegesrand vor dem Dorfeingang siehst du ein Mädchen in Lumpen. "
               "Sie scheint zu frieren.")
 
     def get_preis(self, _) -> Preis:
         return Preis(0)
 
     def kampf(self, mänx: Mänx) -> None:
-        print("Das Mädchen ist schwach. Niemand hindert dich daran, sie "
+        malp("Das Mädchen ist schwach. Niemand hindert dich daran, sie "
               "auf offener Straße zu schlagen.")
-        print("Sie hat nichts außer ihren Lumpen.", end="")
+        malp("Sie hat nichts außer ihren Lumpen.", end="")
         if self.hat_item("Rose"):
-            print(
+            malp(
                 ", die Blume, die sie dir verkaufen wollte, ist beim Kampf zertreten worden.")
         else:
-            print(".")
+            malp(".")
         del self.inventar["Rose"]
         self.plündern(mänx)
 

@@ -3,7 +3,7 @@ Die große Feste von Grökrakchöl mitsamt umliegender Landschaft und See.
 Created on 15.10.2020
 """
 __author__ = "jasper"
-from xwatc.system import mint, Mänx
+from xwatc.system import mint, Mänx, malp
 
 GENAUER = [
     "Hinter der Festung fangen Felder an.",
@@ -22,7 +22,7 @@ def zugang_ost(mänx: Mänx):
     if mänx.welt.ist("kennt:grökrakchöl"):
         mint("Vor dir siehst du Grökrakchöl.")
     else:
-        print("Vor dir bietet sich ein erfurchterregender Anblick:")
+        malp("Vor dir bietet sich ein erfurchterregender Anblick:")
         mint("In der Mitte einer weiten Ebene ragt eine hohe quadratische "
              "Festung hervor.")
     mänx.genauer(GENAUER)
@@ -31,15 +31,15 @@ def zugang_ost(mänx: Mänx):
 
 def zugang_südost(mänx: Mänx):
     """Zugang aus Scherenfeld"""
-    print("Du folgst dem Weg. Auf der linken Seite sind Felder.")
+    malp("Du folgst dem Weg. Auf der linken Seite sind Felder.")
     mint("Du kommst in eine Streuobstwiese.")
-    print("Du siehst Äpfel, Zwetschgen und Aprikosen.")
+    malp("Du siehst Äpfel, Zwetschgen und Aprikosen.")
     if mänx.ja_nein("Willst du einige pflücken?"):
         mänx.erhalte("Aprikose", 14)
         mänx.erhalte("Apfel", 5)
         mänx.erhalte("Zwetschge", 31)
-        print("Niemand hat dich gesehen.")
-    print("Der Weg überquert mit einer Brücke einen Bach. Am Bach stehen Bäume,"
+        malp("Niemand hat dich gesehen.")
+    malp("Der Weg überquert mit einer Brücke einen Bach. Am Bach stehen Bäume,"
           " die "
           "dir die Aussicht auf ", end="")
     if mänx.welt.ist("kennt:grökrakchöl"):

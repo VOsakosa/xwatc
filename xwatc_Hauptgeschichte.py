@@ -61,7 +61,7 @@ def main(mänx: Mänx):
         try:
             himmelsrichtungen(mänx)
         except Spielende:
-            print("Du bist tot")
+            malp("Du bist tot")
             ende = True
         else:
             ende = not mänx.will_weiterleben()

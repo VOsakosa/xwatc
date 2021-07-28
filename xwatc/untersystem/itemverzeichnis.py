@@ -53,7 +53,8 @@ def schreibe_itemverzeichnis(pfad, items: Dict[str, str],
         for klasse, item_liste in sorted(klassen.items(),
                                          key=lambda a: locale.strxfrm(a[0])):
             item_liste.sort(key=locale.strxfrm)
-            print(klasse, ":", file=file, end="", sep="")
+            file.write(klasse)
+            file.write(":")
             oberk = classes.get(klasse)
             if oberk:
                 print(f" {oberk}", file=file)

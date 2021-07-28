@@ -1,18 +1,18 @@
 from time import sleep
 import xwatc_Hauptgeschichte as xwatc
-from xwatc.system import Mänx, minput, ja_nein, Spielende, mint
+from xwatc.system import Mänx, minput, ja_nein, Spielende, mint, malp
 
 
 def westen(mänx: Mänx):
-    print("Mit einer kühlen, entgegenkommenden Meeresbrise wanderst du in Richtung Westen.")
+    malp("Mit einer kühlen, entgegenkommenden Meeresbrise wanderst du in Richtung Westen.")
     sleep(1)
-    print("Da begegnete dir eine Henne"
+    malp("Da begegnete dir eine Henne"
           ", die auf einem Stein hockt.")
     moral = minput(mänx, "f/w/k/r (fliehen/weiter/kämpfen/reden)",
                    ["f", "w", "k", "r"])
 
     if moral == "w":
-        print("Du gehst einfach g"
+        malp("Du gehst einfach g"
               "erade heraus. Du b"
               "emerkst erst das d"
               "u den Atem angehal"
@@ -21,7 +21,7 @@ def westen(mänx: Mänx):
               "zum Huhn ausatmest.")
 
     elif moral == "k":
-        print("Du tötest das Huhn"
+        malp("Du tötest das Huhn"
               " und es ist als wä"
               "re ein Bann von di"
               "r abgefallen. Plöt"
@@ -36,37 +36,37 @@ def westen(mänx: Mänx):
 
     elif moral == "r":
         mänx.fähigkeiten.add("Mit Tieren reden")
-        print("Erstaunlicherweise kann das Huhn sprechen.")
-        print('"Hallo", sagt das Huhn. Sie dir mein schönes Eierchen an!')
+        malp("Erstaunlicherweise kann das Huhn sprechen.")
+        malp('"Hallo", sagt das Huhn. Sie dir mein schönes Eierchen an!')
         sleep(1)
-        print('Du siehst dir das "Ei" an. Und bemerkst, das es einfach nur ein Stein ist. ')
+        malp('Du siehst dir das "Ei" an. Und bemerkst, das es einfach nur ein Stein ist. ')
         sleep(1)
-        print("Was sagst du?")
+        malp("Was sagst du?")
         sleep(1)
-        print("1: Ahäm. Das ist kein Ei")
+        malp("1: Ahäm. Das ist kein Ei")
         sleep(1)
-        print("2: Plopp. Ich bin ein hässliches kleines Fischibischi (Kbörg)")
+        malp("2: Plopp. Ich bin ein hässliches kleines Fischibischi (Kbörg)")
         sleep(1)
-        print("3: Tut mir wirklich sehr leid, missiör Henne, a"
+        malp("3: Tut mir wirklich sehr leid, missiör Henne, a"
               "ber das ist lediglich ein hässliches Ei!")
         sleep(1)
-        print("4:OOOkay! Tschüss")
+        malp("4:OOOkay! Tschüss")
         sleep(1)
-        print("5:Bye")
+        malp("5:Bye")
         sleep(1)
-        print("6:Ja, es ist wirklich sehr schön.")
+        malp("6:Ja, es ist wirklich sehr schön.")
         sleep(1)
-        print("7:Reden wir über etwas anderes. Bitte.")
+        malp("7:Reden wir über etwas anderes. Bitte.")
         sleep(1)
-        print("8:Tut mir wirklich sehr leid, mi"
+        malp("8:Tut mir wirklich sehr leid, mi"
               "ssiör(Monsieur) Henne, aber das "
               "ist lediglich ein hässlicher Stein")
         sleep(1)
-        print("9:Tut mir wirklich sehr leid, Madam "
+        malp("9:Tut mir wirklich sehr leid, Madam "
               "Henne, aber das ist lediglich ein "
               "hässliches Ei!")
         sleep(1)
-        print("10:Tut mir wirklich sehr leid, Madam "
+        malp("10:Tut mir wirklich sehr leid, Madam "
               "Henne, aber das ist lediglich ein"
               "hässlicher Stein!")
         sleep(1)
@@ -74,13 +74,13 @@ def westen(mänx: Mänx):
                       ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"])
 
         if nett == "1":
-            print('Die Henne starrt dich an.'
+            malp('Die Henne starrt dich an.'
                   '"Wie kannst du es wagen!", kreischt sie.'
                   'Für einen Augenblick sieht sie sehr, sehr wütend aus.'
                   'Dann verschwindet sie in einer Wolke aus Federn und Staub.')
 
         if nett == "2":
-            print('"Hä?" Einen Augenblick guckt die Henne dich nur verständnislos an.'
+            malp('"Hä?" Einen Augenblick guckt die Henne dich nur verständnislos an.'
                   'Dann sagt sie feierlich: "Du bist würdig."'
                   ', und gibt dir eine seltsame Kugel, "das Hühnerei" und etwas Geld.'
                   'Danach krähte und gackerte sie noch etwas,'
@@ -90,60 +90,60 @@ def westen(mänx: Mänx):
             mänx.inventar["Gold"] += 50
 
         if nett == "3":
-            print(
+            malp(
                 "Die Züge der Henne froren ein. Die Henne war die Ausdruckslosigkeit in Pers... Huhn.")
-            print("Das Huhn guckt dich an.")
+            malp("Das Huhn guckt dich an.")
             sleep(1)
-            print("Das Huhn guckt dir tief in die Augen.")
+            malp("Das Huhn guckt dir tief in die Augen.")
             sleep(3)
-            print("Das Huhn guckt dir sehr tief in die Augen.")
+            malp("Das Huhn guckt dir sehr tief in die Augen.")
             sleep(5)
-            print("sehr, sehr tief")
+            malp("sehr, sehr tief")
             sleep(6)
             leben = minput(mänx, "Langsam wird dir übel."
                            "Kotzt du einfach hemmungslos oder hältst du es zurück?"
                            "(ko/z)", ["ko", "z"])
             if leben == "ko":
-                print("Du erbrichst dich über dem Huhn, brichst den Bann und fliehst.")
+                malp("Du erbrichst dich über dem Huhn, brichst den Bann und fliehst.")
             elif leben == "z":
-                print(
+                malp(
                     "Das Huhn dringt durch die Augen in dich ein und ... verändert dort etwas.")
-                print("Plötzlich wird dir klar, dass du ein Wurm bist. ")
+                malp("Plötzlich wird dir klar, dass du ein Wurm bist. ")
                 sleep(3)
-                print("Das Huhn pickt")
+                malp("Das Huhn pickt")
                 sleep(3)
-                print("aua")
+                malp("aua")
                 raise Spielende
 
         if nett == "4":
-            print("Den Blick des Huhns auf dir spürend, machst du dich von dannen.")
+            malp("Den Blick des Huhns auf dir spürend, machst du dich von dannen.")
 
         elif nett == "5":
-            print("Du beachtest den verwirrten Blick des Huhns nicht und gehst du davon.")
+            malp("Du beachtest den verwirrten Blick des Huhns nicht und gehst du davon.")
 
         elif nett == "6":
-            print(
+            malp(
                 '"Ja, findest du nicht auch?" Mit geschwellter Brust watschelt das Huhn davon')
 
         elif nett == "7":
-            print('Verwirrt betrachtet dich das Huhn noch einmal eingehend.'
+            malp('Verwirrt betrachtet dich das Huhn noch einmal eingehend.'
                   '"Ja, worüber willst du denn reden?", fragt es.')
-            print("1. Wo liegt die nächste menschliche Ansiedlung?")
-            print("2. Wie findest du das Wetter?")
-            print("3. Kannst du mir irgentetwas beibringen? ")
-            print("4. Wie kommt es, dass du sprechen kannst?")
+            malp("1. Wo liegt die nächste menschliche Ansiedlung?")
+            malp("2. Wie findest du das Wetter?")
+            malp("3. Kannst du mir irgentetwas beibringen? ")
+            malp("4. Wie kommt es, dass du sprechen kannst?")
             cmal = minput(mänx, "1/2/3/4", ["1", "2", "3", "4"])
             if cmal == "1":
-                print("Plötzlich wirkt das Huhn sehr verlegen."
+                malp("Plötzlich wirkt das Huhn sehr verlegen."
                       "Statt dir zu antworten, "
                       "springt es ins Gebüsch und verschwindet.")
             elif cmal == "2":
-                print('"sehr schön, sehr schön...", murmelt die Henne.'
+                malp('"sehr schön, sehr schön...", murmelt die Henne.'
                       'Dann springt sie plötzlich auf und schreit in die Welt hinaus:'
                       '"Bei gutem Wetter sollte man auf Wanderschaft gehen.'
                       'Kreischend packt sie ihr "Ei" und rennt davon."')
             elif cmal == "3":
-                print('"Ja, das kann ich", sprach die Henne.'
+                malp('"Ja, das kann ich", sprach die Henne.'
                       'Sie wirkte plötzlich sehr ernst und weise.'
                       '"Aber dann musst du mich mit Meisterin Kraagkargk ansprechen.')
                 ja = minput(mänx, "Ja Meisterin Kraagkargk/Nein Meis"
@@ -151,69 +151,69 @@ def westen(mänx: Mänx):
                             ['jm', 'nm', 'n', 'j'])
                 if ja == 'jm':
                     mint('"Gut", sagte Meisterin Kraagkargk')
-                    print("Du musst jetzt leider eine Minute warten.")
+                    malp("Du musst jetzt leider eine Minute warten.")
                     sleep(60)
-                    print("Meisterin Kraagkargk huscht in die Nacht davon "
+                    malp("Meisterin Kraagkargk huscht in die Nacht davon "
                           "und du schlägst auf einer Wiese in der Nähe dein Lager auf.")
                     sleep(3)
-                    print('Info: Du hast hast "verrückter Schrei" gelernt!')
-                    print('Jeder der ihn hört, reagiert anders.')
-                    print(
+                    malp('Info: Du hast hast "verrückter Schrei" gelernt!')
+                    malp('Jeder der ihn hört, reagiert anders.')
+                    malp(
                         'Manche weinen, manche lachen, manche wiederum erbrechen sich.–')
-                    print(
+                    malp(
                         'Auf jeden Fall verschafft es dir einige Minuten der Ablenkung!')
                 elif ja == 'nm':
-                    print('Meisterin Kraagkargk wurde wütend.'
+                    malp('Meisterin Kraagkargk wurde wütend.'
                           '"So gehe doch", rief sie theatralisch und ging selbst.')
                 elif ja == 'n':
-                    print("Meisterin Kraagkargk guckt dich kurz an und ging dann.")
+                    malp("Meisterin Kraagkargk guckt dich kurz an und ging dann.")
                 elif ja == 'j':
-                    print(
+                    malp(
                         'Meisterin Kraagkargk schnaubte und stolzierte beleidigt davon.')
 
                 elif cmal == "4":
-                    print('"Das liegt an meinem Mugel des Sprechens", '
+                    malp('"Das liegt an meinem Mugel des Sprechens", '
                           'sagte die Hühnerdame und lief durch deine "dumme" Frage empört davon.')
 
             elif nett == "8":
-                print(
+                malp(
                     "Die Züge der Henne wurden starr. Die Henne wurde die Ausdruckslosigkeit in Pers.. Huhn.")
-                print("Und sie guckt dich an.")
+                malp("Und sie guckt dich an.")
                 sleep(1)
-                print("Guckt dir tief in die Augen.")
+                malp("Guckt dir tief in die Augen.")
                 sleep(3)
-                print("tiefer")
+                malp("tiefer")
                 sleep(5)
-                print("noch tiefer")
+                malp("noch tiefer")
                 sleep(6)
                 leben = minput(mänx, "Dir wird übel."
                                "Erbrichst du dich du einfach hemmungslos oder hältst du es zurück?"
                                "(er/z)", ['er', 'z'])
                 if leben == "er":
-                    print(
+                    malp(
                         "Du erbrichst dich über dem Huhn, brichst den Bann und fliehst.")
                 elif leben == "z":
-                    print(
+                    malp(
                         "Das Huhn kriecht durch deine Augen in dich ein und ... verändert dort etwas.")
-                    print("Plötzlich wird dir klar, dass du ein Wurm bist. ")
+                    malp("Plötzlich wird dir klar, dass du ein Wurm bist. ")
                     sleep(3)
-                    print("Das Huhn pickt")
+                    malp("Das Huhn pickt")
                     sleep(3)
-                    print("aua")
+                    malp("aua")
                     raise Spielende
 
         elif nett == "9":
-            print("Die Henne kreischt.")
-            print("lauter als ein Löwe,")
-            print("schriller als ein Adler,")
+            malp("Die Henne kreischt.")
+            malp("lauter als ein Löwe,")
+            malp("schriller als ein Adler,")
             mint("todbringender als eine Banshee.")
             raise Spielende
 
         elif nett == "10":
-            print("Erst blickt dich das Huhn wütend an, dann verschwindet es.")
+            malp("Erst blickt dich das Huhn wütend an, dann verschwindet es.")
 
     elif moral == "f":
-        print("Du entkommst dem Huhn mühelos.")
+        malp("Du entkommst dem Huhn mühelos.")
         sleep(1)
-        print("Nach einer Weile kommst du wieder dort an wo du losgelaufen bist.")
+        malp("Nach einer Weile kommst du wieder dort an wo du losgelaufen bist.")
         xwatc.himmelsrichtungen(mänx)

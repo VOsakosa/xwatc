@@ -1,7 +1,7 @@
 from time import sleep
 from xwatc import haendler
 from xwatc import scenario
-from xwatc.system import Mänx, minput, ja_nein, Spielende, mint, sprich, kursiv, Karawanenfracht
+from xwatc.system import (Mänx, minput, ja_nein, Spielende, mint, sprich, kursiv, Karawanenfracht, malp)
 from xwatc.lg.osten.karawane import Karawane, Angestellte
 from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner, Dialog
 import random
@@ -37,8 +37,8 @@ class MinkajaOrekano(Angestellte):
                     cls.kampf_fliehen)
 
     def kampf_bewusstlos(self, mänx: Mänx) -> None:
-        print("Sie weicht aus.")
-        print("Wer hätte gedacht, dass sie so schnell sein konnte?")
+        malp("Sie weicht aus.")
+        malp("Wer hätte gedacht, dass sie so schnell sein konnte?")
         mint("Dann schnellt ihr Messer vor und du verendest elendig röchelnd.")
         raise Spielende
 
@@ -57,7 +57,7 @@ class MinkajaOrekano(Angestellte):
         mint('"Ja. Warum fragst du?"')
 
     def reden_geht(self, mänx: Mänx) -> None:
-        print('"Was kümnmert dich das?"')
+        malp('"Was kümnmert dich das?"')
         if ja_nein(mänx, "Beharrst du auf deine Frage"):
             mint('"Gut und hau jetzt ab!"')
 
@@ -65,7 +65,7 @@ class MinkajaOrekano(Angestellte):
         mint('"Schön", sagte sie ohne aufzublicken.')
 
     def main(self, mänx: Mänx) -> None:
-        print('"Tag. Was ist?"')
+        malp('"Tag. Was ist?"')
         super().main(mänx)
 
 
@@ -98,7 +98,7 @@ class ThonaTantavan(Angestellte):
         mint('"Ja. Warum fragst du?"')
 
     def reden_geht(self, mänx: Mänx) -> None:
-        print('"Was kümnmert dich das?"')
+        malp('"Was kümnmert dich das?"')
         if ja_nein(mänx, "Beharrst du auf deine Frage"):
             mint('"Gut und hau jetzt ab!"')
 
@@ -106,5 +106,5 @@ class ThonaTantavan(Angestellte):
         mint('"Schön", sagte sie ohne aufzublicken.')
 
     def main(self, mänx: Mänx) -> None:
-        print('"Tag. Was ist?"')
+        malp('"Tag. Was ist?"')
         super().main(mänx)
