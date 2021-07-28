@@ -134,7 +134,7 @@ class Händler(NSC):
         """Lass Spieler mit Mänx handeln"""
         while True:
             mänx.tutorial("handel")
-            a = minput(mänx, "handel>", lower=False)
+            a = mänx.minput("handel>", lower=False)
             al = a.lower()
             if al.startswith("k ") or al.startswith("kaufe "):
                 kauft = a.split(" ", 2)

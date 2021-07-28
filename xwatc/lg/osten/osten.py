@@ -1,6 +1,6 @@
 from time import sleep
 import xwatc_Hauptgeschichte as xwatc
-from xwatc.system import Mänx, minput, kursiv, ja_nein, mint, Spielende
+from xwatc.system import Mänx, minput, kursiv, ja_nein, mint, Spielende, malp
 from xwatc import jtg as jaspersteilgeschichte
 import random
 
@@ -9,7 +9,7 @@ def osten(mänx: Mänx):
     mint("Du wanderst lange, lange in Richtung Osten, "
          "dein Proviant ist aufgebraucht, dein Mund trocken und"
          " dein Magen knurrt.")
-    print("Es ist heiß, höllisch heiß. In der Ferne siehst du einen Höhleneingang. In der anderen Richtung"
+    malp("Es ist heiß, höllisch heiß. In der Ferne siehst du einen Höhleneingang. In der anderen Richtung"
           " siehst du etwas das wie eine Oase aussieht.")
     richtung = minput(mänx, "Gehst du einfach geradeaus, gehst du zur Oase oder zum Höhleneingang?"
                       "w/Oase/Höhle", ["w", "oase", "höhle"]).lower()
@@ -19,10 +19,10 @@ def osten(mänx: Mänx):
              "die andre zu nem andren Ort.")
         weg = minput(mänx, "In welche Tür gehst du? t1/t2", ["t2", "t1"])
         if weg == "t1":
-            print("Du spürst instinktiv, dass das die falsche Entscheidung war.")
+            malp("Du spürst instinktiv, dass das die falsche Entscheidung war.")
             raise Spielende
         elif weg == "t2":
-            print("Hinter der Tür ist es warm und sonnig.")
+            malp("Hinter der Tür ist es warm und sonnig.")
             sleep(1)
             mänx.welt.setze("jtg:t2")
             jaspersteilgeschichte.t2(mänx)
@@ -36,7 +36,7 @@ def osten(mänx: Mänx):
                               "leibdiener/kampf/flucht.(l/k/f)", ["l", "k", "f"])
 
         if Entscheidung == "l":
-            print('"Hurra!", der Mann strahlt. Ich hatte noch nie einen Arak als Diener!')
+            malp('"Hurra!", der Mann strahlt. Ich hatte noch nie einen Arak als Diener!')
             sleep(1)
             mint("Nun beginnt dein Leben als Diener")
 
@@ -75,7 +75,7 @@ def höhle(mänx: Mänx):
 
 
 def bergbau(mänx: Mänx):
-    print("Du nimmst dir eine Spitzhacke und fängst an den Stein zu bearbeiten. Warte eine Minute.")
+    malp("Du nimmst dir eine Spitzhacke und fängst an, den Stein zu bearbeiten. Warte eine Minute.")
     sleep(61)
     mänx.inventar["Spitzhacke"] += 1
     mänx.inventar["Stein"] += 4
@@ -150,7 +150,7 @@ def bergbau(mänx: Mänx):
                      "Und tatsächlich: in ihm liegt eine moderige Leiche")
                 mint("Und da liegt", kursiv("noch"), "etwas!")
                 mint("Eine seltsame, blau schimmernde Stahlkugel!")
-                print("Sie ist so etwa so groß wie ein Fußball, nur etwas kleiner.")
+                malp("Sie ist so etwa so groß wie ein Fußball, nur etwas kleiner.")
                 mint("Außerdem hast du einen ziemlich prallen Geldbeutel entdeckt.")
                 if ja_nein(mänx, "Sammelst du alles ein?"):
                     mänx.inventar["Stern des Vorvgir"] += 1
@@ -163,15 +163,15 @@ def bergbau(mänx: Mänx):
                          kursiv("woanders"), "hin...")
                     jaspersteilgeschichte.t2(mänx)
         else:
-            print("Du stößt auf eine seltsam schimmernde Mauer.")
+            malp("Du stößt auf eine seltsam schimmernde Mauer.")
             if ja_nein(mänx, "Versuchst du sie zu durchbrechen?"):
-                print(
+                malp(
                     "Als deine Spitzhacke die Mauer trifft, splittert sie mit einem hässlichen Kreischen.")
                 mint("Aaaaaaaaaaaaaaahhhhhh!!!")
-                print("Ein gellender Schrei zerreißt die Stille.")
+                malp("Ein gellender Schrei zerreißt die Stille.")
                 mint("Wer schreit denn da?!")
-                print("Oh: ", kursiv("du"), "schreist da!")
-                print("Die Schmerzen bringen dich um den Verstand.")
+                malp("Oh: ", kursiv("du"), "schreist da!")
+                malp("Die Schmerzen bringen dich um den Verstand.")
                 mint("Du bist tot")
                 mint("Oder etwa doch nicht?")
                 mänx.inventar["Stein"] += 30
@@ -180,7 +180,7 @@ def bergbau(mänx: Mänx):
                 jaspersteilgeschichte.t2(mänx)
 
             else:
-                print("OK dann eben nicht.")
+                malp("OK dann eben nicht.")
                 mint("Ich denke mal du solltest ",
                      kursiv("verschwinden!"), "")
                 mänx.inventar["Stein"] += 30
@@ -226,9 +226,9 @@ def monster(mänx: Mänx):
         mint("Ein Schrei entringt deiner Kehle und dir wird schwarz vor Augen.")
         mint("Als du wieder aufwachst,"
              "liegst du inmitten einer saftigen Wiese aus leuchtendem blauem Gras.")
-        print("Nein... Anscheinend befindest du dich in einer Höhle.")
+        malp("Nein... Anscheinend befindest du dich in einer Höhle.")
         mint("In einer mit leuchtend blauem Gras bewachsenen Höhle.")
-        print("Und noch etwas war seltsam: "
+        malp("Und noch etwas war seltsam: "
               "Irgendwie fühlst du dich kräftiger, ", kursiv("lebendiger!"), "")
         mint("Unwillkürlich schaust du an dir herunter – Und erstarrst!")
         mint("Keine Haut mehr an deinem Fleisch, "
