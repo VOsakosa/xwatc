@@ -169,7 +169,7 @@ def axtmann() -> NSC:
                    "Auffällig ist eine große Axt, die er in der Hand hält."])
     n.dialog("hallo", '"Hallo"', [".."])
     n.dialog("axt", '"Du hast aber ein große Axt."',
-             lambda _m, _n: malp("Der Mann wirkt ein wenig stolz."))
+             [Malp("Der Mann wirkt ein wenig stolz.")])
     n.dialog("heißt", '"Wie heißt du?"', [".."], "hallo")
 
     def dlg_brian(nsc, _m):

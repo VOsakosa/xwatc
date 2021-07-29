@@ -67,7 +67,8 @@ class NSC(system.InventarBasis):
         """Starte den Kampf gegen mänx."""
         self.kennt_spieler = True
         if self.kampf_fn:
-            self.kampf_fn(self, mänx)
+            ret = self.kampf_fn(self, mänx)
+            # if isinstance(ret, Wegpunkt)
         else:
             raise ValueError(f"Xwatc weiß nicht, wie {self.name} kämpft")
 
@@ -102,7 +103,7 @@ class NSC(system.InventarBasis):
             mint(f"{self.name}s Leiche liegt still auf dem Boden.")
             return
         self.vorstellen(mänx)
-        self._main(mänx)
+        return self._main(mänx)
 
     def _run(self, option: RunType,
              mänx: system.Mänx) -> Rückkehr:
@@ -175,7 +176,7 @@ class NSC(system.InventarBasis):
                 opts.append(("reden", "r", self.reden))
             ans = self._run(mänx.menu(opts), mänx)
             if ans not in (Rückkehr.WEITER_REDEN, Rückkehr.ZURÜCK):
-                return
+                return ans
 
     def reden(self, mänx: system.Mänx) -> Rückkehr:
         """Das Menu, wo nur reden möglich ist."""
@@ -277,6 +278,14 @@ class Dialog:
                  direkt: bool = False,
                  effekt: Opt[DialogFn] = None):
         """
+        ```
+        Dialog("halloli", "Halloli",
+                ["Du bist ein Totenbeschwörer", Malp("Der Mensch weicht zurück")],
+               effekt=lambda n,m:m.welt.setze("totenbeschwörer")))
+        Dialog("geld", "Gib mir Geld", "Hilfe!", "halloli",
+                effekt=lambda n,m: m.erhalte("Gold", n.gold, n))
+        ```
+        
         :param name: Der kurze Name des Dialogs
         :param text: Der lange Text in der Option
         :param geschichte: Das, was beim Dialog passiert. Kann DialogFn sein
@@ -315,6 +324,8 @@ class Dialog:
             self.anzahl = wiederhole
 
     def wenn(self, fn: DialogFn) -> 'Dialog':
+        """Dieser Dialog soll nur aufrufbar sein, wenn die Funktion fn
+        erfüllt ist."""
         if self.wenn_fn:
             def neue_wenn(n, m, wf=self.wenn_fn):
                 return wf(n, m) and fn(n, m)
@@ -324,13 +335,9 @@ class Dialog:
         return self
 
     def wenn_var(self, *welt_variabeln: str) -> 'Dialog':
-        if self.wenn_fn:
-            def neue_wenn(nsc, mänx, wf=self.wenn_fn):
-                return wf(nsc, mänx) and all(
-                    mänx.welt.ist(v) for v in welt_variabeln)
-            return self.wenn(neue_wenn)
-        else:
-            return self.wenn(lambda n, m: all(m.welt.ist(v) for v in welt_variabeln))
+        """Dieser Dialog soll nur aufrufbar sein, wenn die Weltvariable
+        gesetzt ist."""
+        return self.wenn(lambda n, m: all(m.welt.ist(v) for v in welt_variabeln))
 
     def wiederhole(self, anzahl: int) -> 'Dialog':
         """Füge eine maximale Anzahl von Wiederholungen hinzu"""
@@ -338,6 +345,7 @@ class Dialog:
         return self
 
     def verfügbar(self, nsc: 'NSC', mänx: system.Mänx) -> bool:
+        """Prüfe, ob der Dialog als Option verfügbar ist."""
         # Keine Wiederholungen mehr
         if self.anzahl and nsc.dialog_anzahl.get(self.name, 0) >= self.anzahl:
             return False
@@ -431,6 +439,16 @@ class Ort(weg.Wegkreuzung):
                  dorf: Union[None, Dorf, Ort],
                  text: Opt[Sequence[str]] = None,
                  menschen: Opt[List[NSC]] = None):
+        """
+        ```
+        ort = Ort("Taverne Zum Katzenschweif", None, # wird noch hinzugefügt
+                  "Eine lebhafte Taverne voller Katzen",
+                  [
+                      welt.obj("genshin:mond:diona"),
+                      welt.obj("genshin:mond:margaret")
+                  ])
+        ```
+        """
         super().__init__(menschen=menschen)
         self.name = name
         if text:

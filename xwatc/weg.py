@@ -68,7 +68,7 @@ class _Strecke(Wegpunkt):
     def get_nachbarn(self) -> List[Wegpunkt]:
         return [a for a in (self.p1, self.p2) if a]
 
-    def verbinde(self, anderer: Wegpunkt):
+    def verbinde(self, anderer: Wegpunkt) -> None:
         if not self.p1:
             self.p1 = anderer
         elif self.p1 != anderer and not self.p2:
@@ -601,7 +601,7 @@ def wegsystem(mänx: Mänx, start: Union[Wegpunkt, str]) -> None:
             mänx.welt.tick(1 / 96)
         finally:
             mänx.context = None
-    wp.weiter(mänx)  # type: ignore
+    typing.cast(WegEnde, wp).weiter(mänx)
 
 
 WEGPUNKTE_TEXTE: List[Tuple[List[int], str]] = [
