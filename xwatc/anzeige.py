@@ -27,6 +27,7 @@ _XwatcThreadExit = object()
 Tcall = TypeVar("Tcall", bound=Callable)
 T = TypeVar("T")
 
+
 def _idle_wrapper(fn: Tcall) -> Tcall:
     @wraps(fn)
     def wrapped(*args, **kwargs):
@@ -60,15 +61,24 @@ class XwatcFenster:
         # Spiel beginnen
         self.mänx = system.Mänx(self)
         system.ausgabe = self  # type: ignore
-        threading.Thread(target=xw_main, args=(self.mänx,),
+
+        def xwatc_main(mänx=self.mänx):
+            try:
+                xw_main(mänx)
+            except Exception as exp:
+                import traceback
+                self.buffer.set_text("Xwatc ist abgestürzt:\n"
+                                     + traceback.format_exc())
+
+        threading.Thread(target=xwatc_main,
                          name="Xwatc-Geschichte").start()
         win.show_all()
 
     @_idle_wrapper
     def malp(self, *text, sep=" ", end='\n', warte=False) -> None:
         """Zeigt *text* zusätzlich an."""
-        self.add_text(sep.join(text)+end)
-        
+        self.add_text(sep.join(text) + end)
+
     @_idle_wrapper
     def mint(self, *text):
         """Printe und warte auf ein Enter."""
@@ -79,7 +89,7 @@ class XwatcFenster:
         if wie:
             sprecher += f"({wie})"
         self.add_text(f'{sprecher}: »{text}«')
-    
+
     def add_text(self, text: str) -> None:
         if self.buffer.get_end_iter().get_offset():
             text = "\n" + text
@@ -97,27 +107,26 @@ class XwatcFenster:
         if lower:
             ans = ans.lower()
         return ans
-    
+
     @_idle_wrapper
     def eingabe(self, prompt: Opt[str]) -> None:
         self._remove_choices()
         entry = Gtk.Entry(visible=True)
         entry.connect("activate", self.entry_activated)
         self.grid.add(entry)
-    
-    
+
     def menu(self,
-         mänx: system.Mänx,
-         optionen: list[system.MenuOption[T]],
-         frage: str = "",
-         gucken: Opt[Sequence[str]] = None,
-         versteckt: Opt[Mapping[str, T]] = None) -> T:
+             mänx: system.Mänx,
+             optionen: list[system.MenuOption[T]],
+             frage: str = "",
+             gucken: Opt[Sequence[str]] = None,
+             versteckt: Opt[Mapping[str, T]] = None) -> T:
         self.auswahl([(name, value) for name, __, value in optionen])
         ans = minput_return.get()
         if ans is _XwatcThreadExit:
             raise SystemExit
         return ans
-    
+
     def ja_nein(self, mänx: system.Mänx, frage: str) -> bool:
         self.malp(frage)
         self.auswahl([("Ja", True), ("Nein", False)])
@@ -125,7 +134,7 @@ class XwatcFenster:
         if ans is _XwatcThreadExit:
             raise SystemExit
         return ans
-    
+
     @_idle_wrapper
     def auswahl(self, mgn: Sequence[Tuple[str, Any]]) -> None:
         self._remove_choices()
@@ -135,12 +144,12 @@ class XwatcFenster:
             button.get_child().set_max_width_chars(70)
             button.connect("clicked", self.button_clicked, text)
             self.grid.add(button)
-    
+
     def _remove_choices(self):
         # entferne buttons
         for i in range(1, len(self.grid.get_children())):
             self.grid.remove_row(1)
-        
+
     def _deactivate_choices(self):
         for child in self.grid.get_children():
             if isinstance(child, (Gtk.Button, Gtk.Entry)):
@@ -150,7 +159,7 @@ class XwatcFenster:
         self._deactivate_choices()
         self.buffer.set_text("")
         minput_return.put(text)
-    
+
     def entry_activated(self, entry: Gtk.Entry):
         self._deactivate_choices()
         self.buffer.set_text("")
@@ -160,6 +169,9 @@ class XwatcFenster:
         # TODO warnen wegen nicht gespeichert?
         # TODO xwatc-thread umbringen
         return False
+    
+    def kursiv(self, text: str) -> Text:
+        return text
 
 
 def main():
