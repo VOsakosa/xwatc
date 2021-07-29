@@ -82,12 +82,12 @@ class InventarBasis:
     def gold(self, menge: int) -> None:
         self.inventar["Gold"] = menge
 
-    def hat_klasse(self, *klassen: str) -> bool:
+    def hat_klasse(self, *klassen: str) -> Optional[str]:
         """Prüfe, ob mänx item aus einer der Klassen besitzt."""
         for item in self.items():
             if any(c in klassen for c in get_classes(item)):
-                return True
-        return False
+                return item
+        return None
 
     def items(self):
         for item, anzahl in self.inventar.items():
