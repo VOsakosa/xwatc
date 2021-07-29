@@ -8,7 +8,8 @@ import os
 import queue
 import threading
 from typing import (Tuple, List, Optional as Opt, TextIO, Mapping,
-                    Protocol, Sequence, Any, get_type_hints, TypeVar, Callable)
+                    Protocol, Sequence, Any, get_type_hints, TypeVar, Callable,
+    ClassVar)
 import gi
 
 gi.require_version("Gtk", "3.0")
@@ -44,6 +45,7 @@ def _idle_wrapper(fn: Tcall) -> Tcall:
 
 class XwatcFenster:
     """Ein Fenster, um Xwatc zu spielen."""
+    terminal: ClassVar[bool] = False
 
     def __init__(self, app: Gtk.Application):
         from xwatc_Hauptgeschichte import main as xw_main

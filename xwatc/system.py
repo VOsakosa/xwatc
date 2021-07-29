@@ -1,3 +1,4 @@
+from __future__ import annotations
 from collections import defaultdict
 from typing import (Sequence, Dict, List, Tuple, TypeVar, Callable, Any, Union,
                     Optional, Iterator, Mapping, Set)
@@ -6,10 +7,11 @@ import re
 from pathlib import Path
 from xwatc.untersystem.itemverzeichnis import lade_itemverzeichnis
 from xwatc.untersystem import hilfe
-from xwatc import terminal
+from xwatc.terminal import Terminal
 import typing
 if typing.TYPE_CHECKING:
     from xwatc import dorf
+    from xwatc import anzeige
 
 
 MänxFkt = Callable[['Mänx'], Any]
@@ -17,7 +19,7 @@ ITEMVERZEICHNIS, UNTERKLASSEN = lade_itemverzeichnis(
     Path(__file__).parent / "itemverzeichnis.txt")
 
 _OBJEKT_REGISTER: Dict[str, Callable[[], 'HatMain']] = {}
-ausgabe = terminal
+ausgabe: Terminal|'anzeige.XwatcFenster'= Terminal()
 
 def get_class(item: str) -> Optional[str]:
     return ITEMVERZEICHNIS.get(item)
@@ -116,9 +118,9 @@ class Mänx(InventarBasis, Persönlichkeit):
     """Der Hauptcharakter des Spiels, alles dreht sich um ihn, er hält alle
     Information."""
 
-    def __init__(self, ausgabe=terminal) -> None:
+    def __init__(self, ausgabe=ausgabe) -> None:
         super().__init__()
-        self.ausgabe = ausgabe
+        self.ausgabe: terminal.Terminal|'anzeige.XwatcFenster' = ausgabe
         self.gebe_startinventar()
         self.gefährten: List['dorf.NSC'] = []
         self.titel: Set[str] = set()
@@ -200,10 +202,16 @@ class Mänx(InventarBasis, Persönlichkeit):
         
 
     def genauer(self, text: Sequence[str]) -> None:
-        t = self.minput("Genauer? (Schreibe irgendwas für ja)")
-        if t and t not in ("nein", "n"):
-            for block in text:
-                malp(block)
+        """Frage nach, ob der Spieler etwas genauer erfahren will.
+        Es kann sich um viel Text handeln."""
+        if isinstance(self.ausgabe, Terminal):
+            t = self.minput("Genauer? (Schreibe irgendwas für ja)")
+            if t and t not in ("nein", "n"):
+                for block in text:
+                    self.ausgabe.malp(block)
+        else:
+            if self.menu([("Genauer", "", True), ("Weiter","", False)]):
+                self.ausgabe.malp("\n".join(text))
 
     def sleep(self, länge: float, pausenzeichen="."):
         # TODO: noch eine Anzeigevariante
