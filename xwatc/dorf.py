@@ -31,6 +31,7 @@ class Rückkehr(Enum):
 
 
 class NSC(system.InventarBasis):
+    """Ein NSC hat ein Inventar und verschiedene Dialoge."""
     name: str
     art: str
     _ort: Opt[weg.Wegkreuzung]
@@ -66,7 +67,8 @@ class NSC(system.InventarBasis):
         """Starte den Kampf gegen mänx."""
         self.kennt_spieler = True
         if self.kampf_fn:
-            self.kampf_fn(self, mänx)
+            ret = self.kampf_fn(self, mänx)
+            # if isinstance(ret, Wegpunkt)
         else:
             raise ValueError(f"Xwatc weiß nicht, wie {self.name} kämpft")
 
@@ -101,7 +103,7 @@ class NSC(system.InventarBasis):
             mint(f"{self.name}s Leiche liegt still auf dem Boden.")
             return
         self.vorstellen(mänx)
-        self._main(mänx)
+        return self._main(mänx)
 
     def _run(self, option: RunType,
              mänx: system.Mänx) -> Rückkehr:
@@ -109,7 +111,7 @@ class NSC(system.InventarBasis):
         if isinstance(option, Dialog):
             dlg = option
             dlg_anzahl = self.dialog_anzahl
-            ans = self._call_geschichte(mänx, dlg.geschichte, 
+            ans = self._call_geschichte(mänx, dlg.geschichte,
                                         dlg.geschichte_text)
             dlg_anzahl[dlg.name] = dlg_anzahl.setdefault(dlg.name, 0) + 1
             self.kennt_spieler = True
@@ -174,7 +176,7 @@ class NSC(system.InventarBasis):
                 opts.append(("reden", "r", self.reden))
             ans = self._run(mänx.menu(opts), mänx)
             if ans not in (Rückkehr.WEITER_REDEN, Rückkehr.ZURÜCK):
-                return
+                return ans
 
     def reden(self, mänx: system.Mänx) -> Rückkehr:
         """Das Menu, wo nur reden möglich ist."""
@@ -191,18 +193,25 @@ class NSC(system.InventarBasis):
             optionen = list(self.dialog_optionen(mänx))
             if not optionen:
                 if start:
-                    print("Du weißt nicht, was du sagen könntest.")
+                    malp("Du weißt nicht, was du sagen könntest.")
                 else:
-                    print("Du hast nichts mehr zu sagen.")
+                    malp("Du hast nichts mehr zu sagen.")
                 return Rückkehr.ZURÜCK
             optionen.append(("Zurück", "f", Rückkehr.ZURÜCK))
             ans = self._run(mänx.menu(optionen), mänx)
             start = False
         return ans
 
-    def sprich(self, text: str, *args, **kwargs) -> None:
+    def sprich(self, text: str|Iterable[str|Malp], *args, **kwargs) -> None:
         """Minte mit vorgestelltem Namen"""
-        system.sprich(self.name, text, *args, **kwargs)
+        if isinstance(text, str):
+            system.sprich(self.name, text, *args, **kwargs)
+        else:
+            for block in text:
+                if isinstance(block, Malp):
+                    block = block.text
+                system.sprich(self.name, block, *args, **kwargs)
+                    
 
     def add_freundlich(self, wert: int, grenze: int) -> None:
         """Füge Freundlichkeit hinzu, aber überschreite nicht die Grenze."""
@@ -250,6 +259,9 @@ class Malp:
 
     def __call__(self, *__):
         malp(self.text, warte=self.warte)
+    
+    def __str__(self) -> str:
+        return self.text
 
 
 class Dialog:
@@ -266,6 +278,14 @@ class Dialog:
                  direkt: bool = False,
                  effekt: Opt[DialogFn] = None):
         """
+        ```
+        Dialog("halloli", "Halloli",
+                ["Du bist ein Totenbeschwörer", Malp("Der Mensch weicht zurück")],
+               effekt=lambda n,m:m.welt.setze("totenbeschwörer")))
+        Dialog("geld", "Gib mir Geld", "Hilfe!", "halloli",
+                effekt=lambda n,m: m.erhalte("Gold", n.gold, n))
+        ```
+        
         :param name: Der kurze Name des Dialogs
         :param text: Der lange Text in der Option
         :param geschichte: Das, was beim Dialog passiert. Kann DialogFn sein
@@ -304,22 +324,20 @@ class Dialog:
             self.anzahl = wiederhole
 
     def wenn(self, fn: DialogFn) -> 'Dialog':
+        """Dieser Dialog soll nur aufrufbar sein, wenn die Funktion fn
+        erfüllt ist."""
         if self.wenn_fn:
-            def neue_wenn(n,m, wf=self.wenn_fn):
-                return wf(n,m) and fn(n,m)
+            def neue_wenn(n, m, wf=self.wenn_fn):
+                return wf(n, m) and fn(n, m)
             self.wenn_fn = neue_wenn
         else:
             self.wenn_fn = fn
         return self
 
     def wenn_var(self, *welt_variabeln: str) -> 'Dialog':
-        if self.wenn_fn:
-            def neue_wenn(nsc, mänx, wf=self.wenn_fn):
-                return wf(nsc, mänx) and all(
-                    mänx.welt.ist(v) for v in welt_variabeln)
-            return self.wenn(neue_wenn)
-        else:
-            return self.wenn(lambda n, m: all(m.welt.ist(v) for v in welt_variabeln))
+        """Dieser Dialog soll nur aufrufbar sein, wenn die Weltvariable
+        gesetzt ist."""
+        return self.wenn(lambda n, m: all(m.welt.ist(v) for v in welt_variabeln))
 
     def wiederhole(self, anzahl: int) -> 'Dialog':
         """Füge eine maximale Anzahl von Wiederholungen hinzu"""
@@ -327,6 +345,7 @@ class Dialog:
         return self
 
     def verfügbar(self, nsc: 'NSC', mänx: system.Mänx) -> bool:
+        """Prüfe, ob der Dialog als Option verfügbar ist."""
         # Keine Wiederholungen mehr
         if self.anzahl and nsc.dialog_anzahl.get(self.name, 0) >= self.anzahl:
             return False
@@ -358,11 +377,17 @@ class Dorfbewohner(NSC):
                           else "Dorfbewohnerin")
         super().__init__(name, **kwargs)
         self.geschlecht = geschlecht
-        self.dialog("hallo", "Hallo", lambda n, _:
-                    sprich(n.name, f"Hallo, ich bin {n.name}. "
-                           "Freut mich, dich kennenzulernen.") or True).wiederhole(1)
-        self.dialog("hallo2", "Hallo", lambda n, _:
-                    sprich(n.name, "Hallo nochmal!") or True, "hallo")
+
+        def hallo(n, m):
+            sprich(n.name, f"Hallo, ich bin {n.name}. "
+                   "Freut mich, dich kennenzulernen.")
+            return True
+        self.dialog("hallo", "Hallo", hallo).wiederhole(1)
+
+        def hallo2(n, m):
+            sprich(n.name, f"Hallo nochmal!")
+            return True
+        self.dialog("hallo2", "Hallo", hallo2, "hallo")
 
     def kampf(self, mänx: system.Mänx) -> None:
         if self.kampf_fn:
@@ -390,16 +415,16 @@ class Dorfbewohner(NSC):
                     mint("Aber sie wehrt sich tödlich.")
                 raise Spielende
         elif random.randint(1, 6) != 1:
-            print("Irgendwann ist dein Gegner bewusstlos.")
+            malp("Irgendwann ist dein Gegner bewusstlos.")
             if mänx.ja_nein("Schlägst du weiter bis er tot ist oder gehst du weg?"):
-                print("Irgendwann ist der Arme tot. Du bist ein Mörder. "
+                malp("Irgendwann ist der Arme tot. Du bist ein Mörder. "
                       "Kaltblütig hast du dich dafür entschieden einen lebendigen Menschen zu töten."
                       "", kursiv(" zu ermorden. "), "Mörder.")
             else:
-                print("Du gehst weg.")
+                malp("Du gehst weg.")
 
         else:
-            print("Diesmal bist du es, der unterliegt.")
+            malp("Diesmal bist du es, der unterliegt.")
             a = random.randint(1, 10)
             if a != 1:
                 mint("Als du wieder aufwachst, bist du woanders.")
@@ -414,6 +439,16 @@ class Ort(weg.Wegkreuzung):
                  dorf: Union[None, Dorf, Ort],
                  text: Opt[Sequence[str]] = None,
                  menschen: Opt[List[NSC]] = None):
+        """
+        ```
+        ort = Ort("Taverne Zum Katzenschweif", None, # wird noch hinzugefügt
+                  "Eine lebhafte Taverne voller Katzen",
+                  [
+                      welt.obj("genshin:mond:diona"),
+                      welt.obj("genshin:mond:margaret")
+                  ])
+        ```
+        """
         super().__init__(menschen=menschen)
         self.name = name
         if text:
@@ -461,7 +496,7 @@ class Dorf:
         self.name = name
 
     def main(self, mänx) -> None:
-        print(f"Du bist in {self.name}. Möchtest du einen der Orte betreten oder "
+        malp(f"Du bist in {self.name}. Möchtest du einen der Orte betreten oder "
               "draußen bleiben?")
         orte: List[MenuOption[Opt[Ort]]]
         orte = [(ort.name, ort.name.lower(), ort) for ort in self.orte]
@@ -475,11 +510,11 @@ class Dorf:
         ort.menschen[:] = filter(lambda m: not m.tot, ort.menschen)
         ort.beschreibe(mänx, None)
         if ort.menschen:
-            print("Hier sind:")
+            malp("Hier sind:")
             for mensch in ort.menschen:
-                print(f"{mensch.name}, {mensch.art}")
+                malp(f"{mensch.name}, {mensch.art}")
         else:
-            print("Hier ist niemand.")
+            malp("Hier ist niemand.")
         optionen: List[MenuOption[Union[NSC, Ort, None]]]
         optionen = [("Mit " + mensch.name + " reden", mensch.name.lower(),
                      mensch) for mensch in ort.menschen]

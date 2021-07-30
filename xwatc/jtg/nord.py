@@ -2,11 +2,12 @@
 NSCs für Disnajenbun
 Created on 18.10.2020
 """
+from __future__ import annotations
 from xwatc.system import Mänx, mint, Spielende, InventarBasis, sprich, malp, register
-from xwatc.dorf import NSC, Dorfbewohner, Rückkehr
+from xwatc.dorf import NSC, Dorfbewohner, Rückkehr, Malp
 import random
 import re
-from typing import Optional
+from typing import Optional, Iterable
 from xwatc.scenario import Scenario
 from xwatc import jtg
 __author__ = "jasper"
@@ -15,10 +16,10 @@ __author__ = "jasper"
 def frage_melken(nsc: NSC, _mänx: Mänx):
     if nsc.freundlich >= 0:
         nsc.sprich("Aber nur weil du es bist.")
-        print(f"{nsc.name} wirkt leicht beschämt.")
+        malp(f"{nsc.name} wirkt leicht beschämt.")
     else:
         nsc.sprich("Nein! Natürlich nicht!")
-        print("Sie ist echt wütend!")
+        malp("Sie ist echt wütend!")
 
 
 def kampf_in_disnayenbum(nsc: NSC, mänx: Mänx):
@@ -28,13 +29,13 @@ def kampf_in_disnayenbum(nsc: NSC, mänx: Mänx):
         # mänx.context.warne_kampf(nsc, mänx)
         axtmann_da = "jtg:axtmann" in obs and not obs["jtg:axtmann"].tot
     if axtmann_da:
-        print("Du spürst den Blick des Axtmannes im Rücken.")
+        malp("Du spürst den Blick des Axtmannes im Rücken.")
         if not mänx.ja_nein("Willst du wirklich jemand wehrloses angreifen?"):
             return
     mint(f"Du greifst {nsc.name} an.")
     if axtmann_da:
-        print("Aber das ist dem Mann mit der Axt nicht entgangen.")
-        print("Er macht kurzen Prozess aus dir.")
+        malp("Aber das ist dem Mann mit der Axt nicht entgangen.")
+        malp("Er macht kurzen Prozess aus dir.")
         raise Spielende()
     mint("Ein leichter Kampf.")
     # TODO Tod berichten
@@ -56,14 +57,14 @@ class NoMuh(NSC):
         self.letztes_melken: Optional[int] = None
 
     def vorstellen(self, mänx: Mänx):
-        print("Eine große Kuh frisst Gras.")
+        malp("Eine große Kuh frisst Gras.")
         self.sprich("Pfui, so jemand starrt mich an.")
         self.sprich("No nie so eine Schönheit gesehen, was?")
 
     def fliehen(self, mänx: Mänx):
         if self.freundlich < 0:
             if random.random() < 0.3:
-                print("Beim Fliehen streift dich eines von NoMuhs Hörnern.")
+                malp("Beim Fliehen streift dich eines von NoMuhs Hörnern.")
                 mint("Es tut verdammt weh.")
             else:
                 mint("Du entkommst der wütenden NoMuh")
@@ -73,11 +74,14 @@ class NoMuh(NSC):
                            mänx.hat_item("Talisman des Verstehens"))
         return super().main(mänx)
 
-    def sprich(self, text: str, *args, **kwargs)->None:
+    def sprich(self, text: str|Iterable[str|Malp], *args, **kwargs)->None:
         if self.verstanden:
             NSC.sprich(self, text, *args, **kwargs)
         else:
-            text = re.sub(r"\w+", "Muh", text)
+            if isinstance(text, str):
+                text = re.sub(r"\w+", "Muh", text)
+            else:
+                text = [re.sub(r"\w+", "Muh", str(t)) for t in text]
             NSC.sprich(self, text, *args, **kwargs)
 
     def optionen(self, mänx: Mänx):
@@ -92,15 +96,15 @@ class NoMuh(NSC):
                 opts.append((item, item.lower(), item.lower()))
         ans = mänx.menu(opts, frage="Was fütterst du sie?")
         if ans == "gras":
-            print("NoMuh frisst das Gras aus deiner Hand")
+            malp("NoMuh frisst das Gras aus deiner Hand")
             mint("und kaut gelangweilt darauf herum.")
         elif ans == "erbse":
-            print("NoMuh leckt dir die Erbsen schnell aus der Hand.")
+            malp("NoMuh leckt dir die Erbsen schnell aus der Hand.")
             mänx.inventar["Erbse"] -= 1
             self.sprich("Endlich jemand, der mich versteht. Danke!")
             self.freundlich += 10
         elif ans == "mantel":
-            print("NoMuh beißt in deinen Mantel, dann reißt sie ihn an.")
+            malp("NoMuh beißt in deinen Mantel, dann reißt sie ihn an.")
             mint("Der Mantel ist jetzt unbenutzbar.")
             mänx.inventar["Mantel"] -= 1
         elif ans == "karotte":
@@ -128,22 +132,22 @@ class NoMuh(NSC):
 
 
 def kampf_axtmann(nsc: NSC, mänx: Mänx):
-    print("Ganz miese Idee, dich mit ihm anzulegen.")
+    malp("Ganz miese Idee, dich mit ihm anzulegen.")
     if mänx.ja_nein("Willst du es wirklich tun?"):
         if mänx.hat_klasse("legendäre Waffe") and random.random() > 0.97:
-            print("Das Glück ist auf deiner Seite und in einem anstrengenden "
+            malp("Das Glück ist auf deiner Seite und in einem anstrengenden "
                   "Kampf bringst du ihn um.")
         elif not mänx.hat_klasse("Waffe"):
             mint("Du hast Glück")
-            print("Nein, du hast nicht gewonnen. Aber du hast es geschafft, so"
+            malp("Nein, du hast nicht gewonnen. Aber du hast es geschafft, so"
                   " erbärmlich dich anzustellen, dass er es als Scherz sieht.")
             nsc.freundlich -= 10
         else:
-            print("Ist ja nicht so, dass du nicht gewarnt worden wärst.")
+            malp("Ist ja nicht so, dass du nicht gewarnt worden wärst.")
             mint("Als Neuling einen Veteran anzugreifen...")
             raise Spielende
     else:
-        print("Der Axtmann starrt dich mit hochgezogenen Augenbrauen an.")
+        malp("Der Axtmann starrt dich mit hochgezogenen Augenbrauen an.")
         mint("Seine mächtigen Muskel waren nur für einen kurzen Augenblick "
              "angespannt.")
 
@@ -165,7 +169,7 @@ def axtmann() -> NSC:
                    "Auffällig ist eine große Axt, die er in der Hand hält."])
     n.dialog("hallo", '"Hallo"', [".."])
     n.dialog("axt", '"Du hast aber ein große Axt."',
-             lambda _m, _n: malp("Der Mann wirkt ein wenig stolz."))
+             [Malp("Der Mann wirkt ein wenig stolz.")])
     n.dialog("heißt", '"Wie heißt du?"', [".."], "hallo")
 
     def dlg_brian(nsc, _m):
@@ -269,7 +273,7 @@ def kirie() -> NSC:
 
     def spielen(n, m):
         # Zeit vergeht
-        print(f"Du spielst eine Weile mit {n.name}")
+        malp(f"Du spielst eine Weile mit {n.name}")
         m.sleep(10)
         if n.freundlich < 60:
             n.freundlich += 10
@@ -278,7 +282,7 @@ def kirie() -> NSC:
 
     def talisman(n, m):
         n.sprich("Das?")
-        print("Kirie zeigt auf den Talisman um ihren Hals.")
+        malp("Kirie zeigt auf den Talisman um ihren Hals.")
         n.sprich("Das ist mein Schatz. Ich habe in gefunden. Damit kann ich mit "
                  "NoMuh reden.")
         n.sprich("Willst du auch mal?")
@@ -354,13 +358,13 @@ def lina() -> NSC:
     def starren(n, m: Mänx):
         if n.freundlich > 0:
             n.freundlich -= 1
-            print("Sie wirft dir einen Blick zu und du wendest schnell den Blick ab.")
+            malp("Sie wirft dir einen Blick zu und du wendest schnell den Blick ab.")
         elif n.wurde_bestarrt:
             n.sprich("BRíAN!")
             m.welt.setze("kennt:jtg:axtmann")
             mint("Der Mann mit der Axt stürmt herein und gibt dir eines auf die "
                  "Mütze.")
-            print("Du wirst ohnmächtig")
+            malp("Du wirst ohnmächtig")
             m.sleep(12)
             m.welt.nächster_tag()
             mint("Du wachst erst am nächsten Tag auf.")
@@ -375,7 +379,7 @@ def lina() -> NSC:
 
     def übernachten(n, m):
         n.sprich("Ich führe dich sofort zu deinem Bett.")
-        print("Du legst dich schlafen.")
+        malp("Du legst dich schlafen.")
         m.sleep(6)
         m.welt.nächster_tag()
         return Rückkehr.VERLASSEN
@@ -435,8 +439,8 @@ class Kiste:
         if self.lina:
             self.lina.sprich("Falsches Fach!")
             if mänx.ja_nein("Lässt du das Fach offen?"):
-                print("Du siehst folgenden Inhalt:")
-                print(self.fach2.inventar_zeigen())
+                malp("Du siehst folgenden Inhalt:")
+                malp(self.fach2.inventar_zeigen())
                 self.lina.freundlich -= 1
                 self.lina.sprich("Mach das Fach sofort zu.")
                 if mänx.ja_nein("Willst du etwas aus dem Fach nehmen?"):
@@ -451,7 +455,7 @@ class Kiste:
                 mint("Du tust so, als wäre es Zufall gewesen")
                 return Rückkehr.WEITER_REDEN
         else:
-            print("Scheint das falsche Fach zu sein.")
+            malp("Scheint das falsche Fach zu sein.")
             mint("Aber ist ja keiner da.")
             mänx.inventar_zugriff(self.fach2)
             return Rückkehr.WEITER_REDEN
@@ -459,9 +463,9 @@ class Kiste:
     def kampf(self, mänx: Mänx) -> Rückkehr:
         mint("He-ya!")
         if mänx.hat_klasse("Waffe"):
-            print("Nur ein Kratzer bleibt auf der Kiste.")
+            malp("Nur ein Kratzer bleibt auf der Kiste.")
         else:
-            print("Deine Faust tut dir weh.")
+            malp("Deine Faust tut dir weh.")
         if self.lina:
             self.lina.sprich("Was tust du da?")
         return Rückkehr.WEITER_REDEN
@@ -472,12 +476,12 @@ class Kiste:
 
     def ruf_axtmann(self, mänx):
         if mänx.welt.am_leben("jtg:axtmann"):
-            print("Der Axtmann stürmt in das Haus und spaltet deinen Schädel.")
-            print("Ziemlich intolerant gegenüber Verbrechern, diese",
+            malp("Der Axtmann stürmt in das Haus und spaltet deinen Schädel.")
+            malp("Ziemlich intolerant gegenüber Verbrechern, diese",
                   "Disnajenbuner")
             raise Spielende
         else:
-            print("Der Axtmann ist nicht da. Scheint so, als könnte Lina "
+            malp("Der Axtmann ist nicht da. Scheint so, als könnte Lina "
                   "allein dich nicht groß hindern")
             if self.lina:
                 self.lina.freundlich -= 10

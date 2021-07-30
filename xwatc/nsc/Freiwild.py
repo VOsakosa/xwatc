@@ -5,6 +5,7 @@ from xwatc.jtg import t2
 from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
 import xwatc_Hauptgeschichte
 from xwatc.lg.norden.gäfdah import erzeuge_Gäfdah
+from time import sleep
 
 
 class RuboicHätxrik(NSC):
@@ -119,7 +120,7 @@ class RuboicHätxrik(NSC):
     def vorstellen(self, mänx: Mänx) -> None:
         a = random.randint(1, 500)
         if a == 1:
-            print("Bevor du mit ihm reden konntest, fiel der Mann einfach tot um")
+            malp("Bevor du mit ihm reden konntest, fiel der Mann einfach tot um")
             self.tot = True
         mint('"Tag. Äch ben Hätrik"')
 
@@ -231,12 +232,12 @@ class RuboicHätxrik(NSC):
         mint("...")
         malp("Der Mann scheint Angst zu haben.")
         malp("Du kannst seine Angst förmlich",
-             kursiv(" riechen"), ".", mint(""), "")
-        print("", malp("Schließlich ren"), "nt er weg", mint(""))
+             kursiv(" riechen"), ".")
+        malp("Schließlich rennt er weg")
         self.tot = True
 
     def reden_suche2(self, mänx: Mänx) -> None:
-        print("D", malp("er Man"), "n bl", malp("ickt "), "zu d", "ir hoch")
+        malp("Der Mann blickt zu dir hoch")
         malp("Angst steht in seinen Augen geschrieben.")
         sleep(4)
         mint("Von der einen Sekunde auf die andere ist er verschwunden.")
@@ -246,6 +247,7 @@ class RuboicHätxrik(NSC):
         mint("Gut, ne und?")
 
     def main(self, mänx: Mänx) -> None:
-        malp('"Der Mensch, welchen du ansprachest, ist in einen dicken Bärenpelzmantel gekleidet."')
+        malp('"Der Mensch, welchen du ansprachest, ist in einen dicken '
+             'Bärenpelzmantel gekleidet."')
         mint("Er ist wohl ein Äntor, ein Jäger.")
         super().main(mänx)

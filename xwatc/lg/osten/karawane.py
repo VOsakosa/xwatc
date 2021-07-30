@@ -1,5 +1,5 @@
 from time import sleep
-from xwatc.system import Mänx, minput, Spielende, mint, Karawanenfracht
+from xwatc.system import Mänx, minput, Spielende, mint, Karawanenfracht, malp
 from xwatc.dorf import NSC
 import random
 from typing import List
@@ -31,17 +31,17 @@ class Karawane:
         opt = mänx.menu(opts, "Was sagst du?")
 
         if opt == 0:
-            print(self.fracht.karawanenfracht_anzeigen())
+            malp(self.fracht.karawanenfracht_anzeigen())
 
         elif opt == 1:
-            print("Lass mich in Ruhe!")
+            malp("Lass mich in Ruhe!")
 
         elif opt == 2:
             opts2 = [(an.name, an.name.lower(), an) for an in self.angestellte]
             mänx.menu(opts2).main(mänx)
 
         elif opt == 3:
-            print("Lass mich in Ruhe!")
+            malp("Lass mich in Ruhe!")
 
         else:
             pass

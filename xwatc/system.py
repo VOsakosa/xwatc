@@ -1,3 +1,4 @@
+from __future__ import annotations
 from collections import defaultdict
 from typing import (Sequence, Dict, List, Tuple, TypeVar, Callable, Any, Union,
                     Optional, Iterator, Mapping, Set)
@@ -6,9 +7,11 @@ import re
 from pathlib import Path
 from xwatc.untersystem.itemverzeichnis import lade_itemverzeichnis
 from xwatc.untersystem import hilfe
+from xwatc.terminal import Terminal
 import typing
 if typing.TYPE_CHECKING:
     from xwatc import dorf
+    from xwatc import anzeige
 
 
 MänxFkt = Callable[['Mänx'], Any]
@@ -16,7 +19,7 @@ ITEMVERZEICHNIS, UNTERKLASSEN = lade_itemverzeichnis(
     Path(__file__).parent / "itemverzeichnis.txt")
 
 _OBJEKT_REGISTER: Dict[str, Callable[[], 'HatMain']] = {}
-
+ausgabe: Terminal|'anzeige.XwatcFenster'= Terminal()
 
 def get_class(item: str) -> Optional[str]:
     return ITEMVERZEICHNIS.get(item)
@@ -79,12 +82,12 @@ class InventarBasis:
     def gold(self, menge: int) -> None:
         self.inventar["Gold"] = menge
 
-    def hat_klasse(self, *klassen: str) -> bool:
+    def hat_klasse(self, *klassen: str) -> Optional[str]:
         """Prüfe, ob mänx item aus einer der Klassen besitzt."""
         for item in self.items():
             if any(c in klassen for c in get_classes(item)):
-                return True
-        return False
+                return item
+        return None
 
     def items(self):
         for item, anzahl in self.inventar.items():
@@ -115,9 +118,9 @@ class Mänx(InventarBasis, Persönlichkeit):
     """Der Hauptcharakter des Spiels, alles dreht sich um ihn, er hält alle
     Information."""
 
-    def __init__(self) -> None:
-        
+    def __init__(self, ausgabe=ausgabe) -> None:
         super().__init__()
+        self.ausgabe: terminal.Terminal|'anzeige.XwatcFenster' = ausgabe
         self.gebe_startinventar()
         self.gefährten: List['dorf.NSC'] = []
         self.titel: Set[str] = set()
@@ -167,7 +170,7 @@ class Mänx(InventarBasis, Persönlichkeit):
             anzahl = min(anzahl, von.inventar[item])
             if not anzahl:
                 return
-        print(f"Du erhältst {anzahl} {item}")
+        malp(f"Du erhältst {anzahl} {item}")
         self.inventar[item] += anzahl
         if von:
             von.inventar[item] -= anzahl
@@ -176,87 +179,57 @@ class Mänx(InventarBasis, Persönlichkeit):
         return self.lebenswille > 0
 
     def minput(self, *args, **kwargs):
-        return minput(self, *args, **kwargs)
+        return self.ausgabe.minput(self, *args, **kwargs)
 
     def ja_nein(self, *args, **kwargs):
-        return ja_nein(self, *args, **kwargs)
+        return self.ausgabe.ja_nein(self, *args, **kwargs)
 
     def menu(self,
              optionen: List[MenuOption[T]],
              frage: str = "",
              gucken: Optional[Sequence[str]] = None,
              versteckt: Optional[Mapping[str, T]] = None) -> T:
-        """Ähnlich wie Minput, nur werden jetzt Optionen als Liste gegeben.
-
-        Die Zuordnung geschieht in folgender Reihenfolge
-        #. Versteckte Optionen
-        #. Optionen
-        #. Gucken
-        #. Spezialtasten
-        #. Nummer
-        #. Passendste Antwort
+        """Lasse den Spieler aus verschiedenen Optionen wählen.
+        
+        z.B:
+        
+        >>> Mänx().menu([("Nach Hause gehen", "hause", 1), ("Weitergehen", "weiter", 12)])
+        
+        erlaubt Eingaben 1, hau, hause für "Nach Hause gehen".
+        
         """
-        # print("Du kannst")
-        print()
-        for i, (name, kurz, _) in enumerate(optionen):
-            print(i + 1, ".", name, " [", kurz, "]", sep="")
-        kurz_optionen = " " + "/".join(o[1] for o in optionen)
-        if len(kurz_optionen) < 50:
-            frage += kurz_optionen + " "
-        while True:
-            eingabe = input(frage).lower()
-            if versteckt and eingabe in versteckt:
-                return versteckt[eingabe]
-            kandidaten = []
-            for _, o, v in optionen:
-                if o == eingabe:  # Genauer Match
-                    return v
-                elif o.startswith(eingabe):
-                    kandidaten.append((o, v))
-            if eingabe == "g" or eingabe == "gucken":
-                if isinstance(gucken, str):
-                    print(gucken)
-                elif gucken:
-                    for zeile in gucken:
-                        print(zeile)
-                else:
-                    print("Hier gibt es nichts zu sehen")
-
-            elif not spezial_taste(self, eingabe) and eingabe:
-                try:
-                    return optionen[int(eingabe) - 1][2]
-                except (IndexError, ValueError):
-                    pass
-                if len(kandidaten) == 1:
-                    return kandidaten[0][1]
-                elif not kandidaten:
-                    print("Keine Antwort beginnt mit", eingabe)
-                else:
-                    print("Es könnte eines davon sein:",
-                          ",".join(o for o, v in kandidaten))
+        return ausgabe.menu(self, optionen, frage, gucken, versteckt)
+        
 
     def genauer(self, text: Sequence[str]) -> None:
-        t = self.minput("Genauer? (Schreibe irgendwas für ja)")
-        if t and t not in ("nein", "n"):
-            for block in text:
-                print(block)
+        """Frage nach, ob der Spieler etwas genauer erfahren will.
+        Es kann sich um viel Text handeln."""
+        if isinstance(self.ausgabe, Terminal):
+            t = self.minput("Genauer? (Schreibe irgendwas für ja)")
+            if t and t not in ("nein", "n"):
+                for block in text:
+                    self.ausgabe.malp(block)
+        else:
+            if self.menu([("Genauer", "", True), ("Weiter","", False)]):
+                self.ausgabe.malp("\n".join(text))
 
     def sleep(self, länge: float, pausenzeichen="."):
+        # TODO: noch eine Anzeigevariante
         for _i in range(int(länge / 0.5)):
             print(pausenzeichen, end="", flush=True)
             sleep(0.5)
-        print()
+        malp()
 
     def tutorial(self, art: str) -> None:
         if not self.welt.ist("tutorial:" + art):
             for zeile in hilfe.HILFEN[art]:
-                print(zeile)
+                malp(zeile)
             self.welt.setze("tutorial:" + art)
 
     def inventar_zugriff(self, inv: InventarBasis,
                          nimmt: Union[bool, Sequence[str]] = False) -> None:
         """Ein Menu, um auf ein anderes Inventar zuzugreifen."""
-        print(inv.erweitertes_inventar())
+        malp(inv.erweitertes_inventar())
         self.tutorial("inventar_zugriff")
         while True:
             a = self.minput(">", lower=False)
@@ -274,44 +247,44 @@ class Mänx(InventarBasis, Persönlichkeit):
                     if inv.hat_item(ding):
                         self.erhalte(ding, inv.inventar[ding], inv)
                     else:
-                        print(f"Kein {ding} da.")
+                        malp(f"Kein {ding} da.")
                 elif len(args) == 2:
                     ding = args[1]
                     try:
                         anzahl = int(args[0])
                         assert anzahl > 0
                     except (AssertionError, ValueError):
-                        print("Gebe eine positive Anzahl an.")
+                        malp("Gebe eine positive Anzahl an.")
                     else:
                         if inv.hat_item(ding, anzahl):
                             self.erhalte(ding, anzahl, inv)
                         else:
-                            print(f"Kein {ding} da.")
+                            malp(f"Kein {ding} da.")
             elif co == "a" or co == "auslage":
-                print(inv.erweitertes_inventar())
+                malp(inv.erweitertes_inventar())
             elif co == "g" or co == "geben":
                 if not nimmt:
-                    print("Du kannst hier nichts hereingeben")
+                    malp("Du kannst hier nichts hereingeben")
                 elif len(args) == 1:
                     ding = args[0]
                     if self.hat_item(ding):
                         inv.inventar[ding] = self.inventar[ding]
                         self.inventar[ding] = 0
                     else:
-                        print(f"Du hast kein {ding}.")
+                        malp(f"Du hast kein {ding}.")
                 elif len(args) == 2:
                     ding = args[1]
                     try:
                         anzahl = int(args[0])
                         assert anzahl > 0
                     except (AssertionError, ValueError):
-                        print("Gebe eine positive Anzahl an.")
+                        malp("Gebe eine positive Anzahl an.")
                     else:
                         if self.hat_item(ding, anzahl):
                             self.inventar[ding] -= anzahl
                             inv.inventar[ding] += anzahl
                         else:
-                            print(f"Du hast kein {ding}.")
+                            malp(f"Du hast kein {ding}.")
             if not any(inv.items()):
                 return
 
@@ -332,6 +305,7 @@ class Welt:
         self.inventar[name] = 1
 
     def ist(self, name: str) -> bool:
+        """Testet eine Welt-Variable."""
         return name in self.inventar and bool(self.inventar[name])
 
     def get_or_else(self, name: str, fkt: Callable[..., T], *args,
@@ -346,7 +320,7 @@ class Welt:
             return fkt(*args, **kwargs)
 
     def am_leben(self, name: str) -> bool:
-        """Prüfe, ob das Objekt name da und noch am Leben ist."""
+        """Prüfe, ob das Objekt *name* da und noch am Leben ist."""
         from xwatc import dorf
         return name in self.objekte and (
             not isinstance(self.objekte[name], dorf.NSC) or
@@ -364,15 +338,18 @@ class Welt:
             raise KeyError(f"Das Objekt {name} existiert nicht.")
 
     def nächster_tag(self, tage: int = 1):
+        """Springe zum nächsten Tag"""
         self.tag = int(self.tag + tage)
 
     def get_tag(self) -> int:
+        """Gebe den Tag seit Anfang des Spiels aus. Der erste Tag ist 0."""
         return int(self.tag)
 
     def is_nacht(self) -> bool:
         return self.tag % 1.0 >= 0.5
 
     def tick(self, uhr: float):
+        """Lasse etwas Zeit vergehen."""
         self.tag += uhr
 
 
@@ -382,16 +359,16 @@ def schiebe_inventar(start: Inventar, ziel: Inventar):
         ziel[item] += anzahl
     start.clear()
 
-if hasattr(typing, "Protocol"):
-    class HatMain(typing.Protocol):
-        def main(self, mänx: Mänx):
-            pass
-else:
-    class HatMain:
-        def main(self, mänx: Mänx):
-            pass
+
+class HatMain(typing.Protocol):
+    """Eine Klasse für Objekte, die Geschichte haben und daher mit main()
+    ausgeführt werden können. Das können Menschen, aber auch Wegpunkte
+    und Pflanzen sein."""
+    def main(self, mänx: Mänx):
+        """Lasse den Mänxen mit dem Objekt interagieren."""
 
 class Besuche:
+    """Mache ein Objekt aus dem Objektregister ein HatMain-object."""
     def __init__(self, objekt_name: str):
         self.objekt_name = objekt_name
         assert self.objekt_name in _OBJEKT_REGISTER
@@ -403,6 +380,16 @@ class Besuche:
 Decorator = Callable[[T], T]
 
 def register(name: str) -> Decorator[Callable[[], HatMain]]:
+    """Registriere einen Erzeuger im Objekt-Register.
+    Beispiel:
+    ..
+        @register("system.test.banana")
+        def banane():
+            class Banane:
+                def main(mänx: Mänx):
+                    malp("Du rutscht auf der Banane aus.")
+        
+    """
     def wrapper(func):
         # assert name not in _OBJEKT_REGISTER,("Doppelte Registrierung " + name)
         _OBJEKT_REGISTER[name] = func
@@ -412,100 +399,32 @@ def register(name: str) -> Decorator[Callable[[], HatMain]]:
 
 
 def minput(mänx: Mänx, frage: str, möglichkeiten=None, lower=True) -> str:
-    """Manipulierter Input
-    Wenn möglichkeiten (in kleinbuchstaben) gegeben, dann muss die Antwort eine davon sein."""
-    if not frage.endswith(" "):
-        frage += " "
-    while True:
-        taste = input(frage)
-        if lower:
-            taste = taste.lower()
-        if spezial_taste(mänx, taste):
-            pass
-        elif not möglichkeiten or taste in möglichkeiten:
-            return taste
+    """Ruft die Methode auf Mänx auf."""
+    return mänx.minput(frage, möglichkeiten, lower)
 
 
-def spezial_taste(mänx: Mänx, taste: str) -> bool:
-    """Führe die Spezialaktion taste aus, oder gebe Falsch zurück."""
-    if taste == "e":
-        print(mänx.inventar_zeigen())
-    elif taste == "ee":
-        print(mänx.erweitertes_inventar())
-    elif taste == "q":
-        print(mänx.missionen_zeigen())
-    elif taste == "sterben":
-        mänx.lebenswille = 0
-    elif taste == "hilfe":
-        print("Entkomme mit 'sofort sterben'. Nebeneffekt: Tod.")
-        print("Wenn du einfach nur Hilfe zu irgendwas haben willst, schreibe"
-              " 'hilfe [frage]'.")
-    elif taste.startswith("hilfe "):
-        args = taste[6:]
-        if args.lower() in hilfe.HILFEN:
-            for line in hilfe.HILFEN[args.lower()]:
-                print(line)
-        elif any(args == inv.lower() for inv in mänx.inventar
-                 ) and args in hilfe.ITEM_HILFEN:
-            lines = hilfe.ITEM_HILFEN[args]
-            if isinstance(lines, str):
-                print(lines)
-            else:
-                for line in lines:
-                    print(line)
-        else:
-            print("Keine Hilfe für", args, "gefunden.")
-    elif taste == "sofort sterben":
-        raise Spielende()
-    else:
-        return False
-    return True
-
-
-def mint(*text):
+def mint(*text) -> None:
     """Printe und warte auf ein Enter."""
-    input(" ".join(str(t) for t in text))
+    ausgabe.mint(*text)
 
 
-def sprich(sprecher: str, text: str, warte: bool = False, wie: str = ""):
-    if wie:
-        sprecher += f"({wie})"
-    if warte:
-        mint(f'{sprecher}: »{text}«')
-    else:
-        print(end=f'{sprecher}: »')
-        for word in re.split(r"(\W)", text):
-            print(end=word, flush=True)
-            sleep(0.05)
-        print('«')
+def sprich(sprecher: str, text: str, warte: bool = False, wie: str = "") -> None:
+    ausgabe.sprich(sprecher, text, warte, wie)
 
 
 def malp(*text, sep=" ", end='\n', warte=False) -> None:
     """Angenehm zu lesender, langsamer Print."""
-    start = False
-    for words in text:
-        if start:
-            print(end=sep)
-        else:
-            start = True
-        for word in re.split(r"(\W)", str(words)):
-            print(end=word, flush=True)
-            sleep(0.04)
-    if warte:
-        mint(end)
-    else:
-        print(end=end)
+    ausgabe.malp(*text, sep=sep, end=end, warte=warte)
 
 
-def ja_nein(mänx, frage):
+def ja_nein(mänx: Mänx, frage) -> bool:
     """Ja-Nein-Frage"""
-    ans = minput(mänx, frage, ["j", "ja", "n", "nein"]).lower()
-    return ans == "j" or ans == "ja"
+    return mänx.ja_nein(frage)
 
 
 def kursiv(text: str) -> str:
     """Packt text so, dass es kursiv ausgedruckt wird."""
-    return "\x1b[3m" + text + "\x1b[0m"
+    return ausgabe.kursiv(text)
 
 
 class Spielende(Exception):

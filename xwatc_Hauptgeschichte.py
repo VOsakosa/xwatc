@@ -8,7 +8,7 @@ import random
 
 
 def waffe_wählen(mänx: Mänx):
-    rasse = mänx.minput("Was willst du sein?")
+    rasse = mänx.minput("Was willst du sein?", ["Mensch"])
     mänx.rasse = "Arak"
     if rasse.lower() not in ("mensch", "arak"):
         malp("Nun, eigentlich ist es egal was du sein willst.")
@@ -16,10 +16,9 @@ def waffe_wählen(mänx: Mänx):
         mint("Im Laufe des Spieles kannst du allerdings weitere Spezies "
               "und Völker freischalten!")
 
-        rosse = mänx.minput("Naja, willst du eigentlich ein Mensch sein?")
-        if rosse == "ja"or rosse == "j":
+        if mänx.ja_nein("Naja, willst du eigentlich ein Mensch sein?"):
             malp("Na, dann ist ja alles gut.")
-        elif rosse == "nein" or rosse == "n":
+        else:
             a = random.randint(1, 11)
             if a != 11:
                 malp("Tja, Pech gehabt. Du bist trotzdem einer.")
@@ -31,7 +30,8 @@ def waffe_wählen(mänx: Mänx):
     else:
         malp("Du wärst sowieso ein Mensch geworden.")
 
-    waffe = input("Wähle zwischen Schwert, Schild und Speer: ").lower()
+    waffe = mänx.minput("Wähle zwischen Schwert, Schild und Speer: ", 
+                        ["Schwert", "Speer", "Schild"])
     if waffe == "speer":
         malp("Du hast den Speer aufgenommen.")
     elif waffe == "schild":
@@ -52,8 +52,7 @@ def waffe_wählen(mänx: Mänx):
           "(Mit der Taste e kannst du dein Inventar überprüfen.)")
 
 
-def main():
-    mänx = Mänx()
+def main(mänx: Mänx):
     malp("Willkommen bei Xwatc")
     mint("Du wirst nun einem kleinen Persönlichkeitstest unterzogen.")
     ende = False
@@ -62,16 +61,16 @@ def main():
         try:
             himmelsrichtungen(mänx)
         except Spielende:
-            print("Du bist tot")
+            malp("Du bist tot")
             ende = True
         else:
             ende = not mänx.will_weiterleben()
-        print("Hier ist die Geschichte zu Ende.")
+        malp("Hier ist die Geschichte zu Ende.")
         if mänx.titel:
-            print("Du hast folgende Titel erhalten:", ", ".join(mänx.titel))
+            malp("Du hast folgende Titel erhalten:", ", ".join(mänx.titel))
         if not ende:
             mänx.inventar_leeren()
-            print("Aber keine Sorge, du wirst wiedergeboren")
+            malp("Aber keine Sorge, du wirst wiedergeboren")
 
 
 def himmelsrichtungen(mänx):
@@ -79,16 +78,16 @@ def himmelsrichtungen(mänx):
                       "In Richtung Norden ist das nächste Dorf, im Süden warten "
                       "Monster auf dich, im Westen liegt "
                       "das Meer und der Osten ist unentdeckt"
-                      ".", ["norden", "osten", "süden", "westen"])
-    if richtung == "Norden"or richtung == "norden":
+                      ".", ["Norden", "Osten", "Süden", "Westen"])
+    if richtung == "norden":
         norden.norden(mänx)
-    elif richtung == "Osten"or richtung == "osten":
+    elif richtung == "osten":
         osten.osten(mänx)
     elif richtung == "süden":
         süden.süden(mänx)
-    elif richtung == "westen":
+    else: # if richtung == "westen":
         westen.westen(mänx)
 
 
 if __name__ == '__main__':
-    main()
+    main(Mänx())

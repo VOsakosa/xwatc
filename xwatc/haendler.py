@@ -1,7 +1,7 @@
 from typing import List, Optional as Op, NewType, Dict, cast, Tuple
 
 from xwatc.dorf import NSC, NSCOptionen, Rückkehr
-from xwatc.system import Mänx, minput, ja_nein, get_classes, Inventar
+from xwatc.system import Mänx, minput, ja_nein, get_classes, Inventar, malp
 
 ALLGEMEINE_PREISE = {
     "Speer": 50,
@@ -80,26 +80,26 @@ class Händler(NSC):
     def _verkaufen(self, mänx, gegenstand, menge):
         """Versuch interaktiv, an den Händler zu verkaufen."""
         if menge <= 0:
-            print("Jetzt mal ernsthaft, gib eine positive Anzahl an.")
+            malp("Jetzt mal ernsthaft, gib eine positive Anzahl an.")
         elif not mänx.hat_item(gegenstand, menge):
-            print(
+            malp(
                 f'Du hast nicht genug "{gegenstand}" zum verkaufen. Versuch "e".')
         elif not self.kann_kaufen(gegenstand):
             if self.kauft:
-                print("So etwas kauft der Händler nicht")
-                print("Der Händler kauft nur", ", ".join(self.kauft))
+                malp("So etwas kauft der Händler nicht")
+                malp("Der Händler kauft nur", ", ".join(self.kauft))
             else:
-                print("Der Händler verkauft nur.")
+                malp("Der Händler verkauft nur.")
 
         else:
             preis = self.get_preis(gegenstand)
             if preis is None:
-                print("Der Händler kann dir dafür keinen Preis nennen")
+                malp("Der Händler kann dir dafür keinen Preis nennen")
             elif preis * menge >= mänx.inventar["Gold"]:
-                print("So viel kannst du dir nicht leisten")
+                malp("So viel kannst du dir nicht leisten")
             else:
                 self.verkaufen(mänx, gegenstand, preis, menge)
-                print("Verkauft.")
+                malp("Verkauft.")
 
     def zeige_auslage(self) -> None:
         """Printe die Auslage auf den Bildschirm."""
@@ -108,16 +108,16 @@ class Händler(NSC):
             for item, preis in self.verkauft.items():
                 anzahl = self.inventar[item]
                 if anzahl:
-                    print(f"{item:<{länge}}{anzahl:04}x {preis:3} Gold")
+                    malp(f"{item:<{länge}}{anzahl:04}x {preis:3} Gold")
         else:
-            print("Der Händler*in hat nichts mehr zu verkaufen")
+            malp("Der Händler*in hat nichts mehr zu verkaufen")
 
     def vorstellen(self, mänx: Mänx) -> None:
-        print("Du stehst du vor dem Händler*in", self.name)
+        malp("Du stehst du vor dem Händler*in", self.name)
         if self.kauft is None:
-            print("Er kauft grundsätzlich alles")
+            malp("Er kauft grundsätzlich alles")
         elif self.kauft:
-            print("Er kauft", ", ".join(self.kauft))
+            malp("Er kauft", ", ".join(self.kauft))
         self.zeige_auslage()
 
     def optionen(self, mänx: Mänx) -> NSCOptionen:
@@ -134,7 +134,7 @@ class Händler(NSC):
         """Lass Spieler mit Mänx handeln"""
         while True:
             mänx.tutorial("handel")
-            a = minput(mänx, "handel>", lower=False)
+            a = mänx.minput("handel>", lower=False)
             al = a.lower()
             if al.startswith("k ") or al.startswith("kaufe "):
                 kauft = a.split(" ", 2)
@@ -142,13 +142,13 @@ class Händler(NSC):
                     menge = int(kauft[1])
                     gegenstand = kauft[2]
                 except (ValueError, IndexError):
-                    print("Syntax: k [anzahl] [gegenstand]")
-                    print("Bsp: k 12 Stein der Weisen")
+                    malp("Syntax: k [anzahl] [gegenstand]")
+                    malp("Bsp: k 12 Stein der Weisen")
                 else:
                     if menge > 0 and self.kaufen(mänx, gegenstand, menge):
-                        print("gekauft")
+                        malp("gekauft")
                     else:
-                        print("nicht da / nicht genug Geld")
+                        malp("nicht da / nicht genug Geld")
             elif al.startswith("v ") or al.startswith("verkaufe "):
                 kauft = a.split(" ", 2)
                 try:
@@ -159,17 +159,17 @@ class Händler(NSC):
                         menge = int(kauft[1])
                         gegenstand = kauft[2]
                 except (ValueError, IndexError):
-                    print("Syntax: v [anzahl]? [gegenstand]")
-                    print("Bsp: v 12 Augapfel")
+                    malp("Syntax: v [anzahl]? [gegenstand]")
+                    malp("Bsp: v 12 Augapfel")
                 else:
                     self._verkaufen(mänx, gegenstand, menge)
             elif al.startswith("p ") or al.startswith("preis "):
                 _, item = a.split(" ", 1)
                 preis = self.get_preis(item)
                 if preis is None:
-                    print("Der Händler kann den Wert davon nicht einschätzen.")
+                    malp("Der Händler kann den Wert davon nicht einschätzen.")
                 else:
-                    print(
+                    malp(
                         f"Der Händler ist bereit, dir dafür {preis} Gold zu zahlen.")
             elif al == "a":
                 self.zeige_auslage()
@@ -184,6 +184,6 @@ class Händler(NSC):
                 if ans != Rückkehr.ZURÜCK:
                     return ans
             else:
-                print("Nutze k [Anzahl] [Item] zum Kaufen, v zum Verkaufen, "
+                malp("Nutze k [Anzahl] [Item] zum Kaufen, v zum Verkaufen, "
                       "z für Zurück, a für eine Anzeige und "
                       "nur k zum Kämpfen, p [Item] um nach dem Preis zu fragen.")

@@ -1,0 +1,26 @@
+!haupt
+"Willkommen bei xwatc"
+"Du wirst nun einem kleinen Persönlichkeitstest unterzogen."
+&waffe_wählen
+
+!waffe_wählen
+"Was willst du sein?"
++Mensch:
+	"Eine langweilige Entscheidung"
+	"Bist du dir sicher?"
+	+Ja:
+		"Na dann ist ja alles gut"
+	+Nein:
+		"Jetzt kann ich daran auch nichts mehr ändern"
++"was anderes":
+	"Das steht noch nicht zur Verfügung"
+set(rasse, Mensch)
+"Wähle zwischen Schwert, Schild und Speer: "
++"Speer":
+	"Du hast den Speer aufgenommen."
++"Schild":
+	"Du hast den Schild aufgenommen. Das könnte sowohl eine gute als auch eine "
+	"schlechte Wahl gewesen sein."
++"Schwert":
+	"Jetzt bist du der Besitzer eines Schwertes namens Seralic. "
+    "Möglicherweise erweist es sich ja als magisches Schwert."

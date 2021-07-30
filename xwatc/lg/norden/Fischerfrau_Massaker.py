@@ -1,7 +1,7 @@
 """Der Teil von Norden, wo Waffen getestet werden. Hauptsächlich an einer Fischerfrau in einem Dorf im Binnenland."""
-from xwatc.system import minput, Mänx, Spielende, mint
-from . import norden
-from . import Maria_Fischfrisch
+from xwatc.system import minput, Mänx, Spielende, mint, malp
+from xwatc.lg.norden import norden
+from xwatc.lg.norden import Maria_Fischfrisch
 
 
 
@@ -11,7 +11,7 @@ def fischerfraumassaker(mänx: Mänx) -> None:
                        "verendet.Nun kommt eine Wache auf dich zu.angreifen/sichwappnen/fliehen (a/sw/f")
         mänx.welt.setze("Fischerfrautot")
     elif mänx.hat_item("Schild"):
-        print("Du stürzt dich auf die alte Frau und drückst "
+        malp("Du stürzt dich auf die alte Frau und drückst "
               "sie mit deinem Schild zu Boden, während "
               "du auf sie einprügelst. Sie kreischt erstaunlich mädchenhaft "
               "auf. Sie ist nun entweder tot oder bewusstlos. \n"
@@ -24,18 +24,18 @@ def fischerfraumassaker(mänx: Mänx) -> None:
     elif mänx.hat_item("Schwert"):
         schwert_massaker(mänx)
     elif mänx.hat_item("Spitzhacke"):
-        print("Du tötest die arme Frau mit einem einzigen wohlplazierten Schlag deiner Spitzhacke")
+        malp("Du tötest die arme Frau mit einem einzigen wohlplazierten Schlag deiner Spitzhacke")
         mänx.welt.setze("Fischerfrautot")
 
     else:  # Leere
-        print("Du stürzt dich auf die alte Frau und schlägst auf sie ein."
+        malp("Du stürzt dich auf die alte Frau und schlägst auf sie ein."
               "Sie kreischt und - stößt dir ein Messer in den Bauch. Du starrst entsetzt auf die Wunde"
               ", Blut rinnt aus ihr. Ein paar Sekunden später bist du tot.")
         mänx.welt.setze("Fischerfraugewarnt")
         raise Spielende()
 
 def schwert_massaker(mänx: Mänx) -> None:
-    print("Du streckst die Alte mit deinem Schwert nieder, worauf es dunkelrot "
+    malp("Du streckst die Alte mit deinem Schwert nieder, worauf es dunkelrot "
           "zu pulsieren anfängt. Du lachst bösartig wärend "
           "sich über dir Gewitterwolken sammeln. Die Wachen weichen angsterfüllt zurück.")
     massaker = minput(mänx, "Greifst du sie an, gehst du weg oder raubst du die Fischverkäuferin aus?a/w/au "
@@ -43,7 +43,7 @@ def schwert_massaker(mänx: Mänx) -> None:
     mänx.welt.setze("Fischerfrauschwerttot")
 
     if massaker == "a":
-        print("Ein Blitz fährt herab und streckt einen Wächter "
+        malp("Ein Blitz fährt herab und streckt einen Wächter "
               "nieder. Der andere will fliehen, doch dein Schwe"
               "rt fliegt dir aus der Hand und steckt nun in sei"
               "ner Brust.")
@@ -52,7 +52,7 @@ def schwert_massaker(mänx: Mänx) -> None:
                    "m oder gehst du weg?r/u/w (räubern/umb"
                    "ringen/weggehen)", ["r", "w", "u"])
         if a == "r":
-            print("Du bekommst eine Menge Zeug")
+            malp("Du bekommst eine Menge Zeug")
             mänx.inventar["Hering"] += 4
             mänx.inventar["Scholle"] += 5
             mänx.inventar["Sardine"] += 6
@@ -71,7 +71,7 @@ def schwert_massaker(mänx: Mänx) -> None:
             pass
 
     elif massaker == "au":
-        print("Du bekommst eine Menge Zeug")
+        malp("Du bekommst eine Menge Zeug")
         mänx.inventar["Hering"] += 4
         mänx.inventar["Scholle"] += 5
         mänx.inventar["Sardine"] += 6
@@ -85,19 +85,19 @@ def schwert_massaker(mänx: Mänx) -> None:
     
 def entscheidung(mänx: Mänx):
     from xwatc_Hauptgeschichte import himmelsrichtungen
-    print("Du bist wieder dort wo "
+    malp("Du bist wieder dort wo "
               "alles anfing. Nun stehs"
               "t du vor einer Lebensve"
               "rändernden Entscheidung.")
     weg = mänx.ja_nein("Schmeißt du das Schwert weg oder nicht?j/n")
 
     if weg:
-        print("Es ist als würde eine schwere Last von dir abfallen.")
+        malp("Es ist als würde eine schwere Last von dir abfallen.")
 
         mänx.inventar["Schwert"] -= 1
         himmelsrichtungen(mänx)
     else:  # elif weg=="n":
-        print("Du grinst. Und eine Stimme meldet sich "
+        malp("Du grinst. Und eine Stimme meldet sich "
               "in den Tiefen von dir. Du spürst wie et"
               "was dein Gewissen auffrisst. Die Stimme"
               "fängt an zu lachen. Dieses Lachen wa"

@@ -3,6 +3,7 @@
 Accessoire: Ausrüstung
   Amulett
   Haarband
+  Tarotkarte
 
 Ausrüstung:
   Armbanduhr
@@ -85,6 +86,7 @@ Metall:
 Mugel:
   Mugel der Draufsicht
   Mugel des Sprechens
+  Mugel des Geschmacks
 
 Nahrung:
   Pausenbrot
@@ -92,6 +94,7 @@ Nahrung:
 
 normales Werkzeug:
   Spitzhacke
+  Tablett
 
 normale Waffe: Waffe
   Dolch
