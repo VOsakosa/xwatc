@@ -2,4 +2,5 @@ __pycache__
 .pydevproject
 .project
 .mypy_cache
+.idea
 *.orig
