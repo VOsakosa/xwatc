@@ -114,6 +114,8 @@ class NSC(system.InventarBasis):
             ans = self._call_geschichte(mänx, dlg.geschichte,
                                         dlg.geschichte_text)
             dlg_anzahl[dlg.name] = dlg_anzahl.setdefault(dlg.name, 0) + 1
+            if dlg.gruppe:
+                dlg_anzahl[dlg.gruppe] = dlg_anzahl.setdefault(dlg.gruppe, 0) + 1
             self.kennt_spieler = True
             return ans
         elif isinstance(option, Rückkehr):
@@ -276,7 +278,8 @@ class Dialog:
                  wiederhole: Opt[int] = None,
                  min_freundlich: Opt[int] = None,
                  direkt: bool = False,
-                 effekt: Opt[DialogFn] = None):
+                 effekt: Opt[DialogFn] = None,
+                 gruppe: Opt[str] = None):
         """
         ```
         Dialog("halloli", "Halloli",
@@ -294,6 +297,7 @@ class Dialog:
         :param vorherige: Liste von Dialogen, die schon gesagt sein müssen
         :param min_freundlich: Mindestfreundlichkeit für den Dialog
         :param direkt: Wenn wahr, redet der Mänx dich an, statt du ihn.
+        :param gruppe: Nur ein Dialog einer gruppe darf gewählt werden.
         """
         self.direkt = direkt
         self.min_freundlich = min_freundlich
@@ -317,6 +321,7 @@ class Dialog:
         else:
             self.vorherige = []
 
+        self.gruppe = gruppe
         self.wenn_fn = None
         if wiederhole is None:
             self.anzahl = 1 if direkt else 0
@@ -348,6 +353,9 @@ class Dialog:
         """Prüfe, ob der Dialog als Option verfügbar ist."""
         # Keine Wiederholungen mehr
         if self.anzahl and nsc.dialog_anzahl.get(self.name, 0) >= self.anzahl:
+            return False
+        # Gruppe
+        if self.gruppe and nsc.dialog_anzahl.get(self.gruppe, 0) >= 1:
             return False
         # vorherige Dialoge
         for bed in self.vorherige:
