@@ -248,7 +248,7 @@ class NSC(system.InventarBasis):
             if self not in ort.menschen:
                 ort.menschen.append(self)
 
-
+# Vorherige Dialoge, nur str für Name, sonst (name, mindestanzahl)
 VorList = List[Union[str, Tuple[str, int]]]
 
 
@@ -370,7 +370,7 @@ class Dialog:
 
 
 class Dorfbewohner(NSC):
-    """Ein NSC, der Hallo sagt."""
+    """Ein NSC, der Hallo sagt und schon eine Kampffunktion hat."""
 
     def __init__(self, name: str, geschlecht: bool, **kwargs):
         kwargs.setdefault("art", "Dorfbewohner" if geschlecht

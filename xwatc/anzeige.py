@@ -62,7 +62,7 @@ class XwatcFenster:
         win.set_title("Xwatc")
         # Spiel beginnen
         self.mänx = system.Mänx(self)
-        system.ausgabe = self  # type: ignore
+        system.ausgabe = self
 
         def xwatc_main(mänx=self.mänx):
             try:

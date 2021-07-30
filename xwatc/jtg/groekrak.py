@@ -179,9 +179,14 @@ def canna() -> NSC:
 
 @register("jtg:gr:carlo")
 def carlo() -> NSC:
-    n = NSC("Carlo", "Kater", vorstellen=(
+    def kampf(n: NSC, m: Mänx):
+        malp(f"{n.name} faucht")
+        m.sleep(0.2)
+        malp("Aber er scheint Gefallen an eurem Testkampf zu finden.")
+        malp("Jetzt ist Carlo müde.")
+    n = NSC("Carlo", "Kater", kampf, vorstellen=(
         "Carlo ist der größte Kater in der Taverne.",))
-    n.dialog("hallo", "Hallo", "Miao")
+    n.dialog("hallo", "Hallo", ("Miao",))
     n.dialog("streicheln", "streicheln", [
              Malp("Carlo lässt sich bereitwillig streicheln.")])
 
