@@ -131,6 +131,9 @@ class Mänx(InventarBasis, Persönlichkeit):
         self.rasse = "Arak"
         self.context: Any = None
 
+    def hat_fähigkeit(self, name: str) -> bool:
+        return name in self.fähigkeiten
+
     def gebe_startinventar(self):
         self.inventar["Gold"] = 33
         self.inventar["Mantel"] = 1

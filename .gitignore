@@ -2,5 +2,10 @@ __pycache__
 .pydevproject
 .project
 .mypy_cache
+<<<<<<< HEAD
+.idea
+*.orig
+=======
 *.orig
 /saves/
+>>>>>>> f7b10eac6bc931f5cf58fcd74f6584e634f0627b

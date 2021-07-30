@@ -4,6 +4,7 @@ import random
 from xwatc.jtg import t2
 from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
 import xwatc_Hauptgeschichte
+from xwatc.lg.norden.gäfdah import erzeuge_Gäfdah
 from time import sleep
 
 
@@ -78,11 +79,28 @@ class RuboicHätxrik(NSC):
             mänx.erhalte("Salzhering", 5)
             mänx.erhalte("Salzlachs", 3)
             mänx.erhalte("Salami", 3)
-            mänx.erhalte("Zähe Bohnen", 1)
+            mänx.erhalte("Zähe Bohne", 1)
             mänx.erhalte("Äntorenmedaille", 1)
+            if schnellplündern:
+                mint('Junger Mann: "Oh, Verdammt". Zwei junge Männer stehen eilig von ihren Stühlen auf.)
+                sprich("Junger Mann", 'Ruboic hat schon wieder einen Anfall! Der Arzt hat ihm zwar gesagt, '
+                        'er soll mit dem Trinken aufhören, doch was hat er gemacht? Ach Verdammt, '
+                        'dieses Mal scheints wirklich richtig übel zu sein...', warte=True)
+                mint("Die beiden Männer tragen Hätxrik vorsichtig aus der Taverne.")
+                if ja_nein(mänx, "Folgst du ihnen"):
+                    mint("Du versuchst ihnen zu folgen, doch als du auf die Straße "
+                        "trittst, sind sie bereits nicht mehr zu sehen.")
+                    if ja_nein(mänx, "Gehst du zürück in die Taverne?"):
+
+
 
         else:
             mint("OK, dann nicht.")
+
+
+        return False
+
+
 
     def kampf(self, mänx: Mänx) -> None:
         a = random.randint(1, 500)
