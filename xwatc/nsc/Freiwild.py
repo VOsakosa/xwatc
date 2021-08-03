@@ -1,10 +1,9 @@
 from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner
-from xwatc.system import mint, kursiv, Mänx, ja_nein, minput, Spielende, malp
+from xwatc.system import mint, kursiv, Mänx, ja_nein, minput, Spielende, malp, sprich
 import random
 from xwatc.jtg import t2
 from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
 import xwatc_Hauptgeschichte
-from xwatc.lg.norden.gäfdah import erzeuge_Gäfdah
 from time import sleep
 
 
@@ -15,26 +14,25 @@ class RuboicHätxrik(NSC):
 
         self.dialog("hallo1",
                     '"Hallo Ich heiße Tom"',
-                    cls.reden_tom)
+                    ["Tja mi kans egal sän"], gruppe="bluu")
 
         self.dialog("hallo2",
                     '"Hallo Ich heiße Makc"',
-                    cls.reden_makc)
+                    cls.reden_makc, gruppe="bluu")
 
         self.dialog("hallo3",
                     '"Hallo Ich heiße Thierca"',
-                    cls.reden_thierca)
+                    cls.reden_thierca, gruppe="bluu")
 
         self.dialog("hallo4",
                     '"Hallo Ich heiße Ares"',
-                    cls.reden_ares)
+                    cls.reden_ares, gruppe="bluu")
 
         self.dialog("hallo5",
                     '"Hallo, wie heißt du?"',
-                    cls.reden_hallo)
+                    cls.reden_hallo, wiederhole=1)
 
-        self.dialog("geht", '"Wie geht es dir?"',
-                    cls.reden_geht)
+        self.dialog("geht", '"Wie geht es dir?"', cls.reden_geht)
         self.dialog("wetter",
                     '"Wie findest du das Wetter heute?"',
                     cls.reden_wetter)
@@ -54,7 +52,7 @@ class RuboicHätxrik(NSC):
                     "wenn sie mich davon unterrichten würden. "
                     "Ich danke ihnen schon einmal im vorraus.",
                     cls.reden_suche2)
-    
+
     @staticmethod
     def sgh(mänx):
         if ja_nein(mänx, "Durchsuchst du den Mann?"):
@@ -81,36 +79,37 @@ class RuboicHätxrik(NSC):
             mänx.erhalte("Salami", 3)
             mänx.erhalte("Zähe Bohne", 1)
             mänx.erhalte("Äntorenmedaille", 1)
-            if schnellplündern:
-                mint('Junger Mann: "Oh, Verdammt". Zwei junge Männer stehen eilig von ihren Stühlen auf.)
+            if mänx.hat_fähigkeit("Schnellplündern"):
+                mint('Junger Mann: "Oh, Verdammt". Zwei junge Männer stehen eilig von ihren Stühlen auf.')
                 sprich("Junger Mann", 'Ruboic hat schon wieder einen Anfall! Der Arzt hat ihm zwar gesagt, '
-                        'er soll mit dem Trinken aufhören, doch was hat er gemacht? Ach Verdammt, '
-                        'dieses Mal scheints wirklich richtig übel zu sein...', warte=True)
+                                      'er soll mit dem Trinken aufhören, doch was hat er gemacht? Ach Verdammt, '
+                                      'dieses Mal scheints wirklich richtig übel zu sein...', warte=True)
                 mint("Die beiden Männer tragen Hätxrik vorsichtig aus der Taverne.")
                 if ja_nein(mänx, "Folgst du ihnen"):
                     mint("Du versuchst ihnen zu folgen, doch als du auf die Straße "
-                        "trittst, sind sie bereits nicht mehr zu sehen.")
+                         "trittst, sind sie bereits nicht mehr zu sehen.")
                     if ja_nein(mänx, "Gehst du zürück in die Taverne?"):
-
-
-
+                        mint("")
+                    else:
+                        pass
+                else:
+                    pass
+            else:
+                pass
         else:
             mint("OK, dann nicht.")
 
-
         return False
 
-
-
-    def kampf(self, mänx: Mänx) -> None:
+    def kampf(self, mänx: Mänx):
         a = random.randint(1, 500)
         if a == 1:
             ("Bevor du ihn angreifen konntest, fiel der Mann einfach tot um")
             self.tot = True
-            self.sgh(mänx)
+            return self.sgh(mänx)
         else:
             if ja_nein(mänx, "Der Mann richtet seine Armbrust auf dich. "
-                       "Willst du immer noch kämpfen?"):
+                             "Willst du immer noch kämpfen?"):
                 mint("Er drückt ab.")
                 raise Spielende
 
@@ -124,42 +123,37 @@ class RuboicHätxrik(NSC):
             self.tot = True
         mint('"Tag. Äch ben Hätrik"')
 
-    def reden_tom(self, mänx: Mänx) -> None:
-        mint("Tja mi kans egal sän")
-
-    def reden_makc(self, mänx: Mänx) -> None:
+    def reden_makc(self, mänx: Mänx):
         mint('"makc ja?, ich hatte mall so nen soon." '
              'Der Mann drückt dir etwas in die Hand. '
              'Dann, '
              'ganz plötzlich fällt er um und beginnt röchelnd zu verenden.  ')
         self.tot = True
         mänx.erhalte("Aphrodiikensamen", 5)
-        self.sgh(mänx)
+        return self.sgh(mänx)
 
-    def reden_thierca(self, mänx: Mänx) -> None:
+    def reden_thierca(self, mänx: Mänx):
         mint('"thiersca ja?, du erinnnest mich an men Tochterle. Wisst de?!" '
              'Der Mann drückt dir etwas in die Hand. '
              'Dann, '
              'ganz plötzlich fängt er an zu röcheln und fällt tot um.  ')
         self.tot = True
         mänx.erhalte("Bantoriitensamen", 5)
-        self.sgh(mänx)
+        return self.sgh(mänx)
 
     def reden_ares(self, mänx: Mänx) -> None:
         mint("Ares?", kursiv("Du?!"), "bist es?")
         a = random.randint(1, 500)
         if a == 1:
-            ("Plötzlich fiel der Mann einfach tot um")
-            self.tot = True
-            self.sgh(mänx)
+            malp("Plötzlich fiel der Mann einfach tot um")
         else:
             a = random.randint(1, 40)
             if a == 1:
                 malp("Plötzlich sprach der Mann mit einer monotonen, hölzernen Stimme.")
                 mint('"HALLO;ENTITÄT §===(§"/F LANGE '
                      '', kursiv("ggrrrpfft"), 'NICHT MEHR GESE'
-                     '', kursiv("bbpfftgr"), 'HEN'
-                     '', kursiv("ährrkrtg"), '"')
+                                              '', kursiv("bbpfftgr"), 'HEN'
+                                                                      '', kursiv("ährrkrtg"), '"')
                 mänx.erhalte("Leere", 5)
                 mänx.erhalte("NOEL@þ", 1)
                 mänx.erhalte("Lichtschwert", 1)
@@ -212,9 +206,9 @@ class RuboicHätxrik(NSC):
                 mänx.erhalte("Unterhose", 1)
                 mänx.erhalte("Honigpastete", 5)
 
-        mint("Der Mann stirbt")
+            mint("Der Mann stirbt")
         self.tot = True
-        self.sgh(mänx)
+        return self.sgh(mänx)
 
     def reden_hallo(self, mänx: Mänx) -> None:
         mint('"Äch ben Hätrik"')

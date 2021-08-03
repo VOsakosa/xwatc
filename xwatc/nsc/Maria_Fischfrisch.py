@@ -30,13 +30,13 @@ class Fischerfrau(Händler):
         opt: int = mänx.menu(opts, "Was sagst du?")
         if opt == 0:
             malp('(freundlich) "Ich heiße Maria. Und du?"')
-            d=input('')
+            mänx.minput(mänx, '')
             malp('"Das ist aber ein schöner Name."')
         elif opt == 1:
             malp('"Schön, mein Kind."')
         elif opt == 2:
             mint('"Mir geht es gut. Wie geht es dir?"')
-            k=input("")
+            mänx.minput(mänx, "")
             if k=="gut" or "sehr gut" or "super gut" or "wirklich gut" or "wirklich sehr gut":
                 malp('"Das ist aber schön."')
             else:
