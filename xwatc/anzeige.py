@@ -17,8 +17,6 @@ from gi.repository import Gtk, GLib
 
 from xwatc import system
 
-SPEICHER_VERZEICHNIS = os.path.join(os.path.dirname(__file__), "..", "saves")
-
 Text = str
 
 minput_return: queue.Queue = queue.Queue(1)
@@ -97,7 +95,9 @@ class XwatcFenster:
             text = "\n" + text
         self.buffer.insert(self.buffer.get_end_iter(), text)
 
-    def minput(self, mänx: system.Mänx, frage: str, möglichkeiten=None, lower=True) -> str:
+    def minput(self, mänx: system.Mänx, frage: str, möglichkeiten=None,
+               lower=True,
+             save: Opt[system.Speicherpunkt] = None) -> str:
         self.malp(frage)
         if möglichkeiten is None:
             self.eingabe(prompt=None)
@@ -122,14 +122,16 @@ class XwatcFenster:
              optionen: list[system.MenuOption[T]],
              frage: str = "",
              gucken: Opt[Sequence[str]] = None,
-             versteckt: Opt[Mapping[str, T]] = None) -> T:
+             versteckt: Opt[Mapping[str, T]] = None,
+             save: Opt[system.Speicherpunkt] = None) -> T:
         self.auswahl([(name, value) for name, __, value in optionen])
         ans = minput_return.get()
         if ans is _XwatcThreadExit:
             raise SystemExit
         return ans
 
-    def ja_nein(self, mänx: system.Mänx, frage: str) -> bool:
+    def ja_nein(self, mänx: system.Mänx, frage: str,
+             save: Opt[system.Speicherpunkt] = None) -> bool:
         self.malp(frage)
         self.auswahl([("Ja", True), ("Nein", False)])
         ans = minput_return.get()

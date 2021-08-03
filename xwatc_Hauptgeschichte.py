@@ -8,7 +8,11 @@ import random
 
 
 def waffe_wählen(mänx: Mänx):
-    rasse = mänx.minput("Was willst du sein?", ["Mensch"])
+    if mänx.ausgabe.terminal:
+        mgn = None
+    else:
+        mgn = ["Mensch"]
+    rasse = mänx.minput("Was willst du sein?", mgn)
     mänx.rasse = "Arak"
     if rasse.lower() not in ("mensch", "arak"):
         malp("Nun, eigentlich ist es egal was du sein willst.")
@@ -73,12 +77,13 @@ def main(mänx: Mänx):
             malp("Aber keine Sorge, du wirst wiedergeboren")
 
 
-def himmelsrichtungen(mänx):
-    richtung = minput(mänx, "Wohin gehst du jetzt? "
+def himmelsrichtungen(mänx: Mänx):
+    richtung = mänx.minput("Wohin gehst du jetzt? "
                       "In Richtung Norden ist das nächste Dorf, im Süden warten "
                       "Monster auf dich, im Westen liegt "
                       "das Meer und der Osten ist unentdeckt"
-                      ".", ["Norden", "Osten", "Süden", "Westen"])
+                      ".", ["Norden", "Osten", "Süden", "Westen"],
+                      save=himmelsrichtungen)
     if richtung == "norden":
         norden.norden(mänx)
     elif richtung == "osten":

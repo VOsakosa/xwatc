@@ -176,7 +176,7 @@ class NSC(system.InventarBasis):
                 opts.extend(self.dialog_optionen(mänx))
             else:
                 opts.append(("reden", "r", self.reden))
-            ans = self._run(mänx.menu(opts), mänx)
+            ans = self._run(mänx.menu(opts, save=self), mänx)
             if ans not in (Rückkehr.WEITER_REDEN, Rückkehr.ZURÜCK):
                 return ans
 
@@ -510,7 +510,7 @@ class Dorf:
         orte = [(ort.name, ort.name.lower(), ort) for ort in self.orte]
         orte.append(("Bleiben", "", self.orte[0]))
         orte.append((f"{self.name} verlassen", "v", None))
-        loc = mänx.menu(orte, frage="Wohin? ")
+        loc = mänx.menu(orte, frage="Wohin? ", save=self)
         while loc:
             loc = self.ort_main(mänx, loc)
 
@@ -529,7 +529,7 @@ class Dorf:
         optionen.extend((f"Nach {o.name} gehen", o.name.lower(), o)
                         for o in self.orte if o != ort)
         optionen.append(("Ort verlassen", "fliehen", None))
-        opt = mänx.menu(optionen)
+        opt = mänx.menu(optionen, save=self)  # TODO: Den Ort speichern
         if isinstance(opt, NSC):
             opt.main(mänx)
             return ort

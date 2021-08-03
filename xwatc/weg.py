@@ -348,7 +348,11 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         self.beschreibungen.append(Beschreibung(geschichte, nur, außer, warten))
 
     def beschreibe(self, mänx: Mänx, richtung: Opt[int]):
-        """Beschreibe die Kreuzung von richtung kommend."""
+        """Beschreibe die Kreuzung von richtung kommend.
+        
+        Beschreibe muss idempotent sein, das heißt, mehrfache Aufrufe verändern
+        die Welt nicht anders als ein einfacher Aufruf.
+        """
         ri_name = HIMMELSRICHTUNG_KURZ[richtung] if richtung is not None else None
         for beschreibung in self.beschreibungen:
             beschreibung.beschreibe(mänx, ri_name)
@@ -454,7 +458,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
     def get_nachbarn(self)->List[Wegpunkt]:
         return [ri.ziel for ri in self.nachbarn.values() if ri]
 
-    def main(self, mänx: Mänx, von: Opt[Wegpunkt]) -> Wegpunkt:
+    def main(self, mänx: Mänx, von: Opt[Wegpunkt] = None) -> Wegpunkt:
         richtung = None
         if von != self:
             if von:
@@ -466,7 +470,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         if not self.immer_fragen and ((richtung is None) + len(opts)) <= 2:
             if isinstance(opts[0][2], Wegpunkt):
                 return opts[0][2]
-        ans = mänx.menu(opts, frage="Welchem Weg nimmst du?")
+        ans = mänx.menu(opts, frage="Welchem Weg nimmst du?", save=self)
         if isinstance(ans, Wegpunkt):
             return ans
         elif isinstance(ans, dorf.NSC):

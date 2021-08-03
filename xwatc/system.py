@@ -1,9 +1,11 @@
 from __future__ import annotations
 from collections import defaultdict
 from typing import (Sequence, Dict, List, Tuple, TypeVar, Callable, Any, Union,
-                    Optional, Iterator, Mapping, Set)
+                    Optional, Iterator, Mapping, Set, Optional as Opt,
+                    BinaryIO)
 from time import sleep
 import re
+import pickle
 from pathlib import Path
 from xwatc.untersystem.itemverzeichnis import lade_itemverzeichnis
 from xwatc.untersystem import hilfe
@@ -14,12 +16,16 @@ if typing.TYPE_CHECKING:
     from xwatc import anzeige
 
 
+SPEICHER_VERZEICHNIS = Path(__file__).parent.parent / "xwatc_saves"
+
+
 MänxFkt = Callable[['Mänx'], Any]
 ITEMVERZEICHNIS, UNTERKLASSEN = lade_itemverzeichnis(
     Path(__file__).parent / "itemverzeichnis.txt")
 
 _OBJEKT_REGISTER: Dict[str, Callable[[], 'HatMain']] = {}
-ausgabe: Terminal|'anzeige.XwatcFenster'= Terminal()
+ausgabe: Terminal | 'anzeige.XwatcFenster' = Terminal()
+
 
 def get_class(item: str) -> Optional[str]:
     return ITEMVERZEICHNIS.get(item)
@@ -38,22 +44,30 @@ T = TypeVar("T")
 Tcov = TypeVar("Tcov", covariant=True)
 MenuOption = Tuple[str, str, Tcov]
 Inventar = Dict[str, int]
+
+
 class Persönlichkeit:
     """ Deine Pesönlichkeit innerhalb des Spieles """
-    def __init__ (self, *arggs, ** kwargs):
+
+    def __init__(self, *arggs, ** kwargs):
         self.ehrlichkeit = 0
         self.stolz = 0
         self.arroganz = 0
         self.vertrauenswürdigkeit = 0
         self.hilfsbereischaft = 0
         self.mut = 0
-        
+
+
+def _null_func():
+    return 0
+
+
 class InventarBasis:
     """Ein Ding mit Inventar"""
     inventar: Inventar
 
     def __init__(self):
-        self.inventar = defaultdict(lambda: 0)
+        self.inventar = defaultdict(_null_func)
 
     def inventar_zeigen(self):
         ans = []
@@ -120,7 +134,7 @@ class Mänx(InventarBasis, Persönlichkeit):
 
     def __init__(self, ausgabe=ausgabe) -> None:
         super().__init__()
-        self.ausgabe: terminal.Terminal|'anzeige.XwatcFenster' = ausgabe
+        self.ausgabe: terminal.Terminal | 'anzeige.XwatcFenster' = ausgabe
         self.gebe_startinventar()
         self.gefährten: List['dorf.NSC'] = []
         self.titel: Set[str] = set()
@@ -130,6 +144,7 @@ class Mänx(InventarBasis, Persönlichkeit):
         self.missionen: List[None] = list()
         self.rasse = "Arak"
         self.context: Any = None
+        self.speicherpunkt: Opt[HatMain | MänxFkt] = None
 
     def hat_fähigkeit(self, name: str) -> bool:
         return name in self.fähigkeiten
@@ -191,18 +206,18 @@ class Mänx(InventarBasis, Persönlichkeit):
              optionen: List[MenuOption[T]],
              frage: str = "",
              gucken: Optional[Sequence[str]] = None,
-             versteckt: Optional[Mapping[str, T]] = None) -> T:
+             versteckt: Optional[Mapping[str, T]] = None,
+             save: Opt[HatMain|MänxFkt] = None) -> T:
         """Lasse den Spieler aus verschiedenen Optionen wählen.
-        
+
         z.B:
-        
+
         >>> Mänx().menu([("Nach Hause gehen", "hause", 1), ("Weitergehen", "weiter", 12)])
-        
+
         erlaubt Eingaben 1, hau, hause für "Nach Hause gehen".
-        
+
         """
-        return ausgabe.menu(self, optionen, frage, gucken, versteckt)
-        
+        return ausgabe.menu(self, optionen, frage, gucken, versteckt, save)
 
     def genauer(self, text: Sequence[str]) -> None:
         """Frage nach, ob der Spieler etwas genauer erfahren will.
@@ -213,7 +228,7 @@ class Mänx(InventarBasis, Persönlichkeit):
                 for block in text:
                     self.ausgabe.malp(block)
         else:
-            if self.menu([("Genauer", "", True), ("Weiter","", False)]):
+            if self.menu([("Genauer", "", True), ("Weiter", "", False)]):
                 self.ausgabe.malp("\n".join(text))
 
     def sleep(self, länge: float, pausenzeichen="."):
@@ -294,6 +309,23 @@ class Mänx(InventarBasis, Persönlichkeit):
     def add_gefährte(self, gefährte: 'dorf.NSC'):
         self.gefährten.append(gefährte)
 
+    def __getstate__(self):
+        dct = self.__dict__.copy()
+        del dct["ausgabe"]
+        assert dct["speicherpunkt"]
+        return dct
+
+    def __setstate__(self, dct: dict):
+        self.__dict__.update(dct)
+        self.anzeige = anzeige
+
+    def save(self, punkt: HatMain | MänxFkt, name: Opt[str] = None) -> None:
+        self.speicherpunkt = punkt
+        SPEICHER_VERZEICHNIS.mkdir(exist_ok=True, parents=True)
+        with open(SPEICHER_VERZEICHNIS / "welt.pickle", "wb") as write:
+            pickle.dump(self, write)
+
+
 class Welt:
     """Speichert den Zustand der Welt, in der sich der Hauptcharakter befindet."""
 
@@ -328,7 +360,7 @@ class Welt:
         return name in self.objekte and (
             not isinstance(self.objekte[name], dorf.NSC) or
             not self.objekte[name].tot)
-    
+
     def obj(self, name: str) -> Any:
         """Hole ein registriertes oder existentes Objekt."""
         if name in self.objekte:
@@ -367,20 +399,26 @@ class HatMain(typing.Protocol):
     """Eine Klasse für Objekte, die Geschichte haben und daher mit main()
     ausgeführt werden können. Das können Menschen, aber auch Wegpunkte
     und Pflanzen sein."""
+
     def main(self, mänx: Mänx):
         """Lasse den Mänxen mit dem Objekt interagieren."""
 
+Speicherpunkt = Union[HatMain, MänxFkt]
+
+
 class Besuche:
     """Mache ein Objekt aus dem Objektregister ein HatMain-object."""
+
     def __init__(self, objekt_name: str):
         self.objekt_name = objekt_name
         assert self.objekt_name in _OBJEKT_REGISTER
-    
+
     def main(self, mänx: Mänx):
         mänx.welt.obj(self.objekt_name).main(mänx)
 
 
 Decorator = Callable[[T], T]
+
 
 def register(name: str) -> Decorator[Callable[[], HatMain]]:
     """Registriere einen Erzeuger im Objekt-Register.
@@ -391,7 +429,7 @@ def register(name: str) -> Decorator[Callable[[], HatMain]]:
             class Banane:
                 def main(mänx: Mänx):
                     malp("Du rutscht auf der Banane aus.")
-        
+
     """
     def wrapper(func):
         # assert name not in _OBJEKT_REGISTER,("Doppelte Registrierung " + name)
@@ -401,9 +439,9 @@ def register(name: str) -> Decorator[Callable[[], HatMain]]:
 # EIN- und AUSGABE
 
 
-def minput(mänx: Mänx, frage: str, möglichkeiten=None, lower=True) -> str:
+def minput(mänx: Mänx, frage: str, möglichkeiten=None, lower=True, save=None) -> str:
     """Ruft die Methode auf Mänx auf."""
-    return mänx.minput(frage, möglichkeiten, lower)
+    return mänx.minput(frage, möglichkeiten, lower, save)
 
 
 def mint(*text) -> None:
@@ -420,9 +458,9 @@ def malp(*text, sep=" ", end='\n', warte=False) -> None:
     ausgabe.malp(*text, sep=sep, end=end, warte=warte)
 
 
-def ja_nein(mänx: Mänx, frage) -> bool:
+def ja_nein(mänx: Mänx, frage, save=None) -> bool:
     """Ja-Nein-Frage"""
-    return mänx.ja_nein(frage)
+    return mänx.ja_nein(frage, save)
 
 
 def kursiv(text: str) -> str:
