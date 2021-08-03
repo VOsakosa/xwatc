@@ -3,14 +3,17 @@ from xwatc.lg.norden import norden
 from xwatc.lg.westen import westen
 from xwatc.lg.osten import osten
 from xwatc.lg.süden import süden
-from xwatc.system import Mänx, minput, Spielende, mint, malp, SPEICHER_VERZEICHNIS
+from xwatc.system import Mänx, minput, Spielende, mint, malp, SPEICHER_VERZEICHNIS,\
+    MänxFkt, HatMain
 import random
 from xwatc import system
+from xwatc import weg
 from pathlib import Path
 from typing import Optional as Opt
 
 
 def hauptmenu() -> None:
+    """Das Hauptmenu von Xwatc, erlaubt Laden und neues Spiel starten."""
     while True:
         mgn1 = [("Lade Spielstand", "lade", False),
                 ("Neuer Spielstand", "neu", True)]
@@ -37,7 +40,7 @@ def waffe_wählen(mänx: Mänx):
         mgn = None
     else:
         mgn = ["Mensch"]
-    rasse = mänx.minput("Was willst du sein?", mgn)
+    rasse = mänx.minput("Was willst du sein?", mgn, save=waffe_wählen)
     mänx.rasse = "Arak"
     if rasse.lower() not in ("mensch", "arak"):
         malp("Nun, eigentlich ist es egal was du sein willst.")
@@ -79,22 +82,28 @@ def waffe_wählen(mänx: Mänx):
     mänx.inventar[waffe.capitalize()] += 1
     malp(f"Übrigens, dein Inventar enthält jetzt: {mänx.inventar_zeigen()}. "
          "(Mit der Taste e kannst du dein Inventar überprüfen.)")
+    return himmelsrichtungen
 
 
 def main(mänx: Mänx):
+    """Die Hauptschleife von Xwatc"""
     if not mänx.speicherpunkt:
         malp("Willkommen bei Xwatc")
     ende = False
+    punkt: Opt[HatMain | MänxFkt | weg.Wegpunkt] = mänx.speicherpunkt
     while not ende:
-        if not mänx.speicherpunkt:
-            waffe_wählen(mänx)
+        if not punkt:
+            punkt = waffe_wählen
         try:
-            if callable(mänx.speicherpunkt):
-                mänx.speicherpunkt(mänx)
-            elif mänx.speicherpunkt:
-                mänx.speicherpunkt.main(mänx)
-            else:
-                himmelsrichtungen(mänx)
+            while punkt:
+                if isinstance(punkt, weg.Wegpunkt):
+                    weg.wegsystem(mänx, punkt)
+                    punkt = None
+                    break
+                elif callable(punkt):
+                    punkt = punkt(mänx)
+                else:
+                    punkt = punkt.main(mänx)
         except Spielende:
             malp("Du bist tot")
             ende = True

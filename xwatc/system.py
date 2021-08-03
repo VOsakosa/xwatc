@@ -145,6 +145,7 @@ class Mänx(InventarBasis, Persönlichkeit):
         self.rasse = "Arak"
         self.context: Any = None
         self.speicherpunkt: Opt[HatMain | MänxFkt] = None
+        self.speicherdatei_name = "welt"
 
     def hat_fähigkeit(self, name: str) -> bool:
         return name in self.fähigkeiten
@@ -206,7 +207,7 @@ class Mänx(InventarBasis, Persönlichkeit):
              frage: str = "",
              gucken: Optional[Sequence[str]] = None,
              versteckt: Optional[Mapping[str, T]] = None,
-             save: Opt[HatMain|MänxFkt] = None) -> T:
+             save: Opt[HatMain | MänxFkt] = None) -> T:
         """Lasse den Spieler aus verschiedenen Optionen wählen.
 
         z.B:
@@ -322,7 +323,10 @@ class Mänx(InventarBasis, Persönlichkeit):
     def save(self, punkt: HatMain | MänxFkt, name: Opt[str] = None) -> None:
         self.speicherpunkt = punkt
         SPEICHER_VERZEICHNIS.mkdir(exist_ok=True, parents=True)
-        with open(SPEICHER_VERZEICHNIS / "welt.pickle", "wb") as write:
+        if name:
+            self.speicherdatei_name = name
+        filename = self.speicherdatei_name + ".pickle"
+        with open(SPEICHER_VERZEICHNIS / filename, "wb") as write:
             pickle.dump(self, write)
         self.speicherpunkt = None
 
@@ -405,6 +409,7 @@ class HatMain(typing.Protocol):
 
     def main(self, mänx: Mänx):
         """Lasse den Mänxen mit dem Objekt interagieren."""
+
 
 Speicherpunkt = Union[HatMain, MänxFkt]
 
