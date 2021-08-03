@@ -307,6 +307,8 @@ class Dialog:
             if callable(geschichte):
                 raise TypeError("Geschichte und Effekt dürfen nicht beides "
                                 "Funktionen sein.")
+            elif isinstance(geschichte, str):
+                geschichte = [geschichte]
             self.geschichte: DialogGeschichte = effekt
             self.geschichte_text: Opt[Sequence[Union['Malp', str]]] = geschichte
         else:

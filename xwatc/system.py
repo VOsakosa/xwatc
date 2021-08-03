@@ -320,7 +320,9 @@ class Welt:
                 assert isinstance(ans, fkt)
             return ans
         else:
-            return fkt(*args, **kwargs)
+            ans = fkt(*args, **kwargs)
+            self.objekte[name] = ans
+            return ans
 
     def am_leben(self, name: str) -> bool:
         """Prüfe, ob das Objekt *name* da und noch am Leben ist."""
