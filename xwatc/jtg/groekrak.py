@@ -78,13 +78,16 @@ def erzeuge_grökrak(welt: Welt) -> HatMain:
 @register("jtg:gr:özil")
 def özil() -> NSC:
     """Özil ist Kellner in der Taverne"""
-    n = NSC("Özil Çakır", "Kellner", startinventar={
+    return NSC("Özil Çakır", "Kellner", startinventar={
         "Tablett": 4,
         "Anzug": 1,
         "Tomate": 1,
         "Speisekarte": 1,
         "Gold": 13,
-    }, vorstellen=["Ein unsicher wirkender junger Kellner."])
+    }, vorstellen=["Ein unsicher wirkender junger Kellner."], dlg=özil_dlg)
+
+
+def özil_dlg():
 
     def bier(n: NSC, m: Mänx):
         n.sprich("Kommt sofort.")
@@ -96,14 +99,14 @@ def özil() -> NSC:
             if n.inventar["Bier"] < 10:
                 n.inventar["Bier"] += 1
             m.ausgabe.malp("Du hast nicht genug Geld.")
-    n.dialog("bier", "Ein Bier bitte.", bier)
-    n.dialog("hallo", "Hallo", "Hallo")
-    n.dialog("taverne", "Erzähl mir etwas über die Taverne", [
+    yield Dialog("bier", "Ein Bier bitte.", bier)
+    yield Dialog("hallo", "Hallo", "Hallo")
+    yield Dialog("taverne", "Erzähl mir etwas über die Taverne", [
         "Das ist die Taverne Zum Katzenschweif.",
         "Der ursprüngliche Besitzer war ein großer Fan von Katzen.",
         "Nun sind Katzen das Erkennungsmerkmal unserer Taverne."
     ])
-    n.dialog("ursprünglich", "Ursprünglich?", [
+    yield Dialog("ursprünglich", "Ursprünglich?", [
         "Ja, die ursprüngliche Besitzerin Catheryne hat vor 5 Jahren "
         "Grökrakchöl verlassen.",
         "Jetzt führt Frau Kloos den Laden."
@@ -114,7 +117,7 @@ def özil() -> NSC:
 @register("jtg:gr:kloos")
 def kloos() -> NSC:
     """Kloos ist die Besitzerin der Taverne. Sie ist kurz angebunden."""
-    n = NSC("Miřam Kloos", "Wirtin", vorstellen=[
+    return NSC("Miřam Kloos", "Wirtin", vorstellen=[
         "Eine hochgewachsene Frau steht hinter dem Tresen"
     ], startinventar={
         "Gold": 124,
@@ -123,81 +126,91 @@ def kloos() -> NSC:
         "Socke": 2,
         "Ring": 4,
         "Mugel des Geschmacks": 1,
-    })
-    n.dialog("hallo", "Hallo", "Bier gibt's beim Kellner")
-    return n
+    }, dlg=kloos_dlg)
+
+
+def kloos_dlg():
+    yield Dialog("hallo", "Hallo", "Bier gibt's beim Kellner")
+
+
+def canna_kampf(canna: NSC, mänx: Mänx):
+    canna.sprich("Häh?")
+    malp("Obwohl sie betrunken ist, schafft sie es, dir auszuweichen.")
+    if canna.hat_item("Tarotkarte"):
+        canna.sprich("Du hast dich mit der falschen *Hick* angelegt.")
+        malp("Sie zieht eine Tarotkarte aus ihrer Tasche.")
+        canna.sprich("Ich ziehe: Den Narren!")
+        malp("Die Welt vor dir verschwimmt.")
+        canna.sprich("Ich ziehe den Zauberer!", warte=True)
+        canna.sprich("und den Stern!")
+        malp("Die Welt verschwimmt vor dir.")
+        from xwatc_Hauptgeschichte import himmelsrichtungen
+        return himmelsrichtungen(mänx)
+    else:
+        canna.sprich("Wo sind meine Karten?")
+        canna.sprich("Wo sind meine Karten?", wie="wimmernd")
+        malp("Canna flieht.")
+        canna.tot = True
 
 
 @register("jtg:gr:canna")
 def canna() -> NSC:
     """Canna sitzt nur in Taverne herum und trinkt."""
-    def kampf(canna: NSC, mänx: Mänx):
-        canna.sprich("Häh?")
-        malp("Obwohl sie betrunken ist, schafft sie es, dir auszuweichen.")
-        if canna.hat_item("Tarotkarte"):
-            canna.sprich("Du hast dich mit der falschen *Hick* angelegt.")
-            malp("Sie zieht eine Tarotkarte aus ihrer Tasche.")
-            canna.sprich("Ich ziehe: Den Narren!")
-            malp("Die Welt vor dir verschwimmt.")
-            canna.sprich("Ich ziehe den Zauberer!", warte=True)
-            canna.sprich("und den Stern!")
-            malp("Die Welt verschwimmt vor dir.")
-            from xwatc_Hauptgeschichte import himmelsrichtungen
-            return himmelsrichtungen(mänx)
-        else:
-            canna.sprich("Wo sind meine Karten?")
-            canna.sprich("Wo sind meine Karten?", wie="wimmernd")
-            malp("Canna flieht.")
-            canna.tot = True
-            
-    n = NSC("Canna Gill Darß", "Stammkundin", kampf, vorstellen=[
+
+    return NSC("Canna Gill Darß", "Stammkundin", canna_kampf, vorstellen=[
         "Canna trinkt Bier.", "Es ist sicherlich nicht das erste."],
-    startinventar={
+        startinventar={
         "Tarotkarte": 64,
         "Hose": 1,
         "T-Shirt": 1,
         "Gold": 34,
         "Tasche": 1
-        })
-    n.dialog("hallo", "Hallo", ["Hallöchen"], wiederhole=1)
-    n.dialog("hallo2", "Hallo?", ["Hallöchen, Hallo, Hallöchen! *Hust*"], "hallo")
-    n.dialog("zuschauen", "zuschauen", [
+    }, dlg=canna_dlg)
+
+
+def canna_dlg():
+    yield Dialog("hallo", "Hallo", ["Hallöchen"], wiederhole=1)
+    yield Dialog("hallo2", "Hallo?", ["Hallöchen, Hallo, Hallöchen! *Hust*"], "hallo")
+    yield Dialog("zuschauen", "zuschauen", [
         Malp("Canna trinkt ein Bier."), Malp("Dann noch eins."),
         "Was starrst du mich so an?", Malp("Canna schaut wieder weg."),
         "Miřam, noch eins!"])
-    n.dialog("betrinken", "Warum betrinkst du dich den ganzen Tag?", [
+    yield Dialog("betrinken", "Warum betrinkst du dich den ganzen Tag?", [
         "Geht dich das was an?",
         "Bier schmeckt, Bier ist gut, Bier ist toll.",
         "Brauche ich noch einen anderen Grund?",
-        ],"zuschauen")
-    n.dialog("gr", "Kannst du mir etwas über Grökrakchöl erzählen?", [
+    ], "zuschauen")
+    yield Dialog("gr", "Kannst du mir etwas über Grökrakchöl erzählen?", [
         "Grökrakchöl, ja, das ist eine große Festung hier an der Grenze.",
         "Es gibt gutes Bier, gute Katzen und gute Arbeit.",
         "Nur die Soldaten reden die ganze Zeit von Tauern."
-        ], "hallo")
-    return n
+    ], "hallo")
+
+
+def carlo_kampf(n: NSC, m: Mänx):
+    malp(f"{n.name} faucht")
+    m.sleep(0.2)
+    malp("Aber er scheint Gefallen an eurem Testkampf zu finden.")
+    malp("Jetzt ist Carlo müde.")
+
 
 @register("jtg:gr:carlo")
 def carlo() -> NSC:
-    def kampf(n: NSC, m: Mänx):
-        malp(f"{n.name} faucht")
-        m.sleep(0.2)
-        malp("Aber er scheint Gefallen an eurem Testkampf zu finden.")
-        malp("Jetzt ist Carlo müde.")
-    n = NSC("Carlo", "Kater", kampf, vorstellen=(
-        "Carlo ist der größte Kater in der Taverne.",))
-    n.dialog("hallo", "Hallo", ("Miao",))
-    n.dialog("streicheln", "streicheln", [
-             Malp("Carlo lässt sich bereitwillig streicheln.")])
+    return NSC("Carlo", "Kater", carlo_kampf, vorstellen=(
+        "Carlo ist der größte Kater in der Taverne.",), dlg=carlo_dlg)
+
+
+def carlo_dlg():
+    yield Dialog("hallo", "Hallo", ("Miao",))
+    yield Dialog("streicheln", "streicheln", [
+        Malp("Carlo lässt sich bereitwillig streicheln.")])
 
     def fisch(n: NSC, m: Mänx):
         fisch = m.hat_klasse("Fisch")
         assert fisch
         m.erhalte(fisch, -1, n)
         n.add_freundlich(10, 50)
-    n.dialog("fisch", "Fisch geben",
-             [Malp("Carlo frisst glücklich den Fisch.")],
-             effekt=fisch
-             ).wenn(lambda m, n: bool(m.hat_klasse("Fisch")))
-
-    return n
+    yield Dialog("fisch", "Fisch geben",
+                 [Malp("Carlo frisst glücklich den Fisch.")],
+                 effekt=fisch
+                 ).wenn(lambda m, n: bool(m.hat_klasse("Fisch")))

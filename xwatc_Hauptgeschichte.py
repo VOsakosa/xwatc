@@ -12,7 +12,8 @@ from typing import Optional as Opt
 
 def hauptmenu() -> None:
     while True:
-        mgn1 = [("Lade Spielstand","lade", False), ("Neuer Spielstand","neu", True)]
+        mgn1 = [("Lade Spielstand", "lade", False),
+                ("Neuer Spielstand", "neu", True)]
         if system.ausgabe.menu(None, mgn1):
             main(Mänx())
             return

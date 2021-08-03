@@ -19,6 +19,7 @@ __author__ = "jasper"
 
 NSCOptionen = Iterable[MenuOption[MänxFkt]]
 DialogFn = Callable[["NSC", system.Mänx], Opt[bool]]
+DialogErzeugerFn = Callable[[], Iterable['Dialog']]
 RunType = Union['Dialog', MänxFkt, 'Rückkehr']
 _MainOpts = List[MenuOption[RunType]]
 DialogGeschichte = Union[Sequence[Union['Malp', str]], DialogFn]
@@ -44,7 +45,8 @@ class NSC(system.InventarBasis):
                  direkt_reden: bool = False, freundlich: int = 0,
                  startinventar: Opt[Dict[str, int]] = None,
                  vorstellen: Opt[DialogGeschichte] = None,
-                 ort: Opt[weg.Wegkreuzung] = None):
+                 ort: Opt[weg.Wegkreuzung] = None,
+                 dlg: Opt[DialogErzeugerFn] = None):
         super().__init__()
         self.name = name
         self.art = art
@@ -54,7 +56,8 @@ class NSC(system.InventarBasis):
         self.kampf_fn = kampfdialog
         self.vorstellen_fn = vorstellen
         self.freundlich = freundlich
-        self.dialoge: List[Dialog] = []
+        self.dialoge: List[Dialog] = list(dlg()) if dlg else []
+        self._dlg = dlg
         self.dialog_anzahl: Dict[str, int] = {}
         self.fliehen_fn = fliehen
         self._ort = None
@@ -224,12 +227,6 @@ class NSC(system.InventarBasis):
         else:
             self.freundlich = max(grenze, wert + self.freundlich)
 
-    def dialog(self, *args, **kwargs) -> 'Dialog':
-        "Erstelle einen Dialog"
-        dia = Dialog(*args, **kwargs)
-        self.dialoge.append(dia)
-        return dia
-
     def plündern(self, mänx: system.Mänx) -> Any:
         """Schiebe das ganze Inventar von NSC zum Mänxen."""
         schiebe_inventar(self.inventar, mänx.inventar)
@@ -249,6 +246,16 @@ class NSC(system.InventarBasis):
         if ort is not None:
             if self not in ort.menschen:
                 ort.menschen.append(self)
+
+    def __getstate__(self):
+        dct = self.__dict__.copy()
+        del dct["dialoge"]
+        return dct
+
+    def __setstate__(self, dct):
+        self.__dict__.update(dct)
+        self.dialoge = list(self._dlg())
+        
 
 # Vorherige Dialoge, nur str für Name, sonst (name, mindestanzahl)
 VorList = List[Union[str, Tuple[str, int]]]
@@ -390,12 +397,12 @@ class Dorfbewohner(NSC):
             sprich(n.name, f"Hallo, ich bin {n.name}. "
                    "Freut mich, dich kennenzulernen.")
             return True
-        self.dialog("hallo", "Hallo", hallo).wiederhole(1)
+        self.dialoge.append(Dialog("hallo", "Hallo", hallo).wiederhole(1))
 
         def hallo2(n, m):
             sprich(n.name, f"Hallo nochmal!")
             return True
-        self.dialog("hallo2", "Hallo", hallo2, "hallo")
+        self.dialoge.append(Dialog("hallo2", "Hallo", hallo2, "hallo"))
 
     def kampf(self, mänx: system.Mänx) -> None:
         if self.kampf_fn:
