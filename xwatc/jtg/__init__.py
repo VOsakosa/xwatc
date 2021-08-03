@@ -66,7 +66,7 @@ def erzeuge_mitte(_mänx: Mänx) -> 'weg.Wegpunkt':
     nordk.verbinde_mit_weg(west, 3, "sw", "n")
 
     süd = weg.WegAdapter(None, t2_süd)
-    osten = weg.Wegkreuzung()
+    osten = weg.Wegkreuzung(immer_fragen = True)
     osten.add_effekt(system.Besuche("jtg:beeren").main)
     osten.add_beschreibung("Du kommst hier nicht weiter. Umkehren?")
 
