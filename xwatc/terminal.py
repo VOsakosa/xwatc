@@ -20,7 +20,7 @@ class Terminal:
     terminal = True
 
     @staticmethod
-    def menu(mänx: Mänx,
+    def menu(mänx: Opt[Mänx],
              optionen: list[MenuOption[T]],
              frage: str = "",
              gucken: Optional[Sequence[str]] = None,
@@ -62,7 +62,7 @@ class Terminal:
                 else:
                     print("Hier gibt es nichts zu sehen")
 
-            elif not Terminal.spezial_taste(mänx, eingabe, save) and eingabe:
+            elif not (mänx and Terminal.spezial_taste(mänx, eingabe, save)) and eingabe:
                 try:
                     return optionen[int(eingabe) - 1][2]
                 except (IndexError, ValueError):
@@ -76,7 +76,7 @@ class Terminal:
                           ",".join(o for o, v in kandidaten))
 
     @staticmethod
-    def minput(mänx: Mänx, frage: str, möglichkeiten=None, lower=True,
+    def minput(mänx: Opt[Mänx], frage: str, möglichkeiten=None, lower=True,
                save: Opt[Speicherpunkt] = None) -> str:
         """Manipulierter Input
         Wenn möglichkeiten (in kleinbuchstaben) gegeben, dann muss die Antwort eine davon sein."""
@@ -88,7 +88,7 @@ class Terminal:
             taste = input(frage)
             if lower:
                 taste = taste.lower()
-            if Terminal.spezial_taste(mänx, taste, save=save):
+            if mänx and Terminal.spezial_taste(mänx, taste, save=save):
                 pass
             elif not möglichkeiten or taste in möglichkeiten:
                 return taste

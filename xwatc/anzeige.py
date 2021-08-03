@@ -95,7 +95,7 @@ class XwatcFenster:
             text = "\n" + text
         self.buffer.insert(self.buffer.get_end_iter(), text)
 
-    def minput(self, mänx: system.Mänx, frage: str, möglichkeiten=None,
+    def minput(self, _mänx, frage: str, möglichkeiten=None,
                lower=True,
              save: Opt[system.Speicherpunkt] = None) -> str:
         self.malp(frage)
@@ -118,7 +118,7 @@ class XwatcFenster:
         self.grid.add(entry)
 
     def menu(self,
-             mänx: system.Mänx,
+             _mänx,
              optionen: list[system.MenuOption[T]],
              frage: str = "",
              gucken: Opt[Sequence[str]] = None,

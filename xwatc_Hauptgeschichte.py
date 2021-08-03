@@ -1,13 +1,37 @@
-
+import pickle
 from xwatc.lg.norden import norden
 from xwatc.lg.westen import westen
 from xwatc.lg.osten import osten
 from xwatc.lg.süden import süden
-from xwatc.system import Mänx, minput, Spielende, mint, malp
+from xwatc.system import Mänx, minput, Spielende, mint, malp, SPEICHER_VERZEICHNIS
 import random
+from xwatc import system
+from pathlib import Path
+from typing import Optional as Opt
+
+
+def hauptmenu() -> None:
+    while True:
+        mgn1 = [("Lade Spielstand","lade", False), ("Neuer Spielstand","neu", True)]
+        if system.ausgabe.menu(None, mgn1):
+            main(Mänx())
+            return
+        mgn2: list[tuple[str, str, Opt[Path]]] = [
+            (path.name, path.name.lower(), path) for path in
+            SPEICHER_VERZEICHNIS.iterdir()
+        ]
+        mgn2.append(("Zurück", "zurück", None))
+        wahl = system.ausgabe.menu(None, mgn2)
+        if wahl:
+            with wahl.open("rb") as file:
+                mänx = pickle.load(file)
+                assert isinstance(mänx, Mänx)
+            main(mänx)
+            return
 
 
 def waffe_wählen(mänx: Mänx):
+    mint("Du wirst nun einem kleinen Persönlichkeitstest unterzogen.")
     if mänx.ausgabe.terminal:
         mgn = None
     else:
@@ -18,7 +42,7 @@ def waffe_wählen(mänx: Mänx):
         malp("Nun, eigentlich ist es egal was du sein willst.")
         malp("So oder so, du bist ein Mensch vom Volke der Arak.")
         mint("Im Laufe des Spieles kannst du allerdings weitere Spezies "
-              "und Völker freischalten!")
+             "und Völker freischalten!")
 
         if mänx.ja_nein("Naja, willst du eigentlich ein Mensch sein?"):
             malp("Na, dann ist ja alles gut.")
@@ -28,23 +52,23 @@ def waffe_wählen(mänx: Mänx):
                 malp("Tja, Pech gehabt. Du bist trotzdem einer.")
             else:
                 malp("Na gut. "
-                      "Dann bist du eben eine seltene Lavaschnecke. "
-                      "Das hast du nun von deinem Gejammer!")
+                     "Dann bist du eben eine seltene Lavaschnecke. "
+                     "Das hast du nun von deinem Gejammer!")
                 mänx.rasse = "Lavaschnecke"
     else:
         malp("Du wärst sowieso ein Mensch geworden.")
 
-    waffe = mänx.minput("Wähle zwischen Schwert, Schild und Speer: ", 
+    waffe = mänx.minput("Wähle zwischen Schwert, Schild und Speer: ",
                         ["Schwert", "Speer", "Schild"])
     if waffe == "speer":
         malp("Du hast den Speer aufgenommen.")
     elif waffe == "schild":
         malp("Du hast den Schild aufgenommen. Das könnte sowohl eine gute als auch eine "
-              "schlechte Wahl gewesen sein.")
+             "schlechte Wahl gewesen sein.")
     elif waffe == "schwert":
         malp("Jetzt bist du der Besitzer eines Schwertes namens Seralic. "
-              "Möglicherweise erweist es sich ja "
-              "als magisches Schwert.")
+             "Möglicherweise erweist es sich ja "
+             "als magisches Schwert.")
     elif not waffe:
         malp("Du wählst nicht? Ok.")
         waffe = "leere"
@@ -53,17 +77,23 @@ def waffe_wählen(mänx: Mänx):
         waffe = "Leere"
     mänx.inventar[waffe.capitalize()] += 1
     malp(f"Übrigens, dein Inventar enthält jetzt: {mänx.inventar_zeigen()}. "
-          "(Mit der Taste e kannst du dein Inventar überprüfen.)")
+         "(Mit der Taste e kannst du dein Inventar überprüfen.)")
 
 
 def main(mänx: Mänx):
-    malp("Willkommen bei Xwatc")
-    mint("Du wirst nun einem kleinen Persönlichkeitstest unterzogen.")
+    if not mänx.speicherpunkt:
+        malp("Willkommen bei Xwatc")
     ende = False
     while not ende:
-        waffe_wählen(mänx)
+        if not mänx.speicherpunkt:
+            waffe_wählen(mänx)
         try:
-            himmelsrichtungen(mänx)
+            if callable(mänx.speicherpunkt):
+                mänx.speicherpunkt(mänx)
+            elif mänx.speicherpunkt:
+                mänx.speicherpunkt.main(mänx)
+            else:
+                himmelsrichtungen(mänx)
         except Spielende:
             malp("Du bist tot")
             ende = True
@@ -79,20 +109,20 @@ def main(mänx: Mänx):
 
 def himmelsrichtungen(mänx: Mänx):
     richtung = mänx.minput("Wohin gehst du jetzt? "
-                      "In Richtung Norden ist das nächste Dorf, im Süden warten "
-                      "Monster auf dich, im Westen liegt "
-                      "das Meer und der Osten ist unentdeckt"
-                      ".", ["Norden", "Osten", "Süden", "Westen"],
-                      save=himmelsrichtungen)
+                           "In Richtung Norden ist das nächste Dorf, im Süden warten "
+                           "Monster auf dich, im Westen liegt "
+                           "das Meer und der Osten ist unentdeckt"
+                           ".", ["Norden", "Osten", "Süden", "Westen"],
+                           save=himmelsrichtungen)
     if richtung == "norden":
         norden.norden(mänx)
     elif richtung == "osten":
         osten.osten(mänx)
     elif richtung == "süden":
         süden.süden(mänx)
-    else: # if richtung == "westen":
+    else:  # if richtung == "westen":
         westen.westen(mänx)
 
 
 if __name__ == '__main__':
-    main(Mänx())
+    hauptmenu()

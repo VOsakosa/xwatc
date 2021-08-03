@@ -197,9 +197,11 @@ class Mänx(InventarBasis, Persönlichkeit):
         return self.lebenswille > 0
 
     def minput(self, *args, **kwargs):
+        self.speicherpunkt = None
         return self.ausgabe.minput(self, *args, **kwargs)
 
     def ja_nein(self, *args, **kwargs):
+        self.speicherpunkt = None
         return self.ausgabe.ja_nein(self, *args, **kwargs)
 
     def menu(self,
@@ -217,6 +219,7 @@ class Mänx(InventarBasis, Persönlichkeit):
         erlaubt Eingaben 1, hau, hause für "Nach Hause gehen".
 
         """
+        self.speicherpunkt = None
         return ausgabe.menu(self, optionen, frage, gucken, versteckt, save)
 
     def genauer(self, text: Sequence[str]) -> None:
@@ -317,13 +320,14 @@ class Mänx(InventarBasis, Persönlichkeit):
 
     def __setstate__(self, dct: dict):
         self.__dict__.update(dct)
-        self.anzeige = anzeige
+        self.ausgabe = ausgabe
 
     def save(self, punkt: HatMain | MänxFkt, name: Opt[str] = None) -> None:
         self.speicherpunkt = punkt
         SPEICHER_VERZEICHNIS.mkdir(exist_ok=True, parents=True)
         with open(SPEICHER_VERZEICHNIS / "welt.pickle", "wb") as write:
             pickle.dump(self, write)
+        self.speicherpunkt = None
 
 
 class Welt:
