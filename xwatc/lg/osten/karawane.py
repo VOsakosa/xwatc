@@ -51,7 +51,7 @@ class Angestellte(NSC):
     def __init__(self, lohn: int, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.lohn = lohn
-        self.dialog("lohn", "Über Lohn reden", type(self).lohn_reden)
+        # self.dialog("lohn", "Über Lohn reden", type(self).lohn_reden)
 
     def lohn_reden(self, mänx: Mänx):
         w = minput(

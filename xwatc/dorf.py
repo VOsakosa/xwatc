@@ -5,6 +5,7 @@ Seit 10.10.2020
 """
 from __future__ import annotations
 from enum import Enum
+import pickle
 import random
 from typing import List, Union, Callable, Dict, Tuple, Any, Iterator, Iterable
 from typing import Optional as Opt, Sequence
@@ -58,6 +59,7 @@ class NSC(system.InventarBasis):
         self.freundlich = freundlich
         self.dialoge: List[Dialog] = list(dlg()) if dlg else []
         self._dlg = dlg
+        self._static_dialoge: List[Dialog] = []
         self.dialog_anzahl: Dict[str, int] = {}
         self.fliehen_fn = fliehen
         self._ort = None
@@ -95,6 +97,11 @@ class NSC(system.InventarBasis):
             if not d.direkt and d.verfügbar(self, mänx):
                 yield d.zu_option()
 
+    def change_dlg(self, new_dlg: DialogErzeugerFn):
+        """Ändere die Dialoge auf eine neue Dlg-Funktion"""
+        self._dlg = new_dlg
+        self.dialoge[:] = new_dlg()
+
     def direkte_dialoge(self, mänx: system.Mänx) -> Iterator[Dialog]:
         for d in self.dialoge:
             if d.direkt and d.verfügbar(self, mänx):
@@ -118,7 +125,8 @@ class NSC(system.InventarBasis):
                                         dlg.geschichte_text)
             dlg_anzahl[dlg.name] = dlg_anzahl.setdefault(dlg.name, 0) + 1
             if dlg.gruppe:
-                dlg_anzahl[dlg.gruppe] = dlg_anzahl.setdefault(dlg.gruppe, 0) + 1
+                dlg_anzahl[dlg.gruppe] = dlg_anzahl.setdefault(
+                    dlg.gruppe, 0) + 1
             self.kennt_spieler = True
             return ans
         elif isinstance(option, Rückkehr):
@@ -207,7 +215,7 @@ class NSC(system.InventarBasis):
             start = False
         return ans
 
-    def sprich(self, text: str|Iterable[str|Malp], *args, **kwargs) -> None:
+    def sprich(self, text: str | Iterable[str | Malp], *args, **kwargs) -> None:
         """Minte mit vorgestelltem Namen"""
         if isinstance(text, str):
             system.sprich(self.name, text, *args, **kwargs)
@@ -216,7 +224,6 @@ class NSC(system.InventarBasis):
                 if isinstance(block, Malp):
                     block = block.text
                 system.sprich(self.name, block, *args, **kwargs)
-                    
 
     def add_freundlich(self, wert: int, grenze: int) -> None:
         """Füge Freundlichkeit hinzu, aber überschreite nicht die Grenze."""
@@ -226,6 +233,14 @@ class NSC(system.InventarBasis):
             self.freundlich = min(grenze, wert + self.freundlich)
         else:
             self.freundlich = max(grenze, wert + self.freundlich)
+
+    def dialog(self, *args, **kwargs) -> 'Dialog':
+        "Erstelle einen Dialog"
+        dia = Dialog(*args, **kwargs)
+        assert pickle.dumps(dia)
+        self._static_dialoge.append(dia)
+        self.dialoge.append(dia)
+        return dia
 
     def plündern(self, mänx: system.Mänx) -> Any:
         """Schiebe das ganze Inventar von NSC zum Mänxen."""
@@ -247,15 +262,17 @@ class NSC(system.InventarBasis):
             if self not in ort.menschen:
                 ort.menschen.append(self)
 
-    def __getstate__(self):
+    def __getstate__(self) -> dict:
         dct = self.__dict__.copy()
         del dct["dialoge"]
         return dct
 
-    def __setstate__(self, dct):
+    def __setstate__(self, dct: dict) -> None:
         self.__dict__.update(dct)
-        self.dialoge = list(self._dlg())
-        
+        self.dialoge = list(self._static_dialoge)
+        if self._dlg:
+            self.dialoge.extend(self._dlg())
+
 
 # Vorherige Dialoge, nur str für Name, sonst (name, mindestanzahl)
 VorList = List[Union[str, Tuple[str, int]]]
@@ -268,7 +285,7 @@ class Malp:
 
     def __call__(self, *__):
         malp(self.text, warte=self.warte)
-    
+
     def __str__(self) -> str:
         return self.text
 
@@ -295,7 +312,7 @@ class Dialog:
         Dialog("geld", "Gib mir Geld", "Hilfe!", "halloli",
                 effekt=lambda n,m: m.erhalte("Gold", n.gold, n))
         ```
-        
+
         :param name: Der kurze Name des Dialogs
         :param text: Der lange Text in der Option
         :param geschichte: Das, was beim Dialog passiert. Kann DialogFn sein
@@ -433,8 +450,8 @@ class Dorfbewohner(NSC):
             malp("Irgendwann ist dein Gegner bewusstlos.")
             if mänx.ja_nein("Schlägst du weiter bis er tot ist oder gehst du weg?"):
                 malp("Irgendwann ist der Arme tot. Du bist ein Mörder. "
-                      "Kaltblütig hast du dich dafür entschieden einen lebendigen Menschen zu töten."
-                      "", kursiv(" zu ermorden. "), "Mörder.")
+                     "Kaltblütig hast du dich dafür entschieden einen lebendigen Menschen zu töten."
+                     "", kursiv(" zu ermorden. "), "Mörder.")
             else:
                 malp("Du gehst weg.")
 
@@ -512,7 +529,7 @@ class Dorf:
 
     def main(self, mänx) -> None:
         malp(f"Du bist in {self.name}. Möchtest du einen der Orte betreten oder "
-              "draußen bleiben?")
+             "draußen bleiben?")
         orte: List[MenuOption[Opt[Ort]]]
         orte = [(ort.name, ort.name.lower(), ort) for ort in self.orte]
         orte.append(("Bleiben", "", self.orte[0]))

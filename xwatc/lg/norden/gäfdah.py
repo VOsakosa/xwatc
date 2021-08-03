@@ -85,7 +85,10 @@ def robert() -> NSC:
         vorstellen=["Ein sommersprössiger Junge von ca. 18 Jahren mit "
                     "kurzen, braunen Haaren steht an der Theke der Schmiede."])
     rob.inventar.update(STANDARDKLEIDUNG)
-    rob.dialog("helfen", '"Du siehst bedrückt aus. Kann ich dir helfen?"',
+    return rob
+
+def rob_dlg():
+    yield Dialog("helfen", '"Du siehst bedrückt aus. Kann ich dir helfen?"',
                ["Mein Bruder ist verschwunden.",
                 Malp(
                     'Du: "Wie heißt er? Ich melde mich, falls der Lümmel mir über den Weg läuft."'),
@@ -95,9 +98,8 @@ def robert() -> NSC:
                 "aber er wurde danach nicht mehr gefunden!",
                 "Er heißt Gaa. Alle sagen immer, er sieht mir sehr ähnlich."],
                "hallo")
-    rob.dialog("schmied", '"Wo ist der Schmied?"',
+    yield Dialog("schmied", '"Wo ist der Schmied?"',
                ["Der ist weiter hinten.", "...müsste er sein."])
-    return rob
 
 
 if __name__ == '__main__':

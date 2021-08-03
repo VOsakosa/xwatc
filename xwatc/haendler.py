@@ -1,6 +1,6 @@
 from typing import List, Optional as Op, NewType, Dict, cast, Tuple
 
-from xwatc.dorf import NSC, NSCOptionen, Rückkehr
+from xwatc.dorf import NSC, NSCOptionen, Rückkehr, DialogErzeugerFn
 from xwatc.system import Mänx, minput, ja_nein, get_classes, Inventar, malp
 
 ALLGEMEINE_PREISE = {
@@ -13,7 +13,7 @@ ALLGEMEINE_PREISE = {
     "Rose": 8,
     "Aorenblume": 80,
     "Atctenrose": 350
-    
+
 }
 Preis = NewType("Preis", int)
 Item = str
@@ -24,10 +24,11 @@ class Händler(NSC):
     def __init__(self, name, kauft: Op[List[Klasse]],
                  verkauft: Dict[Item, Tuple[int, int]], gold: int,
                  art="Händler", direkt_handeln: bool = False,
-                 startinventar: Op[Inventar] = None):
+                 startinventar: Op[Inventar] = None,
+                 dlg: Op[DialogErzeugerFn] = None):
         """Neuer Händler namens *name*, der Sachen aus den Kategorien *kauft* kauft.
         *verkauft* ist das Inventar. *gold* ist die Anzahl von Gold."""
-        super().__init__(name, art)
+        super().__init__(name, art, dlg=dlg)
         self.kauft = kauft
         # Anzahl, Preis
         self.verkauft: Dict[Item, int] = {}
@@ -185,5 +186,5 @@ class Händler(NSC):
                     return ans
             else:
                 malp("Nutze k [Anzahl] [Item] zum Kaufen, v zum Verkaufen, "
-                      "z für Zurück, a für eine Anzeige und "
-                      "nur k zum Kämpfen, p [Item] um nach dem Preis zu fragen.")
+                     "z für Zurück, a für eine Anzeige und "
+                     "nur k zum Kämpfen, p [Item] um nach dem Preis zu fragen.")
