@@ -305,22 +305,26 @@ SÜD_DORF_NAME = "Scherenfeld"
 @register("jtg:m:tobiac")
 class TobiacBerndoc(NSC):
     def __init__(self) -> None:
-        super().__init__("Tobiac Berndoc", "Orgelspieler")
-        cls = type(self)
-        self.dialog("orgel",
-                    '"Warum spielst du Orgel? Es ist doch nicht Gottesdienst gerade?"',
-                    cls.reden_orgel)
-        self.dialog("lernen",
+        super().__init__("Tobiac Berndoc", "Orgelspieler", dlg=self._tobias_dlg)
+    
+    @staticmethod
+    def _tobias_dlg():
+        cls = TobiacBerndoc
+        yield Dialog("orgel",
+                        '"Warum spielst du Orgel? Es ist doch nicht Gottesdienst gerade?"',
+                        cls.reden_orgel)
+        yield Dialog("lernen",
                     '"Kannst du mir beibringen, Orgel zu spielen?"',
                     cls.reden_lernen)
-        self.dialog("leo", '"Was ist dein Verhältnis zu Leo Berndoc?"',
+        yield Dialog("leo", '"Was ist dein Verhältnis zu Leo Berndoc?"',
                     cls.reden_leo).wenn_var("kennt:hexer")
-        self.dialog("wetter",
+        yield Dialog("wetter",
                     '"Wie findest du das Wetter heute?"', cls.reden_wetter)
-        self.dialog('ring',
+        yield Dialog('ring',
                     "Den Ring vorzeigen", cls.ring_zeigen).wenn(
                         lambda n, m: m.hat_item("Ring des Berndoc"))
-        self.dialog('wo', '"Wo bin ich?"', cls.reden_wo_bin_ich)
+        yield Dialog('wo', '"Wo bin ich?"', cls.reden_wo_bin_ich)
+        
 
     def kampf(self, mänx: Mänx) -> None:
         if mänx.hat_klasse("Waffe", "magische Waffe"):

@@ -80,7 +80,8 @@ class RuboicHätxrik(NSC):
             mänx.erhalte("Zähe Bohne", 1)
             mänx.erhalte("Äntorenmedaille", 1)
             if mänx.hat_fähigkeit("Schnellplündern"):
-                mint('Junger Mann: "Oh, Verdammt". Zwei junge Männer stehen eilig von ihren Stühlen auf.')
+                mint(
+                    'Junger Mann: "Oh, Verdammt". Zwei junge Männer stehen eilig von ihren Stühlen auf.')
                 sprich("Junger Mann", 'Ruboic hat schon wieder einen Anfall! Der Arzt hat ihm zwar gesagt, '
                                       'er soll mit dem Trinken aufhören, doch was hat er gemacht? Ach Verdammt, '
                                       'dieses Mal scheints wirklich richtig übel zu sein...', warte=True)

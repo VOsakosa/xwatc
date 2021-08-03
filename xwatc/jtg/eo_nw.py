@@ -101,18 +101,20 @@ def eo_flucht(mänx: Mänx):
     eo_ww_n(mänx)
 
 
-def eo_magierin() -> NSC:
-    def kampf(_nsc, _m):
-        mint("Du stürmst auf sie los. Aber ihre Umrisse verzerren sich, und "
-             "kaum versiehst du dich, steckt ein Messer von hinten in deiner "
-             "Brust.")
-        raise Spielende
-    n = NSC("Lisc Śńeazrm", "Eo-Magierin", kampf)
-    n.dialog("hallo", '"Hallo!"', [
+def mg_kampf(_nsc, _m):
+    mint("Du stürmst auf sie los. Aber ihre Umrisse verzerren sich, und "
+         "kaum versiehst du dich, steckt ein Messer von hinten in deiner "
+         "Brust.")
+    raise Spielende
+
+def _eo_magierin_dlg():
+    yield Dialog("hallo", '"Hallo!"', [
              "Nichts da 'Hallo'!", "Was suchst du hier?"])
-    n.dialog("gehe", '"Ich gehe ja schon!"', [
+    yield Dialog("gehe", '"Ich gehe ja schon!"', [
              "Ganz recht so. Komm nie wieder!"])
-    n.dialog("heiße", '"Ich heiße %&"%, wie heißt du?"', [
+    yield Dialog("heiße", '"Ich heiße %&"%, wie heißt du?"', [
         "Ich heiße Lisc.", "Mach, dass du wegkommst."
     ])
-    return n
+
+def eo_magierin() -> NSC:
+    return NSC("Lisc Śńeazrm", "Eo-Magierin", mg_kampf, dlg=_eo_magierin_dlg)

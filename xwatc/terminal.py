@@ -3,28 +3,31 @@ Anzeige von Xwatc durch das Terminal.
 """
 from __future__ import annotations
 import re
-from typing import Sequence, Optional, List, Mapping, TypeVar, TYPE_CHECKING
+from typing import (Sequence, Optional, List, Mapping,
+                    TypeVar, TYPE_CHECKING, Optional as Opt)
 from time import sleep
 __author__ = "jasper"
 
 if TYPE_CHECKING:
-    from xwatc.system import Mänx, MenuOption
+    from xwatc.system import Mänx, MenuOption, Speicherpunkt
 
 T = TypeVar("T")
+
 
 class Terminal:
     """Ausgaben über das Terminal"""
 
-    terminal = False
-    
+    terminal = True
+
     @staticmethod
-    def menu(mänx: Mänx,
+    def menu(mänx: Opt[Mänx],
              optionen: list[MenuOption[T]],
              frage: str = "",
              gucken: Optional[Sequence[str]] = None,
-             versteckt: Optional[Mapping[str, T]] = None) -> T:
+             versteckt: Optional[Mapping[str, T]] = None,
+             save: Opt[Speicherpunkt] = None) -> T:
         """Ähnlich wie Minput, nur werden jetzt Optionen als Liste gegeben.
-    
+
         Die Zuordnung geschieht in folgender Reihenfolge
         #. Versteckte Optionen
         #. Optionen
@@ -58,8 +61,8 @@ class Terminal:
                         print(zeile)
                 else:
                     print("Hier gibt es nichts zu sehen")
-    
-            elif not Terminal.spezial_taste(mänx, eingabe) and eingabe:
+
+            elif not (mänx and Terminal.spezial_taste(mänx, eingabe, save)) and eingabe:
                 try:
                     return optionen[int(eingabe) - 1][2]
                 except (IndexError, ValueError):
@@ -71,26 +74,28 @@ class Terminal:
                 else:
                     print("Es könnte eines davon sein:",
                           ",".join(o for o, v in kandidaten))
-    
-    
+
     @staticmethod
-    def minput(mänx: Mänx, frage: str, möglichkeiten=None, lower=True) -> str:
+    def minput(mänx: Opt[Mänx], frage: str, möglichkeiten=None, lower=True,
+               save: Opt[Speicherpunkt] = None) -> str:
         """Manipulierter Input
         Wenn möglichkeiten (in kleinbuchstaben) gegeben, dann muss die Antwort eine davon sein."""
         if not frage.endswith(" "):
             frage += " "
+        if möglichkeiten:
+            möglichkeiten = [m.lower() for m in möglichkeiten]
         while True:
             taste = input(frage)
             if lower:
                 taste = taste.lower()
-            if Terminal.spezial_taste(mänx, taste):
+            if mänx and Terminal.spezial_taste(mänx, taste, save=save):
                 pass
             elif not möglichkeiten or taste in möglichkeiten:
                 return taste
-    
-    
+
     @staticmethod
-    def spezial_taste(mänx: Mänx, taste: str) -> bool:
+    def spezial_taste(mänx: Mänx, taste: str,
+             save: Opt[system.Speicherpunkt] = None) -> bool:
         """Führe die Spezialaktion taste aus, oder gebe Falsch zurück."""
         from xwatc.system import Spielende
         from xwatc.untersystem import hilfe
@@ -102,12 +107,22 @@ class Terminal:
             print(mänx.missionen_zeigen())
         elif taste == "sterben":
             mänx.lebenswille = 0
+            print("Du fühlst dich schlapp. Das ist dein letztes Mal, das weißt du.")
         elif taste == "hilfe":
             print("Entkomme mit 'sofort sterben'. Nebeneffekt: Tod.")
             print("Wenn du einfach nur Hilfe zu irgendwas haben willst, schreibe"
                   " 'hilfe [frage]'.")
+        elif taste == "speichern" or taste.startswith("speichern "):
+            if save:
+                if taste == "speichern":
+                    mänx.save(save)
+                else:
+                    mänx.save(save, taste.split()[1])
+                print("Spiel gespeichert.")
+            else:
+                print("Hier kannst du nicht speichern.")
         elif taste.startswith("hilfe "):
-    
+
             args = taste[6:]
             if args.lower() in hilfe.HILFEN:
                 for line in hilfe.HILFEN[args.lower()]:
@@ -127,12 +142,12 @@ class Terminal:
         else:
             return False
         return True
-    
+
     @staticmethod
     def mint(*text):
         """Printe und warte auf ein Enter."""
         input(" ".join(str(t) for t in text))
-    
+
     @staticmethod
     def sprich(sprecher: str, text: str, warte: bool = False, wie: str = ""):
         if wie:
@@ -145,7 +160,7 @@ class Terminal:
                 print(end=word, flush=True)
                 sleep(0.05)
             print('«')
-    
+
     @staticmethod
     def malp(*text, sep=" ", end='\n', warte=False) -> None:
         """Angenehm zu lesender, langsamer Print."""
@@ -162,13 +177,15 @@ class Terminal:
             Terminal.mint(end)
         else:
             print(end=end)
-    
+
     @staticmethod
-    def ja_nein(mänx, frage):
+    def ja_nein(mänx, frage,
+                save: Opt[Speicherpunkt] = None):
         """Ja-Nein-Frage"""
-        ans = Terminal.minput(mänx, frage, ["j", "ja", "n", "nein"]).lower()
+        ans = Terminal.minput(
+            mänx, frage, ["j", "ja", "n", "nein"], save=save).lower()
         return ans == "j" or ans == "ja"
-    
+
     @staticmethod
     def kursiv(text: str) -> str:
         """Packt text so, dass es kursiv ausgedruckt wird."""

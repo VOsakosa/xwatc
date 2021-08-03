@@ -27,7 +27,7 @@ GEFUNDEN = "quest:saxaring:gefunden"
 
 @register("jtg:saxa")
 def erzeuge_saxa():
-    n = NSC("Saxa Kautohoa", "Holzfällerin",
+    return NSC("Saxa Kautohoa", "Holzfällerin",
             startinventar={
                 "Unterhose": 1,
                 "Hemd": 1,
@@ -38,15 +38,18 @@ def erzeuge_saxa():
                 "Hose": 1,
                 "Gold": 14,
             }, vorstellen=[
-                "Eine Holzfällerin von ungefähr 40 Jahren steht vor dir."])
-    n.dialog("hallo", "Hallo", ["Hallo, ich bin Saxa."])
-    n.dialog("bedrückt", "Bedrückt dich etwas?",
+                "Eine Holzfällerin von ungefähr 40 Jahren steht vor dir."],
+            dlg=saxa_dlg)
+
+def saxa_dlg():
+    yield Dialog("hallo", "Hallo", ["Hallo, ich bin Saxa."])
+    yield Dialog("bedrückt", "Bedrückt dich etwas?",
              [
                  "Ich habe beim Kräutersammeln meinen Ehering im Wald verloren.",
                  "Er hat uns beiden immer Glück gebracht.",
                  "Du bist doch ein Abenteurer, kannst du den Ring finden?"
              ], effekt=lambda n, m: m.welt.setze("quest:saxaring"))
-    n.dialog("wo", "Wo warst du Kräuter sammeln?",
+    yield Dialog("wo", "Wo warst du Kräuter sammeln?",
              ["Im Wald östlich von hier.",
               "Ein Pfad führt bis zur Stelle.",
               "Bei der Kreuzung musst du rechts abbiegen."], "bedrückt")
@@ -54,16 +57,15 @@ def erzeuge_saxa():
     def gefunden(n, m):
         n.add_freundlich(40, 100)
         n.erhalte("Saxas Ehering", von=m)
-    n.dialog("gefunden", "Ich habe deinen Ring gefunden.",
+    yield Dialog("gefunden", "Ich habe deinen Ring gefunden.",
              ["Danke!", "Das bedeutet uns sehr viel."],
              effekt=gefunden).wenn_var(GEFUNDEN).wenn(
                  lambda n, m: m.hat_item("Saxas Ehering"))
-    n.dialog("verloren", "Ich habe deinen Ring gefunden, aber wieder verloren.",
+    yield Dialog("verloren", "Ich habe deinen Ring gefunden, aber wieder verloren.",
              ["Was soll das jetzt heißen?", "Hast du ihn etwa verkauft?"],
              effekt=lambda n, m: n.add_freundlich(-30, -20)
              ).wenn_var(GEFUNDEN).wenn(
                  lambda n, m: not m.hat_item("Saxas Ehering"))
-    return n
 
 
 @weg.gebiet("jtg:mitose")
@@ -171,29 +173,32 @@ class Mädchen(haendler.Händler):
                 "Socke": 2,
                 "Schuh": 2,
                 "Lumpen": 1,
-        })
+        }, dlg=self.dlg_base)
         self.in_disnajenbum = True
-        self.dialog("hallo", "Hallo, kann ich dir helfen?", Mädchen.hallo)
-        self.dialog("rose", "Woher hast du die Rose?",
-                    ["Die Rosen wachsen hier im Wald, aber es ist gefährlich,"
-                     " sie zu holen."], "hallo")
-        self.dialog("woher", "Woher kommst du?",
-                    ["Ich komme aus Grökrakchöl, das liegt im Süden."],
-                    "hallo", wiederhole=1)
-        self.dialog("heißt", "Wie heißt du?", Mädchen.heißt, "hallo")
-        self.dialog("allein", "Warum bist du allein? Hast du einen Grund, nicht nach "
-                    "*Grökaköl zurückkehren zu können?",
-                    [
-                        Malp("Das Mädchen zögert etwas."),
-                        "Ich ...",
-                        "Ich bin geflohen. Nach dem Tod meiner Mutter hatte "
-                        "meine Familie finanzielle Schwierigkeiten.",
-                        "Ich sollte verheiratet werden.",
-                        "Darüber gerieten wir in Streit, und ich floh, um "
-                        "zu meinen Großeltern in Gibon zu kommen."
-                    ], "woher", min_freundlich=10, wiederhole=1)
-        self.dialog("helfen", "Das ist ja schrecklich! Ich helfe dir, nach "
-                    "Gibon zu kommen.", Mädchen.helfen, "allein")
+
+    @staticmethod
+    def dlg_base():
+        yield Dialog("hallo", "Hallo, kann ich dir helfen?", Mädchen.hallo)
+        yield Dialog("rose", "Woher hast du die Rose?",
+                     ["Die Rosen wachsen hier im Wald, aber es ist gefährlich,"
+                      " sie zu holen."], "hallo")
+        yield Dialog("woher", "Woher kommst du?",
+                     ["Ich komme aus Grökrakchöl, das liegt im Süden."],
+                     "hallo", wiederhole=1)
+        yield Dialog("heißt", "Wie heißt du?", Mädchen.heißt, "hallo")
+        yield Dialog("allein", "Warum bist du allein? Hast du einen Grund, nicht nach "
+                     "*Grökaköl zurückkehren zu können?",
+                     [
+                         Malp("Das Mädchen zögert etwas."),
+                         "Ich ...",
+                         "Ich bin geflohen. Nach dem Tod meiner Mutter hatte "
+                         "meine Familie finanzielle Schwierigkeiten.",
+                         "Ich sollte verheiratet werden.",
+                         "Darüber gerieten wir in Streit, und ich floh, um "
+                         "zu meinen Großeltern in Gibon zu kommen."
+                     ], "woher", min_freundlich=10, wiederhole=1)
+        yield Dialog("helfen", "Das ist ja schrecklich! Ich helfe dir, nach "
+                     "Gibon zu kommen.", Mädchen.helfen, "allein")
 
     def hallo(self, _mänx: Mänx):
         if self.hat_item("Rose"):
@@ -224,29 +229,28 @@ class Mädchen(haendler.Händler):
         ]
         antwort = mänx.menu(opts)  # TODO kaputt
         self.sprich(antwort)
-        self.werde_gefährte()
+        self.change_dlg(self.gefährte_dlg)
         mänx.add_gefährte(self)
 
-    def werde_gefährte(self):
-        """Mache das Mädchen zum Gefährten."""
-        self.dialoge.clear()
-        self.dialog("gibon", '"Wo ist Gibon eigentlich?"',
-                    ["In Tauern, direkt hinter der Grenze.",
-                     "Tauern liegt im Nordosten von Jotungard."])
-        self.dialog("umarmen", '"Kann ich dich umarmen?"', Mädchen.umarmen,
-                    min_freundlich=30)
-        self.dialog("großeltern", '"Wie sind deine Großeltern so?"',
-                    ["Mein Aba ist ein strenger Mann. Er schätzt Disziplin "
-                     "über alles, aber er ist eigentlich ganz nett.",
-                     "Meine Ama ist emotional sehr intelligent. Sie ergänzen "
-                     "sich echt gut.",
-                     "Ich habe sie selten gesehen, weil sie weit weg wohnen "
-                     "und sie meinen Vater nicht schätzten."
-                     ])
-        self.dialog("grökrakchöl", '„Hast du keine Bekannten mehr in Grökrakchöl?"',
-                    ["Nein, zumindest keine, die ich sehr gut kenne.",
-                     ])
-        self.dialog("waffe", '', [
+    @staticmethod
+    def gefährte_dlg():
+        yield Dialog("gibon", '"Wo ist Gibon eigentlich?"',
+                     ["In Tauern, direkt hinter der Grenze.",
+                      "Tauern liegt im Nordosten von Jotungard."])
+        yield Dialog("umarmen", '"Kann ich dich umarmen?"', Mädchen.umarmen,
+                     min_freundlich=30)
+        yield Dialog("großeltern", '"Wie sind deine Großeltern so?"',
+                     ["Mein Aba ist ein strenger Mann. Er schätzt Disziplin "
+                      "über alles, aber er ist eigentlich ganz nett.",
+                      "Meine Ama ist emotional sehr intelligent. Sie ergänzen "
+                      "sich echt gut.",
+                      "Ich habe sie selten gesehen, weil sie weit weg wohnen "
+                      "und sie meinen Vater nicht schätzten."
+                      ])
+        yield Dialog("grökrakchöl", '„Hast du keine Bekannten mehr in Grökrakchöl?"',
+                     ["Nein, zumindest keine, die ich sehr gut kenne.",
+                      ])
+        yield Dialog("waffe", '', [
             "Ich hätte gerne eine Waffe.",
             "Ich muss mich doch irgendwie wehren können."
             "Dann kann ich dir auch helfen."
@@ -303,14 +307,14 @@ class Mädchen(haendler.Händler):
 
     def vorstellen(self, mänx):
         malp("Am Wegesrand vor dem Dorfeingang siehst du ein Mädchen in Lumpen. "
-              "Sie scheint zu frieren.")
+             "Sie scheint zu frieren.")
 
     def get_preis(self, _) -> Preis:
         return Preis(0)
 
     def kampf(self, mänx: Mänx) -> None:
         malp("Das Mädchen ist schwach. Niemand hindert dich daran, sie "
-              "auf offener Straße zu schlagen.")
+             "auf offener Straße zu schlagen.")
         malp("Sie hat nichts außer ihren Lumpen.", end="")
         if self.hat_item("Rose"):
             malp(
