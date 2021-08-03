@@ -124,7 +124,7 @@ class Mänx(InventarBasis, Persönlichkeit):
         self.gebe_startinventar()
         self.gefährten: List['dorf.NSC'] = []
         self.titel: Set[str] = set()
-        self.lebenswille = 10
+        self.lebenspunkte = 100
         self.fähigkeiten: Set[str] = set()
         self.welt = Welt("bliblablux")
         self.missionen: List[None] = list()
@@ -177,9 +177,6 @@ class Mänx(InventarBasis, Persönlichkeit):
         self.inventar[item] += anzahl
         if von:
             von.inventar[item] -= anzahl
-
-    def will_weiterleben(self):
-        return self.lebenswille > 0
 
     def minput(self, *args, **kwargs):
         return self.ausgabe.minput(self, *args, **kwargs)
@@ -408,7 +405,45 @@ def minput(mänx: Mänx, frage: str, möglichkeiten=None, lower=True) -> str:
     return mänx.minput(frage, möglichkeiten, lower)
 
 
+<<<<<<< HEAD
 def mint(*text) -> None:
+=======
+def spezial_taste(mänx: Mänx, taste: str) -> bool:
+    """Führe die Spezialaktion taste aus, oder gebe Falsch zurück."""
+    if taste == "e":
+        print(mänx.inventar_zeigen())
+    elif taste == "ee":
+        print(mänx.erweitertes_inventar())
+    elif taste == "q":
+        print(mänx.missionen_zeigen())
+    elif taste == "hilfe":
+        print("Entkomme mit 'sofort sterben'. Nebeneffekt: Tod.")
+        print("Wenn du einfach nur Hilfe zu irgendwas haben willst, schreibe"
+              " 'hilfe [frage]'.")
+    elif taste.startswith("hilfe "):
+        args = taste[6:]
+        if args.lower() in hilfe.HILFEN:
+            for line in hilfe.HILFEN[args.lower()]:
+                print(line)
+        elif any(args == inv.lower() for inv in mänx.inventar
+                 ) and args in hilfe.ITEM_HILFEN:
+            lines = hilfe.ITEM_HILFEN[args]
+            if isinstance(lines, str):
+                print(lines)
+            else:
+                for line in lines:
+                    print(line)
+        else:
+            print("Keine Hilfe für", args, "gefunden.")
+    elif taste == "sterben" or taste == "sofort sterben":
+        raise Spielende()
+    else:
+        return False
+    return True
+
+
+def mint(*text):
+>>>>>>> refs/heads/kampf
     """Printe und warte auf ein Enter."""
     ausgabe.mint(*text)
 

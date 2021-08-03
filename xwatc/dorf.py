@@ -44,7 +44,8 @@ class NSC(system.InventarBasis):
                  direkt_reden: bool = False, freundlich: int = 0,
                  startinventar: Opt[Dict[str, int]] = None,
                  vorstellen: Opt[DialogGeschichte] = None,
-                 ort: Opt[weg.Wegkreuzung] = None):
+                 ort: Opt[weg.Wegkreuzung] = None,
+                 max_lp: Opt[int] = None):
         super().__init__()
         self.name = name
         self.art = art
@@ -59,6 +60,7 @@ class NSC(system.InventarBasis):
         self.fliehen_fn = fliehen
         self._ort = None
         self.ort = ort
+        self.max_lp = max_lp or 100
         if startinventar:
             for a, i in startinventar.items():
                 self.inventar[a] += i

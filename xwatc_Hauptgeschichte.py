@@ -64,8 +64,13 @@ def main(mänx: Mänx):
             malp("Du bist tot")
             ende = True
         else:
+<<<<<<< HEAD
             ende = not mänx.will_weiterleben()
         malp("Hier ist die Geschichte zu Ende.")
+=======
+            ende = False
+        print("Hier ist die Geschichte zu Ende.")
+>>>>>>> refs/heads/kampf
         if mänx.titel:
             malp("Du hast folgende Titel erhalten:", ", ".join(mänx.titel))
         if not ende:
