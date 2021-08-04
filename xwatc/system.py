@@ -185,11 +185,16 @@ class Mänx(InventarBasis, Persönlichkeit):
 
     def erhalte(self, item: str, anzahl: int = 1,
                 von: Optional[InventarBasis] = None):
+        """Transferiert Items in das Inventar des Mänxen und gibt das aus."""
         if von:
             anzahl = min(anzahl, von.inventar[item])
-            if not anzahl:
-                return
-        malp(f"Du erhältst {anzahl} {item}")
+        anzahl = max(anzahl, -self.inventar[item])
+        if not anzahl:
+            return
+        if anzahl > 0:
+            malp(f"Du erhältst {anzahl} {item}.")
+        else:
+            malp(f"Du gibst {anzahl} {item}.")
         self.inventar[item] += anzahl
         if von:
             von.inventar[item] -= anzahl
