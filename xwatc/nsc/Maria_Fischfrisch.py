@@ -1,8 +1,9 @@
 from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner, Rückkehr
 import xwatc.lg.norden
-from . Fischerfraumassaker import fischerfraumassaker
+from .Fischerfraumassaker import fischerfraumassaker
 from xwatc.haendler import Händler
 from xwatc.system import Mänx, malp, mint
+
 
 class Fischerfrau(Händler):
     def __init__(self):
@@ -14,11 +15,9 @@ class Fischerfrau(Händler):
 
     def kampf(self, mänx: Mänx) -> None:
         fischerfraumassaker(mänx)
-        
-        
+
     def vorstellen(self, mänx):
         malp("Die Fischerfrau verkauft Fische")
-    
 
     def reden(self, mänx: Mänx) -> Rückkehr:
         malp('An einem Stand verkauft eine alte Frau Fische. ')
@@ -36,15 +35,19 @@ class Fischerfrau(Händler):
             malp('"Schön, mein Kind."')
         elif opt == 2:
             mint('"Mir geht es gut. Wie geht es dir?"')
-            mänx.minput(mänx, "")
-            if k=="gut" or "sehr gut" or "super gut" or "wirklich gut" or "wirklich sehr gut":
+            k = mänx.minput(mänx, "")
+            if k in {"gut", "sehr gut", "super gut", "wirklich gut", "wirklich sehr gut",
+                     "unglaublich schlecht"}:
                 malp('"Das ist aber schön."')
+
+            elif k in {"krass", "hammermäßig", "geil", "super"}:
+                malp("Okeeey")
+
+            elif k in {"schlecht", "sehr schlecht", "super schlecht", "wirklich schlecht",
+                       "wirklich sehr schlecht", "unglaublich schlecht"}:
+                malp('"Das ist aber traurig."')
+
+
             else:
                 malp('"oh"')
         return Rückkehr.VERLASSEN
-        
-        
-
-
-
-

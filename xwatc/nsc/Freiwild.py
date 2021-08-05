@@ -90,7 +90,7 @@ class RuboicHätxrik(NSC):
                     mint("Du versuchst ihnen zu folgen, doch als du auf die Straße "
                          "trittst, sind sie bereits nicht mehr zu sehen.")
                     if ja_nein(mänx, "Gehst du zürück in die Taverne?"):
-                        mint("")
+                        mint("Du gehst zurück in die Taverne")
                     else:
                         pass
                 else:
