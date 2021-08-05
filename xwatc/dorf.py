@@ -20,7 +20,7 @@ __author__ = "jasper"
 
 
 NSCOptionen = Iterable[MenuOption[MänxFkt]]
-DialogFn = Callable[["NSC", system.Mänx], Union[None, bool, Fortsetzung, Rückkehr]]
+DialogFn = Callable[["NSC", system.Mänx], Union[None, bool, Fortsetzung, 'Rückkehr']]
 DialogErzeugerFn = Callable[[], Iterable['Dialog']]
 RunType = Union['Dialog', MänxFkt, 'Rückkehr']
 _MainOpts = List[MenuOption[RunType]]
@@ -110,11 +110,11 @@ class NSC(system.InventarBasis):
             if d.direkt and d.verfügbar(self, mänx):
                 yield d
 
-    def main(self, mänx: system.Mänx) -> Any:
+    def main(self, mänx: system.Mänx) -> Opt[Fortsetzung]:
         """Starte die Interaktion mit dem Mänxen."""
         if self.tot:
             mint(f"{self.name}s Leiche liegt still auf dem Boden.")
-            return
+            return None
         self.vorstellen(mänx)
         return self._main(mänx)
 
@@ -137,6 +137,8 @@ class NSC(system.InventarBasis):
         elif callable(option):
             ans = option(mänx)
             if isinstance(ans, Rückkehr):
+                return ans
+            elif ans:
                 return ans
             return Rückkehr.VERLASSEN
         else:
@@ -181,12 +183,16 @@ class NSC(system.InventarBasis):
             if warte:
                 mint()
 
-    def _main(self, mänx: system.Mänx) -> Any:
+    def _main(self, mänx: system.Mänx) -> Opt[Fortsetzung]:
         """Das Hauptmenu, möglicherweise ist Reden direkt an."""
         if self.direkt_reden:
             for dia in self.direkte_dialoge(mänx):
-                if self._run(dia, mänx) != Rückkehr.WEITER_REDEN:
-                    return
+                ans = self._run(dia, mänx)
+                if ans != Rückkehr.WEITER_REDEN:
+                    if isinstance(ans, Rückkehr):
+                        return None
+                    else:
+                        return ans
         while True:
             opts: _MainOpts
             opts = list(self.optionen(mänx))
@@ -195,7 +201,10 @@ class NSC(system.InventarBasis):
             else:
                 opts.append(("reden", "r", self.reden))
             ans = self._run(mänx.menu(opts, save=self), mänx)
-            if ans not in (Rückkehr.WEITER_REDEN, Rückkehr.ZURÜCK):
+            if isinstance(ans, Rückkehr):
+                if ans == Rückkehr.VERLASSEN:
+                    return None
+            else:
                 return ans
 
     def reden(self, mänx: system.Mänx) -> Rückkehr | Fortsetzung:
@@ -536,7 +545,7 @@ class Dorf:
             Ort("draußen", self, "Du bist draußen.")
         self.name = name
 
-    def main(self, mänx) -> None:
+    def main(self, mänx) -> Opt[Fortsetzung]:
         malp(f"Du bist in {self.name}. Möchtest du einen der Orte betreten oder "
              "draußen bleiben?")
         orte: List[MenuOption[Opt[Ort]]]
@@ -544,10 +553,17 @@ class Dorf:
         orte.append(("Bleiben", "", self.orte[0]))
         orte.append((f"{self.name} verlassen", "v", None))
         loc = mänx.menu(orte, frage="Wohin? ", save=self)
-        while loc:
+        while isinstance(loc, Ort):
             loc = self.ort_main(mänx, loc)
+        return loc
+    
+    def get_ort(self, name: str) -> Ort:
+        for ort in self.orte:
+            if ort.name.casefold() == name.casefold():
+                return ort
+        raise KeyError(f"In {self.name} unbekannter Ort {name}")
 
-    def ort_main(self, mänx, ort: Ort) -> Opt[Ort]:
+    def ort_main(self, mänx, ort: Ort) -> Opt[Ort | Fortsetzung]:
         ort.menschen[:] = filter(lambda m: not m.tot, ort.menschen)
         ort.beschreibe(mänx, None)
         if ort.menschen:
@@ -564,7 +580,11 @@ class Dorf:
         optionen.append(("Ort verlassen", "fliehen", None))
         opt = mänx.menu(optionen, save=self)  # TODO: Den Ort speichern
         if isinstance(opt, NSC):
-            opt.main(mänx)
+            ans = opt.main(mänx)
+            if isinstance(ans, Ort):
+                return ans
+            elif ans:
+                return ans
             return ort
         else:
             return opt

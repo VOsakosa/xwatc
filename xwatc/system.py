@@ -21,7 +21,7 @@ SPEICHER_VERZEICHNIS = Path(__file__).parent.parent / "xwatc_saves"
 
 
 MänxFkt = Callable[['Mänx'], Any]
-Fortsetzung = Union[MänxFkt, HatMain, 'weg.Wegpunkt']
+Fortsetzung = Union[MänxFkt, 'HatMain', 'weg.Wegpunkt']
 ITEMVERZEICHNIS, UNTERKLASSEN = lade_itemverzeichnis(
     Path(__file__).parent / "itemverzeichnis.txt")
 

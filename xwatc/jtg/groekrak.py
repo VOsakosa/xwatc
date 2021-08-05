@@ -55,7 +55,7 @@ def grökrak(mänx: Mänx):
     if mänx.ja_nein("Willst du die Festung betreten?"):
         gkrak = mänx.welt.get_or_else(
             "jgt:dorf:grökrakchöl", erzeuge_grökrak, mänx.welt)
-        gkrak.main(mänx)
+        gkrak.main(mänx)  # TODO Rückgabewert
 
 
 def erzeuge_grökrak(welt: Welt) -> HatMain:
@@ -145,7 +145,7 @@ def canna_kampf(canna: NSC, mänx: Mänx):
         canna.sprich("und den Stern!")
         malp("Die Welt verschwimmt vor dir.")
         from xwatc_Hauptgeschichte import himmelsrichtungen
-        return himmelsrichtungen(mänx)
+        return himmelsrichtungen
     else:
         canna.sprich("Wo sind meine Karten?")
         canna.sprich("Wo sind meine Karten?", wie="wimmernd")
