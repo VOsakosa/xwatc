@@ -4,7 +4,7 @@ from xwatc.lg.westen import westen
 from xwatc.lg.osten import osten
 from xwatc.lg.süden import süden
 from xwatc.system import Mänx, minput, Spielende, mint, malp, SPEICHER_VERZEICHNIS,\
-    MänxFkt, HatMain
+    MänxFkt, HatMain, Fortsetzung
 import random
 from xwatc import system
 from xwatc import weg
@@ -90,7 +90,7 @@ def main(mänx: Mänx):
     if not mänx.speicherpunkt:
         malp("Willkommen bei Xwatc")
     ende = False
-    punkt: Opt[HatMain | MänxFkt | weg.Wegpunkt] = mänx.speicherpunkt
+    punkt: Opt[Fortsetzung] = mänx.speicherpunkt
     while not ende:
         if not punkt:
             punkt = waffe_wählen

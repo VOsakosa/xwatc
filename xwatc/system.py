@@ -14,12 +14,14 @@ import typing
 if typing.TYPE_CHECKING:
     from xwatc import dorf
     from xwatc import anzeige
+    from xwatc import weg
 
 
 SPEICHER_VERZEICHNIS = Path(__file__).parent.parent / "xwatc_saves"
 
 
 MänxFkt = Callable[['Mänx'], Any]
+Fortsetzung = Union[MänxFkt, HatMain, 'weg.Wegpunkt']
 ITEMVERZEICHNIS, UNTERKLASSEN = lade_itemverzeichnis(
     Path(__file__).parent / "itemverzeichnis.txt")
 
@@ -144,7 +146,7 @@ class Mänx(InventarBasis, Persönlichkeit):
         self.missionen: List[None] = list()
         self.rasse = "Arak"
         self.context: Any = None
-        self.speicherpunkt: Opt[HatMain | MänxFkt] = None
+        self.speicherpunkt: Opt[Fortsetzung] = None
         self.speicherdatei_name = "welt"
 
     def hat_fähigkeit(self, name: str) -> bool:
@@ -322,6 +324,8 @@ class Mänx(InventarBasis, Persönlichkeit):
         return dct
 
     def __setstate__(self, dct: dict):
+        bsp = type(self)()
+        self.__dict__.update(bsp.__dict__)
         self.__dict__.update(dct)
         self.ausgabe = ausgabe
 

@@ -7,11 +7,12 @@ from __future__ import annotations
 from enum import Enum
 import pickle
 import random
-from typing import List, Union, Callable, Dict, Tuple, Any, Iterator, Iterable
+from typing import List, Union, Callable, Dict, Tuple, Any, Iterator, Iterable,\
+    cast
 from typing import Optional as Opt, Sequence
 from dataclasses import dataclass
 from xwatc.system import (mint, malp, schiebe_inventar, Spielende, MenuOption,
-                          sprich, kursiv, MänxFkt, Welt)
+                          sprich, kursiv, MänxFkt, Welt, Fortsetzung)
 from xwatc import system
 from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
 from xwatc import weg
@@ -19,7 +20,7 @@ __author__ = "jasper"
 
 
 NSCOptionen = Iterable[MenuOption[MänxFkt]]
-DialogFn = Callable[["NSC", system.Mänx], Opt[bool]]
+DialogFn = Callable[["NSC", system.Mänx], Union[None, bool, Fortsetzung, Rückkehr]]
 DialogErzeugerFn = Callable[[], Iterable['Dialog']]
 RunType = Union['Dialog', MänxFkt, 'Rückkehr']
 _MainOpts = List[MenuOption[RunType]]
@@ -118,7 +119,7 @@ class NSC(system.InventarBasis):
         return self._main(mänx)
 
     def _run(self, option: RunType,
-             mänx: system.Mänx) -> Rückkehr:
+             mänx: system.Mänx) -> Rückkehr | Fortsetzung:
         """Führe eine Option aus."""
         if isinstance(option, Dialog):
             dlg = option
@@ -145,36 +146,40 @@ class NSC(system.InventarBasis):
     def _call_geschichte(self, mänx: system.Mänx,
                          geschichte: DialogGeschichte,
                          text: Opt[Sequence[Union['Malp', str]]] = (),
-                         use_print: bool = False) -> Rückkehr:
-        ans = Rückkehr.WEITER_REDEN
+                         use_print: bool = False) -> Rückkehr | Fortsetzung:
+        ans: Rückkehr | Fortsetzung = Rückkehr.WEITER_REDEN
         if text:
-            if use_print:
-                for g in text:
-                    malp(g)
-            else:
-                for g in text:
-                    if isinstance(g, Malp):
-                        g()
-                    else:
-                        self.sprich(g)
+            self._call_inner(text, use_print)
         if callable(geschichte):
             ans2 = geschichte(self, mänx)
             if ans2 is False:
                 ans = Rückkehr.VERLASSEN
-            elif isinstance(ans2, Rückkehr):
-                ans = ans2
-        elif use_print:
-            for g in geschichte[:-1]:
-                malp(g)
-            mint(geschichte[-1])
+            elif ans2 is True or ans2 is None:
+                pass
+            else:
+                ans = cast(Union[Rückkehr,Fortsetzung], ans2)
         else:
-            for g in geschichte:
+            self._call_inner(geschichte, use_print, True)
+        return ans
+
+    def _call_inner(self, text: Sequence['Malp' | str], use_print: bool,
+                    warte: bool = True):
+        if isinstance(text, str):
+            if use_print:
+                malp(text)
+            else:
+                self.sprich(text)
+        elif use_print:
+            for g in text:
+                malp(g)
+        else:
+            for g in text:
                 if isinstance(g, Malp):
                     g()
                 else:
                     self.sprich(g)
-            mint()
-        return ans
+            if warte:
+                mint()
 
     def _main(self, mänx: system.Mänx) -> Any:
         """Das Hauptmenu, möglicherweise ist Reden direkt an."""
@@ -193,11 +198,11 @@ class NSC(system.InventarBasis):
             if ans not in (Rückkehr.WEITER_REDEN, Rückkehr.ZURÜCK):
                 return ans
 
-    def reden(self, mänx: system.Mänx) -> Rückkehr:
+    def reden(self, mänx: system.Mänx) -> Rückkehr | Fortsetzung:
         """Das Menu, wo nur reden möglich ist."""
         if not self.kennt_spieler:
             self.kennt_spieler = True
-        ans = Rückkehr.WEITER_REDEN
+        ans: Rückkehr | Fortsetzung = Rückkehr.WEITER_REDEN
         start = True
         for dia in self.direkte_dialoge(mänx):
             ans = self._run(dia, mänx)
