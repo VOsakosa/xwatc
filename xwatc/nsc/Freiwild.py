@@ -55,6 +55,7 @@ class RuboicHätxrik(NSC):
 
     @staticmethod
     def sgh(mänx):
+        gäfdah = mänx.welt.obj("Gäfdah")
         if ja_nein(mänx, "Durchsuchst du den Mann?"):
             mänx.erhalte("Äntorenmantel", 1)
             mänx.erhalte("Äntorenstiefel", 2)
@@ -92,7 +93,8 @@ class RuboicHätxrik(NSC):
                     if ja_nein(mänx, "Gehst du zürück in die Taverne?"):
                         mint("Du gehst zurück in die Taverne")
                     else:
-                        pass
+                        mint("Du bleibst draußen")
+                        return draußen(gäfdah)
                 else:
                     pass
             else:
