@@ -55,6 +55,7 @@ class RuboicHätxrik(NSC):
 
     @staticmethod
     def sgh(mänx):
+        gäfdah = mänx.welt.obj("Gäfdah")
         if ja_nein(mänx, "Durchsuchst du den Mann?"):
             mänx.erhalte("Äntorenmantel", 1)
             mänx.erhalte("Äntorenstiefel", 2)
@@ -77,7 +78,7 @@ class RuboicHätxrik(NSC):
             mänx.erhalte("Salzhering", 5)
             mänx.erhalte("Salzlachs", 3)
             mänx.erhalte("Salami", 3)
-            mänx.erhalte("Zähe Bohne", 1)
+            mänx.erhalte("Zähe Bohne", 2)
             mänx.erhalte("Äntorenmedaille", 1)
             if mänx.hat_fähigkeit("Schnellplündern"):
                 mint(
@@ -93,7 +94,8 @@ class RuboicHätxrik(NSC):
                         mint("Du gehst zurück in die Taverne")
                         return mänx.context.get_ort("draußen")
                     else:
-                        pass
+                        mint("Du bleibst draußen")
+                        return draußen(gäfdah)
                 else:
                     pass
             else:

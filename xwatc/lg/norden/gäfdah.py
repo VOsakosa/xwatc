@@ -9,7 +9,7 @@ from xwatc.nsc.Bürger_von_Gäfdah import MartinPortulakk
 from xwatc.nsc.Freiwild import RuboicHätxrik
 
 
-GÄFDA_NAME = "Gäfda"
+GÄFDAH_NAME = "Gäfdah"
 STANDARDKLEIDUNG = {
     "Schuh": 2,
     "Socke": 2,
@@ -21,7 +21,7 @@ STANDARDKLEIDUNG = {
 
 
 def erzeuge_Gäfdah(mänx:  Mänx) -> Dorf:
-    d = Dorf(GÄFDA_NAME)
+    d = Dorf(GÄFDAH_NAME)
     kirche = Ort("Kirche", d, [
         "Du bist in einer Kirche.",
 
