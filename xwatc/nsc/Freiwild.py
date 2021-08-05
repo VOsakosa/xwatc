@@ -77,7 +77,7 @@ class RuboicHätxrik(NSC):
             mänx.erhalte("Salzhering", 5)
             mänx.erhalte("Salzlachs", 3)
             mänx.erhalte("Salami", 3)
-            mänx.erhalte("Zähe Bohne", 1)
+            mänx.erhalte("Zähe Bohne", 2)
             mänx.erhalte("Äntorenmedaille", 1)
             if mänx.hat_fähigkeit("Schnellplündern"):
                 mint(
