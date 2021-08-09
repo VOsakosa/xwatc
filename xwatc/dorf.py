@@ -106,6 +106,7 @@ class NSC(system.InventarBasis):
         self.dialoge[:] = new_dlg()
 
     def direkte_dialoge(self, mänx: system.Mänx) -> Iterator[Dialog]:
+        """Hole die Dialoge, die direkt abgespielt werden."""
         for d in self.dialoge:
             if d.direkt and d.verfügbar(self, mänx):
                 yield d
@@ -185,21 +186,21 @@ class NSC(system.InventarBasis):
 
     def _main(self, mänx: system.Mänx) -> Opt[Fortsetzung]:
         """Das Hauptmenu, möglicherweise ist Reden direkt an."""
-        if self.direkt_reden:
-            for dia in self.direkte_dialoge(mänx):
-                ans = self._run(dia, mänx)
-                if ans != Rückkehr.WEITER_REDEN:
-                    if isinstance(ans, Rückkehr):
-                        return None
-                    else:
-                        return ans
+        for dia in self.direkte_dialoge(mänx):
+            ans = self._run(dia, mänx)
+            if ans != Rückkehr.WEITER_REDEN:
+                if isinstance(ans, Rückkehr):
+                    return None
+                else:
+                    return ans
         while True:
             opts: _MainOpts
-            opts = list(self.optionen(mänx))
+            opts = list()
             if self.direkt_reden:
                 opts.extend(self.dialog_optionen(mänx))
             else:
                 opts.append(("reden", "r", self.reden))
+            opts.extend(self.optionen(mänx))
             ans = self._run(mänx.menu(opts, save=self), mänx)
             if isinstance(ans, Rückkehr):
                 if ans == Rückkehr.VERLASSEN:

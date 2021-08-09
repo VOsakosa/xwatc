@@ -18,7 +18,9 @@ KRIEGER_INVENTAR = {
     "Leibchen": 1,
     "Armband": 1,
     "Sandalen": 1,
-    "Gold": 10
+    "Gold": 10,
+    "Jubmumin-Premium-Karte": 1,
+    "Personalausweis": 1,
 }
 
 
@@ -66,10 +68,18 @@ def erzeuge_tauern(__) -> WegAdapter:
 
     zoll = weg.WegSperre(None, None, zoll_fn, zoll_fn)
     vorbrück.verbinde(zoll, "o", ziel="Über die Brücke")
-    
+
     hinterbrück = Wegkreuzung("hinterbrück", immer_fragen=True, w=zoll)
     hinterbrück.add_beschreibung("Vor dir liegt nun Tauern.", "w")
     hinterbrück.add_beschreibung("Du kommst an eine Zollbrücke.", "o")
+
+    # Der Wächter ist da, wo der Mänx ist.
+    def bewege(ort):
+        def inner(m: Mänx):
+            m.welt.obj("jtg:tau:wächter").ort = ort
+        return inner
+    vorbrück.add_effekt(bewege(vorbrück))
+    hinterbrück.add_effekt(bewege(hinterbrück))
 
     return ein_adap
 
@@ -93,10 +103,39 @@ class Zollwärter(NSC):
     """Der Zollwärter bewacht die Brücke."""
 
     def __init__(self):
-        super().__init__("Federico", "Pestalozzi",
+        super().__init__("Federico Pestalozzi", "Zollbeamter",
                          startinventar=KRIEGER_INVENTAR)
         self.inventar["Uniform"] += 1
         self.rasse = "Mumin"
+        self.dialog("hallo", "Hallo", "Muin.")
+        self.dialog("wer", "Wer sind Sie?", 
+                    ["Ich bin Pestalozzi, Zollbeamter, und bewache diese Brücke.",
+                     "Wenn Sie zahlen, lasse ich Sie gerne 'rüber."])
+        self.dialog("kosten", "Wie viel kostet der Übergang", 
+                    f"Es kostet {ZOLL_PREIS} pro Person.")
+        self.dialog("teuer", "Das ist aber teuer!", [
+            "Tut mir leid, das sind die Regeln.",
+            "Sie mögen das teuer finden, aber es ist schön einfach.",
+            f"Sie wollen nach Tauern, dann zahlen Sie {ZOLL_PREIS} Gold.",
+            "Es gibt keine Tageskarte, Jahreskarte, Kinderkarte oder Jubmumin-Premium-Karte.",
+            "Dafür brauchen Sie keinen Ausweis, Reisepass, Impfpass, "
+            "Magierlizenz, Asylverfahren "
+            "oder Flohlosigkeitsnachweis.",
+            "Wir machen keine Fieberkontrolle und durchsuchen nicht Ihr Gepäck.",
+            "Und das alles sparen Sie sich und wir fordern nur etwas Gold."
+            ], "kosten")
+        
+        self.dialog("jubmumin", "Eine Jubmumin-Premium-Karte?", [
+            "Nie davon gehört?", "Eine Sonderkarte für junge Mumin.",
+            "Sie sind allerdings wohl weder jung noch ein Mumin.",
+            "Außerdem sind diese Karten nicht übertragbar."
+            ], "teuer")
+        
+        self.dialog("ausreise", "Und die Ausreise?", [
+            f"Auch {ZOLL_PREIS} Gold.",
+            "Dafür gibt es aber keinen guten Grund.",
+            ], "kosten")
+        
 
 
 if __name__ == '__main__':
