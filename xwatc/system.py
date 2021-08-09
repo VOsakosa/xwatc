@@ -21,6 +21,7 @@ SPEICHER_VERZEICHNIS = Path(__file__).parent.parent / "xwatc_saves"
 
 
 MänxFkt = Callable[['Mänx'], Any]  # Recursive type not allowed
+MänxPrädikat = Callable[['Mänx'], bool]
 Fortsetzung = Union[MänxFkt, 'HatMain', 'weg.Wegpunkt']
 ITEMVERZEICHNIS, UNTERKLASSEN = lade_itemverzeichnis(
     Path(__file__).parent / "itemverzeichnis.txt")
@@ -59,17 +60,12 @@ class Persönlichkeit:
         self.hilfsbereischaft = 0
         self.mut = 0
 
-
-def _null_func():
-    return 0
-
-
 class InventarBasis:
     """Ein Ding mit Inventar"""
     inventar: Inventar
 
     def __init__(self):
-        self.inventar = defaultdict(_null_func)
+        self.inventar = defaultdict(int)
 
     def inventar_zeigen(self):
         ans = []
@@ -195,8 +191,10 @@ class Mänx(InventarBasis, Persönlichkeit):
             return
         if anzahl > 0:
             malp(f"Du erhältst {anzahl} {item}.")
+        elif item=="Gold":
+            malp(f"Du zahlst {-anzahl} Gold")
         else:
-            malp(f"Du gibst {anzahl} {item}.")
+            malp(f"Du gibst {-anzahl} {item}.")
         self.inventar[item] += anzahl
         if von:
             von.inventar[item] -= anzahl

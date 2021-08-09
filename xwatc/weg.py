@@ -12,7 +12,8 @@ from typing import (List, Any, Optional as Opt, cast, Iterable, Union, Sequence,
                     Collection, Callable, Dict, Tuple, NewType, Mapping,
                     overload)
 from typing import runtime_checkable, Protocol
-from xwatc.system import Mänx, MenuOption, MänxFkt, InventarBasis, malp, mint
+from xwatc.system import Mänx, MenuOption, MänxFkt, InventarBasis, malp, mint,\
+    MänxPrädikat
 from xwatc import dorf
 __author__ = "jasper"
 
@@ -476,16 +477,15 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                 continue
             if riabs == von:
                 if ri.zielname:
-                    yield (f"Zurück nach {ri.zielname}", "f", ri.ziel)
+                    yield (f"Zurück ({ri.zielname})", "f", ri.ziel)
                 else:
                     yield ("Umkehren", "f", ri.ziel)
             else:
                 if ri.zielname:
-                    ziel = ri.zielname + " im " + himri
+                    ziel = ri.zielname
                 else:
-                    ziel = himri
-                yield (cap(ri.typ.text(True, 4)) + " nach " + ziel,
-                       himri.lower(), ri.ziel)
+                    ziel = cap(ri.typ.text(True, 4)) + " nach " + himri
+                yield (ziel,himri.lower(), ri.ziel)
 
     def get_nachbarn(self)->List[Wegpunkt]:
         return [ri.ziel for ri in self.nachbarn.values() if ri]
@@ -592,8 +592,8 @@ class WegSperre(_Strecke):
     """
 
     def __init__(self, start: Opt[Wegpunkt], ende: Opt[Wegpunkt],
-                 hin: Opt[Callable[[Mänx], bool]] = None,
-                 zurück: Opt[Callable[[Mänx], bool]] = None):
+                 hin: Opt[MänxPrädikat] = None,
+                 zurück: Opt[MänxPrädikat] = None):
         super().__init__(start, ende)
         self.hin = hin
         self.zurück = zurück
