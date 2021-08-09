@@ -20,7 +20,7 @@ if typing.TYPE_CHECKING:
 SPEICHER_VERZEICHNIS = Path(__file__).parent.parent / "xwatc_saves"
 
 
-MänxFkt = Callable[['Mänx'], Any]
+MänxFkt = Callable[['Mänx'], Any]  # Recursive type not allowed
 Fortsetzung = Union[MänxFkt, 'HatMain', 'weg.Wegpunkt']
 ITEMVERZEICHNIS, UNTERKLASSEN = lade_itemverzeichnis(
     Path(__file__).parent / "itemverzeichnis.txt")
