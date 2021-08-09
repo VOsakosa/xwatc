@@ -549,7 +549,7 @@ class Dorf:
         malp(f"Du bist in {self.name}. Möchtest du einen der Orte betreten oder "
              "draußen bleiben?")
         orte: List[MenuOption[Opt[Ort]]]
-        orte = [(ort.name, ort.name.lower(), ort) for ort in self.orte]
+        orte = [(ort.name, ort.name.lower(), ort) for ort in self.orte[1:]]
         orte.append(("Bleiben", "", self.orte[0]))
         orte.append((f"{self.name} verlassen", "v", None))
         loc = mänx.menu(orte, frage="Wohin? ", save=self)
