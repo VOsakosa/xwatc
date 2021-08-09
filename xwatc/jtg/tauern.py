@@ -35,7 +35,8 @@ def rückweg(mänx: Mänx):
 
 
 @gebiet("jtg:tauern")
-def erzeuge_tauern(__) -> WegAdapter:
+def erzeuge_tauern(mänx: Mänx) -> WegAdapter:
+    import xwatc.jtg.gibon as __
     ein_adap = WegAdapter(None, rückweg)
     eintritt = Wegkreuzung("eintritt", sw=ein_adap)
     eintritt.add_beschreibung([
@@ -80,7 +81,11 @@ def erzeuge_tauern(__) -> WegAdapter:
         return inner
     vorbrück.add_effekt(bewege(vorbrück))
     hinterbrück.add_effekt(bewege(hinterbrück))
-
+    hinterbrück.verbinde_mit_weg(
+        mänx.welt.obj("jtg:tau:gibon").get_ort("Osttor"),
+        1.5,
+        richtung="o",
+        beschriftung_zurück="Jotungard")
     return ein_adap
 
 

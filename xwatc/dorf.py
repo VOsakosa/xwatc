@@ -514,6 +514,11 @@ class Ort(weg.Wegkreuzung):
             self.dorf = dorf
         if self.dorf:
             self.dorf.orte.append(self)
+    
+    def __sub__(self, anderer: Ort) -> Ort:
+        anderer.nachbarn[self.name] = weg.Richtung(self)
+        self.nachbarn[anderer.name] = weg.Richtung(anderer)
+        return anderer
 
     def verbinde(self,
                  anderer: weg.Wegpunkt, richtung: str="",
