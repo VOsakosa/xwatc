@@ -26,7 +26,7 @@ ADAPTER: Dict[str, 'WegAdapter'] = {}
 class Ereignis(enum.Enum):
     """Ereignisse sind Geschehnisse, die ein ganzer Ort mitbekommt. Dann kann
     der Ort darauf reagieren.
-    
+
     Z.B. wird bei Mord die Stadtwache alarmiert.
     """
     KAMPF = enum.auto()
@@ -51,6 +51,7 @@ class WegEnde:
 class Wegpunkt(Context, Protocol):
     """Wegpunkte sind die Einheiten im Wegegraph.
     """
+
     def get_nachbarn(self) -> List[Wegpunkt]:
         """Gebe eine Liste von Nachbarn aus, sprich Wegpunkte, die von
         hier aus erreichbar sind."""
@@ -66,6 +67,7 @@ class Wegpunkt(Context, Protocol):
 
 class _Strecke(Wegpunkt):
     """Abstrakte Basisklasse für Wegpunkte, die zwei Orte verbinden."""
+
     def __init__(self, p1: Opt[Wegpunkt], p2: Opt[Wegpunkt] = None):
         super().__init__()
         self.p1 = self._verbinde(p1)
@@ -253,9 +255,9 @@ class Beschreibung:
                             "sein.")
         self.nur = self._nur(nur)
         self.außer = self._nur(außer)
-        self.warten= warten
+        self.warten = warten
 
-    def beschreibe(self, mänx: Mänx, von: Opt[str]):
+    def beschreibe(self, mänx: Mänx, von: Opt[str]) -> Opt[Any]:
         if (not self.nur or von in self.nur) and (
                 not self.außer or von not in self.außer):
             if callable(self.geschichte):
@@ -299,7 +301,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
     """Eine Wegkreuzung enthält ist ein Punkt, wo
     1) mehrere Wege fortführen
     2) NSCs herumstehen, mit denen interagiert werden kann.
-    
+
     Hier passiert etwas.
     """
     OPTS = [4, 3, 5, 2, 6, 1, 7, 0]
@@ -371,11 +373,12 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                    warten: bool = True):
         """Füge eine Geschichte hinzu, die passiert, wenn der Ort betreten
         wird."""
-        self.beschreibungen.append(Beschreibung(geschichte, nur, außer, warten))
+        self.beschreibungen.append(
+            Beschreibung(geschichte, nur, außer, warten))
 
     def beschreibe(self, mänx: Mänx, richtung: Opt[int]):
         """Beschreibe die Kreuzung von richtung kommend.
-        
+
         Beschreibe muss idempotent sein, das heißt, mehrfache Aufrufe verändern
         die Welt nicht anders als ein einfacher Aufruf.
         """
@@ -535,7 +538,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                     ), "Überschreibt bisherigen Weg."
         self.nachbarn[richtung] = Richtung(weg, beschriftung_hin, typ=typ)
         nach.nachbarn[ri2] = Richtung(weg, beschriftung_zurück, typ=typ)
-    
+
     def get_state(self):
         """Wenn der Wegpunkt Daten hat, die über die Versionen behalten
         werden sollen."""
@@ -558,6 +561,50 @@ class WegAdapter(_Strecke):
             return WegEnde(self.zurück)
         assert self.p1, "Loses Ende"
         return self.p1
+
+
+class WegSperre(_Strecke):
+    """Eine Stelle, wo der Mänx nur manchmal vorbeikommt. Der Weg ist aber
+    sichtbar. Soll der Weg nicht sichtbar sein, so nutze stattdessen die
+    wenn-Funktion eines Wegpunkts.
+
+    ## Beispiel
+    ```
+        def durchgang(mänx):
+            malp("Eine kleine Klippe versperrt dir den Weg.")
+            if mänx.hat_fertigkeit("Klettern"):
+                malp("Du kletterst hoch")
+                return True
+            malp("Ohne klettern zu können, kommst du nicht hoch.")
+
+        def runter(mänx):
+            malp("Du springst eine kleine Klippe herunter.")
+            return True
+        WegSperre(None, None, runter, durchgang)
+    ```
+    """
+
+    def __init__(self, start: Opt[Wegpunkt], ende: Opt[Wegpunkt],
+                 hin: Opt[Callable[[Mänx], bool]] = None,
+                 zurück: Opt[Callable[[Mänx], bool]] = None):
+        super().__init__(start, ende)
+        self.hin = hin
+        self.zurück = zurück
+
+    def main(self, mänx: Mänx, von: Opt[Wegpunkt]) -> Union[Wegpunkt, WegEnde]:
+        assert self.p2
+        assert self.p1
+        if von is self.p1:
+            if self.hin and self.hin(mänx):
+                return self.p2
+            return self.p1
+        elif von is self.p2:
+            if self.zurück and self.zurück(mänx):
+                return self.p1
+            return self.p2
+        else:
+            # Strecke einfach so betreten?
+            return self.p1
 
 
 class Gebietsende(_Strecke):
