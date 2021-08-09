@@ -3,6 +3,7 @@ Anzeige für Xvatc
 """
 from __future__ import annotations
 from functools import wraps
+from xwatc.system import Fortsetzung
 __author__ = "jasper"
 import os
 import queue
@@ -45,7 +46,7 @@ class XwatcFenster:
     """Ein Fenster, um Xwatc zu spielen."""
     terminal: ClassVar[bool] = False
 
-    def __init__(self, app: Gtk.Application):
+    def __init__(self, app: Gtk.Application, startpunkt: Opt[Fortsetzung] = None):
         from xwatc_Hauptgeschichte import main as xw_main
         win = Gtk.ApplicationWindow()
         app.add_window(win)
@@ -60,6 +61,8 @@ class XwatcFenster:
         win.set_title("Xwatc")
         # Spiel beginnen
         self.mänx = system.Mänx(self)
+        if startpunkt:
+            self.mänx.speicherpunkt = startpunkt
         system.ausgabe = self
 
         def xwatc_main(mänx=self.mänx):
@@ -71,7 +74,7 @@ class XwatcFenster:
                                      + traceback.format_exc())
 
         threading.Thread(target=xwatc_main,
-                         name="Xwatc-Geschichte").start()
+                         name="Xwatc-Geschichte", daemon=True).start()
         win.show_all()
 
     @_idle_wrapper
@@ -178,10 +181,10 @@ class XwatcFenster:
         return text
 
 
-def main():
+def main(startpunkt: Opt[Fortsetzung] = None):
     global _main_thread
     app = Gtk.Application()
-    app.connect("activate", XwatcFenster)
+    app.connect("activate", XwatcFenster, startpunkt)
     _main_thread = threading.main_thread()
     app.run()
 
