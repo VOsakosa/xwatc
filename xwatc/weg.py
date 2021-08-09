@@ -472,7 +472,10 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
             if not ri:
                 continue
             if riabs == von:
-                yield ("Umkehren", himri.lower(), ri.ziel)
+                if ri.zielname:
+                    yield (f"Zurück nach {ri.zielname}", "f", ri.ziel)
+                else:
+                    yield ("Umkehren", "f", ri.ziel)
             else:
                 if ri.zielname:
                     ziel = ri.zielname + " im " + himri
@@ -523,7 +526,11 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                          beschriftung_hin: str = "",
                          beschriftung_zurück: str = "",
                          **kwargs):
-        """Verbinde zwei Kreuzungen mit einem Weg."""
+        """Verbinde zwei Kreuzungen mit einem Weg.
+        
+        :param nach: Zielpunkt
+        :param länge: Die Länge des Wegs in Stunden
+        """
 
         if richtung2 is None:
             ri = HIMMELSRICHTUNG_KURZ.index(richtung)

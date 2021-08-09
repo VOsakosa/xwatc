@@ -670,7 +670,31 @@ def t2_no(mänx):
 
 def tauern_ww_süd(mänx: Mänx):
     malp("Du folgst dem Weg sehr lange den Fluss aufwärts.")
-    mint("Da kommst du an eine Kreuzung. Ein Weg führt den Fluss weiter aufwärts")
+    malp("Da kommst du an eine Kreuzung. Ein Weg führt den Fluss weiter aufwärts.")
+    malp("Der Weg biegt nach links ab.")
+    malp("Du siehst einen Wegweiser: Rechts ins 'Land der aufrechten Kühe', links "
+         f"nach Disnayenbum. Du kommst von '{SÜD_DORF_NAME}'.")
+    opts = [("Nach rechts (Land der aufrechten Kühe)", "rechts", True),
+            ("Nach links (Disnayenbum)", "links", False)]
+    if mänx.menu(opts):
+        land_der_kühe(mänx)
+    else:
+        disnayenbum(mänx)
+
+def tauern_ww_no(mänx: Mänx):
+    malp("Du kommst an eine Wegkreuzung.")
+    malp(f"Links biegt ein Weg, den Fluss entlang, nach '{SÜD_DORF_NAME}' ab.")
+    malp("Dein Weg verlässt den Fluss in Richtung Disnayenbum.")
+    opts = [("Nach rechts (Disnayenbum)", "rechts", 1),
+            (f"Nach links ({SÜD_DORF_NAME})", "links", 2),
+            ("Zurück", "zurück", 0)]
+    a = mänx.menu(opts)
+    if a == 1:
+        disnayenbum(mänx)
+    elif a == 2:
+        süd_dorf(mänx)
+    else:
+        land_der_kühe(mänx)
 
 
 if __name__ == '__main__':
