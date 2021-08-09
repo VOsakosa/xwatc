@@ -87,11 +87,11 @@ def erzeuge_norddörfer(mänx: Mänx):
         weg.Weg(
             0.5, weg.WegAdapter(None, t2_norden, "jtg:mitose:nord")), "n")
 
-    kraut = Wegkreuzung(immer_fragen=True)
+    kraut = Wegkreuzung("kraut", immer_fragen=True)
     kraut.add_effekt(kräutergebiet)
-    kili = Wegkreuzung(immer_fragen=True)
+    kili = Wegkreuzung("kili", immer_fragen=True)
     kili.add_effekt(mänx.welt.obj("jtg:kiliwolf").main)
-    waldkreuz = Wegkreuzung()
+    waldkreuz = Wegkreuzung("waldkreuz")
     waldkreuz.add_beschreibung("Der Pfad gabelt sich.", nur="o")
     waldkreuz.add_beschreibung("Du kommst zurück an die Gabelung",
                                nur=["sw", "nw"])

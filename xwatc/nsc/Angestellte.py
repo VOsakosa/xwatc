@@ -5,7 +5,6 @@ from xwatc.system import (Mänx, minput, ja_nein, Spielende, mint, sprich, kursi
 from xwatc.lg.osten.karawane import Karawane, Angestellte
 from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner, Dialog
 import random
-from xwatc.jtg.tauern import land_der_kühe
 from xwatc.jtg import groekrak, see, nord
 from xwatc.haendler import Preis
 from xwatc.jtg.groekrak import zugang_südost

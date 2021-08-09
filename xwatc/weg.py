@@ -24,6 +24,11 @@ ADAPTER: Dict[str, 'WegAdapter'] = {}
 
 @enum.unique
 class Ereignis(enum.Enum):
+    """Ereignisse sind Geschehnisse, die ein ganzer Ort mitbekommt. Dann kann
+    der Ort darauf reagieren.
+    
+    Z.B. wird bei Mord die Stadtwache alarmiert.
+    """
     KAMPF = enum.auto()
     MORD = enum.auto()
     DIEBSTAHL = enum.auto()
@@ -37,12 +42,18 @@ class Context(Protocol):
 
 @dataclass
 class WegEnde:
+    """Markiert, dass das Wegsystem hier zu Ende ist und nichts mehr passiert.
+    """
     weiter: MänxFkt
 
 
 @runtime_checkable
 class Wegpunkt(Context, Protocol):
+    """Wegpunkte sind die Einheiten im Wegegraph.
+    """
     def get_nachbarn(self) -> List[Wegpunkt]:
+        """Gebe eine Liste von Nachbarn aus, sprich Wegpunkte, die von
+        hier aus erreichbar sind."""
         return []
 
     def main(self, mänx: Mänx, von: Opt[Wegpunkt]) -> Union[Wegpunkt, WegEnde]:
@@ -50,10 +61,11 @@ class Wegpunkt(Context, Protocol):
 
     def verbinde(self, anderer: Wegpunkt):
         """Verbinde den Wegpunkt mit anderer. Nur für Wegpunkte mit nur einer
-        Seite"""
+        Seite."""
 
 
 class _Strecke(Wegpunkt):
+    """Abstrakte Basisklasse für Wegpunkte, die zwei Orte verbinden."""
     def __init__(self, p1: Opt[Wegpunkt], p2: Opt[Wegpunkt] = None):
         super().__init__()
         self.p1 = self._verbinde(p1)
@@ -166,6 +178,8 @@ class Weg(_Strecke):
 
 
 class Wegtyp(enum.Enum):
+    """Ein Typ von Weg, mit entsprechenden autogenerierten Meldungen an
+    Kreuzungen."""
     STRASSE = "Straße", "f"
     ALTE_STRASSE = "alt# Straße", "f"
     WEG = "Weg", "m"
@@ -185,6 +199,7 @@ class Wegtyp(enum.Enum):
                 + " " + nom)
 
     def __format__(self, format_spec: str) -> str:
+        """Formattierung mit (Bestimmtheit)(Fall)[Großschreibung]"""
         if 2 <= len(format_spec) <= 3:
             fall = int(format_spec[1])
             if format_spec[0] == "g":
@@ -221,6 +236,7 @@ HIMMELSRICHTUNG_KURZ = ["n", "no", "o", "so", "s", "sw", "w", "nw"]
 
 
 class Beschreibung:
+    """Das Äquivalent von Dialogen für Wegpunkte."""
     geschichte: Union[Sequence[str], MänxFkt]
 
     def __init__(self,
@@ -262,6 +278,7 @@ class Beschreibung:
 
 
 def cap(a: str) -> str:
+    """Macht den ersten Buchstaben groß."""
     return a[:1].upper() + a[1:]
 
 
@@ -279,9 +296,16 @@ def _to_richtung(richtung: RiIn) -> Opt[Richtung]:
 
 
 class Wegkreuzung(Wegpunkt, InventarBasis):
+    """Eine Wegkreuzung enthält ist ein Punkt, wo
+    1) mehrere Wege fortführen
+    2) NSCs herumstehen, mit denen interagiert werden kann.
+    
+    Hier passiert etwas.
+    """
     OPTS = [4, 3, 5, 2, 6, 1, 7, 0]
 
     def __init__(self,
+                 name: str,
                  n: OpRiIn = _NSpec,
                  nw: OpRiIn = _NSpec,
                  no: OpRiIn = _NSpec,
@@ -307,6 +331,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         """
         # TODO gucken
         super().__init__()
+        self.name = name
         richtungen = [n, no, o, so, s, sw, w, nw]
         if andere:
             self.nachbarn = {name: _to_richtung(v)
@@ -327,6 +352,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         self.gucken = gucken
         self.immer_fragen = immer_fragen
         self.kreuzung_beschreiben = kreuzung_beschreiben
+        self._gebiet: Opt[str] = None
 
     def add_beschreibung(self,
                          geschichte: Union[Sequence[str], MänxFkt],
@@ -459,6 +485,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         return [ri.ziel for ri in self.nachbarn.values() if ri]
 
     def main(self, mänx: Mänx, von: Opt[Wegpunkt] = None) -> Wegpunkt:
+        """Fragt nach allen Richtungen."""
         richtung = None
         if von != self:
             if von:
@@ -508,6 +535,11 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                     ), "Überschreibt bisherigen Weg."
         self.nachbarn[richtung] = Richtung(weg, beschriftung_hin, typ=typ)
         nach.nachbarn[ri2] = Richtung(weg, beschriftung_zurück, typ=typ)
+    
+    def get_state(self):
+        """Wenn der Wegpunkt Daten hat, die über die Versionen behalten
+        werden sollen."""
+        return None
 
 
 class WegAdapter(_Strecke):

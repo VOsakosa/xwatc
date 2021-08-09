@@ -264,10 +264,13 @@ class NSC(system.InventarBasis):
 
     @property
     def ort(self)-> Opt[weg.Wegkreuzung]:
+        """Der Ort/Wegpunkt eines NSCs."""
         return self._ort
 
     @ort.setter
     def ort(self, ort: Opt[weg.Wegkreuzung]) -> None:
+        """Den Ort an einem NSC zu setzen, speichert ihn in die Liste der
+        NSCs an einem Ort."""
         if self._ort is not None:
             try:
                 self._ort.menschen.remove(self)
@@ -499,8 +502,7 @@ class Ort(weg.Wegkreuzung):
                   ])
         ```
         """
-        super().__init__(menschen=menschen)
-        self.name = name
+        super().__init__(name, menschen=menschen)
         if text:
             if isinstance(text, str):
                 text = [text]

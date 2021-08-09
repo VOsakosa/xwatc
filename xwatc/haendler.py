@@ -1,7 +1,8 @@
 from typing import List, Optional as Op, NewType, Dict, cast, Tuple
 
 from xwatc.dorf import NSC, NSCOptionen, Rückkehr, DialogErzeugerFn
-from xwatc.system import Mänx, minput, ja_nein, get_classes, Inventar, malp
+from xwatc.system import Mänx, minput, ja_nein, get_classes, Inventar, malp,\
+    Fortsetzung
 
 ALLGEMEINE_PREISE = {
     "Speer": 50,
@@ -131,7 +132,7 @@ class Händler(NSC):
         else:
             super()._main(mänx)
 
-    def handeln(self, mänx: Mänx) -> Rückkehr:
+    def handeln(self, mänx: Mänx) -> Rückkehr | Fortsetzung:
         """Lass Spieler mit Mänx handeln"""
         while True:
             mänx.tutorial("handel")

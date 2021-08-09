@@ -263,8 +263,8 @@ def lade_scenario(mänx, path):
 
 class ScenarioWegpunkt(weg.Wegkreuzung):
     """Macht ein Scenario zu einem Wegpunkt"""
-    def __init__(self, scenario: Union[str, Scenario], *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, name: str, scenario: Union[str, Scenario], *args, **kwargs):
+        super().__init__(name, *args, **kwargs)
         if isinstance(scenario, str):
             path = scenario
             if not path.endswith(".txt"):
@@ -274,7 +274,7 @@ class ScenarioWegpunkt(weg.Wegkreuzung):
         else:
             self.scenario = scenario
     
-    def main(self, mänx: Mänx, von: Op[weg.Wegpunkt]) -> weg.Wegpunkt:
+    def main(self, mänx: Mänx, von: Op[weg.Wegpunkt] = None) -> weg.Wegpunkt:
         # TODO von könnte für verschiedene Spawnpunkte genutzt werden
         ans = self.scenario.einleiten(mänx)
         if ans.tot:
