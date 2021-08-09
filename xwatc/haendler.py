@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import List, Optional as Op, NewType, Dict, cast, Tuple
 
 from xwatc.dorf import NSC, NSCOptionen, Rückkehr, DialogErzeugerFn

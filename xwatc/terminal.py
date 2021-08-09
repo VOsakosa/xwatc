@@ -105,9 +105,6 @@ class Terminal:
             print(mänx.erweitertes_inventar())
         elif taste == "q":
             print(mänx.missionen_zeigen())
-        elif taste == "sterben":
-            mänx.lebenswille = 0
-            print("Du fühlst dich schlapp. Das ist dein letztes Mal, das weißt du.")
         elif taste == "hilfe":
             print("Entkomme mit 'sofort sterben'. Nebeneffekt: Tod.")
             print("Wenn du einfach nur Hilfe zu irgendwas haben willst, schreibe"
