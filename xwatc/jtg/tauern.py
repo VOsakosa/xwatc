@@ -5,7 +5,7 @@ Created on 15.10.2020
 from xwatc import weg
 from xwatc.dorf import NSC
 __author__ = "jasper"
-from xwatc.system import Mänx, register
+from xwatc.system import Mänx, register, malp, Spielende
 from xwatc.weg import gebiet, WegAdapter, Wegkreuzung, Wegtyp
 
 ZOLL_PREIS = 10
@@ -110,13 +110,14 @@ class Zollwärter(NSC):
     def __init__(self):
         super().__init__("Federico Pestalozzi", "Zollbeamter",
                          startinventar=KRIEGER_INVENTAR)
+        self.gewarnt = False
         self.inventar["Uniform"] += 1
         self.rasse = "Mumin"
         self.dialog("hallo", "Hallo", "Muin.")
-        self.dialog("wer", "Wer sind Sie?", 
+        self.dialog("wer", "Wer sind Sie?",
                     ["Ich bin Pestalozzi, Zollbeamter, und bewache diese Brücke.",
                      "Wenn Sie zahlen, lasse ich Sie gerne 'rüber."])
-        self.dialog("kosten", "Wie viel kostet der Übergang", 
+        self.dialog("kosten", "Wie viel kostet der Übergang",
                     f"Es kostet {ZOLL_PREIS} pro Person.")
         self.dialog("teuer", "Das ist aber teuer!", [
             "Tut mir leid, das sind die Regeln.",
@@ -128,20 +129,55 @@ class Zollwärter(NSC):
             "oder Flohlosigkeitsnachweis.",
             "Wir machen keine Fieberkontrolle und durchsuchen nicht Ihr Gepäck.",
             "Und das alles sparen Sie sich und wir fordern nur etwas Gold."
-            ], "kosten")
-        
+        ], "kosten")
+
         self.dialog("jubmumin", "Eine Jubmumin-Premium-Karte?", [
             "Nie davon gehört?", "Eine Sonderkarte für junge Mumin.",
             "Sie sind allerdings wohl weder jung noch ein Mumin.",
             "Außerdem sind diese Karten nicht übertragbar."
-            ], "teuer")
-        
+        ], "teuer")
+
         self.dialog("ausreise", "Und die Ausreise?", [
             f"Auch {ZOLL_PREIS} Gold.",
             "Dafür gibt es aber keinen guten Grund.",
-            ], "kosten")
-        
+        ], "kosten")
 
+    def kampf(self, mänx: Mänx) -> None:
+        if self.gewarnt:
+            return self.kampf_gewarnt(mänx)
+        malp("Du stürmst auf das Zollhäuschen zu, ", end="")
+        waffe = mänx.hat_klasse("Waffe")
+        if waffe:
+            malp(f"mit dem {waffe} in der Hand.")
+        else:
+            malp(f"die Fäuste geballt.")
+        self.sprich("Halt!")
+        malp(f"{self.name} geht aus dem Zollhäuschen, die Axt erhoben.")
+        if mänx.ja_nein("Machst du weiter?"):
+            if mänx.hat_fähigkeit("Ausweichen"):
+                malp("Du weichst seinem ersten Hieb aus.", warte=True)
+                if waffe:
+                    malp("Dann streckst du ihn nieder.")
+                    self.tot = True
+                else:
+                    malp("Aber ewig kannst du ihm nicht ausweichen.")
+                    raise Spielende
+            else:
+                malp(f"Mit seiner enormen Größe hat {self.name} kein Problem "
+                     "deinen Schädel zu spalten, bevor du ihn erreichst.")
+                raise Spielende
+        else:
+            malp("Du erklärst, dass es alles nur ein Scherz war.")
+            self.sprich("Ein weiteres Mal wird es nicht geben!")
+            self.gewarnt = True
+    
+    def kampf_gewarnt(self, mänx: Mänx) -> None:
+        """Der Zöllner ist bereits gewarnt und kennt keine Gnade."""
+        malp("Du schickst dich gerade an, die Waffe herauszuholen...")
+        self.sprich("He!")
+        malp("da steckte dir schon eine Axt im Schädel...")
+        malp("Muminen sind nicht zu unterschätzen...")
+        raise Spielende
 
 if __name__ == '__main__':
     import xwatc.anzeige
