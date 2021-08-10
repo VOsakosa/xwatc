@@ -16,6 +16,8 @@ from xwatc.system import (mint, malp, schiebe_inventar, Spielende, MenuOption,
 from xwatc import system
 from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
 from xwatc import weg
+from xwatc.utils import UndPred
+from xwatc.weg import Himmelsrichtung
 __author__ = "jasper"
 
 
@@ -378,9 +380,7 @@ class Dialog:
         """Dieser Dialog soll nur aufrufbar sein, wenn die Funktion fn
         erfüllt ist."""
         if self.wenn_fn:
-            def neue_wenn(n, m, wf=self.wenn_fn):
-                return wf(n, m) and fn(n, m)
-            self.wenn_fn = neue_wenn
+            self.wenn_fn = UndPred(self.wenn_fn, fn)
         else:
             self.wenn_fn = fn
         return self
@@ -503,7 +503,7 @@ class Ort(weg.Wegkreuzung):
                   ])
         ```
         """
-        super().__init__(name, menschen=menschen)
+        super().__init__(name, menschen=menschen, immer_fragen=True)
         if text:
             if isinstance(text, str):
                 text = [text]
@@ -524,8 +524,8 @@ class Ort(weg.Wegkreuzung):
                  anderer: weg.Wegpunkt, richtung: str="",
                  typ: weg.Wegtyp=weg.Wegtyp.WEG, ziel: str=""):
         if isinstance(anderer, Ort) and not richtung:
-            anderer.nachbarn[self.name] = weg.Richtung(self)
-            self.nachbarn[anderer.name] = weg.Richtung(anderer)
+            anderer.nachbarn[Himmelsrichtung.from_kurz(self.name)] = weg.Richtung(self)
+            self.nachbarn[Himmelsrichtung.from_kurz(anderer.name)] = weg.Richtung(anderer)
         else:
             super().verbinde(anderer, richtung=richtung, typ=typ, ziel=ziel)
 

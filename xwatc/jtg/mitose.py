@@ -13,7 +13,7 @@ Links abbiegen führt zu Kiri-Wölfen=> Kampf
 
 """
 from xwatc.system import Mänx, register, malp, HatMain, mint
-from xwatc.dorf import NSC, Dorf, Malp, NSCOptionen
+from xwatc.dorf import NSC, Dorf, Malp, NSCOptionen, Dialog, Ort
 from xwatc import weg
 from xwatc import jtg
 from xwatc import haendler
@@ -86,6 +86,8 @@ def erzeuge_norddörfer(mänx: Mänx):
     mitose_ort.verbinde(
         weg.Weg(
             0.5, weg.WegAdapter(None, t2_norden, "jtg:mitose:nord")), "n")
+    hinterhof = Ort("Hinterhof", mitose, "Ein unkrautbewucherter Hinterhof des Rathaus.")
+    mitose_ort.verbinde(hinterhof)
 
     kraut = Wegkreuzung("kraut", immer_fragen=True)
     kraut.add_effekt(kräutergebiet)
