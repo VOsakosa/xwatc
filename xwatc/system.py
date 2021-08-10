@@ -21,6 +21,7 @@ SPEICHER_VERZEICHNIS = Path(__file__).parent.parent / "xwatc_saves"
 
 
 MänxFkt = Callable[['Mänx'], Any]  # Recursive type not allowed
+MänxPrädikat = Callable[['Mänx'], bool]
 Fortsetzung = Union[MänxFkt, 'HatMain', 'weg.Wegpunkt']
 ITEMVERZEICHNIS, UNTERKLASSEN = lade_itemverzeichnis(
     Path(__file__).parent / "itemverzeichnis.txt")
@@ -402,6 +403,11 @@ class Welt:
     def tick(self, uhr: float):
         """Lasse etwas Zeit vergehen."""
         self.tag += uhr
+    
+    def uhrzeit(self) -> tuple[int, int]:
+        stunde, rest = divmod(self.tag * 24, 1.)
+        minute = (rest * 60) % 1.
+        return int(stunde), int(minute)
 
 
 def schiebe_inventar(start: Inventar, ziel: Inventar):

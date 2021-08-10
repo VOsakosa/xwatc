@@ -2,7 +2,28 @@
 Generelles
 Created on 23.10.2020
 """
+from __future__ import annotations
+from typing import Sequence, Generic, TypeVar, Callable
 __author__ = "jasper"
+
+Pred = TypeVar("Pred", bound=Callable, covariant=True)
+
+class UndPred(Generic[Pred]):
+    """Verunde Prädikate."""
+    def __init__(self, *prädikate: Pred):
+        self.prädikate: list[Pred] = []
+        for p in prädikate:
+            if isinstance(p, UndPred):
+                self.prädikate.extend(p.prädikate)
+            else:
+                self.prädikate.append(p)
+    
+    def __call__(self, *args, **kwargs) ->  bool:
+        return all(p(*args, **kwargs) for p in self.prädikate)
+    
+    def __and__(self, other):
+        return Und(self, other)
+    
 
 
 def uartikel(geschlecht: str, fall: int = 1):
