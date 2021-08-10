@@ -8,7 +8,7 @@ if __name__ == "__main__":
 
 from xwatc import system, weg
 
-SCENARIO_ORT = os.path.join(os.path.dirname(__file__), "../scenarios")
+SCENARIO_ORT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../scenarios"))
 
 
 def supports_color():
