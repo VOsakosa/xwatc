@@ -85,17 +85,16 @@ class XwatcFenster:
     @_idle_wrapper
     def mint(self, *text):
         """Printe und warte auf ein Enter."""
-        self.add_text(" ".join(str(t) for t in text))
+        self.add_text(" ".join(str(t) for t in text) + "\n")
 
     @_idle_wrapper
     def sprich(self, sprecher: str, text: str, warte: bool = False, wie: str = ""):
         if wie:
             sprecher += f"({wie})"
-        self.add_text(f'{sprecher}: »{text}«')
+        self.add_text(f'{sprecher}: »{text}«\n')
 
     def add_text(self, text: str) -> None:
-        if self.buffer.get_end_iter().get_offset():
-            text = "\n" + text
+        """Füge Text hinzu."""
         self.buffer.insert(self.buffer.get_end_iter(), text)
 
     def minput(self, _mänx, frage: str, möglichkeiten=None,
@@ -119,6 +118,7 @@ class XwatcFenster:
         entry = Gtk.Entry(visible=True)
         entry.connect("activate", self.entry_activated)
         self.grid.add(entry)
+        entry.grab_focus()
 
     def menu(self,
              _mänx,
