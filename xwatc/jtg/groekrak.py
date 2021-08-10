@@ -2,7 +2,8 @@
 Die große Feste von Grökrakchöl mitsamt umliegender Landschaft und See.
 Created on 15.10.2020
 """
-from xwatc.dorf import Ort, NSC, Malp, Dorf
+from xwatc.dorf import Ort, NSC, Malp, Dorf, Dialog
+from typing import Iterator
 __author__ = "jasper"
 from xwatc.system import mint, Mänx, malp, HatMain, register, Welt
 
@@ -87,7 +88,7 @@ def özil() -> NSC:
     }, vorstellen=["Ein unsicher wirkender junger Kellner."], dlg=özil_dlg)
 
 
-def özil_dlg():
+def özil_dlg() -> Iterator[Dialog]:
 
     def bier(n: NSC, m: Mänx):
         n.sprich("Kommt sofort.")
@@ -111,7 +112,6 @@ def özil_dlg():
         "Grökrakchöl verlassen.",
         "Jetzt führt Frau Kloos den Laden."
     ])
-    return n
 
 
 @register("jtg:gr:kloos")
@@ -129,7 +129,7 @@ def kloos() -> NSC:
     }, dlg=kloos_dlg)
 
 
-def kloos_dlg():
+def kloos_dlg() -> Iterator[Dialog]:
     yield Dialog("hallo", "Hallo", "Bier gibt's beim Kellner")
 
 
@@ -168,7 +168,7 @@ def canna() -> NSC:
     }, dlg=canna_dlg)
 
 
-def canna_dlg():
+def canna_dlg() -> Iterator[Dialog]:
     yield Dialog("hallo", "Hallo", ["Hallöchen"], wiederhole=1)
     yield Dialog("hallo2", "Hallo?", ["Hallöchen, Hallo, Hallöchen! *Hust*"], "hallo")
     yield Dialog("zuschauen", "zuschauen", [
@@ -191,6 +191,7 @@ def carlo_kampf(n: NSC, m: Mänx):
     malp(f"{n.name} faucht")
     m.sleep(0.2)
     malp("Aber er scheint Gefallen an eurem Testkampf zu finden.")
+    m.sleep(0.5)
     malp("Jetzt ist Carlo müde.")
 
 
@@ -214,3 +215,7 @@ def carlo_dlg():
                  [Malp("Carlo frisst glücklich den Fisch.")],
                  effekt=fisch
                  ).wenn(lambda m, n: bool(m.hat_klasse("Fisch")))
+
+if __name__ == '__main__':
+    import xwatc.anzeige
+    xwatc.anzeige.main(zugang_ost)

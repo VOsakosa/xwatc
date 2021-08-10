@@ -67,6 +67,18 @@ class InventarBasis:
     def __init__(self):
         self.inventar = defaultdict(int)
 
+    def erhalte(self, item: str, anzahl: int = 1,
+                von: Optional[InventarBasis] = None):
+        """Transferiert Items in das Inventar des Mänxen und gibt das aus."""
+        if von:
+            anzahl = min(anzahl, von.inventar[item])
+        anzahl = max(anzahl, -self.inventar[item])
+        if not anzahl:
+            return
+        self.inventar[item] += anzahl
+        if von:
+            von.inventar[item] -= anzahl
+
     def inventar_zeigen(self):
         ans = []
         for item, anzahl in self.inventar.items():

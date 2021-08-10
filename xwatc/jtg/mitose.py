@@ -232,6 +232,7 @@ class Mädchen(haendler.Händler):
         antwort = mänx.menu(opts)  # TODO kaputt
         self.sprich(antwort)
         self.change_dlg(self.gefährte_dlg)
+        self.in_disnajenbum = False
         mänx.add_gefährte(self)
 
     @staticmethod
@@ -258,7 +259,7 @@ class Mädchen(haendler.Händler):
             "Dann kann ich dir auch helfen."
         ], direkt=True, wiederhole=0).wenn(
             lambda n, __: not n.hat_klasse("Waffe"))
-        self.in_disnajenbum = False
+        
 
     def optionen(self, mänx: Mänx) -> NSCOptionen:
         if self.in_disnajenbum:
