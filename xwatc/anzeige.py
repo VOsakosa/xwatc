@@ -2,6 +2,7 @@
 Anzeige für Xvatc
 """
 from __future__ import annotations
+from itertools import islice
 from functools import wraps
 from xwatc.system import Fortsetzung
 __author__ = "jasper"
@@ -10,11 +11,11 @@ import queue
 import threading
 from typing import (Tuple, List, Optional as Opt, TextIO, Mapping,
                     Protocol, Sequence, Any, get_type_hints, TypeVar, Callable,
-    ClassVar)
+                    ClassVar)
 import gi
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GLib
+from gi.repository import Gtk, GLib, Gdk
 
 from xwatc import system
 
@@ -23,6 +24,16 @@ Text = str
 minput_return: queue.Queue = queue.Queue(1)
 _main_thread: threading.Thread
 _XwatcThreadExit = object()
+
+KURZ_CODES = {
+    "f": ("fliehen","zurück"),
+    "r": ("reden",),
+    "k": ("kämpfen",),
+    "j": ("ja",),
+    "n": ("nein", "norden"),
+    "\r": ("weiter",),
+    "w": ("weiter",),
+}
 
 Tcall = TypeVar("Tcall", bound=Callable)
 T = TypeVar("T")
@@ -53,9 +64,11 @@ class XwatcFenster:
         textview = Gtk.TextView(hexpand=True, vexpand=True, editable=False)
         textview.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
         self.buffer = textview.get_buffer()
+        self.mgn: dict[str, Any] = {}
         self.grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
         self.grid.add(textview)
         win.connect("delete-event", self.fenster_schließt)
+        win.connect("key-press-event", self.key_pressed)
         win.add(self.grid)
         win.set_default_size(300, 300)
         win.set_title("Xwatc")
@@ -77,15 +90,20 @@ class XwatcFenster:
                          name="Xwatc-Geschichte", daemon=True).start()
         win.show_all()
 
-    @_idle_wrapper
     def malp(self, *text, sep=" ", end='\n', warte=False) -> None:
         """Zeigt *text* zusätzlich an."""
         self.add_text(sep.join(text) + end)
+        if warte:
+            self.auswahl([("weiter", None)])
+            if minput_return.get() is _XwatcThreadExit:
+                raise SystemExit
 
-    @_idle_wrapper
     def mint(self, *text):
         """Printe und warte auf ein Enter."""
         self.add_text(" ".join(str(t) for t in text) + "\n")
+        self.auswahl([("weiter", None)])
+        if minput_return.get() is _XwatcThreadExit:
+            raise SystemExit
 
     @_idle_wrapper
     def sprich(self, sprecher: str, text: str, warte: bool = False, wie: str = ""):
@@ -93,13 +111,14 @@ class XwatcFenster:
             sprecher += f"({wie})"
         self.add_text(f'{sprecher}: »{text}«\n')
 
+    @_idle_wrapper
     def add_text(self, text: str) -> None:
         """Füge Text hinzu."""
         self.buffer.insert(self.buffer.get_end_iter(), text)
 
     def minput(self, _mänx, frage: str, möglichkeiten=None,
                lower=True,
-             save: Opt[system.Speicherpunkt] = None) -> str:
+               save: Opt[system.Speicherpunkt] = None) -> str:
         self.malp(frage)
         if möglichkeiten is None:
             self.eingabe(prompt=None)
@@ -127,14 +146,15 @@ class XwatcFenster:
              gucken: Opt[Sequence[str]] = None,
              versteckt: Opt[Mapping[str, T]] = None,
              save: Opt[system.Speicherpunkt] = None) -> T:
-        self.auswahl([(name, value) for name, __, value in optionen])
+        self.auswahl([(name, value, shorthand)
+                      for name, shorthand, value in optionen])
         ans = minput_return.get()
         if ans is _XwatcThreadExit:
             raise SystemExit
         return ans
 
     def ja_nein(self, mänx: system.Mänx, frage: str,
-             save: Opt[system.Speicherpunkt] = None) -> bool:
+                save: Opt[system.Speicherpunkt] = None) -> bool:
         self.malp(frage)
         self.auswahl([("Ja", True), ("Nein", False)])
         ans = minput_return.get()
@@ -143,14 +163,44 @@ class XwatcFenster:
         return ans
 
     @_idle_wrapper
-    def auswahl(self, mgn: Sequence[Tuple[str, Any]]) -> None:
+    def auswahl(self, mgn: Sequence[Tuple[str, Any] | Tuple[str, Any, str]]) -> None:
         self._remove_choices()
-        for name, text in mgn:
+        self.mgn.clear()
+        for name, antwort, *short in mgn:
             button = Gtk.Button(label=name, visible=True)
             button.get_child().set_line_wrap(Gtk.WrapMode.WORD_CHAR)
             button.get_child().set_max_width_chars(70)
-            button.connect("clicked", self.button_clicked, text)
+            button.connect("clicked", self.button_clicked, antwort)
             self.grid.add(button)
+            if short:
+                name = short[0]
+            self.mgn[name.casefold()]  = antwort
+    
+    def key_pressed(self, _widget, event: Gdk.EventKey) -> bool:
+        """Ausgeführt, wenn eine Taste gedrückt wird."""
+        control = Gdk.ModifierType.CONTROL_MASK & event.state
+        taste = event.string
+        if not control:
+            if taste in self.mgn:
+                self.button_clicked(None, self.mgn[taste])
+                return True
+            if taste in KURZ_CODES:
+                for t in KURZ_CODES[taste]:
+                    if t in self.mgn:
+                        self.button_clicked(None, t)
+                        return True
+            if taste == '\r' and len(self.mgn) == 1:
+                self.button_clicked(None, next(iter(self.mgn.values())))
+            if len(taste) == 1 and ord('0') <= ord(taste) <= ord('9'):
+                nr = int(taste)
+                if nr == 0:
+                    nr = 10
+                try:
+                    self.button_clicked(None, next(islice(self.mgn.values(), nr-1, None)))
+                    return True 
+                except StopIteration:
+                    pass
+        return False
 
     def _remove_choices(self):
         # entferne buttons
@@ -162,7 +212,7 @@ class XwatcFenster:
             if isinstance(child, (Gtk.Button, Gtk.Entry)):
                 child.set_sensitive(False)
 
-    def button_clicked(self, _button: Gtk.Button, text: Any):
+    def button_clicked(self, _button: Any, text: Any) -> None:
         self._deactivate_choices()
         self.buffer.set_text("")
         minput_return.put(text)
@@ -174,9 +224,10 @@ class XwatcFenster:
 
     def fenster_schließt(self, _window: Gtk.Window, _event) -> bool:
         # TODO warnen wegen nicht gespeichert?
-        # TODO xwatc-thread umbringen
+        # xwatc-thread umbringen
+        minput_return.put(_XwatcThreadExit)
         return False
-    
+
     def kursiv(self, text: str) -> Text:
         return text
 
