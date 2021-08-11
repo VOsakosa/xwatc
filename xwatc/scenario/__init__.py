@@ -1,7 +1,18 @@
-from typing import List, Optional as Op, Union, NewType, Dict
+"""
+Scenario
+--------
+Bei einem Scenario wird der Mänx auf einer kleinen Karte eingeschlossen, auf
+der er sich bewegen kann und mit Objekten interagieren kann.
+
+ERLAUBT_FARBEN: Das Programm erkennt selbst, ob das Terminal Farben unterstützt.
+Je nachdem nutzt die Ausgabe auch verschiedene Zeichen.
+"""
+from __future__ import annotations
+from typing import List, Optional as Op, Union, NewType, Dict, Any
 import os.path
 from xwatc.system import Mänx, malp
 import sys
+from functools import lru_cache
 
 if __name__ == "__main__":
     sys.path.append("..")
@@ -33,11 +44,20 @@ FARBEN = {
     "gb": "1;33",
     "bn": "33",
 }
+FARBEN_RGB = {
+    "gn": (50,255,30),
+    "gu": (180,180,180),
+    "bu": (0,40,255),
+    "gb": (255,255,0),
+    "bn": (200,160, 80),
+}
 _SpielerTyp = NewType("_SpielerTyp", object)
 Spieler = _SpielerTyp(object())
 
 
 class ScenarioEnde:
+    """Der Rückgabewert eines Scenarios, ein Ergebnis, ein nächstes Scenario
+    oder der Tod des Spielers."""
     def __init__(self, tot=False, nächstes=None, ergebnis=None):
         self.tot = tot
         # Nächstes Scenario
@@ -45,14 +65,8 @@ class ScenarioEnde:
         # Scenario-Ergebnis
         self.ergebnis = ergebnis
 
-
-class Weg:
-    def __init__(self, wird_zu=None, feld=None):
-        self.wird_zu = wird_zu
-        self.feld = feld
-
-
-def _calc_zeichen(zeichen, farbe, ausweich):
+@lru_cache
+def _calc_zeichen(zeichen, farbe, ausweich) -> str:
     farbe = farbe.strip()
     if zeichen and farbe and ERLAUBT_FARBEN:
         return "\x1b[" + FARBEN[farbe] + "m" + zeichen + "\x1b[0m"
@@ -64,7 +78,8 @@ def _calc_zeichen(zeichen, farbe, ausweich):
 class Feld:
     obj: Union[ScenarioEnde, str, _SpielerTyp, None]
 
-    def __init__(self, boden: str = "",
+    def __init__(self,
+                 boden: str = "",
                  boden_zeichen: str = "",
                  boden_ausweich: str = "",
                  boden_farbe: str = "",
@@ -76,7 +91,6 @@ class Feld:
         boden = boden.strip()
         obj = obj.strip()
         self.boden = boden
-        self.boden_zeichen = boden_zeichen
         if obj.startswith('#'):
             self.obj = ScenarioEnde(ergebnis=obj[1:])
         elif obj == 'Spieler':
@@ -85,15 +99,24 @@ class Feld:
             self.obj = obj
         else:
             self.obj = None
-        self.zeichen = _calc_zeichen(zeichen, farbe, ausweich)
-        self.boden_zeichen = _calc_zeichen(boden_zeichen, boden_farbe, 
-                                           boden_ausweich)
+        self.zeichen = (_calc_zeichen(zeichen, farbe, ausweich),
+                        ausweich.strip(),
+                        FARBEN_RGB.get(farbe))
+        self.boden_zeichen = (
+            _calc_zeichen(boden_zeichen, boden_farbe, boden_ausweich),
+            boden_ausweich.strip(),
+            FARBEN_RGB.get(farbe))
         # self.obj_data = obj_data
 
-    def __str__(self):
-        if self.obj and self.zeichen and self.zeichen != " ":
-            return self.zeichen
-        return self.boden_zeichen
+    def __str__(self) -> str:
+        if self.obj and self.zeichen[0].strip():
+            return self.zeichen[0]
+        return self.boden_zeichen[0]
+
+    def draw(self) -> tuple[str, Op[tuple[int, int, int]]]:
+        if self.obj and self.zeichen[0].strip():
+            return self.zeichen[1:]
+        return self.boden_zeichen[1:]
 
     def treffe(self, mänx: Mänx, sc: 'Scenario') -> Union[bool, ScenarioEnde]:
         if isinstance(self.obj, ScenarioEnde):
@@ -142,6 +165,10 @@ def _strip_nl(line: str) -> str:
 
 
 class Scenario:
+    """Ein Scenario, auf dem der Mänx herumlaufen kann.
+    
+    Scenario.einleiten startet das Spiel.
+    """
     def __init__(self, name: str, feld: List[List[Feld]]) -> None:
         self.name = name
         self.anzeigename = name
@@ -160,6 +187,7 @@ class Scenario:
 
     @classmethod
     def laden(cls, pfad: str) -> 'Scenario':
+        """Lädt ein Scenario aus einer Datei, siehe auch lade_scenario()"""
         with open(pfad, "r") as p:
             lines = map(_strip_nl, p.readlines())
             sc_name = next(lines)
@@ -246,8 +274,10 @@ class Scenario:
         return ans
 
 
-def lade_scenario(mänx, path):
-    """Beispiel lade_scenario(mänx, "s1.txt")"""
+def lade_scenario(mänx: Mänx, path: str) -> Op[Any]:
+    """ Lädt ein Scenario mit Namen und führt es aus.
+    
+    Beispiel lade_scenario(mänx, "s1.txt")"""
     ans = ScenarioEnde(nächstes=path)
     while ans:
         if not path.endswith(".txt"):
