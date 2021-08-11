@@ -133,6 +133,7 @@ class XwatcFenster:
 
     @_idle_wrapper
     def eingabe(self, prompt: Opt[str]) -> None:
+        self.mgn.clear()
         self._remove_choices()
         entry = Gtk.Entry(visible=True)
         entry.connect("activate", self.entry_activated)
@@ -181,6 +182,8 @@ class XwatcFenster:
         control = Gdk.ModifierType.CONTROL_MASK & event.state
         taste = event.string
         if not control:
+            if not self.mgn:
+                return False
             if taste in self.mgn:
                 self.button_clicked(None, self.mgn[taste])
                 return True

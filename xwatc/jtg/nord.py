@@ -47,12 +47,13 @@ def kampf_in_disnayenbum(nsc: NSC, mänx: Mänx):
 class NoMuh(NSC):
     def __init__(self):
         super().__init__("No Muh", "Kuh", freundlich=-10,
-                         kampfdialog=kampf_in_disnayenbum, dlg=dlg)
+                         kampfdialog=kampf_in_disnayenbum, dlg=self.dlg)
         self.inventar["Glocke"] += 1
         self.verstanden = False
         self.letztes_melken: Optional[int] = None
 
-    def dlg(self):
+    @staticmethod
+    def dlg():
         return [
             Dialog("hallo", '"Hallo"', ("Hallo.",)),
             Dialog("futter", '"Was hättest du gerne zu essen?"',
@@ -218,16 +219,13 @@ def fred() -> NSC:
         "Da geht es nach Eo. Ich muss stark davon abraten, dahin zu gehen.",
         "Wenn Ihnen Ihr Leben lieb ist."
     ], "hallo")
-    return n
-
 
 @register("jtg:mieko")
 def mieko() -> NSC:
-    n = Dorfbewohner("Mìeko Rimàn", True, kampfdialog=kampf_in_disnayenbum,
+    return Dorfbewohner("Mìeko Rimàn", True, kampfdialog=kampf_in_disnayenbum,
                      vorstellen=[
                          "Ein Handwerker bastelt gerade an seiner Werkbank."],
-                     dlg=mieko_dlg)
-    n.inventar.update(dict(
+                     dlg=mieko_dlg, startinventar=dict(
         Banane=1,
         Hering=4,
         Karabiner=11,
@@ -240,8 +238,6 @@ def mieko() -> NSC:
         Unterhose=1,
         Gold=14
     ))
-
-    return n
 
 
 def mieko_dlg():
@@ -265,7 +261,6 @@ def mieko_dlg():
         "Und du warst plötzlich hier?",
         "Das ist aber interessant.",
     ]).wenn_var("jtg:flimmern")
-    return n
 
 
 @register("jtg:kirie")

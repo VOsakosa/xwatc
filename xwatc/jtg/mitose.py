@@ -322,10 +322,11 @@ class Mädchen(haendler.Händler):
         if self.hat_item("Rose"):
             malp(
                 ", die Blume, die sie dir verkaufen wollte, ist beim Kampf zertreten worden.")
+            del self.inventar["Rose"]
         else:
             malp(".")
-        del self.inventar["Rose"]
         self.plündern(mänx)
+        self.tot = True
 
     def verkaufen(self, mänx: Mänx, name: str, preis: Preis, anzahl: int=1)->bool:
         ans = super().verkaufen(mänx, name, preis, anzahl=anzahl)
