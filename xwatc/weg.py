@@ -532,7 +532,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                     ziel = cap(ri.typ.text(True, 4)) + f" nach {himri}"
                 else:
                     ziel = himri
-                yield (ziel,format(himri).lower(), ri.ziel)
+                yield (ziel, format(himri).lower(), ri.ziel)
 
     def _richtungen(self, mänx: Mänx, von: Opt[NachbarKey]
                     ) -> Iterator[tuple[Richtung, NachbarKey]]:
@@ -609,7 +609,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                          beschriftung_zurück: str = "",
                          **kwargs):
         """Verbinde zwei Kreuzungen mit einem Weg.
-        
+
         :param nach: Zielpunkt
         :param länge: Die Länge des Wegs in Stunden
         """

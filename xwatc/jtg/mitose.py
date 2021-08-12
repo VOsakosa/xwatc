@@ -69,7 +69,7 @@ def saxa_dlg():
 
 
 @weg.gebiet("jtg:mitose")
-def erzeuge_norddörfer(mänx: Mänx):
+def erzeuge_norddörfer(mänx: Mänx) -> weg.Wegpunkt:
     zur_mitte = weg.Gebietsende(
         None, "jtg:mitose", "mitose-mitte", "jtg:mitte")
     mitose = Dorf("Mitose")
@@ -100,6 +100,7 @@ def erzeuge_norddörfer(mänx: Mänx):
     kraut.verbinde_mit_weg(waldkreuz, 0.25, "so", typ=weg.Wegtyp.PFAD)
     kili.verbinde_mit_weg(waldkreuz, 0.35, "no", typ=weg.Wegtyp.PFAD)
     waldkreuz.verbinde_mit_weg(mitose_ort, 0.4, "o", typ=weg.Wegtyp.PFAD)
+    return mitose_ort
 
 
 def kräutergebiet(mänx: Mänx):

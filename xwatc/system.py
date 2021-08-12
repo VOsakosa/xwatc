@@ -11,6 +11,7 @@ from xwatc.untersystem.itemverzeichnis import lade_itemverzeichnis
 from xwatc.untersystem import hilfe
 from xwatc.terminal import Terminal
 import typing
+from xwatc.untersystem.verbrechen import Verbrechen
 if typing.TYPE_CHECKING:
     from xwatc import dorf
     from xwatc import anzeige
@@ -153,6 +154,7 @@ class Mänx(InventarBasis, Persönlichkeit):
         self.fähigkeiten: Set[str] = set()
         self.welt = Welt("bliblablux")
         self.missionen: List[None] = list()
+        self.verbrechen: defaultdict[Verbrechen, int] = defaultdict(int)
         self.rasse = "Arak"
         self.context: Any = None
         self.speicherpunkt: Opt[Fortsetzung] = None
@@ -253,7 +255,10 @@ class Mänx(InventarBasis, Persönlichkeit):
     def sleep(self, länge: float, pausenzeichen="."):
         # TODO: noch eine Anzeigevariante
         for _i in range(int(länge / 0.5)):
-            print(pausenzeichen, end="", flush=True)
+            if self.ausgabe.terminal:
+                print(pausenzeichen, end="", flush=True)
+            else:
+                malp(pausenzeichen, end="")
             sleep(0.5)
         malp()
 

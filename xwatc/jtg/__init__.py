@@ -361,6 +361,7 @@ class TobiacBerndoc(NSC):
         sprich(self.name, "Ich bin nie zu Hause und spiele lieber Orgel. "
                "Und mein Sohn spielt lieber bei den Nachbarn nebenan.")
         if ja_nein(mänx, self.name + " :Ich bin ein schlechter Vater, nicht?"):
+            mänx.titel.add("Respektloser")
             sprich(self.name, "Es tut irgendwie doch weh, es so zu hören.")
         else:
             sprich(self.name, "Danke.")
