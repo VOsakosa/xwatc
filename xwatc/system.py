@@ -60,6 +60,7 @@ class Persönlichkeit:
         self.hilfsbereischaft = 0
         self.mut = 0
 
+
 class InventarBasis:
     """Ein Ding mit Inventar"""
     inventar: Inventar
@@ -203,7 +204,7 @@ class Mänx(InventarBasis, Persönlichkeit):
             return
         if anzahl > 0:
             malp(f"Du erhältst {anzahl} {item}.")
-        elif item=="Gold":
+        elif item == "Gold":
             malp(f"Du zahlst {-anzahl} Gold")
         else:
             malp(f"Du gibst {-anzahl} {item}.")
@@ -412,11 +413,12 @@ class Welt:
     def tick(self, uhr: float):
         """Lasse etwas Zeit vergehen."""
         self.tag += uhr
-    
+
     def uhrzeit(self) -> tuple[int, int]:
-        stunde, rest = divmod(self.tag * 24, 1.)
+        """Gebe die momentane Uhrzeit als Tupel (Stunde, Minute) aus."""
+        stunde, rest = divmod(30 + (self.tag % 1.) * 24, 1.)
         minute = (rest * 60) % 1.
-        return int(stunde), int(minute)
+        return int(stunde) % 24, int(minute)
 
 
 def schiebe_inventar(start: Inventar, ziel: Inventar):

@@ -103,6 +103,9 @@ class Terminal:
             print(mänx.inventar_zeigen())
         elif taste == "ee":
             print(mänx.erweitertes_inventar())
+        elif taste == "uhr" or taste == "uhrzeit":
+            print("Tag {}, {:02}:{:02} Uhr".format(
+                mänx.welt.get_tag() + 1, *mänx.welt.uhrzeit()))
         elif taste == "q":
             print(mänx.missionen_zeigen())
         elif taste == "hilfe":
