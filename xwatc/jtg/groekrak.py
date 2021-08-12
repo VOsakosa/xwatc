@@ -61,6 +61,7 @@ def grökrak(mänx: Mänx):
 
 def erzeuge_grökrak(welt: Welt) -> HatMain:
     """"""
+    tor = Ort("Stadttor", None, "Am Stadttor von Grökrakchöl herrscht reger Betrieb.")
     haupt = Ort("Hauptplatz", None, "Vor dem Burgfried Grökrakchöls ist ein großer,"
                 "geschäftiger Platz. In der Mitte ist ein großer Springbrunnen, "
                 "davor eine Statue eines großen Denkers.")
@@ -73,7 +74,7 @@ def erzeuge_grökrak(welt: Welt) -> HatMain:
                       welt.obj("jtg:gr:canna"),
                       welt.obj("jtg:gr:carlo")
                   ])
-    return Dorf("Grökrakchöl", [haupt, taverne])
+    return Dorf("Grökrakchöl", [tor, haupt, taverne])
 
 
 @register("jtg:gr:özil")

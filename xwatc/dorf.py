@@ -80,7 +80,7 @@ class NSC(system.InventarBasis):
             ret = self.kampf_fn(self, mänx)
             # if isinstance(ret, Wegpunkt)
         else:
-            raise ValueError(f"Xwatc weiß nicht, wie {self.name} kämpft")
+            malp("Dieser Kampfdialog wurde noch nicht hinzugefügt.")
 
     def fliehen(self, mänx: system.Mänx):
         if self.fliehen_fn:

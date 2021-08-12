@@ -50,7 +50,7 @@ Inventar = Dict[str, int]
 
 
 class Persönlichkeit:
-    """ Deine Pesönlichkeit innerhalb des Spieles """
+    """ Deine Persönlichkeit innerhalb des Spieles """
 
     def __init__(self, *arggs, ** kwargs):
         self.ehrlichkeit = 0
