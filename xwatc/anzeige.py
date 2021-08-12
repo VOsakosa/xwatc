@@ -26,7 +26,7 @@ _main_thread: threading.Thread
 _XwatcThreadExit = object()
 
 KURZ_CODES = {
-    "f": ("fliehen","zurück"),
+    "f": ("fliehen", "zurück"),
     "r": ("reden",),
     "k": ("kämpfen",),
     "j": ("ja",),
@@ -65,11 +65,16 @@ class XwatcFenster:
         textview.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
         self.buffer = textview.get_buffer()
         self.mgn: dict[str, Any] = {}
+        self.anzeigen: dict[type, Gtk.Widget] = {}
+        self.main_grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
+        self.show_grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
+        self.main_grid.add(self.show_grid)
+        self.show_grid.add(textview)
         self.grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
-        self.grid.add(textview)
+        self.main_grid.add(self.grid)
         win.connect("delete-event", self.fenster_schließt)
         win.connect("key-press-event", self.key_pressed)
-        win.add(self.grid)
+        win.add(self.main_grid)
         win.set_default_size(300, 300)
         win.set_title("Xwatc")
         # Spiel beginnen
@@ -133,7 +138,6 @@ class XwatcFenster:
 
     @_idle_wrapper
     def eingabe(self, prompt: Opt[str]) -> None:
-        self.mgn.clear()
         self._remove_choices()
         entry = Gtk.Entry(visible=True)
         entry.connect("activate", self.entry_activated)
@@ -149,6 +153,7 @@ class XwatcFenster:
              save: Opt[system.Speicherpunkt] = None) -> T:
         self.auswahl([(name, value, shorthand)
                       for name, shorthand, value in optionen])
+        # TODO versteckt
         ans = minput_return.get()
         if ans is _XwatcThreadExit:
             raise SystemExit
@@ -166,17 +171,29 @@ class XwatcFenster:
     @_idle_wrapper
     def auswahl(self, mgn: Sequence[Tuple[str, Any] | Tuple[str, Any, str]]) -> None:
         self._remove_choices()
-        self.mgn.clear()
         for name, antwort, *short in mgn:
-            button = Gtk.Button(label=name, visible=True)
+            button = Gtk.Button(label=name, visible=True, hexpand=True)
             button.get_child().set_line_wrap(Gtk.WrapMode.WORD_CHAR)
             button.get_child().set_max_width_chars(70)
             button.connect("clicked", self.button_clicked, antwort)
             self.grid.add(button)
             if short:
                 name = short[0]
-            self.mgn[name.casefold()]  = antwort
+            self.mgn[name.casefold()] = antwort
     
+    @_idle_wrapper
+    def show(self, daten: AnzeigeDaten) -> None:
+        typ = type(daten)
+        if typ in self.anzeigen:
+            self.anzeigen[typ].set_visible(True)
+            daten.update_widget(self.anzeigen[typ], self)
+        else:
+            widget = daten.erzeuge_widget(self)
+            widget.set_visible(True)
+            self.anzeigen[typ] = widget
+            self.show_grid.add(widget)
+        
+
     def key_pressed(self, _widget, event: Gdk.EventKey) -> bool:
         """Ausgeführt, wenn eine Taste gedrückt wird."""
         control = Gdk.ModifierType.CONTROL_MASK & event.state
@@ -199,21 +216,25 @@ class XwatcFenster:
                 if nr == 0:
                     nr = 10
                 try:
-                    self.button_clicked(None, next(islice(self.mgn.values(), nr-1, None)))
-                    return True 
+                    self.button_clicked(None, next(
+                        islice(self.mgn.values(), nr - 1, None)))
+                    return True
                 except StopIteration:
                     pass
         return False
 
     def _remove_choices(self):
+        self.mgn.clear()
         # entferne buttons
-        for i in range(1, len(self.grid.get_children())):
-            self.grid.remove_row(1)
+        for i in range(len(self.grid.get_children())):
+            self.grid.remove_row(0)
 
     def _deactivate_choices(self):
         for child in self.grid.get_children():
             if isinstance(child, (Gtk.Button, Gtk.Entry)):
                 child.set_sensitive(False)
+        for widget in self.anzeigen.values():
+            widget.set_visible(False)
 
     def button_clicked(self, _button: Any, text: Any) -> None:
         self._deactivate_choices()
@@ -233,6 +254,19 @@ class XwatcFenster:
 
     def kursiv(self, text: str) -> Text:
         return text
+
+
+class AnzeigeDaten(Protocol):
+    """Anzeigedaten werden durch die XwatcFenster.show()-Methode gezeigt. Ihnen
+    ist ein Widget zugeordnet, dass sie selbst erzeugen und updaten.
+    
+    Beispielimplementation: xwatc.scenario.anzeige.PixelArtDrawingArea"""
+
+    def erzeuge_widget(self, _fenster: XwatcFenster) -> Gtk.Widget:
+        """Erzeugt das Anzeige-Widget für die Daten."""
+
+    def update_widget(self, widget: Gtk.Widget, _fenster: XwatcFenster) -> Any:
+        """Aktualisiert das Anzeige-Widget mit den Daten."""
 
 
 def main(startpunkt: Opt[Fortsetzung] = None):

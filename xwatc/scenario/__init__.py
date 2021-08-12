@@ -8,7 +8,8 @@ ERLAUBT_FARBEN: Das Programm erkennt selbst, ob das Terminal Farben unterstützt
 Je nachdem nutzt die Ausgabe auch verschiedene Zeichen.
 """
 from __future__ import annotations
-from typing import List, Optional as Op, Union, NewType, Dict, Any
+from typing import List, Optional as Op, Union, NewType, Dict, Any,\
+    TYPE_CHECKING
 import os.path
 from xwatc.system import Mänx, malp
 import sys
@@ -18,6 +19,10 @@ if __name__ == "__main__":
     sys.path.append("..")
 
 from xwatc import system, weg
+
+if TYPE_CHECKING:
+    from gi.repository import Gtk
+    from xwatc.anzeige import XwatcFenster
 
 SCENARIO_ORT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../scenarios"))
 
@@ -230,6 +235,17 @@ class Scenario:
         if ERLAUBT_FARBEN and clear:
             print("\x1b8", end="")
 
+    def erzeuge_widget(self, _fenster: 'XwatcFenster') -> 'Gtk.Widget':
+        """Erzeugt das Anzeige-Widget für die Daten."""
+        from xwatc.scenario.anzeige import PixelArtDrawingArea
+        return PixelArtDrawingArea(self.name, self.feld)
+
+    def update_widget(self, widget: Gtk.Widget, _fenster: 'XwatcFenster') -> Any:
+        """Aktualisiert das Anzeige-Widget mit den Daten."""
+        from xwatc.scenario.anzeige import PixelArtDrawingArea
+        assert isinstance(widget, PixelArtDrawingArea)
+        widget.update(PixelArtDrawingArea(self.name, self.feld))
+
     def bewege_spieler(self, mänx, y, x) -> Op[ScenarioEnde]:
         """Bewege den Spieler um y und x relativ"""
         ys, xs = self.spielerpos
@@ -254,7 +270,10 @@ class Scenario:
         ans = None
         clear = False
         while not ans:
-            self.print_feld(clear)
+            if mänx.ausgabe.terminal:
+                self.print_feld(clear)
+            else:
+                mänx.ausgabe.show(self)
             if not clear:
                 mänx.tutorial("scenario")
             clear = True
@@ -315,10 +334,6 @@ class ScenarioWegpunkt(weg.Wegkreuzung):
             raise RuntimeError("Scenario endete ohne Ergebnis!")
         
 if __name__ == '__main__':
-    m = system.Mänx()
-    try:
-        erg = lade_scenario(m, "disnajenbun")
-    except system.Spielende:
-        malp("Du bist tot")
-    else:
-        malp(f"Es geht mit {erg} weiter.")
+    from xwatc.anzeige import main
+    from xwatc.jtg import disnayenbum
+    main(disnayenbum)

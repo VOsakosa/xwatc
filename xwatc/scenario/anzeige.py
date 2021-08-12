@@ -10,7 +10,7 @@ class PixelArtDrawingArea(Gtk.DrawingArea):
     BG = (0.125, 0.125, 0.125)
     FG = (0.9, 0.9, 0.9)
     def __init__(self, header: str, feld: Sequence[Sequence[object]]):
-        super().__init__()
+        super().__init__(visible=True, vexpand=True, hexpand=True)
         self.header = header
         self.feld = feld
         self.font_size = 18
@@ -60,7 +60,8 @@ class PixelArtDrawingArea(Gtk.DrawingArea):
     def update(self, other: 'PixelArtDrawingArea'):
         self.feld = other.feld
         self.header = other.header
-        self.invalidate()
+        self.set_size_request(self.get_preferred_width()[0], self.get_preferred_height()[0])
+        self.queue_resize()
 
 if __name__ == '__main__':
     from xwatc.scenario import Scenario, SCENARIO_ORT
