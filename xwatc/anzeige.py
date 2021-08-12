@@ -65,6 +65,8 @@ class XwatcFenster:
         textview.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
         self.buffer = textview.get_buffer()
         self.mgn: dict[str, Any] = {}
+        # Die Anzahl der nicht versteckten Optionen
+        self.mgn_hidden_count: int = 0
         self.anzeigen: dict[type, Gtk.Widget] = {}
         self.main_grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
         self.show_grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
@@ -152,8 +154,7 @@ class XwatcFenster:
              versteckt: Opt[Mapping[str, T]] = None,
              save: Opt[system.Speicherpunkt] = None) -> T:
         self.auswahl([(name, value, shorthand)
-                      for name, shorthand, value in optionen])
-        # TODO versteckt
+                      for name, shorthand, value in optionen], versteckt)
         ans = minput_return.get()
         if ans is _XwatcThreadExit:
             raise SystemExit
@@ -169,8 +170,10 @@ class XwatcFenster:
         return ans
 
     @_idle_wrapper
-    def auswahl(self, mgn: Sequence[Tuple[str, Any] | Tuple[str, Any, str]]) -> None:
+    def auswahl(self, mgn: Sequence[Tuple[str, Any] | Tuple[str, Any, str]],
+                versteckt: Opt[Mapping[str, Any]] = None) -> None:
         self._remove_choices()
+        self.mgn_hidden_count = len(mgn)
         for name, antwort, *short in mgn:
             button = Gtk.Button(label=name, visible=True, hexpand=True)
             button.get_child().set_line_wrap(Gtk.WrapMode.WORD_CHAR)
@@ -180,6 +183,9 @@ class XwatcFenster:
             if short:
                 name = short[0]
             self.mgn[name.casefold()] = antwort
+        if versteckt:
+            for name, antwort in versteckt.items():
+                self.mgn[name[:1]] = antwort
     
     @_idle_wrapper
     def show(self, daten: AnzeigeDaten) -> None:
@@ -215,12 +221,13 @@ class XwatcFenster:
                 nr = int(taste)
                 if nr == 0:
                     nr = 10
-                try:
-                    self.button_clicked(None, next(
-                        islice(self.mgn.values(), nr - 1, None)))
-                    return True
-                except StopIteration:
-                    pass
+                if nr <= self.mgn_hidden_count:
+                    try:
+                        self.button_clicked(None, next(
+                            islice(self.mgn.values(), nr - 1, None)))
+                        return True
+                    except StopIteration:
+                        pass
         return False
 
     def _remove_choices(self):

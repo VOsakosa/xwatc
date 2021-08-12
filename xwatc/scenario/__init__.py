@@ -277,7 +277,10 @@ class Scenario:
             if not clear:
                 mänx.tutorial("scenario")
             clear = True
-            arg = mänx.minput(">")
+            if mänx.ausgabe.terminal:
+                arg = mänx.minput(">")
+            else:
+                arg = mänx.menu([], versteckt={a:a for a in "wasd"})
             if arg == "w":
                 ans = self.bewege_spieler(mänx, -1, 0)
             elif arg == "d":
