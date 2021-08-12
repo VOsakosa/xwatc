@@ -99,7 +99,7 @@ class XwatcFenster:
 
     def malp(self, *text, sep=" ", end='\n', warte=False) -> None:
         """Zeigt *text* zusätzlich an."""
-        self.add_text(sep.join(text) + end)
+        self.add_text(sep.join(map(str, text)) + end)
         if warte:
             self.auswahl([("weiter", None)])
             if minput_return.get() is _XwatcThreadExit:
@@ -112,11 +112,15 @@ class XwatcFenster:
         if minput_return.get() is _XwatcThreadExit:
             raise SystemExit
 
-    @_idle_wrapper
     def sprich(self, sprecher: str, text: str, warte: bool = False, wie: str = ""):
         if wie:
             sprecher += f"({wie})"
         self.add_text(f'{sprecher}: »{text}«\n')
+        if warte:
+            self.auswahl([("weiter", None)])
+            if minput_return.get() is _XwatcThreadExit:
+                raise SystemExit
+        
 
     @_idle_wrapper
     def add_text(self, text: str) -> None:
