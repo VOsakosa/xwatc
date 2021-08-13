@@ -102,6 +102,7 @@ class GefängnisGäfdah:
              "du das "
              "Gefühl, als wärst du unendlich schwer.")
         malp("Dann öffnet der Wächter eine Tür ins Freie.", warte=True)
+        mänx.verbrechen.clear()
         rand = random.choice("hhhgmddk")
         if rand == "h":
             from xwatc_Hauptgeschichte import himmelsrichtungen
