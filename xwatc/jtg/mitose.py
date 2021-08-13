@@ -23,49 +23,57 @@ from typing import List, Tuple, Union, Sequence
 __author__ = "jasper"
 
 GEFUNDEN = "quest:saxaring:gefunden"
+ABGEGEBEN = "quest:saxaring:abgegeben"
 
 
 @register("jtg:saxa")
 def erzeuge_saxa():
     return NSC("Saxa Kautohoa", "Holzfällerin",
-            startinventar={
-                "Unterhose": 1,
-                "Hemd": 1,
-                "Strumpfhose": 1,
-                "Socke": 1,
-                "BH": 1,
-                "Kappe": 1,
-                "Hose": 1,
-                "Gold": 14,
-            }, vorstellen=[
-                "Eine Holzfällerin von ungefähr 40 Jahren steht vor dir."],
-            dlg=saxa_dlg)
+               startinventar={
+                   "Unterhose": 1,
+                   "Hemd": 1,
+                   "Strumpfhose": 1,
+                   "Socke": 1,
+                   "BH": 1,
+                   "Kappe": 1,
+                   "Hose": 1,
+                   "Gold": 14,
+               }, vorstellen=[
+                   "Eine Holzfällerin von ungefähr 40 Jahren steht vor dir."],
+               dlg=saxa_dlg)
+
 
 def saxa_dlg():
     yield Dialog("hallo", "Hallo", ["Hallo, ich bin Saxa."])
     yield Dialog("bedrückt", "Bedrückt dich etwas?",
-             [
-                 "Ich habe beim Kräutersammeln meinen Ehering im Wald verloren.",
-                 "Er hat uns beiden immer Glück gebracht.",
-                 "Du bist doch ein Abenteurer, kannst du den Ring finden?"
-             ], effekt=lambda n, m: m.welt.setze("quest:saxaring"))
+                 [
+                     "Ich habe beim Kräutersammeln meinen Ehering im Wald verloren.",
+                     "Er hat uns beiden immer Glück gebracht.",
+                     "Du bist doch ein Abenteurer, kannst du den Ring finden?"
+                 ], effekt=lambda n, m: m.welt.setze("quest:saxaring")).wenn(
+                     lambda n, m: not m.welt.ist(ABGEGEBEN))
     yield Dialog("wo", "Wo warst du Kräuter sammeln?",
-             ["Im Wald östlich von hier.",
-              "Ein Pfad führt bis zur Stelle.",
-              "Bei der Kreuzung musst du rechts abbiegen."], "bedrückt")
+                 ["Im Wald östlich von hier.",
+                  "Ein Pfad führt bis zur Stelle.",
+                  "Bei der Kreuzung musst du rechts abbiegen."], "bedrückt")
 
     def gefunden(n, m):
         n.add_freundlich(40, 100)
         n.erhalte("Saxas Ehering", von=m)
+        m.welt.setze(ABGEGEBEN)
     yield Dialog("gefunden", "Ich habe deinen Ring gefunden.",
-             ["Danke!", "Das bedeutet uns sehr viel."],
-             effekt=gefunden).wenn_var(GEFUNDEN).wenn(
-                 lambda n, m: m.hat_item("Saxas Ehering"))
+                 ["Danke!", "Das bedeutet uns sehr viel."],
+                 effekt=gefunden).wenn_var(GEFUNDEN).wenn(
+        lambda n, m: m.hat_item("Saxas Ehering"))
+
     yield Dialog("verloren", "Ich habe deinen Ring gefunden, aber wieder verloren.",
-             ["Was soll das jetzt heißen?", "Hast du ihn etwa verkauft?"],
-             effekt=lambda n, m: n.add_freundlich(-30, -20)
-             ).wenn_var(GEFUNDEN).wenn(
-                 lambda n, m: not m.hat_item("Saxas Ehering"))
+                 ["Was soll das jetzt heißen?", "Hast du ihn etwa verkauft?"],
+                 effekt=lambda n, m: n.add_freundlich(-30, -20)
+                 ).wenn(
+        lambda n, m: (
+            m.welt.ist(GEFUNDEN)
+            and not m.welt.ist(ABGEGEBEN)
+            and not m.hat_item("Saxas Ehering")))
 
 
 @weg.gebiet("jtg:mitose")
@@ -79,14 +87,15 @@ def erzeuge_norddörfer(mänx: Mänx) -> weg.Wegpunkt:
     mitose_ort.add_beschreibung([
         "Du bist im Ort Mitose.",
         "Ein Weg führt in Nord-Süd-Richtung durch das Dorf.",
-        "Es gibt einen Pfad nach Osten in den Wald hinein."])
+        "Es gibt einen Pfad nach Westen in den Wald hinein."])
     mitose_ort.menschen.append(mänx.welt.obj("jtg:saxa"))
     mitose_ort.menschen.append(mänx.welt.obj("jtg:mädchen"))
 
     mitose_ort.verbinde(
         weg.Weg(
             0.5, weg.WegAdapter(None, t2_norden, "jtg:mitose:nord")), "n")
-    hinterhof = Ort("Hinterhof", mitose, "Ein unkrautbewucherter Hinterhof des Rathaus.")
+    hinterhof = Ort("Hinterhof", mitose,
+                    "Ein unkrautbewucherter Hinterhof des Rathaus.")
     mitose_ort.verbinde(hinterhof)
 
     kraut = Wegkreuzung("kraut", immer_fragen=True)
@@ -260,7 +269,6 @@ class Mädchen(haendler.Händler):
             "Dann kann ich dir auch helfen."
         ], direkt=True, wiederhole=0).wenn(
             lambda n, __: not n.hat_klasse("Waffe"))
-        
 
     def optionen(self, mänx: Mänx) -> NSCOptionen:
         if self.in_disnajenbum:
