@@ -1,13 +1,20 @@
 Dorf Disnajenbun
 
+# Allgemeine Objekte
+#Buchstabe: Name;Zeichen;Ausweichzeichen;Boden(Buchstabe);Farbe
 B: Baum ;木;B; ;gn
 X: Mauer;Ｘ;X;.;bn
+b: Busch;σ ;σ; ;gn
 
+# Boden
+#Buchstabe: @Name;Zeichen;Ausweichzeichen;Farbe
 .: @Stein ;. ;.;gu
 i: @Weizen;í ;í;gn
+t: @Tür   ;門;+;bn
+~: @Weg   ;~~;~;bn
 
 a: jtg:fred   ;長;M;.;gb
-b: jtg:axtmann;斧;M
+x: jtg:axtmann;斧;M
 c: jtg:mieko  ;人;M
 m: jtg:nomuh  ;牛;k;i;bn
 k: jtg:kirie  ;女;F;i
@@ -19,19 +26,20 @@ W: #westen
 Y: Spieler;主;Y
 
 
+# Die Karte selbst
 ---
-BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
-BBBBBiiiiiiiiiBBBB BB   BBBBBBBBB
-BBB  imiikiiiBBBB   B      BBBBBB
+   BBBbbbBBbBBBBBBBBBBBBB BBBBBBB
+ BB BiiiiiiiiiBBBB BB   BBBBB BBB
+BBB  imiikiiiBBBB   B  .   BBBBBB
 BB   XXX      B              BBBB
-B    X X            XXXXXX      B
+B    XtX            XXXXXX      B
 B                   Xc   X      B
-W      XXXXXXX      XXXX X      O
-W      Xo w  X                  O
-W      X              .   .     O
-B      XXXXXXX b                B
-B                .      .       B
+W      XXXXXXX      XXXXtX      O
+W      Xo w  X      ~~~~~~~~~~~~O
+W      X     t~~~~    .   .     O
+B   b  XXXXXXX x                B
+W                .      .       B
 BBB    .    . a     BB        BBB
-BBBBB     Y        BBBB      BBBB
-BBBBBBBBSSSSSSSSSSBBBBBBBSSSBBBBB
+BBBBB     Y        B  B      BBbB
+BBBBBBBBSSSSSSSSSSBBBbBBBSSSBBBBB
 ...

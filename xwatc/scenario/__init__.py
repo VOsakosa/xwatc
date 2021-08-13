@@ -1,11 +1,27 @@
 """
 Scenario
---------
+########
+
 Bei einem Scenario wird der Mänx auf einer kleinen Karte eingeschlossen, auf
 der er sich bewegen kann und mit Objekten interagieren kann.
 
 ERLAUBT_FARBEN: Das Programm erkennt selbst, ob das Terminal Farben unterstützt.
 Je nachdem nutzt die Ausgabe auch verschiedene Zeichen.
+
+Szenario-Syntax:
+---------------
+Ein Szenario besteht aus Definitionen, dann kommt die tatsächliche Karte.
+Es gibt Boden-Definitionen:
+
+    Buchstabe: @Name;Langsymbol;Kurzsymbol;Farbe
+    i: @Weizen;í ;í;gn
+
+und Objekt-Definitionen:
+
+    Buchstabe: Name;Langsymbol;Kurzsymbol;Boden-Buchstabe;Farbe
+    m: jtg:nomuh  ;牛;k;i;bn
+
+Die Farben sind unter *FARBEN*.
 """
 from __future__ import annotations
 from typing import List, Optional as Op, Union, NewType, Dict, Any,\
@@ -198,7 +214,9 @@ class Scenario:
             sc_name = next(lines)
             obs: Dict[str, List[str]] = {}
             for line in lines:
-                if line == "---":
+                if line.startswith("#"):
+                    continue
+                if line == "---":  # Anfang der Karte
                     break
                 elif not line:
                     continue

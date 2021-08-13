@@ -389,9 +389,12 @@ class Welt:
     def am_leben(self, name: str) -> bool:
         """Prüfe, ob das Objekt *name* da und noch am Leben ist."""
         from xwatc import dorf
-        return name in self.objekte and (
-            not isinstance(self.objekte[name], dorf.NSC) or
-            not self.objekte[name].tot)
+        try:
+            obj = self.obj(name)
+        except KeyError:
+            return False
+        else:
+            return not getattr(obj, 'tot', False)
 
     def obj(self, name: str) -> Any:
         """Hole ein registriertes oder existentes Objekt."""

@@ -22,7 +22,7 @@ class PixelArtDrawingArea(Gtk.DrawingArea):
     def draw_feld(self, _self, ct: cairo.Context):
         rs = self.row_size
         
-        ct.select_font_face("Monospaced", cairo.FontSlant.NORMAL,
+        ct.select_font_face("Ubuntu Mono", cairo.FontSlant.NORMAL,
                             cairo.FontWeight.NORMAL)
         ct.set_font_size(self.font_size)
         ct.set_source_rgb(*self.BG)

@@ -68,6 +68,7 @@ class XwatcFenster:
         # Die Anzahl der nicht versteckten Optionen
         self.mgn_hidden_count: int = 0
         self.anzeigen: dict[type, Gtk.Widget] = {}
+        self.sichtbare_anzeigen: set[type] = set()
         self.main_grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
         self.show_grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
         self.main_grid.add(self.show_grid)
@@ -202,6 +203,7 @@ class XwatcFenster:
             widget.set_visible(True)
             self.anzeigen[typ] = widget
             self.show_grid.add(widget)
+        self.sichtbare_anzeigen.add(typ)
         
 
     def key_pressed(self, _widget, event: Gdk.EventKey) -> bool:
@@ -239,13 +241,15 @@ class XwatcFenster:
         # entferne buttons
         for i in range(len(self.grid.get_children())):
             self.grid.remove_row(0)
+        for typ, anzeige in self.anzeigen.items():
+            if typ not in self.sichtbare_anzeigen:
+                anzeige.set_visible(False)
 
     def _deactivate_choices(self):
         for child in self.grid.get_children():
             if isinstance(child, (Gtk.Button, Gtk.Entry)):
                 child.set_sensitive(False)
-        for widget in self.anzeigen.values():
-            widget.set_visible(False)
+        self.sichtbare_anzeigen.clear()
 
     def button_clicked(self, _button: Any, text: Any) -> None:
         self._deactivate_choices()

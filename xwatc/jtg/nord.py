@@ -25,9 +25,7 @@ def frage_melken(nsc: NSC, _mänx: Mänx):
 def kampf_in_disnayenbum(nsc: NSC, mänx: Mänx):
     axtmann_da = False
     if isinstance(mänx.context, Scenario):
-        obs = mänx.welt.objekte
-        # mänx.context.warne_kampf(nsc, mänx)
-        axtmann_da = "jtg:axtmann" in obs and not obs["jtg:axtmann"].tot
+        axtmann_da = mänx.welt.am_leben("jtg:axtmann")
     if axtmann_da:
         malp("Du spürst den Blick des Axtmannes im Rücken.")
         if not mänx.ja_nein("Willst du wirklich jemand wehrloses angreifen?"):
@@ -191,7 +189,7 @@ def brian_dlg() -> Iterable[Dialog]:
 
 @register("jtg:fred")
 def fred() -> NSC:
-    n = NSC("Fréd Fórmayr", "Dorfvorsteher", kampf_in_disnayenbum,
+    return NSC("Fréd Fórmayr", "Dorfvorsteher", kampf_in_disnayenbum,
             startinventar={
                 "Messer": 1,
                 "Anzug": 1,
@@ -203,7 +201,10 @@ def fred() -> NSC:
                 "Unterhose": 1,
                 "Ehering": 1,
                 "Gold": 51
-            }, vorstellen=["Ein Mann in Anzug lächelt dich unverbindlich an."])
+            }, vorstellen=["Ein Mann in Anzug lächelt dich unverbindlich an."],
+            dlg=fred_dlg)
+
+def fred_dlg():
     yield Dialog("hallo", '"Hallo"', [
         "Willkommen in Disnajenbun! Ich bin der Dorfvorsteher Fred.",
         "Ruhe dich ruhig in unserem bescheidenen Dorf aus."])
