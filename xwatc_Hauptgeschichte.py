@@ -29,7 +29,7 @@ def hauptmenu() -> None:
         if wahl:
             with wahl.open("rb") as file:
                 mänx = pickle.load(file)
-                assert isinstance(mänx, Mänx)
+            assert isinstance(mänx, Mänx)
             main(mänx)
             return
 

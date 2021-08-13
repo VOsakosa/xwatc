@@ -5,13 +5,14 @@ from __future__ import annotations
 from itertools import islice
 from functools import wraps
 from xwatc.system import Fortsetzung
+from contextlib import contextmanager
 __author__ = "jasper"
 import os
 import queue
 import threading
 from typing import (Tuple, List, Optional as Opt, TextIO, Mapping,
                     Protocol, Sequence, Any, get_type_hints, TypeVar, Callable,
-                    ClassVar)
+                    ClassVar, NamedTuple)
 import gi
 
 gi.require_version("Gtk", "3.0")
@@ -64,11 +65,16 @@ class XwatcFenster:
         textview = Gtk.TextView(hexpand=True, vexpand=True, editable=False)
         textview.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
         self.buffer = textview.get_buffer()
+
+        # Optionen
         self.mgn: dict[str, Any] = {}
         # Die Anzahl der nicht versteckten Optionen
         self.mgn_hidden_count: int = 0
         self.anzeigen: dict[type, Gtk.Widget] = {}
         self.sichtbare_anzeigen: set[type] = set()
+        self.choice_action: Opt[Callable[[Any], Any]] = None
+
+        self._stack: list[_StackItem] = []
         self.main_grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
         self.show_grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
         self.main_grid.add(self.show_grid)
@@ -121,7 +127,6 @@ class XwatcFenster:
             self.auswahl([("weiter", None)])
             if minput_return.get() is _XwatcThreadExit:
                 raise SystemExit
-        
 
     @_idle_wrapper
     def add_text(self, text: str) -> None:
@@ -176,9 +181,11 @@ class XwatcFenster:
 
     @_idle_wrapper
     def auswahl(self, mgn: Sequence[Tuple[str, Any] | Tuple[str, Any, str]],
-                versteckt: Opt[Mapping[str, Any]] = None) -> None:
+                versteckt: Opt[Mapping[str, Any]] = None,
+                action: Opt[Callable[[Any], Any]] = None) -> None:
         self._remove_choices()
         self.mgn_hidden_count = len(mgn)
+        self.choice_action = action
         for name, antwort, *short in mgn:
             button = Gtk.Button(label=name, visible=True, hexpand=True)
             button.get_child().set_line_wrap(Gtk.WrapMode.WORD_CHAR)
@@ -191,7 +198,7 @@ class XwatcFenster:
         if versteckt:
             for name, antwort in versteckt.items():
                 self.mgn[name[:1]] = antwort
-    
+
     @_idle_wrapper
     def show(self, daten: AnzeigeDaten) -> None:
         typ = type(daten)
@@ -204,7 +211,6 @@ class XwatcFenster:
             self.anzeigen[typ] = widget
             self.show_grid.add(widget)
         self.sichtbare_anzeigen.add(typ)
-        
 
     def key_pressed(self, _widget, event: Gdk.EventKey) -> bool:
         """Ausgeführt, wenn eine Taste gedrückt wird."""
@@ -213,17 +219,17 @@ class XwatcFenster:
         if not control:
             if not self.mgn:
                 return False
-            if taste in self.mgn:
+            elif taste in self.mgn:
                 self.button_clicked(None, self.mgn[taste])
                 return True
-            if taste in KURZ_CODES:
+            elif taste in KURZ_CODES:
                 for t in KURZ_CODES[taste]:
                     if t in self.mgn:
                         self.button_clicked(None, t)
                         return True
             if taste == '\r' and len(self.mgn) == 1:
                 self.button_clicked(None, next(iter(self.mgn.values())))
-            if len(taste) == 1 and ord('0') <= ord(taste) <= ord('9'):
+            elif len(taste) == 1 and ord('0') <= ord(taste) <= ord('9'):
                 nr = int(taste)
                 if nr == 0:
                     nr = 10
@@ -234,10 +240,18 @@ class XwatcFenster:
                         return True
                     except StopIteration:
                         pass
+            elif taste == "e":
+                self.push_stack()
+                self.malp(self.mänx.erweitertes_inventar())
+                self.auswahl([("weiter", None)],
+                             action=lambda _arg: self.pop_stack())
+        else:
+            if taste == "s":
+                # TODO In Anzeige speichern
+                pass
         return False
 
     def _remove_choices(self):
-        self.mgn.clear()
         # entferne buttons
         for i in range(len(self.grid.get_children())):
             self.grid.remove_row(0)
@@ -246,6 +260,8 @@ class XwatcFenster:
                 anzeige.set_visible(False)
 
     def _deactivate_choices(self):
+        self.mgn.clear()
+        self.buffer.set_text("")
         for child in self.grid.get_children():
             if isinstance(child, (Gtk.Button, Gtk.Entry)):
                 child.set_sensitive(False)
@@ -253,8 +269,10 @@ class XwatcFenster:
 
     def button_clicked(self, _button: Any, text: Any) -> None:
         self._deactivate_choices()
-        self.buffer.set_text("")
-        minput_return.put(text)
+        if self.choice_action is None:
+            minput_return.put(text)
+        else:
+            self.choice_action(text)
 
     def entry_activated(self, entry: Gtk.Entry):
         self._deactivate_choices()
@@ -270,11 +288,59 @@ class XwatcFenster:
     def kursiv(self, text: str) -> Text:
         return text
 
+    def push_stack(self):  # TODO text buffer
+        self._stack.append(_StackItem(
+            self.mgn.copy(),
+            self.mgn_hidden_count,
+            self.anzeigen.copy(),
+            self.sichtbare_anzeigen,
+            self.choice_action,
+            self.grid.get_children(),
+            self.buffer))
+        for child in self.show_grid.get_children():
+            if isinstance(child, Gtk.TextView):
+                self.buffer = Gtk.TextBuffer()
+                child.set_buffer(self.buffer)
+                break
+        self._deactivate_choices()
+
+    def pop_stack(self):
+        self._remove_choices()
+        [self.mgn, self.mgn_hidden_count, self.anzeigen,
+         self.sichtbare_anzeigen, self.choice_action,
+         controls, self.buffer] = self._stack.pop()
+        for control in controls:
+            self.grid.add(control)
+            if isinstance(control, (Gtk.Button, Gtk.Entry)):
+                control.set_sensitive(True)
+        for child in self.show_grid.get_children():
+            if isinstance(child, Gtk.TextView):
+                child.set_buffer(self.buffer)
+
+    @contextmanager
+    def stack(self):
+        self.push_stack()
+        try:
+            yield None
+        finally:
+            self.pop_stack()
+
+
+class _StackItem(NamedTuple):
+    mgn: dict[str, Any]
+    # Die Anzahl der nicht versteckten Optionen
+    mgn_hidden_count: int
+    anzeigen: dict[type, Gtk.Widget]
+    sichtbare_anzeigen: set[type]
+    choice_action: Callable[[Any], Any]
+    controls: list[Gtk.Widget]
+    buffer: Gtk.TextBuffer
+
 
 class AnzeigeDaten(Protocol):
     """Anzeigedaten werden durch die XwatcFenster.show()-Methode gezeigt. Ihnen
     ist ein Widget zugeordnet, dass sie selbst erzeugen und updaten.
-    
+
     Beispielimplementation: xwatc.scenario.anzeige.PixelArtDrawingArea"""
 
     def erzeuge_widget(self, _fenster: XwatcFenster) -> Gtk.Widget:
