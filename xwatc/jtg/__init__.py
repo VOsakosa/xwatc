@@ -66,7 +66,7 @@ def erzeuge_mitte(_mänx: Mänx) -> 'weg.Wegpunkt':
     nordk.verbinde_mit_weg(west, 3, "sw", "n")
 
     süd = weg.WegAdapter(None, t2_süd)
-    osten = weg.Wegkreuzung("osten", immer_fragen = True)
+    osten = weg.Wegkreuzung("osten", immer_fragen=True)
     osten.add_effekt(system.Besuche("jtg:beeren").main)
     osten.add_beschreibung("Du kommst hier nicht weiter. Umkehren?")
 
@@ -89,7 +89,6 @@ def erzeuge_mitte(_mänx: Mänx) -> 'weg.Wegpunkt':
     osten.verbinde(lichtung, "w", weg.Wegtyp.TRAMPELPFAD)
     lichtung.verbinde(osten, "o", weg.Wegtyp.TRAMPELPFAD)
     return lichtung
-
 
 
 def disnayenbum(mänx: Mänx):
@@ -115,8 +114,8 @@ def t2_süd(mänx) -> None:
     haus = ja_nein(mänx, "Gehst du zum Licht?")
     if haus:
         malp("Es ist eine einsame, einstöckige Hütte, aus der das Licht kam. "
-              "Vor dir ist die Rückseite des Hauses, "
-              "an der sich Feuerholz stapelt.")
+             "Vor dir ist die Rückseite des Hauses, "
+             "an der sich Feuerholz stapelt.")
         haus = ja_nein(mänx, "Klopfst du an die Tür?")
     if haus:
         malp("Ein junger Mann begrüßt dich an der Tür.")
@@ -128,10 +127,10 @@ def t2_süd(mänx) -> None:
                 list("krf"))
             if aktion == "f":
                 malp("Du rennst weg, als hätte der bloße Anblick "
-                      "des jungen Manns dich verschreckt.")
+                     "des jungen Manns dich verschreckt.")
                 malp('Jetzt denkt der Arme sich bestimmt: "Bin ich so hässlich '
-                      'oder schrecklich, dass Leute auf den '
-                      'ersten Blick abhauen?"')
+                     'oder schrecklich, dass Leute auf den '
+                     'ersten Blick abhauen?"')
                 malp("Aber dir ist das egal, die unbekannte Gefahr ist abgewehrt.")
                 ende_des_waldes(mänx)
             elif aktion == "k":
@@ -141,9 +140,9 @@ def t2_süd(mänx) -> None:
                 haus_des_hexers(mänx)
     else:
         malp("Dem, der auch immer hinter dem Licht steckt, sollte man nicht "
-              "trauen, befindest du und machst "
-              "dich weiter "
-              "auf den Weg durch den Wald.")
+             "trauen, befindest du und machst "
+             "dich weiter "
+             "auf den Weg durch den Wald.")
         ende_des_waldes(mänx)
 
 
@@ -152,8 +151,27 @@ def hexer_skelett(mänx: Mänx):
     sprich("?", "Ach hallo, ein Skelett! Fühl dich hier wie zu Hause.")
     leo = "Leo Berndoc"
     sprich(leo, "Ich habe ganz vergessen, mich vorzustellen!")
-    sprich(leo, "Ich bin Leo Berndoc.")
-    ende_des_waldes(mänx, True)
+    sprich(leo, "Ich bin Leo Berndoc.", warte=True)
+    sprich(leo, "Willst du hier übernachten?")
+    sprich(leo, "Oder brauchst du das gar nicht, so als Skelett?")
+    if mänx.ja_nein("Nimmst du sein Angebot an?"):
+        mänx.welt.nächster_tag()
+        malp("Du schläfst gut, zumindest für ein Skelett.")
+        malp("Am nächsten Morgen begrüßt dich Leo.")
+    sprich(leo, "Meine bescheidene Hütte ist hier mitten im Wald."
+           "Im Norden sind die Dörfer Mitose und Disnajenbun."
+           f"Im Süden ist {SÜD_DORF_NAME}.")
+    sprich(leo, "Ich kann dich bringen.")
+    sprich(leo, "Aber nicht begleiten.")
+    mgn = [(a, a.lower(), a.lower())
+           for a in ("Mitose", "Disnajenbun", SÜD_DORF_NAME)]
+    ans = mänx.menu(mgn, "Wohin lässt du dich bringen?")
+    if ans == "mitose":
+        weg.wegsystem(mänx, "jtg:mitose")
+    elif ans == "disnajenbum":
+        disnayenbum(mänx)
+    else:
+        süd_dorf(mänx)
 
 
 def haus_des_hexers(mänx: Mänx)-> None:
@@ -183,8 +201,8 @@ def haus_des_hexers(mänx: Mänx)-> None:
         malp("Er sagt mit einem verschwörerischen Tonfall: \"Ich verstehe.\"")
         sprich(leo, "Bleibe ruhig noch die Nacht. Hier werden sie dich nicht finden.")
         malp("Du entschließt dich, mitzumachen. Am nächsten Tag verlässt du "
-              "schnell das Haus, bevor der Schwindel "
-              "auffliegt")
+             "schnell das Haus, bevor der Schwindel "
+             "auffliegt")
         ende_des_waldes(mänx, True)
     elif antwort == "verirrt" or antwort == "an":
         sprich(leo, "Soso.")
@@ -269,7 +287,7 @@ def hexer_kampf(mänx):
         mänx.erhalte("Banane", 1)
         mänx.erhalte("Menschenskelett", 3)
         malp("Du findest einen Ring. In ihm steht eingraviert: "
-              "\"Ich hasse dich, Dongmin!\"")
+             "\"Ich hasse dich, Dongmin!\"")
         mänx.erhalte("Ring des Berndoc")
         malp("Du entscheidest dich, nach Süden weiter zu gehen.")
         sleep(2)
@@ -285,7 +303,7 @@ def hexer_kampf(mänx):
 
         else:
             malp("Er zieht dich aus, verzieht das Gesicht, als er sieht, "
-                  "dass du keine Unterhose trägst", end="")
+                 "dass du keine Unterhose trägst", end="")
         malp(" und wirft dich im Süden des Waldes auf den Boden")
         mänx.inventar.clear()
         mänx.inventar["Unterhose"] = hose
@@ -307,30 +325,29 @@ SÜD_DORF_NAME = "Scherenfeld"
 class TobiacBerndoc(NSC):
     def __init__(self) -> None:
         super().__init__("Tobiac Berndoc", "Orgelspieler", dlg=self._tobias_dlg)
-    
+
     @staticmethod
     def _tobias_dlg():
         cls = TobiacBerndoc
         yield Dialog("orgel",
-                        '"Warum spielst du Orgel? Es ist doch nicht Gottesdienst gerade?"',
-                        cls.reden_orgel)
+                     '"Warum spielst du Orgel? Es ist doch nicht Gottesdienst gerade?"',
+                     cls.reden_orgel)
         yield Dialog("lernen",
-                    '"Kannst du mir beibringen, Orgel zu spielen?"',
-                    cls.reden_lernen)
+                     '"Kannst du mir beibringen, Orgel zu spielen?"',
+                     cls.reden_lernen)
         yield Dialog("leo", '"Was ist dein Verhältnis zu Leo Berndoc?"',
-                    cls.reden_leo).wenn_var("kennt:hexer")
+                     cls.reden_leo).wenn_var("kennt:hexer")
         yield Dialog("wetter",
-                    '"Wie findest du das Wetter heute?"', cls.reden_wetter)
+                     '"Wie findest du das Wetter heute?"', cls.reden_wetter)
         yield Dialog('ring',
-                    "Den Ring vorzeigen", cls.ring_zeigen).wenn(
-                        lambda n, m: m.hat_item("Ring des Berndoc"))
+                     "Den Ring vorzeigen", cls.ring_zeigen).wenn(
+            lambda n, m: m.hat_item("Ring des Berndoc"))
         yield Dialog('wo', '"Wo bin ich?"', cls.reden_wo_bin_ich)
-        
 
     def kampf(self, mänx: Mänx) -> None:
         if mänx.hat_klasse("Waffe", "magische Waffe"):
             malp("Er ist so sehr in sein Orgelspiel vertieft, dass er seinen "
-                  "Tod nicht kommen sieht.")
+                 "Tod nicht kommen sieht.")
             mint("Er fällt auf die Klaviatur, und "
                  "sein letztes Lied endet jäh in einer langen Dissonanz.")
             mint("Er hatte nichts von Wert an sich.")
@@ -571,6 +588,10 @@ SÜD_DORF_DIALOGE = [
 ]
 
 
+def _dorf_dlg():
+    return SÜD_DORF_DIALOGE
+
+
 def ende_des_waldes(mänx, morgen=False):
     mänx.welt.nächster_tag()
     malp("Der Wald wird schnell viel weniger unheimlich")
@@ -592,7 +613,7 @@ def erzeuge_süd_dorf(mänx) -> Dorf:
     mänx.welt.obj("jtg:süd:garnichts").ort = kirche
     for _i in range(randint(2, 5)):
         w = Waschweib()
-        w.dialoge.extend(SÜD_DORF_DIALOGE)
+        w.change_dlg(_dorf_dlg)
         w.ort = do.orte[0]
     # TODO weitere Objekte
     return do
@@ -616,7 +637,7 @@ def hauptstadt_weg(mänx: Mänx):
         mon = random.randint(1, 3)
         if mon == 2 or "Kinderfreund" in mänx.titel:
             malp("Plötzlich bemerkst du einen süßen Duft und ein sanftes "
-                  "Leuchten im Wald zu deiner Rechten.")
+                 "Leuchten im Wald zu deiner Rechten.")
             mint("Ehe du dich versiehst, bis du vom Weg abgekommen.")
             malp("Du hörst eine sanfte Stimme:")
             sprich("Dryade", "Hier ist es nicht sicher, Wanderer.")
@@ -661,8 +682,8 @@ def hauptstadt_weg(mänx: Mänx):
 def t2_no(mänx):
     malp("Du kommst an einen Wegweiser.")
     malp("Der Weg gabelt sich an einem kleinen Fluss, links führt der Weg "
-          "den Fluss aufwärts zum 'Land der aufrechten Kühe' und rechts "
-          "führt der Weg nach flussabwärts nach '" + SÜD_DORF_NAME + "'")
+         "den Fluss aufwärts zum 'Land der aufrechten Kühe' und rechts "
+         "führt der Weg nach flussabwärts nach '" + SÜD_DORF_NAME + "'")
     if mänx.minput("Gehst du nach links oder rechts", ["links", "rechts"]) == "links":
         land_der_kühe(mänx)
     else:
@@ -681,6 +702,7 @@ def tauern_ww_süd(mänx: Mänx):
         land_der_kühe(mänx)
     else:
         disnayenbum(mänx)
+
 
 def tauern_ww_no(mänx: Mänx):
     malp("Du kommst an eine Wegkreuzung.")
