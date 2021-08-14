@@ -11,7 +11,7 @@ from xwatc.untersystem.itemverzeichnis import lade_itemverzeichnis
 from xwatc.untersystem import hilfe
 from xwatc.terminal import Terminal
 import typing
-from xwatc.untersystem.verbrechen import Verbrechen
+from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
 if typing.TYPE_CHECKING:
     from xwatc import dorf
     from xwatc import anzeige
@@ -332,6 +332,19 @@ class Mänx(InventarBasis, Persönlichkeit):
 
     def add_gefährte(self, gefährte: 'dorf.NSC'):
         self.gefährten.append(gefährte)
+    
+    def add_verbrechen(self, name: str | Verbrechen | Verbrechensart, versuch=False):
+        """Laste dem Mänxen ein Verbrechen an."""
+        if isinstance(name, str):
+            verbrechen = Verbrechen(Verbrechensart(name.upper()), versuch)
+        elif isinstance(name, Verbrechen):
+            verbrechen = name
+        elif isinstance(name, Verbrechensart):
+            verbrechen = Verbrechen(name, versuch)
+        else:
+            raise TypeError("name muss Verbrechen, VerbrechenArt oder Name "
+                            "des Verbrechens sein.")
+        self.verbrechen[verbrechen] += 1
 
     def __getstate__(self):
         dct = self.__dict__.copy()
@@ -498,6 +511,9 @@ def sprich(sprecher: str, text: str, warte: bool = False, wie: str = "") -> None
 def malp(*text, sep=" ", end='\n', warte=False) -> None:
     """Angenehm zu lesender, langsamer Print."""
     ausgabe.malp(*text, sep=sep, end=end, warte=warte)
+
+def malpw(*text, sep=" ", end='\n') -> None:
+    ausgabe.malp(*text, sep=sep, end=end, warte=True)
 
 
 def ja_nein(mänx: Mänx, frage, save=None) -> bool:

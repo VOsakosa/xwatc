@@ -93,7 +93,7 @@ def erzeuge_norddörfer(mänx: Mänx) -> weg.Wegpunkt:
 
     mitose_ort.verbinde(
         weg.Weg(
-            0.5, weg.WegAdapter(None, t2_norden, "jtg:mitose:nord")), "n")
+            0.5, weg.WegAdapter(None, jtg.disnayenbum, "jtg:mitose:nord")), "n")
     hinterhof = Ort("Hinterhof", mitose,
                     "Ein unkrautbewucherter Hinterhof des Rathaus.")
     mitose_ort.verbinde(hinterhof)
@@ -149,19 +149,6 @@ class Kiliwolf(HatMain):
             # TODO
             return True
         return False
-
-
-def t2_norden(mänx: Mänx) -> None:
-    """Das Dorf auf dem Weg nach Norden"""
-    malp("Auf dem Weg kommen dir mehrfach Leute entgegen, und du kommst in ein kleines Dorf.")
-    mädchen = mänx.welt.obj("jtg:mädchen")
-    if mädchen.in_disnajenbum and not mädchen.tot:
-        mädchen.main(mänx)
-        malp("Das Mädchen verschwindet nach Norden.")
-        mädchen.in_disnajenbum = False
-        # TODO wohin?
-    jtg.disnayenbum(mänx)
-
 
 @register("jtg:mädchen")
 class Mädchen(haendler.Händler):

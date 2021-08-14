@@ -18,6 +18,7 @@ from xwatc.untersystem.acker import Wildpflanze
 from xwatc.weg import Ereignis
 from xwatc.jtg import mitose
 from typing import List, Tuple
+from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
 
 
 def t2(mänx: Mänx) -> None:
@@ -443,6 +444,8 @@ class Waschweib(Dorfbewohner):
         if random.random() > 0.8:
             self.inventar["Haarband"] += 1
             self.inventar["Armband"] += 2
+        if random.random() > 0.8:
+            self.erhalte("Dolch")
         self.inventar["Socke"] += 2
         self.gold += max(0, random.randint(-4, 10))
         self.direkt_reden = True
@@ -479,15 +482,16 @@ def rechtfertigen(mänx: Mänx, nsc, hilfe):
         ("Weil du lecker aussahst.", "lecker", "mord"),
         ("Mir war gerade danach", "danach", "mord"),
         ("Du hast mich schief angeguckt.", "schief", "mord"),
-        ("Er hat mich bestohlen!", "diebstahl", "diebstahl"),
+        ("Du hast mich bestohlen!", "diebstahl", "diebstahl"),
         ("Tut mir leid, kommt nie wieder vor!", "tut", "ent"),
-        ("Er hat mich bespuckt!", "bespuckt", "bespuckt"),
+        ("Du hast mich bespuckt!", "bespuckt", "bespuckt"),
     ]
     random.shuffle(opts)
     ans = mänx.menu(opts)
     if ans == "mord":
         hilfe[0].sprich("Das ist keine gute Rechtfertigung!")
         hilfe[0].sprich("Mord dulden wir hier nicht.")
+        mänx.verbrechen[Verbrechen(Verbrechensart.MORD)] += 1
         raise Spielende  # TODO: Verbrecher
     elif ans == "diebstahl":
         val = ""
@@ -507,6 +511,7 @@ def rechtfertigen(mänx: Mänx, nsc, hilfe):
             else:
                 hilfe[0].sprich("Du lügst. Der Junge ist unschuldig.")
                 hilfe[0].sprich("Mord dulden wir hier nicht.")
+                mänx.verbrechen[Verbrechen(Verbrechensart.MORD)] += 1
                 raise Spielende
     elif ans == "ent":
         hilfe[0].sprich("Hoffen wir das mal.")
@@ -522,6 +527,7 @@ def rechtfertigen(mänx: Mänx, nsc, hilfe):
             pass
         hilfe[0].sprich("Du hast unseren kleinen Gaa angegriffen, das "
                         "verzeihen wir dir nicht!")
+        mänx.verbrechen[Verbrechen(Verbrechensart.MORD)] += 1
         raise Spielende
 
 

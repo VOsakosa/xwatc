@@ -69,18 +69,26 @@ class NSC(system.InventarBasis):
         self._ort = None
         self.ort = ort
         self.max_lp = max_lp or 100
+        # Extra-Daten, die du einem NSC noch geben willst, wie z.B. seine
+        # Geschwindigkeit, Alter, ... (vorläufig)
+        self.extra_daten: dict[str, Any] = {}
         if startinventar:
             for a, i in startinventar.items():
                 self.inventar[a] += i
 
-    def kampf(self, mänx: system.Mänx) -> None:
+    def kampf(self, mänx: system.Mänx) -> Opt[Fortsetzung]:
         """Starte den Kampf gegen mänx."""
         self.kennt_spieler = True
         if self.kampf_fn:
             ret = self.kampf_fn(self, mänx)
+            if isinstance(ret, (bool, Rückkehr)):
+                return None
+            else:
+                return ret
             # if isinstance(ret, Wegpunkt)
         else:
             malp("Dieser Kampfdialog wurde noch nicht hinzugefügt.")
+            return None
 
     def fliehen(self, mänx: system.Mänx):
         if self.fliehen_fn:
@@ -443,46 +451,11 @@ class Dorfbewohner(NSC):
             return True
         self.dialoge.append(Dialog("hallo2", "Hallo", hallo2, "hallo"))
 
-    def kampf(self, mänx: system.Mänx) -> None:
+    def kampf(self, mänx: system.Mänx) -> Opt[Fortsetzung]:
         if self.kampf_fn:
             return super().kampf(mänx)
-        if mänx.hat_klasse("Waffe", "magische Waffe"):
-            mint("Du streckst den armen Typen nieder.")
-            self.tot = True
-            self.plündern(mänx)
-        elif self.hat_klasse("Waffe", "magische Waffe"):
-            mint(
-                f"Du rennst auf {self.name} zu und schlägst wie wild auf "
-                + ("ihn" if self.geschlecht else "sie") + " ein."
-            )
-            if self.hat_item("Dolch"):
-                if self.geschlecht:
-                    mint("Er ist erschrocken, schafft es aber, seinen Dolch "
-                         "hervorzuholen und dich zu erstechen.")
-                else:
-                    mint("Aber sie zieht seinen Dolch und sticht dich nieder")
-                raise Spielende
-            else:
-                if self.geschlecht:
-                    mint("Aber er wehrt sich tödlich.")
-                else:
-                    mint("Aber sie wehrt sich tödlich.")
-                raise Spielende
-        elif random.randint(1, 6) != 1:
-            malp("Irgendwann ist dein Gegner bewusstlos.")
-            if mänx.ja_nein("Schlägst du weiter bis er tot ist oder gehst du weg?"):
-                malp("Irgendwann ist der Arme tot. Du bist ein Mörder. "
-                     "Kaltblütig hast du dich dafür entschieden einen lebendigen Menschen zu töten."
-                     "", kursiv(" zu ermorden. "), "Mörder.")
-            else:
-                malp("Du gehst weg.")
-
-        else:
-            malp("Diesmal bist du es, der unterliegt.")
-            a = random.randint(1, 10)
-            if a != 1:
-                mint("Als du wieder aufwachst, bist du woanders.")
-                gefängnis_von_gäfdah(mänx)
+        from xwatc.vorlagen.kampf import dorfbewohner_kampf
+        return dorfbewohner_kampf(self, mänx)
 
 
 class Ort(weg.Wegkreuzung):
