@@ -24,7 +24,7 @@ SPEICHER_VERZEICHNIS = Path(__file__).parent.parent / "xwatc_saves"
 MänxFkt = Callable[['Mänx'], Any]  # Recursive type not allowed
 MänxPrädikat = Callable[['Mänx'], bool]
 Fortsetzung = Union[MänxFkt, 'HatMain', 'weg.Wegpunkt']
-ITEMVERZEICHNIS, UNTERKLASSEN = lade_itemverzeichnis(
+ITEMVERZEICHNIS, UNTERKLASSEN, ALLGEMEINE_PREISE = lade_itemverzeichnis(
     Path(__file__).parent / "itemverzeichnis.txt")
 
 _OBJEKT_REGISTER: Dict[str, Callable[[], 'HatMain']] = {}

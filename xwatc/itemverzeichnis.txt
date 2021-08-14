@@ -9,136 +9,142 @@ Ausrüstung:
   Armbanduhr
 
 Blume:
-  Distelblüte
-  Gänseblümchen
+  Distelblüte; 6
+  Gänseblümchen; 3
   Hahnenfuß
   Klatschmohn
-  Löwenzahn
+  Löwenzahn; 2
   Margarite
-  Rose
+  Rose; 8
   Tulpe
 
 Brennstoff:
   Kohle
 
 Buch:
-  Sachbuch
+  Kinderbuch; 23
+  Sachbuch; 44
 
 Fisch: Nahrung
-  Hering
-  Lachs
-  Sardine
-  Scholle
+  Hering; 5
+  Lachs; 7
+  Sardine; 5
+  Scholle; 4
 
 Fleisch: Nahrung
-  Hühnerfleisch
-  Riesenschneckenfleisch
+  Hühnerfleisch; 10
+  Riesenschneckenfleisch; 21
 
 Gemüse: Nahrung
-  Bohne
-  Erbse
-  Karotte
+  Bohne; 2
+  Erbse; 1
+  Karotte; 3
 
 Heiliges Tagesei:
-  Stein der aussieht wie ein Hühnerei
+  Stein der aussieht wie ein Hühnerei; 350
 
 Holz:
   Holz
   Stöckchen
 
 Kleidung:
-  Anzug
-  Anzugjacke
-  Einfaches Kleid
-  Gürtel
-  Hose
-  Kapuzenmantel
-  Kleid
-  Lederhose
-  Lederschuh
-  Lederstiefel
-  Mantel
-  Mütze
-  Schal
-  Schuh
-  Schürze
-  Socke
-  Turnschuh
-  
-Unterwäsche: Kleidung
-  BH
-  Dicke Unterhose
-  Großer BH
-  Unterhose
-  Windel
-
-Oberbekleidung: Kleidung
-  Leinenhemd
-  T-Shirt
+  Anzug; 25
+  Einfaches Kleid; 12
+  Gürtel; 15
+  Hose; 10
+  Kapuzenmantel; 30
+  Kleid; 48
+  Lederhose; 16
+  Lederschuh; 18
+  Lederstiefel; 20
+  Mantel; 28
+  Mütze; 12
+  Schal; 8
+  Schuh; 6
+  Schürze; 12
+  Socke; 3
+  Turnschuh; 5
 
 legendäre Waffe: Waffe
-  mächtige Axt
-  Schwert
+  mächtige Axt; 300
+  Schwert; 200
 
 Metall:
+  Bronze
   Eisen
+  Kupfer
+  Rohgold; 5
+  Silber
+  Zink
+  Zinn
 
 Mugel:
   Mugel der Draufsicht
-  Mugel des Sprechens
   Mugel des Geschmacks
+  Mugel des Sprechens
 
 Nahrung:
-  Pausenbrot
-  Reisportion
+  Pausenbrot; 9
+  Reisportion; 4
 
 normales Werkzeug:
-  Spitzhacke
-  Tablett
+  Spitzhacke; 50
+  Tablett; 2
 
 normale Waffe: Waffe
   Dolch
   Messer
   Normales Schwert
-  Speer
+  Speer; 50
+
+Oberbekleidung: Kleidung
+  Anzugjacke; 28
+  Leinenhemd; 17
+  T-Shirt; 18
 
 Obst: Nahrung
-  Apfel
-  Aprikose
-  Banane
-  Beere
-  Mandarine
-  Tomate
-  Zwetschge
+  Apfel; 3
+  Aprikose; 4
+  Banane; 12
+  Beere; 1
+  Mandarine; 6
+  Tomate; 3
+  Zwetschge; 5
 
 Ring: Ausrüstung
-  Ehering
+  Ehering; 52
   Ring des Berndoc
-  Schnöder Ehering
+  Schnöder Ehering; 32
 
 Rüstungsgegenstand: Ausrüstung
-  Schild
+  Schild; 48
 
 Scherz-Item:
-  Leere
+  Leere; 3000
 
 Stein:
-  Stein
+  Stein; 0
 
 Superfolienrohstoff:
-  Schneckenschleim
+  Schneckenschleim; 80
 
 Superpapierrohstoff:
-  Riesenschneckeninnereien
+  Riesenschneckeninnereien; 40
 
 Talisman: Ausrüstung
   Talisman der Schreie
 
-Waffe:
+Unterwäsche: Kleidung
+  BH; 20
+  Brokat-Unterhose; 68
+  Dicke Unterhose; 18
+  Großer BH; 38
+  Unterhose; 10
+  Windel; 3
 
 Werkzeug:
-  Nagel
+  Nagel; 1
 
 Zauberzutat:
-  Menschenskelett
+  Menschenskelett; 100
 

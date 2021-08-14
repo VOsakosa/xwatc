@@ -4,21 +4,10 @@ from typing import List, Optional as Op, NewType, Dict, cast, Tuple
 
 from xwatc.dorf import NSC, NSCOptionen, Rückkehr, DialogErzeugerFn
 from xwatc.system import Mänx, minput, ja_nein, get_classes, Inventar, malp,\
-    Fortsetzung
+    Fortsetzung, ALLGEMEINE_PREISE
 
-ALLGEMEINE_PREISE = {
-    "Speer": 50,
-    "Hering": 5,
-    "Sardine": 5,
-    "Gänseblümchen": 3,
-    "Löwenzahn": 2,
-    "Distelblüte": 6,
-    "Rose": 8,
-    "Aorenblume": 80,
-    "Atctenrose": 350
 
-}
-Preis = NewType("Preis", int)
+Preis = int
 Item = str
 Klasse = str
 
@@ -36,7 +25,7 @@ class Händler(NSC):
         # Anzahl, Preis
         self.verkauft: Dict[Item, int] = {}
         for ware, (anzahl, preis) in verkauft.items():
-            self.verkauft[ware] = Preis(preis)
+            self.verkauft[ware] = preis
             self.inventar[ware] += anzahl
         if startinventar:
             for item, anzahl in startinventar.items():
@@ -71,7 +60,7 @@ class Händler(NSC):
             mänx.inventar[name] -= anzahl
             self.inventar[name] += anzahl
             if self.rückkauf and name not in self.verkauft:
-                self.verkauft[name] = cast(Preis, preis + 1)
+                self.verkauft[name] = preis + 1
             return True
         return False
 

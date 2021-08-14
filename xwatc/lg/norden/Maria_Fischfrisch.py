@@ -3,7 +3,17 @@ from xwatc import haendler
 from xwatc.system import Mänx, mint, malp
 from xwatc.lg.norden.Fischerfrau_Massaker import fischerfraumassaker
 
+
 class Fischerfrau(haendler.Händler):
+    def __init__(self):
+        from xwatc.lg.norden.gäfdah import STANDARDKLEIDUNG
+        super().__init__("Maria Fischfrisch", art="Fischerfrau",
+                         kauft=["Blume"], gold=200, verkauft={
+                             "Hering": (4, 6),
+                             "Sardelle": (13, 5),
+                             "Lachs": (4, 8)}, startinventar=STANDARDKLEIDUNG | {
+                             "Unterhose": 0,
+                             "Brokat-Unterhose": 1})
 
     def kampf(self, mänx: Mänx) -> None:
         fischerfraumassaker(mänx)
@@ -11,14 +21,6 @@ class Fischerfrau(haendler.Händler):
 
     def vorstellen(self, mänx):
         malp("Die Fischerfrau verkauft Fische.")
-        
-    def __init__(self):
-        super().__init__("Maria Fischfrisch", art="Fischerfrau",
-                          kauft=["Blume"], gold=200, verkauft={
-            "Hering": (4, 6),
-            "Sardelle": (13, 5),
-            "Lachs": (4, 8)})
-
 
     def reden(self, mänx: Mänx) -> Rückkehr:
         malp('An einem Stand verkauft eine alte Frau Fische. ')
@@ -38,15 +40,9 @@ class Fischerfrau(haendler.Händler):
             malp('"Schön, mein Kind."')
         elif opt == 2:
             mint('"Mir geht es gut. Wie geht es dir?"')
-            k=input("")
-            if k=="gut" or "sehr gut" or "super gut" or "wirklich gut" or "wirklich sehr gut":
+            k = input("")
+            if k == "gut" or "sehr gut" or "super gut" or "wirklich gut" or "wirklich sehr gut":
                 malp('"Das ist aber schön."')
             else:
                 malp('"oh"')
         return Rückkehr.WEITER_REDEN
-        
-        
-
-
-
-

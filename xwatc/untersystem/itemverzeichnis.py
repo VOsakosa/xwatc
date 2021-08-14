@@ -1,19 +1,35 @@
 """
 Schreibt und liest das Xwatc-Itemverzeichnis.
 
+Die Grammatik des Itemverzeichnisses ist wie folgt:
+(Die Grammatik ignoriert Whitespace, Kommentarzeilen mit #)
+
+ITEMVERZEICHNIS := KLASSENBLOCK*
+KLASSENBLOCK := KLASSENDEFINITION ITEMDEFINITION*
+KLASSENDEFINITION := NAME ":" NAME@OBERKLASSE?
+ITEMDEFINITION := NAME (";" KOSTEN )?
+KOSTEN := INTEGER | "-"
+NAME := "[\w ]+"
+
 
 Created on 25.10.2020
 """
+from __future__ import annotations
 import locale
-__author__ = "jasper"
+from os import PathLike
 from collections import defaultdict
 import re
 from typing import Tuple, Dict, Optional as Opt, List, DefaultDict
 
+__author__ = "jasper"
 
-def lade_itemverzeichnis(pfad) -> Tuple[Dict[str, str], Dict[str, str]]:
+
+def lade_itemverzeichnis(pfad: str | PathLike) -> Tuple[Dict[str, str], Dict[str, str],
+                                                        Dict[str, int]]:
+    """Lädt das Itemverzeichnis bei Pfad."""
     items = {}
     classes = {}
+    preise = {}
     klasse: Opt[str] = None
     with open(pfad, "r") as file:
         for lineno, line in enumerate(file):
@@ -23,24 +39,33 @@ def lade_itemverzeichnis(pfad) -> Tuple[Dict[str, str], Dict[str, str]]:
             splits = re.split(r"\s*:\s*", line)
             if len(splits) == 1:
                 # Item
-                item = splits[0]
                 if klasse:
+                    item, *fields = re.split("\s*;\s*", splits[0])
                     items[item] = klasse
+                    if fields:
+                        try:
+                            if fields[0] != "-":
+                                preise[item] = int(fields[0])
+                        except ValueError:
+                            raise ValueError("Die erste Spalte ist der Preis, "
+                                             f"war aber {fields[0]}") from None
                 else:
                     raise ValueError(f"{item} sollte zu einer Klasse gehören!",
                                      lineno)
             elif len(splits) == 2:
+                # Klassendefinition
                 klasse, ober = splits
                 if ober:
                     classes[klasse] = ober
             else:
-                raise ValueError(f"Drei Doppelpunkte in einer Linie: {line}",
+                raise ValueError(f"Mehrere Doppelpunkte in einer Linie: {line}",
                                  lineno)
-    return items, classes
+    return items, classes, preise
 
 
 def schreibe_itemverzeichnis(pfad, items: Dict[str, str],
-                             classes: Dict[str, str]) -> None:
+                             classes: Dict[str, str],
+                             preise: dict[str, int]) -> None:
     """Schreibe das Itemverzeichnis, schön sortiert, in die Datei pfad"""
     klassen: DefaultDict[str, List[str]] = defaultdict(list)
     for unter, ober in classes.items():
@@ -61,7 +86,10 @@ def schreibe_itemverzeichnis(pfad, items: Dict[str, str],
             else:
                 print(file=file)
             for item in item_liste:
-                print("  ", item, sep="", file=file)
+                print("  ", item, sep="", file=file, end="")
+                if item in preise:
+                    print(";", preise[item], end="", file=file)
+                print(file=file)
             print(file=file)
 
 
@@ -78,8 +106,9 @@ if __name__ == '__main__':
     def main():
         locale.setlocale(locale.LC_ALL, "de_DE.UTF-8")
         schreibe_itemverzeichnis(
-            verzeichnis, system.ITEMVERZEICHNIS, system.UNTERKLASSEN)
-        items, klassen = lade_itemverzeichnis(verzeichnis)
+            verzeichnis, system.ITEMVERZEICHNIS, system.UNTERKLASSEN, system.ALLGEMEINE_PREISE)
+        items, klassen, preise = lade_itemverzeichnis(verzeichnis)
         assert items == system.ITEMVERZEICHNIS
         assert klassen == system.UNTERKLASSEN
+        assert preise == system.ALLGEMEINE_PREISE
     main()
