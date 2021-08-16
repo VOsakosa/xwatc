@@ -36,6 +36,7 @@ class Ereignis(enum.Enum):
     MORD = enum.auto()
     DIEBSTAHL = enum.auto()
     SCHLAFEN = enum.auto()
+    SACHBESCHÄDIGUNG = enum.auto()
 
 
 class Context(Protocol):
