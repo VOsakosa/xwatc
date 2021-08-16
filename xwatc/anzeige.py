@@ -4,7 +4,7 @@ Anzeige für Xvatc
 from __future__ import annotations
 from itertools import islice
 from functools import wraps
-from xwatc.system import Fortsetzung
+from xwatc.system import Fortsetzung, Speicherpunkt, SPEICHER_VERZEICHNIS
 from contextlib import contextmanager
 __author__ = "jasper"
 import os
@@ -32,7 +32,7 @@ KURZ_CODES = {
     "k": ("kämpfen",),
     "j": ("ja",),
     "n": ("nein", "norden"),
-    "\r": ("weiter",),
+    "Return": ("weiter",),
     "w": ("weiter",),
 }
 
@@ -87,6 +87,7 @@ class XwatcFenster:
         win.set_default_size(300, 300)
         win.set_title("Xwatc")
         # Spiel beginnen
+        self.speicherpunkt: Opt[Speicherpunkt] = None
         self.mänx = system.Mänx(self)
         if startpunkt:
             self.mänx.speicherpunkt = startpunkt
@@ -135,12 +136,13 @@ class XwatcFenster:
 
     def minput(self, _mänx, frage: str, möglichkeiten=None,
                lower=True,
-               save: Opt[system.Speicherpunkt] = None) -> str:
+               save: Opt[Speicherpunkt] = None) -> str:
         self.malp(frage)
         if möglichkeiten is None:
+            self.speicherpunkt = save
             self.eingabe(prompt=None)
         else:
-            self.auswahl([(mg, mg) for mg in möglichkeiten])
+            self.auswahl([(mg, mg) for mg in möglichkeiten], save=save)
         ans = minput_return.get()
         if ans is _XwatcThreadExit:
             raise SystemExit
@@ -149,8 +151,10 @@ class XwatcFenster:
         return ans
 
     @_idle_wrapper
-    def eingabe(self, prompt: Opt[str]) -> None:
+    def eingabe(self, prompt: Opt[str], 
+                action: Opt[Callable[[str], Any]] = None) -> None:
         self._remove_choices()
+        self.choice_action = action
         entry = Gtk.Entry(visible=True)
         entry.connect("activate", self.entry_activated)
         self.grid.add(entry)
@@ -164,7 +168,7 @@ class XwatcFenster:
              versteckt: Opt[Mapping[str, T]] = None,
              save: Opt[system.Speicherpunkt] = None) -> T:
         self.auswahl([(name, value, shorthand)
-                      for name, shorthand, value in optionen], versteckt)
+                      for name, shorthand, value in optionen], versteckt, save=save)
         ans = minput_return.get()
         if ans is _XwatcThreadExit:
             raise SystemExit
@@ -173,7 +177,7 @@ class XwatcFenster:
     def ja_nein(self, mänx: system.Mänx, frage: str,
                 save: Opt[system.Speicherpunkt] = None) -> bool:
         self.malp(frage)
-        self.auswahl([("Ja", True), ("Nein", False)])
+        self.auswahl([("Ja", True), ("Nein", False)], save=save)
         ans = minput_return.get()
         if ans is _XwatcThreadExit:
             raise SystemExit
@@ -182,7 +186,9 @@ class XwatcFenster:
     @_idle_wrapper
     def auswahl(self, mgn: Sequence[Tuple[str, Any] | Tuple[str, Any, str]],
                 versteckt: Opt[Mapping[str, Any]] = None,
+                save: Opt[Speicherpunkt] = None,
                 action: Opt[Callable[[Any], Any]] = None) -> None:
+        self.speicherpunkt = save
         self._remove_choices()
         self.mgn_hidden_count = len(mgn)
         self.choice_action = action
@@ -215,7 +221,7 @@ class XwatcFenster:
     def key_pressed(self, _widget, event: Gdk.EventKey) -> bool:
         """Ausgeführt, wenn eine Taste gedrückt wird."""
         control = Gdk.ModifierType.CONTROL_MASK & event.state
-        taste = event.string
+        taste = Gdk.keyval_name(event.keyval)
         if not control:
             if not self.mgn:
                 return False
@@ -227,7 +233,7 @@ class XwatcFenster:
                     if t in self.mgn:
                         self.button_clicked(None, t)
                         return True
-            if taste == '\r' and len(self.mgn) == 1:
+            if taste == 'Return' and len(self.mgn) == 1:
                 self.button_clicked(None, next(iter(self.mgn.values())))
             elif len(taste) == 1 and ord('0') <= ord(taste) <= ord('9'):
                 nr = int(taste)
@@ -241,15 +247,52 @@ class XwatcFenster:
                     except StopIteration:
                         pass
             elif taste == "e":
-                self.push_stack()
-                self.malp(self.mänx.erweitertes_inventar())
-                self.auswahl([("weiter", None)],
-                             action=lambda _arg: self.pop_stack())
-        else:
-            if taste == "s":
-                # TODO In Anzeige speichern
-                pass
+                self.malp_stack(self.mänx.erweitertes_inventar())
+        else:  # Strg
+            if taste == "s" or taste == "S":
+                if self.speicherpunkt:
+                    if self.mänx.speicherdatei_name and taste == 's':
+                        self.mänx.save(self.speicherpunkt)
+                        self.malp_stack("Spielstand gespeichert.")
+                    else:
+                        self.speichern_als()
+                else:
+                    self.malp_stack("Du kannst hier nicht speichern.")
+                
         return False
+    
+    def malp_stack(self, nachricht: str) -> None:
+        """Zeige eine Nachricht und mache dann weiter."""
+        self.push_stack()
+        self.malp(nachricht)
+        self.auswahl([("weiter", None)],
+                             action=lambda _arg: self.pop_stack())
+    
+    def speichern_als(self):
+        """Zeigt das Speichern-Als-Fenster"""
+        self.push_stack()
+        self.malp("Unter welchem Namen willst du speichern?")
+        vergeben = [
+            path.stem for path in SPEICHER_VERZEICHNIS.iterdir() if path.suffix == ".pickle"]
+        if vergeben:
+            self.malp("Bereits vergeben sind:", ", ".join(vergeben))
+        self.eingabe(vergeben, action=self._speichern_als_name)
+    
+    def _speichern_als_name(self, name: str):
+        """Reagiert auf Speichern-Als."""
+        if (SPEICHER_VERZEICHNIS / (name+".pickle")).exists():
+            self.malp("Dieser Name ist bereits vergeben. Willst du überschreiben?")
+            self.auswahl([("Ja", name), ("Nein", "")], action=self._speichern_als_name2)
+        else:
+            self._speichern_als_name2(name)
+    
+    def _speichern_als_name2(self, name: str):
+        if name:
+            assert self.speicherpunkt
+            self.mänx.save(self.speicherpunkt, name)
+        self.pop_stack()
+        if name:
+            self.malp_stack("Gespeichert.")
 
     def _remove_choices(self):
         # entferne buttons
@@ -268,16 +311,15 @@ class XwatcFenster:
         self.sichtbare_anzeigen.clear()
 
     def button_clicked(self, _button: Any, text: Any) -> None:
+        """Beantwortet die gestellte Frage mit *text*."""
         self._deactivate_choices()
         if self.choice_action is None:
             minput_return.put(text)
         else:
             self.choice_action(text)
 
-    def entry_activated(self, entry: Gtk.Entry):
-        self._deactivate_choices()
-        self.buffer.set_text("")
-        minput_return.put(entry.get_text())
+    def entry_activated(self, entry: Gtk.Entry) -> None:
+        self.button_clicked(entry, entry.get_text())
 
     def fenster_schließt(self, _window: Gtk.Window, _event) -> bool:
         # TODO warnen wegen nicht gespeichert?
@@ -288,7 +330,7 @@ class XwatcFenster:
     def kursiv(self, text: str) -> Text:
         return text
 
-    def push_stack(self):  # TODO text buffer
+    def push_stack(self):
         self._stack.append(_StackItem(
             self.mgn.copy(),
             self.mgn_hidden_count,

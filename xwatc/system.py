@@ -158,7 +158,7 @@ class Mänx(InventarBasis, Persönlichkeit):
         self.rasse = "Arak"
         self.context: Any = None
         self.speicherpunkt: Opt[Fortsetzung] = None
-        self.speicherdatei_name = "welt"
+        self.speicherdatei_name: Opt[str] = None
 
     def hat_fähigkeit(self, name: str) -> bool:
         return name in self.fähigkeiten
@@ -361,9 +361,12 @@ class Mänx(InventarBasis, Persönlichkeit):
     def save(self, punkt: HatMain | MänxFkt, name: Opt[str] = None) -> None:
         self.speicherpunkt = punkt
         SPEICHER_VERZEICHNIS.mkdir(exist_ok=True, parents=True)
+        if not self.speicherdatei_name:
+            self.speicherdatei_name = "welt"
         if name:
             self.speicherdatei_name = name
         filename = self.speicherdatei_name + ".pickle"
+
         with open(SPEICHER_VERZEICHNIS / filename, "wb") as write:
             pickle.dump(self, write)
         self.speicherpunkt = None
