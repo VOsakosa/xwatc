@@ -115,15 +115,17 @@ def main(mänx: Mänx):
         if not ende:
             mänx.inventar_leeren()
             malp("Aber keine Sorge, du wirst wiedergeboren")
-
+        elif not mänx.ausgabe.terminal:
+            mänx.menu([("Beenden", "weiter", None)])
 
 def himmelsrichtungen(mänx: Mänx):
-    richtung = mänx.minput("Wohin gehst du jetzt? "
-                           "In Richtung Norden ist das nächste Dorf, im Süden warten "
-                           "Monster auf dich, im Westen liegt "
-                           "das Meer und der Osten ist unentdeckt"
-                           ".", ["Norden", "Osten", "Süden", "Westen"],
-                           save=himmelsrichtungen)
+    richtung = mänx.minput(
+        "Wohin gehst du jetzt? "
+        "In Richtung Norden ist das nächste Dorf, im Süden warten "
+        "Monster auf dich, im Westen liegt "
+        "das Meer und der Osten ist unentdeckt.",
+        ["Norden", "Osten", "Süden", "Westen"],
+        save=himmelsrichtungen)
     if richtung == "norden":
         norden.norden(mänx)
     elif richtung == "osten":

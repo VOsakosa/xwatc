@@ -81,7 +81,7 @@ class XwatcFenster:
         self.show_grid.add(textview)
         self.grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
         self.main_grid.add(self.grid)
-        win.connect("delete-event", self.fenster_schließt)
+        win.connect("destroy", self.fenster_schließt)
         win.connect("key-press-event", self.key_pressed)
         win.add(self.main_grid)
         win.set_default_size(300, 300)
@@ -100,6 +100,7 @@ class XwatcFenster:
                 import traceback
                 self.buffer.set_text("Xwatc ist abgestürzt:\n"
                                      + traceback.format_exc())
+            GLib.idle_add(self.xwatc_ended)
 
         threading.Thread(target=xwatc_main,
                          name="Xwatc-Geschichte", daemon=True).start()
@@ -239,6 +240,7 @@ class XwatcFenster:
                 nr = int(taste)
                 if nr == 0:
                     nr = 10
+                # Versteckte dürfen nicht durch Nummer aktiviert werden.
                 if nr <= self.mgn_hidden_count:
                     try:
                         self.button_clicked(None, next(
@@ -321,11 +323,14 @@ class XwatcFenster:
     def entry_activated(self, entry: Gtk.Entry) -> None:
         self.button_clicked(entry, entry.get_text())
 
-    def fenster_schließt(self, _window: Gtk.Window, _event) -> bool:
-        # TODO warnen wegen nicht gespeichert?
+    def fenster_schließt(self, _window: Gtk.Window) -> bool:
         # xwatc-thread umbringen
         minput_return.put(_XwatcThreadExit)
         return False
+    
+    def xwatc_ended(self):
+        """"""
+        self.main_grid.get_toplevel().destroy()
 
     def kursiv(self, text: str) -> Text:
         return text
