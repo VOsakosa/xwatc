@@ -4,8 +4,12 @@ Anzeige für Xvatc
 from __future__ import annotations
 from itertools import islice
 from functools import wraps
-from xwatc.system import Fortsetzung, Speicherpunkt, SPEICHER_VERZEICHNIS
+from xwatc import system
+from xwatc.system import Fortsetzung, Speicherpunkt, SPEICHER_VERZEICHNIS,\
+    MenuOption, Mänx
 from contextlib import contextmanager
+from pathlib import Path
+import pickle
 __author__ = "jasper"
 import os
 import queue
@@ -18,13 +22,12 @@ import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GLib, Gdk
 
-from xwatc import system
+
 
 Text = str
 
 minput_return: queue.Queue = queue.Queue(1)
 _main_thread: threading.Thread
-_XwatcThreadExit = object()
 
 KURZ_CODES = {
     "f": ("fliehen", "zurück"),
@@ -54,12 +57,16 @@ def _idle_wrapper(fn: Tcall) -> Tcall:
     return wrapped  # type: ignore
 
 
+class AnzeigeSpielEnde(BaseException):
+    def __init__(self, weiter: Opt[Path]):
+        self.weiter = weiter
+
+
 class XwatcFenster:
     """Ein Fenster, um Xwatc zu spielen."""
     terminal: ClassVar[bool] = False
 
     def __init__(self, app: Gtk.Application, startpunkt: Opt[Fortsetzung] = None):
-        from xwatc_Hauptgeschichte import main as xw_main
         win = Gtk.ApplicationWindow()
         app.add_window(win)
         textview = Gtk.TextView(hexpand=True, vexpand=True, editable=False)
@@ -88,9 +95,7 @@ class XwatcFenster:
         win.set_title("Xwatc")
         # Spiel beginnen
         self.speicherpunkt: Opt[Speicherpunkt] = None
-        self.mänx = system.Mänx(self)
-        if startpunkt:
-            self.mänx.speicherpunkt = startpunkt
+        self.mänx: Opt[system.Mänx] = None
         system.ausgabe = self
 
         def xwatc_main(mänx=self.mänx):
@@ -100,26 +105,84 @@ class XwatcFenster:
                 import traceback
                 self.buffer.set_text("Xwatc ist abgestürzt:\n"
                                      + traceback.format_exc())
-            GLib.idle_add(self.xwatc_ended)
+            
 
-        threading.Thread(target=xwatc_main,
+        threading.Thread(target=self._xwatc_thread,args=(startpunkt,),
                          name="Xwatc-Geschichte", daemon=True).start()
         win.show_all()
+    
+    def _xwatc_thread(self, startpunkt: Opt[Speicherpunkt]):
+        from xwatc_Hauptgeschichte import main as xw_main
+        next: str | Path | None
+        try:
+            if startpunkt:
+                self.mänx = system.Mänx(self)
+                self.mänx.speicherpunkt = startpunkt
+                next = "m"
+            else:
+                next = "h"  # hauptmenu
+            # Next speichert den Zustand (Hauptmenü, Spiel, Lademenü, etc.)
+            while next is not None:
+                if next == "h": # hauptmenu
+                    self.malp("Xwatc-Hauptmenü")
+                    mgn1 = [("Lade Spielstand", "lade", False),
+                        ("Neuer Spielstand", "neu", True)]
+                    if system.ausgabe.menu(None, mgn1):
+                        self.mänx = system.Mänx(self)
+                        next = "m"
+                    else:
+                        next = "l"
+                elif next == "m":  # main
+                    assert self.mänx
+                    try:
+                        xw_main(self.mänx)
+                    except AnzeigeSpielEnde as ende:
+                        next = ende.weiter
+                        continue
+                    except Exception as exp:
+                        import traceback
+                        self.mint("Xwatc ist abgestürzt:\n"
+                                             + traceback.format_exc())
+                        next = "h"
+                    else:
+                        next = "h"
+                elif next == "l":  # Lademenü
+                    mgn2: list[MenuOption[Opt[Path]]] = [
+                        (path.stem, path.name.lower(), path) for path in
+                        SPEICHER_VERZEICHNIS.iterdir()
+                    ]
+                    mgn2.append(("Zurück", "zurück", None))
+                    wahl = system.ausgabe.menu(None, mgn2)
+                    if wahl:
+                        next = wahl
+                    else:
+                        next = "h"
+                elif isinstance(next, Path):  # laden
+                    with next.open("rb") as file:
+                        self.mänx = pickle.load(file)
+                    assert isinstance(self.mänx, Mänx)
+                    next = "m"
+                else:
+                    assert False, f"Falscher Zustand {next}"
+        finally:
+            GLib.idle_add(self.xwatc_ended)
 
     def malp(self, *text, sep=" ", end='\n', warte=False) -> None:
         """Zeigt *text* zusätzlich an."""
         self.add_text(sep.join(map(str, text)) + end)
         if warte:
             self.auswahl([("weiter", None)])
-            if minput_return.get() is _XwatcThreadExit:
-                raise SystemExit
+            ans = minput_return.get()
+            if isinstance(ans, AnzeigeSpielEnde):
+                raise ans
 
     def mint(self, *text):
         """Printe und warte auf ein Enter."""
         self.add_text(" ".join(str(t) for t in text) + "\n")
         self.auswahl([("weiter", None)])
-        if minput_return.get() is _XwatcThreadExit:
-            raise SystemExit
+        ans = minput_return.get()
+        if isinstance(ans, AnzeigeSpielEnde):
+            raise ans
 
     def sprich(self, sprecher: str, text: str, warte: bool = False, wie: str = ""):
         if wie:
@@ -127,8 +190,9 @@ class XwatcFenster:
         self.add_text(f'{sprecher}: »{text}«\n')
         if warte:
             self.auswahl([("weiter", None)])
-            if minput_return.get() is _XwatcThreadExit:
-                raise SystemExit
+            ans = minput_return.get()
+            if isinstance(ans, AnzeigeSpielEnde):
+                raise ans
 
     @_idle_wrapper
     def add_text(self, text: str) -> None:
@@ -145,8 +209,8 @@ class XwatcFenster:
         else:
             self.auswahl([(mg, mg) for mg in möglichkeiten], save=save)
         ans = minput_return.get()
-        if ans is _XwatcThreadExit:
-            raise SystemExit
+        if isinstance(ans, AnzeigeSpielEnde):
+            raise ans
         if lower:
             ans = ans.lower()
         return ans
@@ -171,8 +235,8 @@ class XwatcFenster:
         self.auswahl([(name, value, shorthand)
                       for name, shorthand, value in optionen], versteckt, save=save)
         ans = minput_return.get()
-        if ans is _XwatcThreadExit:
-            raise SystemExit
+        if isinstance(ans, AnzeigeSpielEnde):
+            raise ans
         return ans
 
     def ja_nein(self, mänx: system.Mänx, frage: str,
@@ -180,8 +244,8 @@ class XwatcFenster:
         self.malp(frage)
         self.auswahl([("Ja", True), ("Nein", False)], save=save)
         ans = minput_return.get()
-        if ans is _XwatcThreadExit:
-            raise SystemExit
+        if isinstance(ans, AnzeigeSpielEnde):
+            raise ans
         return ans
 
     @_idle_wrapper
@@ -223,44 +287,45 @@ class XwatcFenster:
         """Ausgeführt, wenn eine Taste gedrückt wird."""
         control = Gdk.ModifierType.CONTROL_MASK & event.state
         taste = Gdk.keyval_name(event.keyval)
-        if not control:
-            if not self.mgn:
-                return False
-            elif taste in self.mgn:
-                self.button_clicked(None, self.mgn[taste])
-                return True
-            elif taste in KURZ_CODES:
-                for t in KURZ_CODES[taste]:
-                    if t in self.mgn:
-                        self.button_clicked(None, t)
-                        return True
-            if taste == 'Return' and len(self.mgn) == 1:
-                self.button_clicked(None, next(iter(self.mgn.values())))
-            elif len(taste) == 1 and ord('0') <= ord(taste) <= ord('9'):
-                nr = int(taste)
-                if nr == 0:
-                    nr = 10
-                # Versteckte dürfen nicht durch Nummer aktiviert werden.
-                if nr <= self.mgn_hidden_count:
-                    try:
-                        self.button_clicked(None, next(
-                            islice(self.mgn.values(), nr - 1, None)))
-                        return True
-                    except StopIteration:
-                        pass
-            elif taste == "e":
-                self.malp_stack(self.mänx.erweitertes_inventar())
-        else:  # Strg
-            if taste == "s" or taste == "S":
-                if self.speicherpunkt:
-                    if self.mänx.speicherdatei_name and taste == 's':
-                        self.mänx.save(self.speicherpunkt)
-                        self.malp_stack("Spielstand gespeichert.")
+        if control:
+            if self.mänx:
+                if taste == 's' or taste == 'S':
+                    if self.speicherpunkt:
+                        if self.mänx.speicherdatei_name and taste == 's':
+                            self.mänx.save(self.speicherpunkt)
+                            self.malp_stack("Spielstand gespeichert.")
+                        else:
+                            self.speichern_als()
                     else:
-                        self.speichern_als()
-                else:
-                    self.malp_stack("Du kannst hier nicht speichern.")
-                
+                        self.malp_stack("Du kannst hier nicht speichern.")
+        # KEIN STRG
+        elif not self.mgn:
+            return False
+        elif taste in self.mgn:
+            self.button_clicked(None, self.mgn[taste])
+            return True
+        elif taste in KURZ_CODES:
+            for t in KURZ_CODES[taste]:
+                if t in self.mgn:
+                    self.button_clicked(None, t)
+                    return True
+
+        if taste == 'Return' and len(self.mgn) == 1:
+            self.button_clicked(None, next(iter(self.mgn.values())))
+        elif len(taste) == 1 and ord('0') <= ord(taste) <= ord('9'):
+            nr = int(taste)
+            if nr == 0:
+                nr = 10
+            # Versteckte dürfen nicht durch Nummer aktiviert werden.
+            if nr <= self.mgn_hidden_count:
+                try:
+                    self.button_clicked(None, next(
+                        islice(self.mgn.values(), nr - 1, None)))
+                    return True
+                except StopIteration:
+                    pass
+        elif taste == "e" and self.mänx:
+            self.malp_stack(self.mänx.erweitertes_inventar())
         return False
     
     def malp_stack(self, nachricht: str) -> None:
@@ -290,7 +355,7 @@ class XwatcFenster:
     
     def _speichern_als_name2(self, name: str):
         if name:
-            assert self.speicherpunkt
+            assert self.speicherpunkt and self.mänx
             self.mänx.save(self.speicherpunkt, name)
         self.pop_stack()
         if name:
@@ -325,7 +390,7 @@ class XwatcFenster:
 
     def fenster_schließt(self, _window: Gtk.Window) -> bool:
         # xwatc-thread umbringen
-        minput_return.put(_XwatcThreadExit)
+        minput_return.put(AnzeigeSpielEnde(None))
         return False
     
     def xwatc_ended(self):
@@ -333,9 +398,11 @@ class XwatcFenster:
         self.main_grid.get_toplevel().destroy()
 
     def kursiv(self, text: str) -> Text:
+        # TODO
         return text
 
     def push_stack(self):
+        """Legt ein neues Fenster auf den Stack."""
         self._stack.append(_StackItem(
             self.mgn.copy(),
             self.mgn_hidden_count,
@@ -352,6 +419,7 @@ class XwatcFenster:
         self._deactivate_choices()
 
     def pop_stack(self):
+        """Entfernt ein Fenster vom Stack."""
         self._remove_choices()
         [self.mgn, self.mgn_hidden_count, self.anzeigen,
          self.sichtbare_anzeigen, self.choice_action,

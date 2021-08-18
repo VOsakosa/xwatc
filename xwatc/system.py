@@ -48,6 +48,7 @@ T = TypeVar("T")
 Tcov = TypeVar("Tcov", covariant=True)
 MenuOption = Tuple[str, str, Tcov]
 Inventar = Dict[str, int]
+_null_func = int
 
 
 class Persönlichkeit:

@@ -4,7 +4,7 @@ from xwatc.lg.westen import westen
 from xwatc.lg.osten import osten
 from xwatc.lg.süden import süden
 from xwatc.system import Mänx, minput, Spielende, mint, malp, SPEICHER_VERZEICHNIS,\
-    MänxFkt, HatMain, Fortsetzung
+    MänxFkt, HatMain, Fortsetzung, MenuOption
 import random
 from xwatc import system
 from xwatc import weg
@@ -13,14 +13,15 @@ from typing import Optional as Opt
 
 
 def hauptmenu() -> None:
-    """Das Hauptmenu von Xwatc, erlaubt Laden und neues Spiel starten."""
+    """Das Hauptmenu von Xwatc, erlaubt Laden und neues Spiel starten.
+    (Nur Terminal-Modus)"""
     while True:
         mgn1 = [("Lade Spielstand", "lade", False),
                 ("Neuer Spielstand", "neu", True)]
         if system.ausgabe.menu(None, mgn1):
             main(Mänx())
             return
-        mgn2: list[tuple[str, str, Opt[Path]]] = [
+        mgn2: list[MenuOption[Opt[Path]]] = [
             (path.name, path.name.lower(), path) for path in
             SPEICHER_VERZEICHNIS.iterdir()
         ]
