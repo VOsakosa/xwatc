@@ -137,7 +137,7 @@ class Terminal:
                         print(line)
             else:
                 print("Keine Hilfe für", args, "gefunden.")
-        elif taste == "sofort sterben":
+        elif taste == "sofort sterben" or taste == "sterben":
             raise Spielende()
         else:
             return False

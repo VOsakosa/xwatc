@@ -107,6 +107,7 @@ def main(mänx: Mänx):
                     punkt = punkt.main(mänx)
         except Spielende:
             malp("Du bist tot")
+        except EOFError:
             ende = True
         else:
             ende = False
