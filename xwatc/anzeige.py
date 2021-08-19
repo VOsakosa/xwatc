@@ -5,8 +5,8 @@ from __future__ import annotations
 from itertools import islice
 from functools import wraps
 from xwatc import system
-from xwatc.system import Fortsetzung, Speicherpunkt, SPEICHER_VERZEICHNIS,\
-    MenuOption, Mänx
+from xwatc.system import (Fortsetzung, Speicherpunkt, SPEICHER_VERZEICHNIS,
+                          MenuOption, Mänx)
 from contextlib import contextmanager
 from pathlib import Path
 import pickle
@@ -21,7 +21,6 @@ import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GLib, Gdk
-
 
 
 Text = str
@@ -105,12 +104,11 @@ class XwatcFenster:
                 import traceback
                 self.buffer.set_text("Xwatc ist abgestürzt:\n"
                                      + traceback.format_exc())
-            
 
-        threading.Thread(target=self._xwatc_thread,args=(startpunkt,),
+        threading.Thread(target=self._xwatc_thread, args=(startpunkt,),
                          name="Xwatc-Geschichte", daemon=True).start()
         win.show_all()
-    
+
     def _xwatc_thread(self, startpunkt: Opt[Speicherpunkt]):
         from xwatc_Hauptgeschichte import main as xw_main
         next: str | Path | None
@@ -123,10 +121,10 @@ class XwatcFenster:
                 next = "h"  # hauptmenu
             # Next speichert den Zustand (Hauptmenü, Spiel, Lademenü, etc.)
             while next is not None:
-                if next == "h": # hauptmenu
+                if next == "h":  # hauptmenu
                     self.malp("Xwatc-Hauptmenü")
                     mgn1 = [("Lade Spielstand", "lade", False),
-                        ("Neuer Spielstand", "neu", True)]
+                            ("Neuer Spielstand", "neu", True)]
                     if system.ausgabe.menu(None, mgn1):
                         self.mänx = system.Mänx(self)
                         next = "m"
@@ -142,7 +140,7 @@ class XwatcFenster:
                     except Exception as exp:
                         import traceback
                         self.mint("Xwatc ist abgestürzt:\n"
-                                             + traceback.format_exc())
+                                  + traceback.format_exc())
                         next = "h"
                     else:
                         next = "h"
@@ -216,7 +214,7 @@ class XwatcFenster:
         return ans
 
     @_idle_wrapper
-    def eingabe(self, prompt: Opt[str], 
+    def eingabe(self, prompt: Opt[str],
                 action: Opt[Callable[[str], Any]] = None) -> None:
         self._remove_choices()
         self.choice_action = action
@@ -298,6 +296,12 @@ class XwatcFenster:
                             self.speichern_als()
                     else:
                         self.malp_stack("Du kannst hier nicht speichern.")
+                elif taste == "g":
+                    if self.mänx.gefährten:
+                        self.malp_stack(
+                            "\n".join(g.name for g in self.mänx.gefährten))
+                    else:
+                        self.malp_stack("Du hast keine Gefährten.")
         # KEIN STRG
         elif not self.mgn:
             return False
@@ -327,14 +331,14 @@ class XwatcFenster:
         elif taste == "e" and self.mänx:
             self.malp_stack(self.mänx.erweitertes_inventar())
         return False
-    
+
     def malp_stack(self, nachricht: str) -> None:
         """Zeige eine Nachricht und mache dann weiter."""
         self.push_stack()
         self.malp(nachricht)
         self.auswahl([("weiter", None)],
-                             action=lambda _arg: self.pop_stack())
-    
+                     action=lambda _arg: self.pop_stack())
+
     def speichern_als(self):
         """Zeigt das Speichern-Als-Fenster"""
         self.push_stack()
@@ -344,15 +348,17 @@ class XwatcFenster:
         if vergeben:
             self.malp("Bereits vergeben sind:", ", ".join(vergeben))
         self.eingabe(vergeben, action=self._speichern_als_name)
-    
+
     def _speichern_als_name(self, name: str):
         """Reagiert auf Speichern-Als."""
-        if (SPEICHER_VERZEICHNIS / (name+".pickle")).exists():
-            self.malp("Dieser Name ist bereits vergeben. Willst du überschreiben?")
-            self.auswahl([("Ja", name), ("Nein", "")], action=self._speichern_als_name2)
+        if (SPEICHER_VERZEICHNIS / (name + ".pickle")).exists():
+            self.malp(
+                "Dieser Name ist bereits vergeben. Willst du überschreiben?")
+            self.auswahl([("Ja", name), ("Nein", "")],
+                         action=self._speichern_als_name2)
         else:
             self._speichern_als_name2(name)
-    
+
     def _speichern_als_name2(self, name: str):
         if name:
             assert self.speicherpunkt and self.mänx
@@ -392,7 +398,7 @@ class XwatcFenster:
         # xwatc-thread umbringen
         minput_return.put(AnzeigeSpielEnde(None))
         return False
-    
+
     def xwatc_ended(self):
         """"""
         self.main_grid.get_toplevel().destroy()
