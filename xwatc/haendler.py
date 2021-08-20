@@ -140,7 +140,8 @@ class Händler(NSC):
 
     def handeln(self, mänx: Mänx) -> Rückkehr | Fortsetzung:
         """Lass Spieler mit Mänx handeln"""
-        mänx.tutorial("handel")
+        if mänx.ausgabe.terminal:
+            mänx.tutorial("handel")
         menu = InventarMenu([
             InventarOption("kaufen", self),
             InventarOption("verkaufen", mänx),

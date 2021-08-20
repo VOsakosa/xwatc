@@ -61,13 +61,18 @@ def erzeuge_mitte(_mänx: Mänx) -> 'weg.Wegpunkt':
         ("Der kleine Pfad stößt spitz auf einen Weg von links.",),
         nur="s")
     nordk.add_beschreibung(
-        ("Eine kleiner Pfad biegt nach links ab.",
+        ("Ein kleiner Pfad biegt nach links ab.",
          "Der Weg macht derweil eine leichte Biegung nach Südwesten."),
         nur="n")
+    nordk.add_beschreibung(
+        ("Ein kleiner Pfad führt von der rechten Seite des Weges nach Süden.",
+         "Der Weg macht eine leichte Biegung nach Norden."), nur="sw")
     nordk.verbinde_mit_weg(west, 3, "sw", "n")
 
     süd = weg.WegAdapter(None, t2_süd)
     osten = weg.Wegkreuzung("osten", immer_fragen=True)
+    osten.add_beschreibung(("Das Gestrüpp wird immer dichter.",
+                            "Hohe Brombeerhecken verstellen dir den Weg."))
     osten.add_effekt(system.Besuche("jtg:beeren").main)
     osten.add_beschreibung("Du kommst hier nicht weiter. Umkehren?")
 
@@ -81,6 +86,10 @@ def erzeuge_mitte(_mänx: Mänx) -> 'weg.Wegpunkt':
         "Du befindest sich auf einer Lichtung in einem Wald.", nur=[None])
     lichtung.add_beschreibung(
         "Du kommst auf eine Lichtung.", außer=[None, "o"])
+    lichtung.add_beschreibung((
+        "Die Lichtung ist ungewöhnlich rund, mit einem Radius von 5 Metern.",
+        "Daran schließt sich ein Mischwald an, weder besonders dicht noch licht."
+    ))
     lichtung.add_beschreibung((
         "Ein schmaler Pfad führt nach Norden.",
         "Im Osten ist Dickicht.",
@@ -106,11 +115,16 @@ def disnayenbum(mänx: Mänx):
         weg.wegsystem(mänx, "jtg:mitte:nord")
 
 
-def t2_süd(mänx) -> None:
+def t2_süd(mänx: Mänx) -> None:
     malp("Der Wald wird immer dunkler.")
     mint("Ein kalter Wind weht. Das Vogelgezwitscher der Lichtung kommt dir nun "
          "wie ein kurzer Traum vor.")
     mint("Es wird immer dunkler.")
+    if mänx.welt.ist("kennt:hexer"):
+        malp("Diesmal siehst du das Licht nicht.")
+        ende_des_waldes(mänx)
+        return
+    
     malp("Plötzlich siehst du ein Licht in der Ferne.")
     haus = ja_nein(mänx, "Gehst du zum Licht?")
     if haus:

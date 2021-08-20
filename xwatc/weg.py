@@ -160,7 +160,7 @@ class Weg(_Strecke):
             if von and mänx.ja_nein("Du wirst nicht vor Ende der Nacht ankommen. "
                                     "Willst du umkehren?"):
                 return von
-        # frage_nacht = False
+        ruhen = True
         richtung = von == self.p1
         weg_rest = self.länge
         while weg_rest > 0:
@@ -169,10 +169,12 @@ class Weg(_Strecke):
                 # umkehren
                 richtung = not richtung
                 weg_rest = self.länge - weg_rest
-            if mänx.welt.is_nacht():
-                if mänx.ja_nein("Willst du ruhen?"):
+            if ruhen and mänx.welt.is_nacht():
+                if mänx.ja_nein("Es ist Nacht. Willst du ruhen?"):
                     self.melde(mänx, Ereignis.SCHLAFEN, {})
                     mänx.welt.nächster_tag()
+                else:
+                    ruhen = False
             weg_rest -= 1 / 48 if mänx.welt.is_nacht() else 1 / 24
 
         if richtung:
@@ -303,6 +305,7 @@ class Beschreibung:
         self.warten = warten
 
     def beschreibe(self, mänx: Mänx, von: Opt[str]) -> Opt[Any]:
+        """Führe die Beschreibung aus."""
         if (not self.nur or von in self.nur) and (
                 not self.außer or von not in self.außer):
             if callable(self.geschichte):
@@ -318,6 +321,7 @@ class Beschreibung:
 
     @staticmethod
     def _nur(nur: Opt[Collection[Opt[str]]]) -> Opt[Collection[Opt[str]]]:
+        """Macht einen String zu einer Liste von Strings"""
         if isinstance(nur, str):
             return [nur]
         else:
@@ -530,7 +534,8 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                 if ri.zielname:
                     ziel = ri.zielname
                 elif isinstance(himri, Himmelsrichtung):
-                    ziel = cap(ri.typ.text(True, 4)) + f" nach {himri}"
+                    ziel = f"Nach {himri}"
+                    # ziel = cap(ri.typ.text(True, 4)) + f" nach {himri}"
                 else:
                     ziel = himri
                 yield (ziel, format(himri).lower(), ri.ziel)
