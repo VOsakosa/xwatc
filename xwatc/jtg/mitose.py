@@ -341,9 +341,9 @@ class Mädchen(haendler.Händler):
             malp("Das Mädchen scheint alles an Kleidung zu brauchen.")
         return ans
 
-    def kaufen(self, mänx: Mänx, name: str, anzahl: int=1)->bool:
+    def kaufen(self, mänx: Mänx, name: str, anzahl: int=1)->str:
         ans = super().kaufen(mänx, name, anzahl=anzahl)
         if ans and name == "Rose":
-            malp("Das Mädchen ist dankbar für das Gold")
             self.freundlich += 10
+            return "Das Mädchen ist dankbar für das Gold."
         return ans

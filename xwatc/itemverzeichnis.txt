@@ -51,6 +51,7 @@ Kleidung:
   Anzug; 25
   Einfaches Kleid; 12
   Gürtel; 15
+  halber Mantel; 13
   Hose; 10
   Kapuzenmantel; 30
   Kleid; 48

@@ -4,7 +4,7 @@ Created on 21.10.2020
 """
 __author__ = "jasper"
 from xwatc.system import mint, Mänx, sprich, kursiv, Spielende, malp
-from xwatc.dorf import NSC
+from xwatc.dorf import NSC, Dialog
 from . import see
 from .. import jtg
 

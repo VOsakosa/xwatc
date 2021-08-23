@@ -437,7 +437,8 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         """Beschreibe die Kreuzung von richtung kommend.
 
         Beschreibe muss idempotent sein, das heißt, mehrfache Aufrufe verändern
-        die Welt nicht anders als ein einfacher Aufruf.
+        die Welt nicht anders als ein einfacher Aufruf. Denn beim Laden wird
+        die Beschreibung mehrfach durchgeführt.
         """
         for beschreibung in self.beschreibungen:
             beschreibung.beschreibe(mänx, str(ri_name))
@@ -446,6 +447,8 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                 self.beschreibe_kreuzung(ri_name.nr)
             else:
                 self.beschreibe_kreuzung(None)
+        for mensch in self.menschen:
+            mensch.vorstellen(mänx)
 
     @overload
     def __getitem__(self, i: slice) -> List[Opt[Richtung]]: ...

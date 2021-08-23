@@ -219,6 +219,8 @@ class InventarMenu():
                         mgn.append((opt, opt.lower(), opt))
                 a = mänx.menu(mgn, save=save)
             args = a.split()
+            if not args:
+                continue
             for option in self.optionen:
                 if isinstance(option, str) and option.startswith(args[0]):
                     if len(args) > 1:

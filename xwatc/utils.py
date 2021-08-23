@@ -22,7 +22,7 @@ class UndPred(Generic[Pred]):
         return all(p(*args, **kwargs) for p in self.prädikate)
     
     def __and__(self, other):
-        return Und(self, other)
+        return type(self)(self, other)
     
 
 

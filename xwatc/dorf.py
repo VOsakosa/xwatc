@@ -6,15 +6,13 @@ Seit 10.10.2020
 from __future__ import annotations
 from enum import Enum
 import pickle
-import random
 from typing import List, Union, Callable, Dict, Tuple, Any, Iterator, Iterable,\
     cast
 from typing import Optional as Opt, Sequence
 from dataclasses import dataclass
-from xwatc.system import (mint, malp, schiebe_inventar, Spielende, MenuOption,
-                          sprich, kursiv, MänxFkt, Welt, Fortsetzung)
+from xwatc.system import (mint, malp, schiebe_inventar, MenuOption,
+                          sprich, MänxFkt, Welt, Fortsetzung)
 from xwatc import system
-from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
 from xwatc import weg
 from xwatc.utils import UndPred
 from xwatc.weg import Himmelsrichtung
@@ -22,7 +20,8 @@ __author__ = "jasper"
 
 
 NSCOptionen = Iterable[MenuOption[MänxFkt]]
-DialogFn = Callable[["NSC", system.Mänx], Union[None, bool, Fortsetzung, 'Rückkehr']]
+DialogFn = Callable[["NSC", system.Mänx],
+                    Union[None, bool, Fortsetzung, 'Rückkehr']]
 DialogErzeugerFn = Callable[[], Iterable['Dialog']]
 RunType = Union['Dialog', MänxFkt, 'Rückkehr']
 _MainOpts = List[MenuOption[RunType]]
@@ -170,7 +169,7 @@ class NSC(system.InventarBasis):
             elif ans2 is True or ans2 is None:
                 pass
             else:
-                ans = cast(Union[Rückkehr,Fortsetzung], ans2)
+                ans = cast(Union[Rückkehr, Fortsetzung], ans2)
         else:
             self._call_inner(geschichte, use_print, True)
         return ans
@@ -249,8 +248,9 @@ class NSC(system.InventarBasis):
         else:
             for block in text:
                 if isinstance(block, Malp):
-                    block = block.text
-                system.sprich(self.name, block, *args, **kwargs)
+                    block()
+                else:
+                    system.sprich(self.name, block, *args, **kwargs)
 
     def add_freundlich(self, wert: int, grenze: int) -> None:
         """Füge Freundlichkeit hinzu, aber überschreite nicht die Grenze."""
@@ -440,14 +440,14 @@ class Dorfbewohner(NSC):
         super().__init__(name, **kwargs)
         self.geschlecht = geschlecht
 
-        def hallo(n, m):
+        def hallo(n, _m):
             sprich(n.name, f"Hallo, ich bin {n.name}. "
                    "Freut mich, dich kennenzulernen.")
             return True
         self.dialoge.append(Dialog("hallo", "Hallo", hallo).wiederhole(1))
 
-        def hallo2(n, m):
-            sprich(n.name, f"Hallo nochmal!")
+        def hallo2(n, _m):
+            sprich(n.name, "Hallo nochmal!")
             return True
         self.dialoge.append(Dialog("hallo2", "Hallo", hallo2, "hallo"))
 
@@ -487,18 +487,22 @@ class Ort(weg.Wegkreuzung):
             self.dorf = dorf
         if self.dorf:
             self.dorf.orte.append(self)
-    
+
     def __sub__(self, anderer: Ort) -> Ort:
-        anderer.nachbarn[Himmelsrichtung.from_kurz(self.name)] = weg.Richtung(self)
-        self.nachbarn[Himmelsrichtung.from_kurz(anderer.name)] = weg.Richtung(anderer)
+        anderer.nachbarn[Himmelsrichtung.from_kurz(
+            self.name)] = weg.Richtung(self)
+        self.nachbarn[Himmelsrichtung.from_kurz(
+            anderer.name)] = weg.Richtung(anderer)
         return anderer
 
     def verbinde(self,
                  anderer: weg.Wegpunkt, richtung: str="",
                  typ: weg.Wegtyp=weg.Wegtyp.WEG, ziel: str=""):
         if isinstance(anderer, Ort) and not richtung:
-            anderer.nachbarn[Himmelsrichtung.from_kurz(self.name)] = weg.Richtung(self)
-            self.nachbarn[Himmelsrichtung.from_kurz(anderer.name)] = weg.Richtung(anderer)
+            anderer.nachbarn[Himmelsrichtung.from_kurz(
+                self.name)] = weg.Richtung(self)
+            self.nachbarn[Himmelsrichtung.from_kurz(
+                anderer.name)] = weg.Richtung(anderer)
         else:
             super().verbinde(anderer, richtung=richtung, typ=typ, ziel=ziel)
 
@@ -537,7 +541,7 @@ class Dorf:
         while isinstance(loc, Ort):
             loc = self.ort_main(mänx, loc)
         return loc
-    
+
     def get_ort(self, name: str) -> Ort:
         for ort in self.orte:
             if ort.name.casefold() == name.casefold():

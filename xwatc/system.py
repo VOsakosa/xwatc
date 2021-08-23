@@ -147,7 +147,7 @@ class Mänx(InventarBasis, Persönlichkeit):
 
     def __init__(self, ausgabe=ausgabe) -> None:
         super().__init__()
-        self.ausgabe: terminal.Terminal | 'anzeige.XwatcFenster' = ausgabe
+        self.ausgabe: Terminal | 'anzeige.XwatcFenster' = ausgabe
         self.gebe_startinventar()
         self.gefährten: List['dorf.NSC'] = []
         self.titel: Set[str] = set()

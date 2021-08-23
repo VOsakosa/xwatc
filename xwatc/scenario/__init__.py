@@ -291,7 +291,7 @@ class Scenario:
             if mänx.ausgabe.terminal:
                 self.print_feld(clear)
             else:
-                mänx.ausgabe.show(self)
+                mänx.ausgabe.show(self)  # type: ignore
             if not clear:
                 mänx.tutorial("scenario")
             clear = True

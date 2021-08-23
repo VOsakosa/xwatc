@@ -92,10 +92,9 @@ class RuboicHätxrik(NSC):
                          "trittst, sind sie bereits nicht mehr zu sehen.")
                     if ja_nein(mänx, "Gehst du zürück in die Taverne?"):
                         mint("Du gehst zurück in die Taverne")
-                        return mänx.context.get_ort("draußen")
                     else:
                         mint("Du bleibst draußen")
-                        return draußen(gäfdah)
+                        return mänx.context.get_ort("draußen")
                 else:
                     pass
             else:

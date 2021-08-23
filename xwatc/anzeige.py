@@ -96,15 +96,6 @@ class XwatcFenster:
         self.speicherpunkt: Opt[Speicherpunkt] = None
         self.mänx: Opt[system.Mänx] = None
         system.ausgabe = self
-
-        def xwatc_main(mänx=self.mänx):
-            try:
-                xw_main(mänx)
-            except Exception as exp:
-                import traceback
-                self.buffer.set_text("Xwatc ist abgestürzt:\n"
-                                     + traceback.format_exc())
-
         threading.Thread(target=self._xwatc_thread, args=(startpunkt,),
                          name="Xwatc-Geschichte", daemon=True).start()
         win.show_all()
