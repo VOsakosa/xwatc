@@ -3,7 +3,7 @@ Created on 25.07.2021
 """
 from __future__ import annotations
 import pyparsing as pp
-from pyparsing import Combine, Group, Regex, Optional, OneOrMore, delimitedList, Suppress,\
+from pyparsing import Combine, Group, Regex, OneOrMore, delimitedList, Suppress,\
     ParseResults, delimitedList
 
 import os
@@ -18,14 +18,14 @@ stack = [1]
 Statement = pp.Forward()
 Block = pp.indentedBlock(Statement, stack)
 Identifier = Regex(r"\w[\w\d]*")
-Pfad = Combine(Optional(".") + delimitedList(Identifier, ".", combine=True))
+Pfad = Combine(pp.Opt(".") + delimitedList(Identifier, ".", combine=True))
 PythonExpression = Regex(".*")
 
 Tag = Group(Suppress("!") + Identifier + OneOrMore(Statement))
-Text = pp.QuotedString(quoteChar='"', escChar="\\") + Optional("n")
+Text = pp.QuotedString(quoteChar='"', escChar="\\") + pp.Opt("n")
 
 FunktionP = Group(Identifier + Suppress("(") +
-                 Optional(delimitedList(Identifier)) + Suppress(")"))
+                 pp.Opt(delimitedList(Identifier)) + Suppress(")"))
 AuswahlKopf = Group(
     "+" + (Identifier | pp.QuotedString(quoteChar='"', escChar="\\")) + ":")
 Auswahl = AuswahlKopf + Block
@@ -130,7 +130,7 @@ class GeladeneGeschichte(karvapedo.main.Geschichte):
                     neue_marke = self.resolve_path(tok[1], base=marke)
                     return self.führe_aus(neue_marke, text)
                 else:
-                    self.run_func(tok)
+                    self.run_func(list(tok))
         return None
 
     def resolve_path(self, path: str, base: TextId) -> TextId:

@@ -338,7 +338,7 @@ class XwatcFenster:
             path.stem for path in SPEICHER_VERZEICHNIS.iterdir() if path.suffix == ".pickle"]
         if vergeben:
             self.malp("Bereits vergeben sind:", ", ".join(vergeben))
-        self.eingabe(vergeben, action=self._speichern_als_name)
+        self.eingabe("Als was möchstest du speichern?", action=self._speichern_als_name)
 
     def _speichern_als_name(self, name: str):
         """Reagiert auf Speichern-Als."""
@@ -444,7 +444,7 @@ class _StackItem(NamedTuple):
     mgn_hidden_count: int
     anzeigen: dict[type, Gtk.Widget]
     sichtbare_anzeigen: set[type]
-    choice_action: Callable[[Any], Any]
+    choice_action: Opt[Callable[[Any], Any]]
     controls: list[Gtk.Widget]
     buffer: Gtk.TextBuffer
 
