@@ -5,7 +5,7 @@ from typing import (List, Optional as Opt, NewType, Dict, cast, Tuple,
 
 from xwatc.dorf import NSC, NSCOptionen, Rückkehr, DialogErzeugerFn
 from xwatc.system import Mänx, minput, ja_nein, get_classes, Inventar, malp,\
-    Fortsetzung, ALLGEMEINE_PREISE, InventarBasis, Speicherpunkt
+    Fortsetzung, ALLGEMEINE_PREISE, InventarBasis, Speicherpunkt, MenuOption
 import re
 from dataclasses import dataclass
 
@@ -43,7 +43,7 @@ class Händler(NSC):
         self.rückkauf = False
         self.direkt_handeln = direkt_handeln
 
-    def kaufen(self, mänx: Mänx, name: str, anzahl: int=1) -> str:
+    def kaufen(self, mänx: Mänx, name: str, anzahl: int = 1) -> str:
         """Mänx kauft von Händler"""
         if anzahl <= 0:
             return "Du musst eine positive Anzahl kaufen."
@@ -193,25 +193,28 @@ class InventarOption:
     allow_missing: bool = True
 
 
+@dataclass
 class InventarMenu():
     """Eine Verallgemeinerung des Handelsmenüs.
 
     Es gibt Befehle ohne Inventar und mit Inventar, mit und ohne Menge.
     """
-
-    def __init__(self, optionen: Sequence[str | InventarOption], prompt: str,
-                 hilfe: str):
-        self.optionen = optionen
-        self.prompt = prompt
-        self.hilfe = hilfe
+    optionen: Sequence[str | InventarOption]
+    prompt: str
+    hilfe: str
 
     def main(self, mänx: Mänx, save: Speicherpunkt) -> tuple[str, str, int]:
-        """Run the option."""
+        """Run the option.
+
+        :return: the option name, the item and the amount
+        """
         while True:
+            # Im Terminal wie Kommandozeile
             if mänx.ausgabe.terminal:
-                a = mänx.minput(self.prompt, lower=False, save=save)
+                a: str = mänx.minput(self.prompt, lower=False, save=save)
             else:
-                mgn = []
+                # Ansonsten mit schrittweiser Auswahl
+                mgn: list[MenuOption[str]] = []
                 for opt in self.optionen:
                     if isinstance(opt, InventarOption):
                         mgn.append((opt.name, opt.name.lower(), opt.name))
@@ -227,10 +230,11 @@ class InventarMenu():
                         malp("Die restlichen Argumente werden ignoriert.")
                     return option, "", 0
                 elif isinstance(option, InventarOption) and option.name.startswith(args[0]):
-                    if len(args) == 1:
-                        args.extend(mänx.minput("Welches Item?", lower=False).split())
-                    if option.menge and re.fullmatch("[0-9]+", args[1]):
-                        anzahl = int(args.pop(1))
+                    while len(args) == 1:
+                        args.extend(mänx.minput(
+                            "Welches Item?", lower=False).split())
+                    if option.menge and re.fullmatch("[0-9]+", args[-1]):
+                        anzahl = int(args.pop())
                     else:
                         anzahl = 1
                     item = " ".join(args[1:])
