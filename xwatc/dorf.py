@@ -310,6 +310,7 @@ VorList = List[Union[str, Tuple[str, int]]]
 
 @dataclass
 class Malp:
+    """Objekt, oft statt str zurückgegeben werden kann, um den String als Malp auszugeben."""
     text: str
     warte: bool = False
 
@@ -321,7 +322,7 @@ class Malp:
 
 
 class Dialog:
-    """Ein einzelner Gesprächsfaden beim Gespräch mit einem NSC"""
+    """Ein einzelner Gesprächsfaden beim Gespräch mit einem NSC."""
     wenn_fn: Opt[DialogFn]
 
     def __init__(self,

@@ -1,26 +1,30 @@
 """
-Anzeige für Xvatc
+Anzeige für Xvatc mit GTK.
 """
 from __future__ import annotations
+
 from itertools import islice
-from functools import wraps
-from xwatc import system
-from xwatc.system import (Fortsetzung, Speicherpunkt, SPEICHER_VERZEICHNIS,
-                          MenuOption, Mänx)
+import os
+
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk, GLib, Gdk
+
 from contextlib import contextmanager
+from functools import wraps
 from pathlib import Path
 import pickle
-__author__ = "jasper"
-import os
 import queue
 import threading
 from typing import (Tuple, List, Optional as Opt, TextIO, Mapping,
                     Protocol, Sequence, Any, get_type_hints, TypeVar, Callable,
                     ClassVar, NamedTuple)
-import gi
+from xwatc import system
+from xwatc.system import (Fortsetzung, Speicherpunkt, SPEICHER_VERZEICHNIS,
+                          MenuOption, Mänx)
+__author__ = "jasper"
 
-gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GLib, Gdk
+
 
 
 Text = str
@@ -102,40 +106,40 @@ class XwatcFenster:
 
     def _xwatc_thread(self, startpunkt: Opt[Speicherpunkt]):
         from xwatc_Hauptgeschichte import main as xw_main
-        next: str | Path | None
+        next_: str | Path | None
         try:
             if startpunkt:
                 self.mänx = system.Mänx(self)
                 self.mänx.speicherpunkt = startpunkt
-                next = "m"
+                next_ = "m"
             else:
-                next = "h"  # hauptmenu
+                next_ = "h"  # hauptmenu
             # Next speichert den Zustand (Hauptmenü, Spiel, Lademenü, etc.)
-            while next is not None:
-                if next == "h":  # hauptmenu
+            while next_ is not None:
+                if next_ == "h":  # hauptmenu
                     self.malp("Xwatc-Hauptmenü")
                     mgn1 = [("Lade Spielstand", "lade", False),
                             ("Neuer Spielstand", "neu", True)]
                     if system.ausgabe.menu(None, mgn1):
                         self.mänx = system.Mänx(self)
-                        next = "m"
+                        next_ = "m"
                     else:
-                        next = "l"
-                elif next == "m":  # main
+                        next_ = "l"
+                elif next_ == "m":  # main
                     assert self.mänx
                     try:
                         xw_main(self.mänx)
                     except AnzeigeSpielEnde as ende:
-                        next = ende.weiter
+                        next_ = ende.weiter
                         continue
                     except Exception as exp:
                         import traceback
                         self.mint("Xwatc ist abgestürzt:\n"
                                   + traceback.format_exc())
-                        next = "h"
+                        next_ = "h"
                     else:
-                        next = "h"
-                elif next == "l":  # Lademenü
+                        next_ = "h"
+                elif next_ == "l":  # Lademenü
                     mgn2: list[MenuOption[Opt[Path]]] = [
                         (path.stem, path.name.lower(), path) for path in
                         SPEICHER_VERZEICHNIS.iterdir()
@@ -143,16 +147,16 @@ class XwatcFenster:
                     mgn2.append(("Zurück", "zurück", None))
                     wahl = system.ausgabe.menu(None, mgn2)
                     if wahl:
-                        next = wahl
+                        next_ = wahl
                     else:
-                        next = "h"
-                elif isinstance(next, Path):  # laden
-                    with next.open("rb") as file:
+                        next_ = "h"
+                elif isinstance(next_, Path):  # laden
+                    with next_.open("rb") as file:
                         self.mänx = pickle.load(file)
                     assert isinstance(self.mänx, Mänx)
-                    next = "m"
+                    next_ = "m"
                 else:
-                    assert False, f"Falscher Zustand {next}"
+                    assert False, f"Falscher Zustand {next_}"
         finally:
             GLib.idle_add(self.xwatc_ended)
 

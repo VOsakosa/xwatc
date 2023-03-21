@@ -1,5 +1,5 @@
 """
-Created on 07.11.2020
+Beim Kampfsystem schlagen zwei Leute aufeinander ein.
 """
 from __future__ import annotations
 from typing import Union, Sequence, List, Tuple

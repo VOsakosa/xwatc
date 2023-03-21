@@ -1,5 +1,5 @@
 """
-Generelles
+Generelles, um Text zusammenzubauen.
 Created on 23.10.2020
 """
 from __future__ import annotations

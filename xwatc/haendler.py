@@ -1,3 +1,6 @@
+"""
+Ein Händler ist ein spezieller NSC, der Kaufen und Verkaufen von Items erlaubt.
+"""
 from __future__ import annotations
 
 from typing import (List, Optional as Opt, NewType, Dict, cast, Tuple,

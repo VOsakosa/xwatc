@@ -1,5 +1,6 @@
 """"""
 import unittest
+from typing import Any
 from xwatc import kampf
 
 
