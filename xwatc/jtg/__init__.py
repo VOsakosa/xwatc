@@ -124,7 +124,7 @@ def t2_süd(mänx: Mänx) -> None:
         malp("Diesmal siehst du das Licht nicht.")
         ende_des_waldes(mänx)
         return
-    
+
     malp("Plötzlich siehst du ein Licht in der Ferne.")
     haus = ja_nein(mänx, "Gehst du zum Licht?")
     if haus:
@@ -189,7 +189,7 @@ def hexer_skelett(mänx: Mänx):
         süd_dorf(mänx)
 
 
-def haus_des_hexers(mänx: Mänx)-> None:
+def haus_des_hexers(mänx: Mänx) -> None:
     malp("Er bittet dich an den Tisch und gibt dir einen warmen Punsch.")
     mänx.welt.setze("kennt:hexer")
     leo = 'Leo Berndoc'
@@ -547,21 +547,21 @@ def rechtfertigen(mänx: Mänx, nsc, hilfe):
 
 @register("jtg:süd:garnichts")
 def garnichts() -> NSC:
-    nichts = NSC("Gaa Nix", "Junge", gar_kampf, direkt_reden=True,
-                 startinventar=dict(
-                     Schuh=1,
-                     Socke=2,
-                     Tomate=4,
-                     Banane=2,
-                     Ring=1,
-                     Lederhose=1,
-                     Unterhose=1,
-                     Leinenhemd=1,
-                     Oberhemd=1,
-                 ),
-                 vorstellen=[
-                     "Ein sommersprössiger Junge mit braunen Haaren "
-                 ])
+    nichts = NSC(
+        "Gaa Nix", "Junge", gar_kampf, direkt_reden=True,
+        startinventar=dict(
+            Schuh=1,
+            Socke=2,
+            Tomate=4,
+            Banane=2,
+            Ring=1,
+            Lederhose=1,
+            Unterhose=1,
+            Leinenhemd=1,
+            Oberhemd=1,
+        ),
+        vorstellen=["Ein sommersprössiger Junge mit braunen Haaren "]
+    )
     return nichts
 
 

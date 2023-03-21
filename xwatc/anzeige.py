@@ -61,6 +61,7 @@ def _idle_wrapper(fn: Tcall) -> Tcall:
 
 
 class AnzeigeSpielEnde(BaseException):
+    """Signalisiert, dass der Xvatc-Thread beendet werden muss, da die GUI geschlossen wurde."""
     def __init__(self, weiter: Opt[Path]):
         self.weiter = weiter
 
@@ -106,6 +107,7 @@ class XwatcFenster:
 
     def _xwatc_thread(self, startpunkt: Opt[Speicherpunkt]):
         from xwatc_Hauptgeschichte import main as xw_main
+        # Das nächste, was passiert. None für Abbruch, die Buchstaben stehen für interne Menüs
         next_: str | Path | None
         try:
             if startpunkt:
@@ -125,7 +127,7 @@ class XwatcFenster:
                         next_ = "m"
                     else:
                         next_ = "l"
-                elif next_ == "m":  # main
+                elif next_ == "m":  # main (neue Geschichte)
                     assert self.mänx
                     try:
                         xw_main(self.mänx)

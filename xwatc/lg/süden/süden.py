@@ -164,10 +164,10 @@ def duhastüberlebt(mänx):
                 malp('JOEL schlägt zu.'
                       'Tut mir wirklich sehr Leid, '
                       'aber die Superentität JOEL, '
-                      'auch genannt böse-böser-Unsinn-Enttität, '
+                      'auch genannt böse-böser-Unsinn-Entität, '
                       'ist zu stark.')
-                mint("Das Gift der Schneckekommt in deinen Körper.Harharhar!"
-                     "lacht das minigehirn der Schnecke Schade, leider bist du tot")
+                mint("Das Gift der Schnecke kommt in deinen Körper.Harharhar!"
+                     "lacht das Minigehirn der Schnecke Schade, leider bist du tot")
                 mint("Joel hat zugeschlagen.")
                 mint("Es tut mir wirklich ", kursiv("sehr"), "leid.")
 
