@@ -1,4 +1,4 @@
-from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner, Rückkehr
+from xwatc.dorf import NSC, NSCOptionen, Rückkehr
 from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
 from xwatc.system import mint, kursiv, Mänx, ja_nein, malp
 

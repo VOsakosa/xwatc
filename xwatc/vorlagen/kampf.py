@@ -31,6 +31,7 @@ class ausgerüstet:
 
 
 def dorfbewohner_kampf(self: NSC, mänx: Mänx) -> Opt[Fortsetzung]:
+    # TODO: Wieder verwenden ?
     from xwatc.lg.norden import gefängnis_von_gäfdah
     self.add_freundlich(-30, -200)
     geschlecht = getattr(self, "geschlecht", False)

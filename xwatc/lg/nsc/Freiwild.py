@@ -1,4 +1,4 @@
-from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner
+from xwatc.dorf import NSC
 from xwatc.system import mint, kursiv, Mänx, ja_nein, minput, Spielende, malp, sprich
 import random
 from xwatc.jtg import t2

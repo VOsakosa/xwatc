@@ -3,8 +3,7 @@ Ein Händler ist ein spezieller NSC, der Kaufen und Verkaufen von Items erlaubt.
 """
 from __future__ import annotations
 
-from typing import (List, Optional as Opt, NewType, Dict, cast, Tuple,
-                    Sequence)
+from typing import (List, Optional as Opt, Dict, Tuple, Sequence)
 
 from xwatc.dorf import NSC, NSCOptionen, Rückkehr, DialogErzeugerFn
 from xwatc.system import Mänx, minput, ja_nein, get_classes, Inventar, malp,\

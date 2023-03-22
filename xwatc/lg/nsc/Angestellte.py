@@ -1,15 +1,5 @@
-from time import sleep
-from xwatc import haendler
-from xwatc import scenario
-from xwatc.system import (Mänx, minput, ja_nein, Spielende, mint, sprich, kursiv, Karawanenfracht, malp)
-from xwatc.lg.osten.karawane import Karawane, Angestellte
-from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner, Dialog
-import random
-from xwatc.jtg import groekrak, see, nord
-from xwatc.haendler import Preis
-from xwatc.jtg.groekrak import zugang_südost
-from xwatc.jtg import eo_nw
-import xwatc_Hauptgeschichte
+from xwatc.system import (Mänx, ja_nein, Spielende, mint, malp)
+from xwatc.lg.osten.karawane import Angestellte
 
 
 class MinkajaOrekano(Angestellte):

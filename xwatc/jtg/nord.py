@@ -4,7 +4,7 @@ Created on 18.10.2020
 """
 from __future__ import annotations
 from xwatc.system import Mänx, mint, Spielende, InventarBasis, sprich, malp, register
-from xwatc.dorf import NSC, Dorfbewohner, Rückkehr, Malp, Dialog
+from xwatc.dorf import NSC, Rückkehr, Malp, Dialog
 import random
 import re
 from typing import Optional, Iterable
@@ -77,7 +77,7 @@ class NoMuh(NSC):
                            mänx.hat_item("Talisman des Verstehens"))
         return super().main(mänx)
 
-    def sprich(self, text: str | Iterable[str | Malp], *args, **kwargs)->None:
+    def sprich(self, text: str | Iterable[str | Malp], *args, **kwargs) -> None:
         if self.verstanden:
             NSC.sprich(self, text, *args, **kwargs)
         else:
@@ -190,19 +190,20 @@ def brian_dlg() -> Iterable[Dialog]:
 @register("jtg:fred")
 def fred() -> NSC:
     return NSC("Fréd Fórmayr", "Dorfvorsteher", kampf_in_disnayenbum,
-            startinventar={
-                "Messer": 1,
-                "Anzug": 1,
-                "Anzugjacke": 1,
-                "Lederschuh": 2,
-                "Ledergürtel": 1,
-                "Kräutersud gegen Achselgeruch": 2,
-                "Armbanduhr": 1,
-                "Unterhose": 1,
-                "Ehering": 1,
-                "Gold": 51
-            }, vorstellen=["Ein Mann in Anzug lächelt dich unverbindlich an."],
-            dlg=fred_dlg)
+               startinventar={
+                   "Messer": 1,
+                   "Anzug": 1,
+                   "Anzugjacke": 1,
+                   "Lederschuh": 2,
+                   "Ledergürtel": 1,
+                   "Kräutersud gegen Achselgeruch": 2,
+                   "Armbanduhr": 1,
+                   "Unterhose": 1,
+                   "Ehering": 1,
+                   "Gold": 51
+               }, vorstellen=["Ein Mann in Anzug lächelt dich unverbindlich an."],
+               dlg=fred_dlg)
+
 
 def fred_dlg():
     yield Dialog("hallo", '"Hallo"', [
@@ -221,24 +222,25 @@ def fred_dlg():
         "Wenn Ihnen Ihr Leben lieb ist."
     ], "hallo")
 
+
 @register("jtg:mieko")
 def mieko() -> NSC:
-    return Dorfbewohner("Mìeko Rimàn", True, kampfdialog=kampf_in_disnayenbum,
-                     vorstellen=[
-                         "Ein Handwerker bastelt gerade an seiner Werkbank."],
-                     dlg=mieko_dlg, startinventar=dict(
-        Banane=1,
-        Hering=4,
-        Karabiner=11,
-        Dübel=13,
-        Schraubenzieher=2,
-        Nagel=500,
-        Schraube=12,
-        Werkzeugkasten=1,
-        Latzhose=1,
-        Unterhose=1,
-        Gold=14
-    ))
+    return NSC("Mìeko Rimàn", "Dorfbewohner", kampfdialog=kampf_in_disnayenbum,
+               vorstellen=[
+                   "Ein Handwerker bastelt gerade an seiner Werkbank."],
+               dlg=mieko_dlg, startinventar=dict(
+                   Banane=1,
+                   Hering=4,
+                   Karabiner=11,
+                   Dübel=13,
+                   Schraubenzieher=2,
+                   Nagel=500,
+                   Schraube=12,
+                   Werkzeugkasten=1,
+                   Latzhose=1,
+                   Unterhose=1,
+                   Gold=14
+               ))
 
 
 def mieko_dlg():

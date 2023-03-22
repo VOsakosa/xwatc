@@ -1,12 +1,12 @@
-from xwatc.system import Mänx, minput, ja_nein, Spielende, mint, sprich, register
-from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner, Dialog, Malp
+from xwatc.system import Mänx, register
+from xwatc.dorf import Dorf, NSC, Ort, Dialog, Malp
 from random import randint
 from . Maria_Fischfrisch import Fischerfrau  # pylint: disable=relative-beyond-top-level
 from xwatc.jtg import Waschweib
-from xwatc.nsc.Wachen_von_Gäfdah import (MarioWittenpfäld,
+from xwatc.lg.nsc.Wachen_von_Gäfdah import (MarioWittenpfäld,
                                          SakcaBrauc, OrfGrouundt, ThomarcAizenfjäld)
-from xwatc.nsc.Bürger_von_Gäfdah import MartinPortulakk
-from xwatc.nsc.Freiwild import RuboicHätxrik
+from xwatc.lg.nsc.Bürger_von_Gäfdah import MartinPortulakk
+from xwatc.lg.nsc.Freiwild import RuboicHätxrik
 
 
 GÄFDAH_NAME = "Gäfdah"
@@ -74,8 +74,8 @@ def erzeuge_Gäfdah(mänx:  Mänx) -> Dorf:
 
 @register("lg:norden:robert")
 def robert() -> NSC:
-    rob = Dorfbewohner(
-        "Robert Nikc", True,
+    rob = NSC(
+        "Robert Nikc",
         art="Schmiedegehilfe",
         direkt_reden=True,
         startinventar={

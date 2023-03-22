@@ -432,32 +432,18 @@ class Dialog:
     def zu_option(self) -> MenuOption['Dialog']:
         return (self.text, self.name, self)
 
+def hallo(n, _m):
+    sprich(n.name, f"Hallo, ich bin {n.name}. "
+           "Freut mich, dich kennenzulernen.")
+    return True
+def hallo2(n, _m):
+    sprich(n.name, "Hallo nochmal!")
+    return True
 
-class Dorfbewohner(NSC):
-    """Ein NSC, der Hallo sagt und schon eine Kampffunktion hat."""
-
-    def __init__(self, name: str, geschlecht: bool, **kwargs):
-        kwargs.setdefault("art", "Dorfbewohner" if geschlecht
-                          else "Dorfbewohnerin")
-        super().__init__(name, **kwargs)
-        self.geschlecht = geschlecht
-
-        def hallo(n, _m):
-            sprich(n.name, f"Hallo, ich bin {n.name}. "
-                   "Freut mich, dich kennenzulernen.")
-            return True
-        self.dialoge.append(Dialog("hallo", "Hallo", hallo).wiederhole(1))
-
-        def hallo2(n, _m):
-            sprich(n.name, "Hallo nochmal!")
-            return True
-        self.dialoge.append(Dialog("hallo2", "Hallo", hallo2, "hallo"))
-
-    def kampf(self, mänx: system.Mänx) -> Opt[Fortsetzung]:
-        if self.kampf_fn:
-            return super().kampf(mänx)
-        from xwatc.vorlagen.kampf import dorfbewohner_kampf
-        return dorfbewohner_kampf(self, mänx)
+HalloDialoge = [
+    Dialog("hallo", "Hallo", hallo).wiederhole(1),
+    Dialog("hallo2", "Hallo", hallo2, "hallo")
+]
 
 
 class Ort(weg.Wegkreuzung):

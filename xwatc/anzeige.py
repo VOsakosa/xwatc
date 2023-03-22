@@ -159,6 +159,8 @@ class XwatcFenster:
                     next_ = "m"
                 else:
                     assert False, f"Falscher Zustand {next_}"
+        except AnzeigeSpielEnde:
+            pass
         finally:
             GLib.idle_add(self.xwatc_ended)
 

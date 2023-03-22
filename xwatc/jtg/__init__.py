@@ -6,7 +6,7 @@ from xwatc import system
 from xwatc.system import (Mänx, minput, ja_nein, register,
                           Spielende, mint, sprich, kursiv, malp, get_classes)
 from xwatc import dorf
-from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner, Dialog
+from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dialog, HalloDialoge
 from random import randint
 import random
 from xwatc.jtg.ressourcen import zufälliger_name
@@ -440,10 +440,10 @@ class TobiacBerndoc(NSC):
         super().main(mänx)
 
 
-class Waschweib(Dorfbewohner):
+class Waschweib(NSC):
     def __init__(self):
         name = zufälliger_name()
-        super().__init__(name, geschlecht=False)
+        super().__init__(name, "Dorfbewohnerin")
         self.art = "Hausfrau"
         self.verheiratet = random.random() > 0.4
         if self.verheiratet:
@@ -461,27 +461,29 @@ class Waschweib(Dorfbewohner):
         self.inventar["Socke"] += 2
         self.gold += max(0, random.randint(-4, 10))
         self.direkt_reden = True
+        self.dialoge.extend(HalloDialoge)
 
 
 def gar_kampf(nsc, mänx: Mänx) -> None:
     nsc.sprich("Hilfe!")
     nsc.freundlich -= 40
     if nsc.ort:
-        hilfe = nsc.ort.melde(mänx, Ereignis.KAMPF, [nsc])
-        if hilfe:
-            malp("Sofort eilen Leute zur Hilfe.")
-            malp("Du siehst dich umzingelt.")
-            if mänx.ja_nein("Ergibst du dich?"):
-                nsc.sprich("Warum hast du mich angegriffen?")
-                rechtfertigen(mänx, nsc, hilfe)
-            else:
-                malp("Du wirst schnell überwältigt, aber weil du zu "
-                     "stark bist, können sie dich leider nicht lebendig "
-                     "fangen.")
-                raise Spielende
-            return
+        # hilfe = nsc.ort.melde(mänx, Ereignis.KAMPF, [nsc])
+        # if hilfe:
+        # else:
+        # malp("Gerade ist niemand da, der helfen könnte.")
+        malp("Sofort eilen Leute zur Hilfe.")
+        malp("Du siehst dich umzingelt.")
+        if mänx.ja_nein("Ergibst du dich?"):
+            nsc.sprich("Warum hast du mich angegriffen?")
+            rechtfertigen(mänx, nsc)
         else:
-            malp("Gerade ist niemand da, der helfen könnte.")
+            malp("Du wirst schnell überwältigt, aber weil du zu "
+                 "stark bist, können sie dich leider nicht lebendig "
+                 "fangen.")
+            raise Spielende
+        return
+
     else:
         malp("Hier ist niemand, der helfen könnte.")
     malp("Du bringst ihn um und plünderst ihn aus.")
@@ -489,7 +491,7 @@ def gar_kampf(nsc, mänx: Mänx) -> None:
     nsc.tot = True
 
 
-def rechtfertigen(mänx: Mänx, nsc, hilfe):
+def rechtfertigen(mänx: Mänx, nsc):
     opts = [
         ("Weil du lecker aussahst.", "lecker", "mord"),
         ("Mir war gerade danach", "danach", "mord"),
@@ -500,44 +502,43 @@ def rechtfertigen(mänx: Mänx, nsc, hilfe):
     ]
     random.shuffle(opts)
     ans = mänx.menu(opts)
+    helfer = "Wache"
     if ans == "mord":
-        hilfe[0].sprich("Das ist keine gute Rechtfertigung!")
-        hilfe[0].sprich("Mord dulden wir hier nicht.")
+        sprich(helfer, "Das ist keine gute Rechtfertigung!")
+        sprich(helfer, "Mord dulden wir hier nicht.")
         mänx.verbrechen[Verbrechen(Verbrechensart.MORD)] += 1
         raise Spielende  # TODO: Verbrecher
     elif ans == "diebstahl":
         val = ""
         while not val:
-            val = mänx.minput(hilfe[0].name + ': "Was soll er denn gestohlen haben?"',
-                              lower=False)
+            sprich(helfer, "Was soll er denn gestohlen haben?")
+            val = mänx.minput("", lower=False)
         if {"Kleidung", "Nahrung"} & set(get_classes(val)):
-            hilfe[0].sprich("Kleidung oder Essen zu stehlen ist kein Verbrechen,"
-                            " das man "
-                            "mit Waffengewalt lösen sollte.")
-            hilfe[0].sprich("Wir lassen dich diesmal gehen.")
+            sprich(helfer, "Kleidung oder Essen zu stehlen ist kein Verbrechen,"
+                   " das man "
+                   "mit Waffengewalt lösen sollte.")
+            sprich(helfer, "Wir lassen dich diesmal gehen.")
         else:
-            hilfe[0].sprich("Durchsuchen wir ihn!")
+            sprich(helfer, "Durchsuchen wir ihn!")
             if nsc.hat_item(val):
-                hilfe[0].sprich("Er hat tatsächlich ein/-e {val}")
+                sprich(helfer, "Er hat tatsächlich ein/-e {val}")
                 nsc.erhalte(val, von=nsc)
             else:
-                hilfe[0].sprich("Du lügst. Der Junge ist unschuldig.")
-                hilfe[0].sprich("Mord dulden wir hier nicht.")
+                sprich(helfer, "Du lügst. Der Junge ist unschuldig.")
+                sprich(helfer, "Mord dulden wir hier nicht.")
                 mänx.verbrechen[Verbrechen(Verbrechensart.MORD)] += 1
                 raise Spielende
     elif ans == "ent":
-        hilfe[0].sprich("Hoffen wir das mal.")
-        for helfer in hilfe:
-            helfer.freundlich -= 40
+        sprich(helfer, "Hoffen wir das mal.")
     else:  # ans == "bespuckt":
-        hilfe[0].sprich("Das ist kein Grund, einfach auf jemanden loszugehen!")
+        sprich(helfer, "Das ist kein Grund, einfach auf jemanden loszugehen!")
         try:
             if nsc.ort.dorf.name == SÜD_DORF_NAME:
-                hilfe[0].sprich("Tu das nie wieder!")
+                sprich(helfer, "Tu das nie wieder!")
                 return
         except AttributeError:
             pass
-        hilfe[0].sprich("Du hast unseren kleinen Gaa angegriffen, das "
+        sprich(helfer, "Du hast unseren kleinen Gaa angegriffen, das "
                         "verzeihen wir dir nicht!")
         mänx.verbrechen[Verbrechen(Verbrechensart.MORD)] += 1
         raise Spielende

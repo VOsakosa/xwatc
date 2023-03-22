@@ -1,4 +1,4 @@
-from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner, Rückkehr
+from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Rückkehr
 import xwatc.lg.norden
 from .Fischerfraumassaker import fischerfraumassaker
 from xwatc.haendler import Händler
@@ -8,10 +8,9 @@ from xwatc.system import Mänx, malp, mint
 class Fischerfrau(Händler):
     def __init__(self):
         super().__init__("Maria Fischfrisch", kauft=["Blume"], verkauft={
-            "Hering": 4,
-            "Sardine": 3,
-            "Lachs": 6}, art="alte Fischerfrau")
-        self.inventar["Gold"] = 12
+            "Hering": (4, 3),
+            "Sardine": (3, 3),
+            "Lachs": (6, 4)}, art="alte Fischerfrau", gold=12)
 
     def kampf(self, mänx: Mänx) -> None:
         fischerfraumassaker(mänx)
@@ -46,7 +45,6 @@ class Fischerfrau(Händler):
             elif k in {"schlecht", "sehr schlecht", "super schlecht", "wirklich schlecht",
                        "wirklich sehr schlecht", "unglaublich schlecht"}:
                 malp('"Das ist aber traurig."')
-
 
             else:
                 malp('"oh"')

@@ -1,9 +1,6 @@
-from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dorfbewohner, Rückkehr
-from xwatc.system import mint, kursiv, Mänx, ja_nein, minput, Spielende, malp
-import random
+from xwatc.dorf import Rückkehr, NSC
+from xwatc.system import mint, kursiv, Mänx, ja_nein, minput, malp
 from xwatc.jtg import t2
-from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
-import xwatc_Hauptgeschichte
 
 
 class MartinPortulakk(NSC):
