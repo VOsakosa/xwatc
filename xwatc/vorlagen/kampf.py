@@ -8,7 +8,6 @@ from xwatc.system import Mänx, mint, Spielende, malp, Fortsetzung, kursiv,\
 from xwatc.dorf import Dialog, NSC
 import random
 from xwatc.untersystem.verbrechen import Verbrechensart
-from xwatc.weg import Ereignis
 import time
 
 
@@ -41,7 +40,8 @@ def dorfbewohner_kampf(self: NSC, mänx: Mänx) -> Opt[Fortsetzung]:
             self.tot = True
             malp("Das hat hoffentlich keiner gesehen.")
             if self.ort and random.randint(1, 3) == 1:
-                hilfe = self.ort.melde(mänx, Ereignis.MORD, [self])
+                hilfe = None
+                # hilfe = self.ort.melde(mänx, Ereignis.MORD, [self])
                 if hilfe:
                     malp("Du wurdest bemerkt!")
                     malp("Die anderen Dorfbewohner überwältigen dich.")
@@ -77,15 +77,15 @@ def dorfbewohner_kampf(self: NSC, mänx: Mänx) -> Opt[Fortsetzung]:
             else:
                 malp("Du bringst", "ihn" if geschlecht else "sie",
                      "in einem Schlag um.")
-                if self.ort and self.ort.melde(mänx, Ereignis.MORD, [self]):
-                    malp("Die Dorfbewohner eilen herbei. Sie sind entsetzt.")
-                    malpw("Du kommst ins Gefängnis.")
-                    mänx.add_verbrechen(Verbrechensart.MORD, versuch=True)
-                    return gefängnis_von_gäfdah
-                else:
-                    malp("Niemand ist mehr da, der die Tat ächten könnte.")
-                    return None
-
+                # if self.ort and self.ort.melde(mänx, Ereignis.MORD, [self]):
+                #     malp("Die Dorfbewohner eilen herbei. Sie sind entsetzt.")
+                #     malpw("Du kommst ins Gefängnis.")
+                #     mänx.add_verbrechen(Verbrechensart.MORD, versuch=True)
+                #     return gefängnis_von_gäfdah
+                # else:
+                #     malp("Niemand ist mehr da, der die Tat ächten könnte.")
+                #     return None
+                return None
         else:
             if self.freundlich == -30:
                 malp(f"{self.name} war vor dir auf der Hut.")
@@ -101,11 +101,12 @@ def dorfbewohner_kampf(self: NSC, mänx: Mänx) -> Opt[Fortsetzung]:
             else:
                 malpw("Sie flieht, nach Hilfe schreiend.")
             # Flucht
-            ausgang = self.extra_daten.setdefault("schnell", random.randint(1, 3))
+            ausgang = self.extra_daten.setdefault(
+                "schnell", random.randint(1, 3))
             if ausgang == 1:
                 malp(f"{self.name} ist echt schnell auf den Beinen!")
                 malpw("Du schaffst es nicht,",
-                     "ihn" if geschlecht else "sie", "einzuholen.")
+                      "ihn" if geschlecht else "sie", "einzuholen.")
                 mänx.add_verbrechen(Verbrechensart.MORD, True)
                 return None
             elif ausgang == 2:
@@ -115,7 +116,7 @@ def dorfbewohner_kampf(self: NSC, mänx: Mänx) -> Opt[Fortsetzung]:
                 return None
             else:
                 malpw(f"Du holst {self.name} ein und bringst",
-                     "ihn" if geschlecht else "sie", "um.")
+                      "ihn" if geschlecht else "sie", "um.")
                 self.tot = True
                 self.plündern(mänx)
                 return None
@@ -139,7 +140,8 @@ def dorfbewohner_kampf(self: NSC, mänx: Mänx) -> Opt[Fortsetzung]:
                 mint("Aber sie ist bewaffnet!")
             raise Spielende
     elif random.randint(1, 6) != 1:
-        hilfe = self.ort and self.ort.melde(mänx, Ereignis.KAMPF, [self])
+        # hilfe = self.ort and self.ort.melde(mänx, Ereignis.KAMPF, [self])
+        hilfe = None
         if hilfe:
             malp("Sofort kommen Leute, um dich aufzuhalten.")
             malp("Sie entschließen sich, dich ins Gefängnis zu schmeißen.")
@@ -172,8 +174,8 @@ def dorfbewohner_kampf(self: NSC, mänx: Mänx) -> Opt[Fortsetzung]:
 
 def _konfrontation(self: NSC, mänx: Mänx) -> Opt[Fortsetzung]:
     from xwatc.lg.norden import gefängnis_von_gäfdah
-    hilfe = self.ort and self.ort.melde(
-        mänx, Ereignis.KAMPF, [self])
+    # hilfe = self.ort and self.ort.melde(mänx, Ereignis.KAMPF, [self])
+    hilfe = None
     if hilfe:
         malp("und die kommt.")
         if mänx.hat_item("Schwert"):

@@ -4,7 +4,6 @@ Created on 15.10.2020
 """
 from xwatc.dorf import Ort, NSC, Malp, Dorf, Dialog
 from typing import Iterator
-from xwatc.weg import Ereignis
 __author__ = "jasper"
 from xwatc.system import mint, Mänx, malp, HatMain, register, Welt, malpw
 
@@ -228,7 +227,7 @@ def klavier() -> NSC:
 def klavier_kampf(klavier: NSC, mänx: Mänx) -> None:
     if mänx.hat_item("Axt"):
         klavier.tot = True
-        mänx.context.melde(Ereignis.SACHBESCHÄDIGUNG, [klavier])
+        # mänx.context.melde(Ereignis.SACHBESCHÄDIGUNG, [klavier])
         malpw("Du schlägst das Klavier entzwei.")
     elif mänx.hat_item("Schwert"):
         malp("Dein Schwert weigert sich, das Klavier zu beschädigen.")

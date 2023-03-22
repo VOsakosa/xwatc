@@ -19,29 +19,10 @@ if TYPE_CHECKING:
 
 __author__ = "jasper"
 
-GEBIETE: Dict[str, Callable[[Mänx], Wegpunkt]] = {}
+GEBIETE: Dict[str, Callable[[Mänx], 'Wegpunkt']] = {}
 # Die Verbindungen zwischen Gebieten
 EINTRITTSPUNKTE: Dict[Tuple[str, str], 'Gebietsende'] = {}
 ADAPTER: Dict[str, 'WegAdapter'] = {}
-
-
-@enum.unique
-class Ereignis(enum.Enum):
-    """Ereignisse sind Geschehnisse, die ein ganzer Ort mitbekommt. Dann kann
-    der Ort darauf reagieren.
-
-    Z.B. wird bei Mord die Stadtwache alarmiert.
-    """
-    KAMPF = enum.auto()
-    MORD = enum.auto()
-    DIEBSTAHL = enum.auto()
-    SCHLAFEN = enum.auto()
-    SACHBESCHÄDIGUNG = enum.auto()
-
-
-class Context(Protocol):
-    def melde(self, mänx: Mänx, ereignis: Ereignis, data: Any) -> Any:
-        """Melde ein Ereignis an den Kontext"""
 
 
 @dataclass
@@ -52,7 +33,7 @@ class WegEnde:
 
 
 @runtime_checkable
-class Wegpunkt(Context, Protocol):
+class Wegpunkt(Protocol):
     """Wegpunkte sind die Einheiten im Wegegraph.
     """
 
@@ -98,7 +79,7 @@ class _Strecke(Wegpunkt):
 
 
 class MonsterChance:
-    """Eine Möglichkeit eines Monsterzusammenstoßes."""
+    """Eine Möglichkeit eines Monster-Zusammenstoßes."""
 
     def __init__(self, wahrscheinlichkeit: float, geschichte: MänxFkt) -> None:
         super().__init__()
@@ -129,12 +110,6 @@ class Weg(_Strecke):
         self.länge = länge / 24
         self.monster_tag = monster_tag
         self.monster_nachts = monster_nachts
-
-    def melde(self, mänx: Mänx, ereignis: Ereignis,
-              data: Any) -> None:  # pylint: disable=unused-argument
-        if ereignis == Ereignis.KAMPF:
-            self.monster_check(mänx)
-        # super().melde(mänx, ereignis, data)
 
     def monster_check(self, mänx: Mänx) -> bool:
         """Checkt, ob ein Monster getroffen wird.
@@ -171,7 +146,6 @@ class Weg(_Strecke):
                 weg_rest = self.länge - weg_rest
             if ruhen and mänx.welt.is_nacht():
                 if mänx.ja_nein("Es ist Nacht. Willst du ruhen?"):
-                    self.melde(mänx, Ereignis.SCHLAFEN, {})
                     mänx.welt.nächster_tag()
                 else:
                     ruhen = False
@@ -285,7 +259,12 @@ class Himmelsrichtung:
 
 
 class Beschreibung:
-    """Das Äquivalent von Dialogen für Wegpunkte."""
+    """Das Äquivalent von Dialogen für Wegpunkte.
+
+    Eine Beschreibung besteht aus einer Geschichte und Richtungseinschränkungen.
+    Wenn der Mänx den Wegpunkt aus einer der genannten Richtungen betritt, wird
+    die Beschreibung abgespielt.
+    """
     geschichte: Union[Sequence[str], MänxFkt]
 
     def __init__(self,
@@ -570,7 +549,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
             if name not in self._wenn_fn or self._wenn_fn[name](mänx):
                 yield richtung, himri_oder_name
 
-    def get_nachbarn(self)->List[Wegpunkt]:
+    def get_nachbarn(self) -> List[Wegpunkt]:
         return [ri.ziel for ri in self.nachbarn.values() if ri]
 
     def main(self, mänx: Mänx, von: Opt[Wegpunkt] = None) -> Wegpunkt:

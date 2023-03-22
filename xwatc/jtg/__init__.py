@@ -15,7 +15,6 @@ from xwatc.jtg import groekrak, see, nord
 from xwatc.jtg.groekrak import zugang_südost
 from xwatc.jtg import eo_nw
 from xwatc.untersystem.acker import Wildpflanze
-from xwatc.weg import Ereignis
 from xwatc.jtg import mitose
 from typing import List, Tuple
 from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
@@ -201,7 +200,6 @@ def haus_des_hexers(mänx: Mänx) -> None:
             "Ich habe mich hier verirrt.",
             "Ich bin nur auf der Durchreise.",
             "Die große Liebe!",
-
             "Das gehst dich doch nichts an!",
         ),
             ["halloli", "verirrt", "durchreise", "liebe", "an"])
