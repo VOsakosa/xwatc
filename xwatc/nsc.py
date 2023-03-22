@@ -5,17 +5,30 @@ gespeicherten Teil trennt. Bei Erstellung soll alles einen eindeutigen Namen hab
 from attrs import define, Factory
 from enum import Enum
 from collections.abc import Mapping, Iterator, Sequence
-from typing import Any
+from typing import Any, Literal
 from xwatc import system
 from xwatc.system import Inventar, MenuOption
 from xwatc import dorf
 from xwatc.dorf import Fortsetzung, Rückkehr
+import attrs
 
 
 class Geschlecht(Enum):
     Weiblich = 0
     Männlich = 1
 
+def to_geschlecht(attr: Literal["m"] | Literal["w"] | Geschlecht) -> Geschlecht:
+    """Wandelt eine Eingabe zu Geschlecht um."""
+    match attr:
+        case "m":
+            return Geschlecht.Männlich
+        case Geschlecht():
+            return attr
+        case "f":
+            return Geschlecht.Weiblich
+        case str(other):
+            raise ValueError(f"Unbekanntes Geschlecht: {other}")
+    raise TypeError(f"Falscher Typ für Geschlecht: {type(attr)} ({attr})")
 
 class Rasse(Enum):
     Mensch = 0
@@ -25,8 +38,8 @@ class Rasse(Enum):
 @define
 class Person:
     """Definiert Eigenschaften, die jedes intelligente Wesen in Xvatc hat."""
-    geschlecht: Geschlecht
-    rasse: Rasse
+    geschlecht: Geschlecht = attrs.field(converter=to_geschlecht)
+    rasse: Rasse = Rasse.Mensch
 
 
 @define
@@ -102,6 +115,30 @@ class NSC:
             return None
         self.vorstellen(mänx)
         return self._main(mänx)
+    
+    def _main(self, mänx: system.Mänx) -> Fortsetzung | None:
+        """Das Hauptmenu, möglicherweise ist Reden direkt an."""
+        for dia in self.direkte_dialoge(mänx):
+            ans = self._run(dia, mänx)
+            if ans != Rückkehr.WEITER_REDEN:
+                if isinstance(ans, Rückkehr):
+                    return None
+                else:
+                    return ans
+        while True:
+            opts: dorf._MainOpts
+            opts = list()
+            if self.template.direkt_reden:
+                opts.extend(self.dialog_optionen(mänx))
+            else:
+                opts.append(("reden", "r", self.reden))
+            opts.extend(self.optionen(mänx))
+            ans = self._run(mänx.menu(opts, save=self), mänx)
+            if isinstance(ans, Rückkehr):
+                if ans == Rückkehr.VERLASSEN:
+                    return None
+            else:
+                return ans
 
     def _run(self, option: dorf.RunType,
              mänx: system.Mänx) -> Rückkehr | Fortsetzung:
@@ -167,30 +204,6 @@ class NSC:
                     self.sprich(g)
             if warte:
                 system.mint()
-
-    def _main(self, mänx: system.Mänx) -> Fortsetzung | None:
-        """Das Hauptmenu, möglicherweise ist Reden direkt an."""
-        for dia in self.direkte_dialoge(mänx):
-            ans = self._run(dia, mänx)
-            if ans != Rückkehr.WEITER_REDEN:
-                if isinstance(ans, Rückkehr):
-                    return None
-                else:
-                    return ans
-        while True:
-            opts: dorf._MainOpts
-            opts = list()
-            if self.template.direkt_reden:
-                opts.extend(self.dialog_optionen(mänx))
-            else:
-                opts.append(("reden", "r", self.reden))
-            opts.extend(self.optionen(mänx))
-            ans = self._run(mänx.menu(opts, save=self), mänx)
-            if isinstance(ans, Rückkehr):
-                if ans == Rückkehr.VERLASSEN:
-                    return None
-            else:
-                return ans
 
     def reden(self, mänx: system.Mänx) -> Rückkehr | Fortsetzung:
         """Das Menu, wo nur reden möglich ist."""

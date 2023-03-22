@@ -6,3 +6,4 @@ __pycache__
 *.orig
 /saves/
 /xwatc_saves/
+/.pytest_cache/
