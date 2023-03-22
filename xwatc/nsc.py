@@ -139,6 +139,30 @@ class NSC:
                     return None
             else:
                 return ans
+    
+    def reden(self, mänx: system.Mänx) -> Rückkehr | Fortsetzung:
+        """Das Menu, wo nur reden möglich ist."""
+        if not self.kennt_spieler:
+            self.kennt_spieler = True
+        ans: Rückkehr | Fortsetzung = Rückkehr.WEITER_REDEN
+        start = True
+        for dia in self.direkte_dialoge(mänx):
+            ans = self._run(dia, mänx)
+            if ans != Rückkehr.WEITER_REDEN:
+                return ans
+        while ans == Rückkehr.WEITER_REDEN:
+            optionen: list[MenuOption[dorf.Dialog | Rückkehr]]
+            optionen = list(self.dialog_optionen(mänx))
+            if not optionen:
+                if start:
+                    system.malp("Du weißt nicht, was du sagen könntest.")
+                else:
+                    system.malp("Du hast nichts mehr zu sagen.")
+                return Rückkehr.ZURÜCK
+            optionen.append(("Zurück", "f", Rückkehr.ZURÜCK))
+            ans = self._run(mänx.menu(optionen), mänx)
+            start = False
+        return ans
 
     def _run(self, option: dorf.RunType,
              mänx: system.Mänx) -> Rückkehr | Fortsetzung:
@@ -204,30 +228,6 @@ class NSC:
                     self.sprich(g)
             if warte:
                 system.mint()
-
-    def reden(self, mänx: system.Mänx) -> Rückkehr | Fortsetzung:
-        """Das Menu, wo nur reden möglich ist."""
-        if not self.kennt_spieler:
-            self.kennt_spieler = True
-        ans: Rückkehr | Fortsetzung = Rückkehr.WEITER_REDEN
-        start = True
-        for dia in self.direkte_dialoge(mänx):
-            ans = self._run(dia, mänx)
-            if ans != Rückkehr.WEITER_REDEN:
-                return ans
-        while ans == Rückkehr.WEITER_REDEN:
-            optionen: list[MenuOption[dorf.Dialog | Rückkehr]]
-            optionen = list(self.dialog_optionen(mänx))
-            if not optionen:
-                if start:
-                    system.malp("Du weißt nicht, was du sagen könntest.")
-                else:
-                    system.malp("Du hast nichts mehr zu sagen.")
-                return Rückkehr.ZURÜCK
-            optionen.append(("Zurück", "f", Rückkehr.ZURÜCK))
-            ans = self._run(mänx.menu(optionen), mänx)
-            start = False
-        return ans
 
     def sprich(self, text: str | Sequence[str | dorf.Malp], *args, **kwargs) -> None:
         """Minte mit vorgestelltem Namen"""
