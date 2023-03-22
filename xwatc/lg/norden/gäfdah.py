@@ -4,7 +4,7 @@ from random import randint
 from . Maria_Fischfrisch import Fischerfrau  # pylint: disable=relative-beyond-top-level
 from xwatc.jtg import Waschweib
 from xwatc.lg.nsc.Wachen_von_Gäfdah import (MarioWittenpfäld,
-                                         SakcaBrauc, OrfGrouundt, ThomarcAizenfjäld)
+                                            SakcaBrauc, OrfGrouundt, ThomarcAizenfjäld)
 from xwatc.lg.nsc.Bürger_von_Gäfdah import MartinPortulakk
 from xwatc.lg.nsc.Freiwild import RuboicHätxrik
 
@@ -20,7 +20,7 @@ STANDARDKLEIDUNG = {
 }
 
 
-def erzeuge_Gäfdah(mänx:  Mänx) -> Dorf:
+def erzeuge_Gäfdah(mänx: Mänx) -> Dorf:
     d = Dorf(GÄFDAH_NAME)
     kirche = Ort("Kirche", d, [
         "Du bist in einer Kirche.",
@@ -29,12 +29,9 @@ def erzeuge_Gäfdah(mänx:  Mänx) -> Dorf:
     schenke = Ort("Schenke", d, [
         "Du bist in einer Schenke.",
         "Sie ist voll von grölenden und betrunkenden Leuten."
-        
-    
     ])
     schmiede = Ort("Schmiede", d, [
         "Du kommst in einen warmen, kleinen Raum, der irgendwie gemütlich wirkt und nach Schweiß riecht.",
-        
         "Hinter der Theke steht ein bulliger Mann und verkauft wohl Waffen, Rüstungen und Anderes.",
 
     ])
@@ -42,10 +39,7 @@ def erzeuge_Gäfdah(mänx:  Mänx) -> Dorf:
 
     rathaus = Ort("Rathaus", d, [
         "Du kommst in ein großes Haus mit Marmorfußboden.",
-
         "Drei Wachen kommen auf dich zu."
-
-
     ])
 
     haus1 = Ort("Haus Nummer1", d, [
@@ -87,19 +81,20 @@ def robert() -> NSC:
     rob.inventar.update(STANDARDKLEIDUNG)
     return rob
 
+
 def rob_dlg():
     yield Dialog("helfen", '"Du siehst bedrückt aus. Kann ich dir helfen?"',
-               ["Mein Bruder ist verschwunden.",
-                Malp(
-                    'Du: "Wie heißt er? Ich melde mich, falls der Lümmel mir über den Weg läuft."'),
-                "Äh, Lümmel?",
-                Malp('Du: "Ich dachte, er sei entlaufen."'),
-                "So etwas würde er nie tun! Er war auf dem Weg nach Aizenfjäld,",
-                "aber er wurde danach nicht mehr gefunden!",
-                "Er heißt Gaa. Alle sagen immer, er sieht mir sehr ähnlich."],
-               "hallo")
+                 ["Mein Bruder ist verschwunden.",
+                  Malp(
+                      'Du: "Wie heißt er? Ich melde mich, falls der Lümmel mir über den Weg läuft."'),
+                  "Äh, Lümmel?",
+                  Malp('Du: "Ich dachte, er sei entlaufen."'),
+                  "So etwas würde er nie tun! Er war auf dem Weg nach Aizenfjäld,",
+                  "aber er wurde danach nicht mehr gefunden!",
+                  "Er heißt Gaa. Alle sagen immer, er sieht mir sehr ähnlich."],
+                 "hallo")
     yield Dialog("schmied", '"Wo ist der Schmied?"',
-               ["Der ist weiter hinten.", "...müsste er sein."])
+                 ["Der ist weiter hinten.", "...müsste er sein."])
 
 
 if __name__ == '__main__':
