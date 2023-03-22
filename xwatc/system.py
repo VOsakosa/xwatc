@@ -1,8 +1,8 @@
 from __future__ import annotations
 from collections import defaultdict
-from typing import (Sequence, Dict, List, Tuple, TypeVar, Callable, Any, Union,
-                    Optional, Iterator, Mapping, Set, Optional as Opt,
-                    BinaryIO)
+from collections.abc import Sequence, Callable, Iterator, Mapping
+from typing import (Dict, List, Tuple, TypeVar, Any, Union,
+                    Optional, Set, Optional as Opt)
 from time import sleep
 import re
 import pickle
@@ -333,7 +333,7 @@ class Mänx(InventarBasis, Persönlichkeit):
 
     def add_gefährte(self, gefährte: 'dorf.NSC'):
         self.gefährten.append(gefährte)
-    
+
     def add_verbrechen(self, name: str | Verbrechen | Verbrechensart, versuch=False):
         """Laste dem Mänxen ein Verbrechen an."""
         if isinstance(name, str):
@@ -405,7 +405,6 @@ class Welt:
 
     def am_leben(self, name: str) -> bool:
         """Prüfe, ob das Objekt *name* da und noch am Leben ist."""
-        from xwatc import dorf
         try:
             obj = self.obj(name)
         except KeyError:
@@ -415,14 +414,19 @@ class Welt:
 
     def obj(self, name: str) -> Any:
         """Hole ein registriertes oder existentes Objekt."""
+        
         if name in self.objekte:
             return self.objekte[name]
+        from xwatc import nsc
+        obj: HatMain
+        if name in nsc.CHAR_REGISTER:
+            obj = nsc.CHAR_REGISTER[name].zu_nsc()
         elif name in _OBJEKT_REGISTER:
             obj = _OBJEKT_REGISTER[name]()
-            self.objekte[name] = obj
-            return obj
         else:
             raise KeyError(f"Das Objekt {name} existiert nicht.")
+        self.objekte[name] = obj
+        return obj
 
     def nächster_tag(self, tage: int = 1):
         """Springe zum nächsten Tag"""
@@ -515,6 +519,7 @@ def sprich(sprecher: str, text: str, warte: bool = False, wie: str = "") -> None
 def malp(*text, sep=" ", end='\n', warte=False) -> None:
     """Angenehm zu lesender, langsamer Print."""
     ausgabe.malp(*text, sep=sep, end=end, warte=warte)
+
 
 def malpw(*text, sep=" ", end='\n') -> None:
     ausgabe.malp(*text, sep=sep, end=end, warte=True)

@@ -11,11 +11,13 @@ from xwatc.system import Inventar, MenuOption
 from xwatc import dorf
 from xwatc.dorf import Fortsetzung, Rückkehr
 import attrs
+from collections import defaultdict
 
 
 class Geschlecht(Enum):
     Weiblich = 0
     Männlich = 1
+
 
 def to_geschlecht(attr: Literal["m"] | Literal["w"] | Geschlecht) -> Geschlecht:
     """Wandelt eine Eingabe zu Geschlecht um."""
@@ -29,6 +31,7 @@ def to_geschlecht(attr: Literal["m"] | Literal["w"] | Geschlecht) -> Geschlecht:
         case str(other):
             raise ValueError(f"Unbekanntes Geschlecht: {other}")
     raise TypeError(f"Falscher Typ für Geschlecht: {type(attr)} ({attr})")
+
 
 class Rasse(Enum):
     Mensch = 0
@@ -51,10 +54,20 @@ class StoryChar:
     """Das ist der Ingame-Name, wie "Torobias Berndoc". """
     person: Person
     startinventar: Mapping[str, int]
+    ort: str = ""
+    """Der Ort, an dem ein NSC startet. Wenn er leer ist, muss er manuell per Events in
+    Orte geholt werden."""
     direkt_reden: bool = True
     """Ob bei dem NSC-Menu die Rede-Optionen direkt angezeigt werden."""
     vorstellen_fn: dorf.DialogGeschichte | None = None
     dialoge: list[dorf.Dialog] = Factory(list)
+
+    def __attrs_post_init__(self):
+        """Registriere das NSC-Template mit ID und Ort, wenn verfügbar."""
+        if self.id_:
+            CHAR_REGISTER[self.id_] = self
+        if self.ort:
+            ORTS_CHARE[self.ort].append(self)
 
     def zu_nsc(self) -> 'NSC':
         """Erzeuge den zugehörigen NSC aus dem Template."""
@@ -115,7 +128,7 @@ class NSC:
             return None
         self.vorstellen(mänx)
         return self._main(mänx)
-    
+
     def _main(self, mänx: system.Mänx) -> Fortsetzung | None:
         """Das Hauptmenu, möglicherweise ist Reden direkt an."""
         for dia in self.direkte_dialoge(mänx):
@@ -139,7 +152,7 @@ class NSC:
                     return None
             else:
                 return ans
-    
+
     def reden(self, mänx: system.Mänx) -> Rückkehr | Fortsetzung:
         """Das Menu, wo nur reden möglich ist."""
         if not self.kennt_spieler:
@@ -252,3 +265,9 @@ class NSC:
     def plündern(self, mänx: system.Mänx) -> Any:
         """Schiebe das ganze Inventar von NSC zum Mänxen."""
         system.schiebe_inventar(self.inventar, mänx.inventar)
+
+
+CHAR_REGISTER: dict[str, StoryChar] = {}
+"""Ein zentrales Register für StoryChar nach id_"""
+ORTS_CHARE: dict[str, list[StoryChar]] = defaultdict(list)
+"""Eine Zuordnung Orts-ID -> List von Charakteren, die dort starten."""

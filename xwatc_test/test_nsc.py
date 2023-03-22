@@ -1,6 +1,7 @@
 """"""
 import unittest
 from xwatc.nsc import StoryChar, Person, Rasse
+from xwatc.system import Welt
 
 
 class TestNSC(unittest.TestCase):
@@ -17,6 +18,9 @@ class TestNSC(unittest.TestCase):
         self.assertEqual(toro.id_, "jtg:toro")
         
         # Mit Ort
+        welt = Welt("Winkel")
+        toro_nsc = welt.obj("jtg:toro")
+        self.assertIs(toro_nsc.template, toro)
 
 
 if __name__ == "__main__":
