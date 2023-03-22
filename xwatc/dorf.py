@@ -45,7 +45,8 @@ class NSC(system.InventarBasis):
                  art: str,
                  kampfdialog: Opt[DialogFn] = None,
                  fliehen: Opt[Callable[[system.Mänx], None]] = None,
-                 direkt_reden: bool = False, freundlich: int = 0,
+                 direkt_reden: bool = False,
+                 freundlich: int = 0,
                  startinventar: Opt[Dict[str, int]] = None,
                  vorstellen: Opt[DialogGeschichte] = None,
                  ort: Opt[weg.Wegkreuzung] = None,
@@ -365,10 +366,10 @@ class Dialog:
             elif isinstance(geschichte, str):
                 geschichte = [geschichte]
             self.geschichte: DialogGeschichte = effekt
-            self.geschichte_text: Opt[Sequence[Union['Malp', str]]] = geschichte
+            self.geschichte_text: Sequence[Union['Malp', str]] = geschichte
         else:
             self.geschichte = geschichte
-            self.geschichte_text = None
+            self.geschichte_text = ()
         self.effekt = effekt
         self.vorherige: VorList
         if isinstance(vorherige, str):
