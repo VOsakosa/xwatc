@@ -7,6 +7,7 @@ from xwatc.lg.nsc.Wachen_von_Gäfdah import (MarioWittenpfäld,
                                             SakcaBrauc, OrfGrouundt, ThomarcAizenfjäld)
 from xwatc.lg.nsc.Bürger_von_Gäfdah import MartinPortulakk
 from xwatc.lg.nsc.Freiwild import RuboicHätxrik
+from xwatc.nsc import StoryChar, Person
 
 
 GÄFDAH_NAME = "Gäfdah"
@@ -66,35 +67,29 @@ def erzeuge_Gäfdah(mänx: Mänx) -> Dorf:
     return d
 
 
-@register("lg:norden:robert")
-def robert() -> NSC:
-    rob = NSC(
-        "Robert Nikc",
-        art="Schmiedegehilfe",
-        direkt_reden=True,
-        startinventar={
-            "Schal": 1,
-            "Messer": 1,
-        },
-        vorstellen=["Ein sommersprössiger Junge von ca. 18 Jahren mit "
-                    "kurzen, braunen Haaren steht an der Theke der Schmiede."])
-    rob.inventar.update(STANDARDKLEIDUNG)
-    return rob
+rob = StoryChar(
+    "lg:norden:robert", "Robert Nikc", Person("m", art="Schmiedegehilfe"),
+    direkt_reden=True,
+    startinventar=STANDARDKLEIDUNG | {
+        "Schal": 1,
+        "Messer": 1,
+    },
+    vorstellen_fn=["Ein sommersprössiger Junge von ca. 18 Jahren mit "
+                   "kurzen, braunen Haaren steht an der Theke der Schmiede."]
+)
 
-
-def rob_dlg():
-    yield Dialog("helfen", '"Du siehst bedrückt aus. Kann ich dir helfen?"',
-                 ["Mein Bruder ist verschwunden.",
-                  Malp(
-                      'Du: "Wie heißt er? Ich melde mich, falls der Lümmel mir über den Weg läuft."'),
-                  "Äh, Lümmel?",
-                  Malp('Du: "Ich dachte, er sei entlaufen."'),
-                  "So etwas würde er nie tun! Er war auf dem Weg nach Aizenfjäld,",
-                  "aber er wurde danach nicht mehr gefunden!",
-                  "Er heißt Gaa. Alle sagen immer, er sieht mir sehr ähnlich."],
-                 "hallo")
-    yield Dialog("schmied", '"Wo ist der Schmied?"',
-                 ["Der ist weiter hinten.", "...müsste er sein."])
+rob.dialog("helfen", '"Du siehst bedrückt aus. Kann ich dir helfen?"', [
+    "Mein Bruder ist verschwunden.",
+    Malp('Du: "Wie heißt er? Ich melde mich, falls der Lümmel mir über den Weg läuft."'),
+    "Äh, Lümmel?",
+    Malp('Du: "Ich dachte, er sei entlaufen."'),
+    "So etwas würde er nie tun! Er war auf dem Weg nach Aizenfjäld,",
+    "aber er wurde danach nicht mehr gefunden!",
+    "Er heißt Gaa. Alle sagen immer, er sieht mir sehr ähnlich."
+],
+    "hallo")
+rob.dialog("schmied", '"Wo ist der Schmied?"',
+           ["Der ist weiter hinten.", "...müsste er sein."])
 
 
 if __name__ == '__main__':

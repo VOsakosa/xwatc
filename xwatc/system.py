@@ -470,7 +470,9 @@ Speicherpunkt = Union[HatMain, MänxFkt]
 
 
 class Besuche:
-    """Mache ein Objekt aus dem Objektregister ein HatMain-object."""
+    """Mache einer ID für ein Objekt aus dem Objektregister ein HatMain-object.
+    Bei der Main wird das Objekt aus dem Register gesucht bzw. erzeugt und dann dessen
+    Main aufgerufen."""
 
     def __init__(self, objekt_name: str):
         self.objekt_name = objekt_name

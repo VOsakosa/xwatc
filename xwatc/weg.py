@@ -15,6 +15,7 @@ from typing import (List, Any, Optional as Opt, cast, Iterable, Union, Sequence,
 from xwatc.system import (Mänx, MenuOption, MänxFkt, InventarBasis, malp, mint,
                           MänxPrädikat)
 if TYPE_CHECKING:
+    from xwatc import nsc
     from xwatc import dorf
 
 __author__ = "jasper"
@@ -348,7 +349,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                  gucken: Opt[MänxFkt] = None,
                  kreuzung_beschreiben: bool = False,
                  immer_fragen: bool = False,
-                 menschen: Opt[Sequence[dorf.NSC]] = None):
+                 menschen: Sequence[dorf.NSC | nsc.NSC] = ()):
         """Erzeuge eine neue Wegkreuzung
         :param n,nw,no,o,w,sw,s,so: Nachbarn nach Himmelsrichtungen
         :param andere: weitere Nachbarn
@@ -376,10 +377,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
             if ri:
                 ri.ziel.verbinde(self)
         self.beschreibungen: List[Beschreibung] = []
-        if menschen:
-            self.menschen = list(menschen)
-        else:
-            self.menschen = []
+        self.menschen = list(menschen)
         self.gucken = gucken
         self.immer_fragen = immer_fragen
         self.kreuzung_beschreiben = kreuzung_beschreiben
@@ -501,7 +499,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
 
     def optionen(self, mänx: Mänx,
                  von: Opt[NachbarKey]) -> Iterable[MenuOption[
-                     Union[Wegpunkt, 'dorf.NSC']]]:
+                     Union[Wegpunkt, 'dorf.NSC', 'nsc.NSC']]]:
         """Sammelt Optionen, wie der Mensch sich verhalten kann."""
         for mensch in self.menschen:
             yield ("Mit " + mensch.name + " reden", mensch.name.lower(),

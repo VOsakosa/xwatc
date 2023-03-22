@@ -9,6 +9,7 @@ from typing import Any, Literal
 from xwatc import system
 from xwatc.system import Inventar, MenuOption
 from xwatc import dorf
+from xwatc import weg
 from xwatc.dorf import Fortsetzung, Rückkehr
 import attrs
 from collections import defaultdict
@@ -43,6 +44,7 @@ class Person:
     """Definiert Eigenschaften, die jedes intelligente Wesen in Xvatc hat."""
     geschlecht: Geschlecht = attrs.field(converter=to_geschlecht)
     rasse: Rasse = Rasse.Mensch
+    art: str = ""
 
 
 @define
@@ -71,6 +73,7 @@ class StoryChar:
 
     def zu_nsc(self) -> 'NSC':
         """Erzeuge den zugehörigen NSC aus dem Template."""
+        # Der Ort ist zunächst immer None. Der Ort wird erst zugeordnet
         return NSC(self, dict(self.startinventar))
 
     def dialog(self, *args, **kwargs) -> dorf.Dialog:
@@ -93,7 +96,38 @@ class NSC:
     kennt_spieler: bool = False
     freundlich: int = 0
     tot: bool = False
-    ort: dorf.Ort | None = None
+    _ort: weg.Wegkreuzung | None = None
+
+    def __attrs_post_init__(self):
+        if self._ort:
+            self._ort.menschen.append(self)
+
+    @property
+    def name(self) -> str:
+        return self.template.name
+
+    @property
+    def art(self) -> str:
+        return self.template.person.art
+
+    @property
+    def ort(self) -> weg.Wegkreuzung | None:
+        """Der Ort/Wegpunkt eines NSCs."""
+        return self._ort
+
+    @ort.setter
+    def ort(self, ort: weg.Wegkreuzung | None) -> None:
+        """Den Ort an einem NSC zu setzen, speichert ihn in die Liste der
+        NSCs an einem Ort."""
+        if self._ort is not None:
+            try:
+                self._ort.menschen.remove(self)
+            except ValueError:
+                pass
+        self._ort = ort
+        if ort is not None:
+            if self not in ort.menschen:
+                ort.menschen.append(self)
 
     def vorstellen(self, mänx: system.Mänx) -> None:
         """So wird der NSC vorgestellt"""

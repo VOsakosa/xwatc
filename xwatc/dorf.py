@@ -453,7 +453,7 @@ class Ort(weg.Wegkreuzung):
                  name: str,
                  dorf: Union[None, Dorf, Ort],
                  text: Opt[Sequence[str]] = None,
-                 menschen: Opt[List[NSC]] = None):
+                 menschen: Sequence[NSC] = ()):
         """
         ```
         ort = Ort("Taverne Zum Katzenschweif", None, # wird noch hinzugefügt
@@ -537,6 +537,7 @@ class Dorf:
         raise KeyError(f"In {self.name} unbekannter Ort {name}")
 
     def ort_main(self, mänx, ort: Ort) -> Opt[Ort | Fortsetzung]:
+        from xwatc import nsc
         ort.menschen[:] = filter(lambda m: not m.tot, ort.menschen)
         ort.beschreibe(mänx, None)
         if ort.menschen:
@@ -545,14 +546,14 @@ class Dorf:
                 malp(f"{mensch.name}, {mensch.art}")
         else:
             malp("Hier ist niemand.")
-        optionen: List[MenuOption[Union[NSC, Ort, None]]]
+        optionen: List[MenuOption[Union[NSC, nsc.NSC, Ort, None]]]
         optionen = [("Mit " + mensch.name + " reden", mensch.name.lower(),
                      mensch) for mensch in ort.menschen]
         optionen.extend((f"Nach {o.name} gehen", o.name.lower(), o)
                         for o in self.orte if o != ort)
         optionen.append(("Ort verlassen", "fliehen", None))
         opt = mänx.menu(optionen, save=self)  # TODO: Den Ort speichern
-        if isinstance(opt, NSC):
+        if isinstance(opt, (NSC, nsc.NSC)):
             ans = opt.main(mänx)
             if isinstance(ans, Ort):
                 return ans
