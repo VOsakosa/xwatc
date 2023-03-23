@@ -37,6 +37,7 @@ def to_geschlecht(attr: Literal["m"] | Literal["w"] | Geschlecht) -> Geschlecht:
 class Rasse(Enum):
     Mensch = 0
     Munin = 1
+    Tier = 2
 
 
 @define

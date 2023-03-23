@@ -4,6 +4,7 @@ Created on 15.10.2020
 """
 from xwatc.dorf import Ort, NSC, Malp, Dorf, Dialog
 from typing import Iterator
+from xwatc.nsc import Person, Rasse, StoryChar
 __author__ = "jasper"
 from xwatc.system import mint, Mänx, malp, HatMain, register, Welt, malpw
 
@@ -61,7 +62,8 @@ def grökrak(mänx: Mänx):
 
 def erzeuge_grökrak(welt: Welt) -> HatMain:
     """"""
-    tor = Ort("Stadttor", None, "Am Stadttor von Grökrakchöl herrscht reger Betrieb.")
+    tor = Ort("Stadttor", None,
+              "Am Stadttor von Grökrakchöl herrscht reger Betrieb.")
     haupt = Ort("Hauptplatz", None, "Vor dem Burgfried Grökrakchöls ist ein großer,"
                 "geschäftiger Platz. In der Mitte ist ein großer Springbrunnen, "
                 "davor eine Statue eines großen Denkers.")
@@ -197,32 +199,36 @@ def carlo_kampf(n: NSC, m: Mänx):
     malp("Jetzt ist Carlo müde.")
 
 
-@register("jtg:gr:carlo")
-def carlo() -> NSC:
-    return NSC("Carlo", "Kater", carlo_kampf, vorstellen=(
-        "Carlo ist der größte Kater in der Taverne.",), dlg=carlo_dlg)
+carlo = StoryChar("jtg:gr:carlo", "Carlo", Person("m", Rasse.Tier, art="Kater"),
+                  vorstellen_fn=(
+                      "Carlo ist der größte Kater in der Taverne.",),
+                  startinventar={})
 
 
-def carlo_dlg() -> Iterator[Dialog]:
-    yield Dialog("hallo", "Hallo", ("Miao",))
-    yield Dialog("streicheln", "streicheln", [
-        Malp("Carlo lässt sich bereitwillig streicheln.")])
+carlo.dialog("hallo", "Hallo", ("Miao",))
+carlo.dialog("streicheln", "streicheln", [
+    Malp("Carlo lässt sich bereitwillig streicheln.")])
 
-    def fisch(n: NSC, m: Mänx):
-        fisch = m.hat_klasse("Fisch")
-        assert fisch
-        m.erhalte(fisch, -1, n)
-        n.add_freundlich(10, 50)
-    yield Dialog("fisch", "Fisch geben",
-                 [Malp("Carlo frisst glücklich den Fisch.")],
-                 effekt=fisch
-                 ).wenn(lambda m, n: bool(m.hat_klasse("Fisch")))
+
+def fisch(n: NSC, m: Mänx):
+    fisch = m.hat_klasse("Fisch")
+    assert fisch
+    m.erhalte(fisch, -1, n)
+    n.add_freundlich(10, 50)
+
+
+carlo.dialog("fisch", "Fisch geben",
+             [Malp("Carlo frisst glücklich den Fisch.")],
+             effekt=fisch
+             ).wenn(lambda _n, m: bool(m.hat_klasse("Fisch")))
+
 
 @register("jtg:gr:klavier")
 def klavier() -> NSC:
     return NSC("Klavier", "Klavier", klavier_kampf,
                vorstellen=("Ein großes Klavier steht in der Taverne."),
                dlg=klavier_dlg)
+
 
 def klavier_kampf(klavier: NSC, mänx: Mänx) -> None:
     if mänx.hat_item("Axt"):
@@ -234,15 +240,17 @@ def klavier_kampf(klavier: NSC, mänx: Mänx) -> None:
         malpw("Es ist plötzlich sehr schwer in deiner Hand.")
     else:
         malpw("Du brauchst wohl eine Axt, um das Klavier ernsthaft zu "
-             "beschädigen.")
+              "beschädigen.")
+
 
 def klavier_dlg() -> Iterator[Dialog]:
-    def kann_spielen(n,m):
+    def kann_spielen(n, m):
         return m.hat_fähigkeit("Orgel")
     yield Dialog("ein fröhliches Lied spielen", "froh", [
         Malp("Die Stimmung in der Taverne hellt sich auf.")]).wenn(kann_spielen)
-    yield Dialog("den gestiefelten Kater spielen", "kater",[
+    yield Dialog("den gestiefelten Kater spielen", "kater", [
         Malp("Die Melodie klingt durch die Taverne")]).wenn(kann_spielen)
+
 
 if __name__ == '__main__':
     import xwatc.anzeige
