@@ -311,7 +311,8 @@ VorList = List[Union[str, Tuple[str, int]]]
 
 @dataclass
 class Malp:
-    """Objekt, oft statt str zurückgegeben werden kann, um den String als Malp auszugeben."""
+    """Objekt, oft statt str zurückgegeben werden kann, um den String als Malp auszugeben,
+    und nicht, wie bei Dialogen üblich, mit Sprich."""
     text: str
     warte: bool = False
 

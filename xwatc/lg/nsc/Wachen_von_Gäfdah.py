@@ -1,6 +1,12 @@
-from xwatc.dorf import NSC, NSCOptionen, Rückkehr
+from xwatc.dorf import NSC, NSCOptionen, Rückkehr, Malp
 from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
 from xwatc.system import mint, kursiv, Mänx, ja_nein, malp
+from xwatc.nsc import Person, StoryChar
+
+WACHEN_INVENTAR = {
+    "Schild": 1
+}
+
 
 class SakcaBrauc(NSC):
     def __init__(self):
@@ -8,7 +14,7 @@ class SakcaBrauc(NSC):
 
     def kampf(self, mänx: Mänx) -> None:
         malp("Als du Anstalten machtest, deine Waffe zu zücken, "
-              "schlug Sakca dir mit der Faust ins Gesicht.")
+             "schlug Sakca dir mit der Faust ins Gesicht.")
         mint("Als du daraufhin zurücktaumelst, schlägt sie dich bewusstlos.")
         gefängnis_von_gäfdah(mänx)
 
@@ -51,9 +57,9 @@ class ThomarcAizenfjäld(NSC):
 
     def kampf(self, mänx: Mänx) -> None:
         malp("Als du Anstalten machtest, deine Waffe zu zücken, "
-              "schlug die Wache dir mit der flachen Seite ihres Schwertes gegen die Schläfe.")
+             "schlug die Wache dir mit der flachen Seite ihres Schwertes gegen die Schläfe.")
         gefängnis_von_gäfdah(mänx)
-            
+
     def handeln(self, mänx: Mänx) -> None:
         malp("Die Wache will gerade nicht handeln.")
 
@@ -89,10 +95,9 @@ class OrfGrouundt(NSC):
 
     def kampf(self, mänx: Mänx) -> None:
         malp("Als du Anstalten machtest, deine Waffe zu zücken, "
-              "gibt der Wachmann dir eine so dicke Kopfnuss, dass du "
-              "ohnmächtig auf das Pflaster sinkst.")
+             "gibt der Wachmann dir eine so dicke Kopfnuss, dass du "
+             "ohnmächtig auf das Pflaster sinkst.")
         gefängnis_von_gäfdah(mänx)
-
 
     def reden(self, mänx: Mänx) -> Rückkehr:
         malp('"Hallo"')
@@ -120,39 +125,27 @@ class OrfGrouundt(NSC):
         super().main(mänx)
 
 
-class MarioWittenpfäld(NSC):
-    def __init__(self):
-        super().__init__("Mario Wittenpfäld", "Wache")
+mario = StoryChar("nsc:Wachen_von_Gäfdah:MarioWittenpfäld", "Mario Wittenpfäld",
+                  Person("m", art="Wache"), WACHEN_INVENTAR,
+                  vorstellen_fn=("Die Wache steht herum und geht ernst und dienstbeflissen "
+                                 "ihrer Arbeit nach."))
 
-    def kampf(self, mänx: Mänx) -> None:
-        malp("Als du Anstalten machtest, deine Waffe zu zücken, "
-              "schlug die Wache dir mit der flachen Seite ihres Schwertes gegen die Schläfe.")
-        gefängnis_von_gäfdah(mänx)
 
-    def reden(self, mänx: Mänx) -> Rückkehr:
-        malp('"Was ist?", fragt die Wache dich.')
-        opts = [
-            ('"Hallo, Wer bist du?"', 'bist', 0),
-            ('"Du heißt Tom, oder?"', "tom", 1),
-            ('"Wie findest du das Wetter heute?"', "wetter", 2),
-            ('"Hey, wie geht es dir?"', "geht", 3)
-        ]
-        opt = mänx.menu(opts, "Was sagst du?")
-        if opt == 0:
-            malp("Der Wachmann reagiert nicht.")
-            if ja_nein(mänx, " Beharrst du auf deine Frage?"):
-                mint("Die Wache seufzt. Ich heiße Mario. Mario Wittenpfäld.")
-            else:
-                mint(self.name, "Du lässt die Wache in Ruhe.")
-        elif opt == 1:
-            malp("", kursiv("nein!"), "     Ich heiße Mario, Mario Wittenpfäld!")
-        elif opt == 2:
-            mint('"schön", sagte die Wache mürrisch.')
-        elif opt == 3:
-            mint('"gut", sagte die Wache.')
-            malp('Sie scheint nicht allzu gesprächig zu sein.')
-        return Rückkehr.WEITER_REDEN
+def hallo_mario(_nsc, mänx: Mänx):
+    malp("Der Wachmann reagiert nicht.")
+    if mänx.ja_nein("Beharrst du auf deine Frage?"):
+        mint("Die Wache seufzt. Ich heiße Mario. Mario Wittenpfäld.")
+    else:
+        mint("Du lässt die Wache in Ruhe.")
 
-    def main(self, mänx: Mänx) -> None:
-        malp("Die Wache steht herum und geht ernst und dienstbeflissen ihrer Arbeit nach.")
-        super().main(mänx)
+
+mario.dialog("bist", '"Hallo, Wer bist du?"', hallo_mario)
+mario.dialog("tom", '"Du heißt Tom, oder?"',
+             kursiv("nein!") + "     Ich heiße Mario, Mario Wittenpfäld!")
+mario.dialog("wetter", '"Wie findest du das Wetter heute?"',
+             [Malp('"schön", sagte die Wache mürrisch.')])
+mario.dialog("geht", '"Hey, wie geht es dir?"',
+             [Malp('"gut", sagte die Wache.'), Malp('Sie scheint nicht allzu gesprächig zu sein.')])
+
+mario_kampf = ("Als du Anstalten machtest, deine Waffe zu zücken, "
+               "schlug die Wache dir mit der flachen Seite ihres Schwertes gegen die Schläfe.")

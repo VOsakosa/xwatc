@@ -3,8 +3,7 @@ from xwatc.dorf import Dorf, NSC, Ort, Dialog, Malp
 from random import randint
 from . Maria_Fischfrisch import Fischerfrau  # pylint: disable=relative-beyond-top-level
 from xwatc.jtg import Waschweib
-from xwatc.lg.nsc.Wachen_von_Gäfdah import (MarioWittenpfäld,
-                                            SakcaBrauc, OrfGrouundt, ThomarcAizenfjäld)
+from xwatc.lg.nsc.Wachen_von_Gäfdah import (SakcaBrauc, OrfGrouundt, ThomarcAizenfjäld)
 from xwatc.lg.nsc.Bürger_von_Gäfdah import MartinPortulakk
 from xwatc.lg.nsc.Freiwild import RuboicHätxrik
 from xwatc.nsc import StoryChar, Person
@@ -50,8 +49,7 @@ def erzeuge_Gäfdah(mänx: Mänx) -> Dorf:
         "lg:norden:Maria_Fischfrisch:maria_fischfrisch", Fischerfrau).ort = kirche
     # schmiede.menschen.append(mänx.welt.get_or_else)
     # d.orte.append(schmiede)
-    rathaus.add_nsc(mänx.welt,
-                    "nsc:Wachen_von_Gäfdah:MarioWittenpfäld", MarioWittenpfäld)
+    mänx.welt.obj("nsc:Wachen_von_Gäfdah:MarioWittenpfäld").ort = rathaus
     rathaus.add_nsc(mänx.welt, "nsc:Wachen_von_Gäfdah:SakcaBrauc", SakcaBrauc)
     schenke.add_nsc(mänx.welt, "nsc:Freiwild:RuboicHätxrik", RuboicHätxrik)
     rathaus.add_nsc(mänx.welt,

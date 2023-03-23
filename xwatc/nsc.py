@@ -76,9 +76,21 @@ class StoryChar:
         # Der Ort ist zunächst immer None. Der Ort wird erst zugeordnet
         return NSC(self, dict(self.startinventar))
 
-    def dialog(self, *args, **kwargs) -> dorf.Dialog:
+    def dialog(self,
+               name: str,
+               text: str,
+               geschichte: dorf.DialogGeschichte,
+               vorherige: str | None | dorf.VorList = None,
+               wiederhole: int | None = None,
+               min_freundlich: int | None = None,
+               direkt: bool = False,
+               effekt: dorf.DialogFn | None = None,
+               gruppe: str | None = None) -> dorf.Dialog:
         "Erstelle einen Dialog"
-        dia = dorf.Dialog(*args, **kwargs)
+        dia = dorf.Dialog(
+            name=name, text=text, geschichte=geschichte,
+            vorherige=vorherige, wiederhole=wiederhole, min_freundlich=min_freundlich,
+            direkt=direkt, effekt=effekt, gruppe=gruppe)
         self.dialoge.append(dia)
         return dia
     # TODO unfertig.
