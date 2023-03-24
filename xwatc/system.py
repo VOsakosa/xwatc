@@ -1,28 +1,41 @@
 from __future__ import annotations
+
+from attrs import define
 from collections import defaultdict
 from collections.abc import Sequence, Callable, Iterator, Mapping
-from typing import (Dict, List, Tuple, TypeVar, Any, Union,
-                    Optional, Set, Optional as Opt)
-from time import sleep
-import re
-import pickle
 from pathlib import Path
-from xwatc.untersystem.itemverzeichnis import lade_itemverzeichnis
-from xwatc.untersystem import hilfe
-from xwatc.terminal import Terminal
+import pickle
+from time import sleep
+from typing import TypeVar, Any, Protocol
+from typing import (Dict, List, Tuple, Union, Optional, Set, Optional as Opt)
 import typing
+
+from xwatc.terminal import Terminal
+from xwatc.untersystem import hilfe
+from xwatc.untersystem.itemverzeichnis import lade_itemverzeichnis
 from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
+
+
 if typing.TYPE_CHECKING:
-    from xwatc import dorf
-    from xwatc import anzeige
-    from xwatc import weg
+    from xwatc import dorf  # @UnusedImport
+    from xwatc import anzeige  # @UnusedImport
+    from xwatc import weg  # @UnusedImport
 
 
 SPEICHER_VERZEICHNIS = Path(__file__).parent.parent / "xwatc_saves"
 
 
-MänxFkt = Callable[['Mänx'], Any]  # Recursive type not allowed
-MänxPrädikat = Callable[['Mänx'], bool]
+M_cov = TypeVar("M_cov", covariant=True)
+
+
+class MänxFkt(Protocol[M_cov]):
+    """Basically a callable with Mänx as only parameter."""
+
+    def __call__(self, mänx: 'Mänx') -> M_cov:
+        """Call this MänxFkt."""
+
+
+MänxPrädikat = MänxFkt[bool]
 Fortsetzung = Union[MänxFkt, 'HatMain', 'weg.Wegpunkt']
 ITEMVERZEICHNIS, UNTERKLASSEN, ALLGEMEINE_PREISE = lade_itemverzeichnis(
     Path(__file__).parent / "itemverzeichnis.txt")
@@ -51,16 +64,15 @@ Inventar = Dict[str, int]
 _null_func = int
 
 
+@define
 class Persönlichkeit:
     """ Deine Persönlichkeit innerhalb des Spieles """
-
-    def __init__(self, *arggs, ** kwargs):
-        self.ehrlichkeit = 0
-        self.stolz = 0
-        self.arroganz = 0
-        self.vertrauenswürdigkeit = 0
-        self.hilfsbereischaft = 0
-        self.mut = 0
+    ehrlichkeit: int = 0
+    stolz: int = 0
+    arroganz: int = 0
+    vertrauenswürdigkeit: int = 0
+    hilfsbereischaft: int = 0
+    mut: int = 0
 
 
 class InventarBasis:
@@ -414,7 +426,7 @@ class Welt:
 
     def obj(self, name: str) -> Any:
         """Hole ein registriertes oder existentes Objekt."""
-        
+
         if name in self.objekte:
             return self.objekte[name]
         from xwatc import nsc

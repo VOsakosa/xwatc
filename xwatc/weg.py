@@ -742,7 +742,7 @@ def gebiet(name: str):
     >>>def erzeuge_banane(mänx: Mänx)-> Wegpunkt:
     >>>    ...
     """
-    def wrapper(funk):
+    def wrapper(funk: MänxFkt[Wegpunkt]):
         GEBIETE[name] = funk
         return funk
     return wrapper
