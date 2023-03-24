@@ -2,7 +2,7 @@ from xwatc.system import Mänx, register
 from xwatc.dorf import Dorf, NSC, Ort, Dialog, Malp
 from random import randint
 from . Maria_Fischfrisch import Fischerfrau  # pylint: disable=relative-beyond-top-level
-from xwatc.jtg import Waschweib
+from xwatc.jtg import zufällige_frau
 from xwatc.lg.nsc.Wachen_von_Gäfdah import (SakcaBrauc, OrfGrouundt, ThomarcAizenfjäld)
 from xwatc.lg.nsc.Bürger_von_Gäfdah import MartinPortulakk
 from xwatc.lg.nsc.Freiwild import RuboicHätxrik
@@ -59,7 +59,7 @@ def erzeuge_Gäfdah(mänx: Mänx) -> Dorf:
     d.orte[0].add_nsc(
         mänx.welt, "nsc:Wachen_von_Gäfdah:OrfGrouundt", OrfGrouundt)
     for _i in range(randint(2, 5)):
-        w = Waschweib()
+        w = zufällige_frau()
         d.orte[0].menschen.append(w)
     # TODO weitere Objekte
     return d

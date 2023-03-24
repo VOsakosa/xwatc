@@ -106,6 +106,26 @@ class StoryChar:
         self.dialoge.append(dia)
         return dia
 
+    def dialog_deco(self,
+                    name: str,
+                    text: str,
+                    vorherige: str | None | dorf.VorList = None,
+                    wiederhole: int | None = None,
+                    min_freundlich: int | None = None,
+                    direkt: bool = False,
+                    effekt: dorf.DialogFn | None = None,
+                    gruppe: str | None = None) -> Callable[[dorf.DialogFn], dorf.Dialog]:
+        """Erstelle einen Dialog als Wrapper. Alle Parameter außer der Funktion sind gleich zu
+        Dialog"""
+        def wrapper(geschichte: dorf.DialogFn) -> dorf.Dialog:
+            dia = dorf.Dialog(
+                name=name, text=text, geschichte=geschichte,
+                vorherige=vorherige, wiederhole=wiederhole, min_freundlich=min_freundlich,
+                direkt=direkt, effekt=effekt, gruppe=gruppe)
+            self.dialoge.append(dia)
+            return dia
+        return wrapper
+
     def vorstellen(self, fn: dorf.DialogGeschichte) -> dorf.DialogGeschichte:
         """Dekorator, um die Vorstellen-Funktion zu setzen
         >>>hans = StoryChar("test:hans", "Hans", Person("m","Spinner"), {})
@@ -115,7 +135,7 @@ class StoryChar:
         """
         self.vorstellen_fn = fn
         return fn
-    
+
     @classmethod
     def structure(cls, data, typ) -> 'StoryChar':
         """Create the story char """
@@ -125,8 +145,11 @@ class StoryChar:
             return CHAR_REGISTER[id_]
         return story_char_base_structure(data, typ)
 
+
 converter.register_structure_hook(StoryChar, StoryChar.structure)
-story_char_base_structure = cattrs.gen.make_dict_structure_fn(StoryChar, converter)
+story_char_base_structure = cattrs.gen.make_dict_structure_fn(
+    StoryChar, converter)
+
 
 def _copy_inventar(old: Mapping[str, int]) -> defaultdict[str, int]:
     return defaultdict(int, old)
@@ -138,7 +161,8 @@ class NSC:
     der Rest der Datenstruktur beschäftigt sich mit dem momentanen Status dieses NSCs in der
     Welt."""
     template: StoryChar
-    inventar: Inventar = attrs.field(converter=_copy_inventar, factory=lambda: defaultdict(int))
+    inventar: Inventar = attrs.field(
+        converter=_copy_inventar, factory=lambda: defaultdict(int))
     variablen: set[str] = Factory(set)
     dialog_anzahl: dict[str, int] = Factory(dict)
     kennt_spieler: bool = False
