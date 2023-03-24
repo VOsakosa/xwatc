@@ -334,6 +334,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
     Hier passiert etwas.
     """
     OPTS = [4, 3, 5, 2, 6, 1, 7]
+    nachbarn: dict[NachbarKey, Richtung | None]
 
     def __init__(self,
                  name: str,
@@ -346,7 +347,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                  so: OpRiIn = _NSpec,
                  s: OpRiIn = _NSpec,
                  andere: Opt[Mapping[str, RiIn]] = None,
-                 gucken: Opt[MänxFkt] = None,
+                 gucken: MänxFkt | None = None,
                  kreuzung_beschreiben: bool = False,
                  immer_fragen: bool = False,
                  menschen: Sequence[dorf.NSC | nsc.NSC] = ()):
@@ -428,24 +429,27 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
             mensch.vorstellen(mänx)
 
     @overload
-    def __getitem__(self, i: slice) -> List[Opt[Richtung]]: ...
+    def __getitem__(self, i: slice) -> List[Opt[Richtung]]: ...  # @UnusedVariable
 
     @overload
-    def __getitem__(self, i: int) -> Opt[Richtung]: ...
+    def __getitem__(self, i: int) -> Opt[Richtung]: ...  # @UnusedVariable
 
     @overload
-    def __getitem__(self, i: str) -> Richtung: ...
+    def __getitem__(self, i: str) -> Richtung: ...  # @UnusedVariable
 
     def __getitem__(self, i):
-        if isinstance(i, slice):
-            return [self.nachbarn.get(hri) for hri in HIMMELSRICHTUNG_KURZ[i]]
-        elif isinstance(i, int):
-            return self.nachbarn.get(HIMMELSRICHTUNG_KURZ[i])
-        elif isinstance(i, (str, Himmelsrichtung)):
-            ans = self.nachbarn[i]
-            if ans is None:
-                raise ValueError(f"Loses Ende: {i} nicht besetzt")
-            return ans
+        match i:
+            case slice() as i:
+                return [self.nachbarn.get(Himmelsrichtung.from_nr(hri)) for hri in range(9)[i]]
+            case int(i):
+                return self.nachbarn.get(Himmelsrichtung.from_nr(i))
+            case str() | Himmelsrichtung():
+                if isinstance(i, str):
+                    i = _StrAsHimmelsrichtung(i)
+                ans = self.nachbarn[i]
+                if ans is None:
+                    raise KeyError(f"Loses Ende: {i} nicht besetzt")
+                return ans
         raise TypeError(i, "must be str, int or slice.")
 
     def _finde_texte(self, richtung: int) -> List[str]:
