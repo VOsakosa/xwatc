@@ -443,7 +443,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
     def __getitem__(self, i):
         match i:
             case slice() as i:
-                return [self.nachbarn.get(Himmelsrichtung.from_nr(hri)) for hri in range(9)[i]]
+                return [self.nachbarn.get(Himmelsrichtung.from_nr(hri)) for hri in range(8)[i]]
             case int(i):
                 return self.nachbarn.get(Himmelsrichtung.from_nr(i))
             case str() | Himmelsrichtung():
