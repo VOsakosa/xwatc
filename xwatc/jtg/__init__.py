@@ -365,7 +365,7 @@ tobi.dialog('wo', '"Wo bin ich?"',
 
 # TODO: Tobi kann auch kämpfen (zusammengeschlagen werden)
 
-
+@tobi.kampf
 def tobi_kampf(self, mänx: Mänx) -> None:
     if mänx.hat_klasse("Waffe", "magische Waffe"):
         malp("Er ist so sehr in sein Orgelspiel vertieft, dass er seinen "

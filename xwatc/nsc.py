@@ -136,6 +136,12 @@ class StoryChar:
         self.vorstellen_fn = fn
         return fn
 
+    def kampf(self, fn: dorf.DialogGeschichte) -> dorf.DialogGeschichte:
+        """Dekorator, um die Kampf-Funktion zu setzen"""
+        self.dialoge.append(dorf.Dialog(
+            "k", "Angreifen", fn, zeitpunkt=dorf.Zeitpunkt.Option))
+        return fn
+
     @classmethod
     def structure(cls, data, typ) -> 'StoryChar':
         """Create the story char """
