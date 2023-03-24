@@ -6,7 +6,7 @@ from xwatc import system
 from xwatc.system import (Mänx, minput, ja_nein, register,
                           Spielende, mint, sprich, kursiv, malp, get_classes, Inventar)
 from xwatc import dorf
-from xwatc.dorf import Dorf, Ort, NSCOptionen, Dialog, HalloDialoge, Malp
+from xwatc.dorf import Dorf, Ort, NSCOptionen, Dialog, HalloDialoge, Malp, Zeitpunkt
 from random import randint
 import random
 from xwatc.jtg.ressourcen import zufälliger_name
@@ -341,7 +341,7 @@ tobi = StoryChar("jtg:m:tobiac", "Tobiac Berndoc", Person("m", "Orgelspieler"), 
                                 "Die Melodie klingt ungewöhnlich, aber sehr schön."])
 
 
-@tobi.dialog_deco("vor_reden", "--", direkt=True)
+@tobi.dialog_deco("vor_reden", "--", zeitpunkt=Zeitpunkt.Ansprechen)
 def tobi_vorstellen(self: NSC, _mänx: Mänx) -> None:
     malp("Tobiac spielt erst noch den Satz zu Ende.")
     sleep(2)
@@ -380,7 +380,7 @@ def tobi_kampf(self, mänx: Mänx) -> None:
             mint("Du schlägst ihn bewusstlos")
 
 
-@tobi.dialog_deco("hören", "Ihm beim Spielen zuhören", direkt=True)
+@tobi.dialog_deco("hören", "Ihm beim Spielen zuhören", zeitpunkt=Zeitpunkt.Option)
 def zuhören(self, _mänx: Mänx) -> None:
     mint("Tobiac spielt einfach weiter Orgel.\n"
          "Du hast das Gefühl, er hat dich bemerkt, aber er lässt sich "

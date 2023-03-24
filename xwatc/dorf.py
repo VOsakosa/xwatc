@@ -47,6 +47,27 @@ class Malp:
         return self.text
 
 
+class Zeitpunkt(Enum):
+    """Der Zeitpunkt, an dem ein Dialog ausführbar ist bzw. ausgeführt wird.
+
+    Reden steht für den normalen Zeitpunkt, wenn der Spieler auf eigene Initiative den
+    Dialog starten kann.
+
+    Vorstellen steht für Dialoge, die automatisch noch vor der Auswahl k/r/f abgespielt
+    werden.
+
+    Ansprechen steht für Dialoge, die direkt ausgeführt werden, wenn der Spieler versucht,
+    den NSC anzusprechen.
+
+    Option steht für Dialoge, die zusätzlich zu k/r/f auftauchen. Es gibt nur dann einen
+    Unterschied zu Reden, wenn direkt_reden beim NSC nicht an ist.
+    """
+    Reden = 0
+    Vorstellen = 1
+    Ansprechen = 2
+    Option = 3
+
+
 DialogFn = Callable[["nsc.NSC", system.Mänx],
                     Union[None, bool, Fortsetzung, Rückkehr]]
 
@@ -84,17 +105,12 @@ class Dialog:
     text: str
     geschichte: 'DialogGeschichte'
     vorherige: VorList = field(converter=_vorherige_converter, factory=list)
-    _wiederhole: int = field(default=-1)
+    _wiederhole: int = 0
     min_freundlich: int | None = None
-    direkt: bool = False
+    zeitpunkt: Zeitpunkt = Zeitpunkt.Reden
     effekt: DialogFn | None = None
     gruppe: str | None = None
     wenn_fn: DialogFn | None = None
-
-    def __attrs_post_init__(self):
-        if self._wiederhole == -1:
-            self._wiederhole = int(self.direkt)
-        assert self._wiederhole >= 0
 
     def wenn(self, fn: DialogFn) -> 'Dialog':
         """Dieser Dialog soll nur aufrufbar sein, wenn die Funktion fn

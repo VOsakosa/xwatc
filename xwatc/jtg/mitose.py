@@ -13,7 +13,7 @@ Links abbiegen führt zu Kiri-Wölfen=> Kampf
 
 """
 from xwatc.system import Mänx, register, malp, HatMain, mint
-from xwatc.dorf import NSC, Dorf, Malp, NSCOptionen, Dialog, Ort
+from xwatc.dorf import NSC, Dorf, Malp, NSCOptionen, Dialog, Ort, Zeitpunkt
 from xwatc import weg
 from xwatc import jtg
 from xwatc import haendler
@@ -254,7 +254,7 @@ class Mädchen(haendler.Händler):
             "Ich hätte gerne eine Waffe.",
             "Ich muss mich doch irgendwie wehren können."
             "Dann kann ich dir auch helfen."
-        ], direkt=True, wiederhole=0).wenn(
+        ], zeitpunkt=Zeitpunkt.Ansprechen, wiederhole=0).wenn(
             lambda n, __: not n.hat_klasse("Waffe"))
 
     def optionen(self, mänx: Mänx) -> NSCOptionen:

@@ -95,14 +95,14 @@ class StoryChar:
                vorherige: str | dorf.VorList = (),
                wiederhole: int = -1,
                min_freundlich: int | None = None,
-               direkt: bool = False,
+               zeitpunkt: dorf.Zeitpunkt = dorf.Zeitpunkt.Reden,
                effekt: dorf.DialogFn | None = None,
                gruppe: str | None = None) -> dorf.Dialog:
         "Erstelle einen Dialog"
         dia = dorf.Dialog(
             name=name, text=text, geschichte=geschichte,
             vorherige=vorherige, wiederhole=wiederhole, min_freundlich=min_freundlich,
-            direkt=direkt, effekt=effekt, gruppe=gruppe)
+            zeitpunkt=zeitpunkt, effekt=effekt, gruppe=gruppe)
         self.dialoge.append(dia)
         return dia
 
@@ -112,7 +112,7 @@ class StoryChar:
                     vorherige: str | dorf.VorList = (),
                     wiederhole: int = -1,
                     min_freundlich: int | None = None,
-                    direkt: bool = False,
+                    zeitpunkt: dorf.Zeitpunkt = dorf.Zeitpunkt.Reden,
                     effekt: dorf.DialogFn | None = None,
                     gruppe: str | None = None) -> Callable[[dorf.DialogFn], dorf.Dialog]:
         """Erstelle einen Dialog als Wrapper. Alle Parameter außer der Funktion sind gleich zu
@@ -121,7 +121,7 @@ class StoryChar:
             dia = dorf.Dialog(
                 name=name, text=text, geschichte=geschichte,
                 vorherige=vorherige, wiederhole=wiederhole, min_freundlich=min_freundlich,
-                direkt=direkt, effekt=effekt, gruppe=gruppe)
+                zeitpunkt=zeitpunkt, effekt=effekt, gruppe=gruppe)
             self.dialoge.append(dia)
             return dia
         return wrapper
@@ -206,10 +206,16 @@ class NSC:
         if self.template.vorstellen_fn:
             self._call_geschichte(
                 mänx, self.template.vorstellen_fn, erzähler=True)
+        for dialog in self.template.dialoge:
+            if dialog.zeitpunkt == dorf.Zeitpunkt.Vorstellen and dialog.verfügbar(self, mänx):
+                self._run(dialog, mänx)
 
-    def optionen(self, mänx: system.Mänx) -> dorf.NSCOptionen:  # pylint: disable=unused-argument
+    def optionen(self, mänx: system.Mänx) -> Iterator[MenuOption[dorf.RunType]]:
         # yield ("kämpfen", "k", self.kampf)
         yield ("fliehen" if self.freundlich < 0 else "zurück", "f", self.fliehen)
+        for dialog in self.template.dialoge:
+            if dialog.zeitpunkt == dorf.Zeitpunkt.Option and dialog.verfügbar(self, mänx):
+                yield dialog.zu_option()
 
     def fliehen(self, __) -> None:
         """Vor NSCs kann man immer bedenkenlos fliehen"""
@@ -217,13 +223,13 @@ class NSC:
 
     def dialog_optionen(self, mänx: system.Mänx) -> Iterator[MenuOption[dorf.Dialog]]:
         for d in self.template.dialoge:
-            if not d.direkt and d.verfügbar(self, mänx):
+            if d.zeitpunkt == dorf.Zeitpunkt.Reden and d.verfügbar(self, mänx):
                 yield d.zu_option()
 
     def direkte_dialoge(self, mänx: system.Mänx) -> Iterator[dorf.Dialog]:
         """Hole die Dialoge, die direkt abgespielt werden."""
         for d in self.template.dialoge:
-            if d.direkt and d.verfügbar(self, mänx):
+            if d.zeitpunkt == dorf.Zeitpunkt.Ansprechen and d.verfügbar(self, mänx):
                 yield d
 
     def main(self, mänx: system.Mänx) -> Fortsetzung | None:
