@@ -92,8 +92,8 @@ class StoryChar:
                name: str,
                text: str,
                geschichte: dorf.DialogGeschichte,
-               vorherige: str | None | dorf.VorList = None,
-               wiederhole: int | None = None,
+               vorherige: str | dorf.VorList = (),
+               wiederhole: int = -1,
                min_freundlich: int | None = None,
                direkt: bool = False,
                effekt: dorf.DialogFn | None = None,
@@ -109,8 +109,8 @@ class StoryChar:
     def dialog_deco(self,
                     name: str,
                     text: str,
-                    vorherige: str | None | dorf.VorList = None,
-                    wiederhole: int | None = None,
+                    vorherige: str | dorf.VorList = (),
+                    wiederhole: int = -1,
                     min_freundlich: int | None = None,
                     direkt: bool = False,
                     effekt: dorf.DialogFn | None = None,
@@ -288,8 +288,7 @@ class NSC:
         if isinstance(option, dorf.Dialog):
             dlg = option
             dlg_anzahl = self.dialog_anzahl
-            ans = self._call_geschichte(mänx, dlg.geschichte,
-                                        dlg.geschichte_text)
+            ans = self._call_geschichte(mänx, dlg.geschichte, dlg.effekt)
             dlg_anzahl[dlg.name] = dlg_anzahl.setdefault(dlg.name, 0) + 1
             if dlg.gruppe:
                 dlg_anzahl[dlg.gruppe] = dlg_anzahl.setdefault(
@@ -311,11 +310,9 @@ class NSC:
 
     def _call_geschichte(self, mänx: system.Mänx,
                          geschichte: dorf.DialogGeschichte,
-                         text: Sequence[dorf.Malp | str] = (),
+                         effekt: dorf.DialogFn | None = None,
                          erzähler: bool = False) -> Rückkehr | Fortsetzung:
         ans: Rückkehr | Fortsetzung = Rückkehr.WEITER_REDEN
-        if text:
-            self._call_inner(text, erzähler)
         if callable(geschichte):
             ans2 = geschichte(self, mänx)
             if ans2 is False:
@@ -326,6 +323,11 @@ class NSC:
                 ans = ans2
         else:
             self._call_inner(geschichte, erzähler, True)
+
+        if effekt:
+            ans3 = effekt(self, mänx)
+            if ans3 and ans3 is not True:
+                ans = ans3
         return ans
 
     def _call_inner(self, text: Sequence[str | dorf.Malp], erzähler: bool,

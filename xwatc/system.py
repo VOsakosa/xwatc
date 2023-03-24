@@ -40,7 +40,7 @@ M_cov = TypeVar("M_cov", covariant=True)
 class MänxFkt(Protocol[M_cov]):
     """Basically a callable with Mänx as only parameter."""
 
-    def __call__(self, mänx: 'Mänx') -> M_cov:
+    def __call__(self, __mänx: 'Mänx') -> M_cov:
         """Call this MänxFkt."""
 
 

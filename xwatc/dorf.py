@@ -4,6 +4,7 @@ Xwatc' Ort- und Menschensystem.
 Seit 10.10.2020
 """
 from __future__ import annotations
+from attrs import define, field
 from enum import Enum
 from collections.abc import Sequence, Callable, Iterable
 from typing import List, Tuple, Optional as Opt, Union
@@ -29,7 +30,7 @@ NSCOptionen = Iterable[MenuOption[MänxFkt]]
 
 
 # Vorherige Dialoge, nur str für Name, sonst (name, mindestanzahl)
-VorList = list[str | Tuple[str, int]]
+VorList = Sequence[str | Tuple[str, int]]
 
 
 @dataclass
@@ -50,69 +51,50 @@ DialogFn = Callable[["nsc.NSC", system.Mänx],
                     Union[None, bool, Fortsetzung, Rückkehr]]
 
 
+def _vorherige_converter(value: VorList | str) -> VorList:
+    if isinstance(value, str):
+        return [value]
+    return value
+
+# TODO move to NSC
+
+
+@define
 class Dialog:
-    """Ein einzelner Gesprächsfaden beim Gespräch mit einem NSC."""
-    wenn_fn: DialogFn | None
+    """Ein einzelner Gesprächsfaden beim Gespräch mit einem NSC.
+    ```
+    Dialog("halloli", "Halloli",
+            ["Du bist ein Totenbeschwörer", Malp("Der Mensch weicht zurück")],
+           effekt=lambda n,m:m.welt.setze("totenbeschwörer")))
+    Dialog("geld", "Gib mir Geld", "Hilfe!", "halloli",
+            effekt=lambda n,m: m.erhalte("Gold", n.gold, n))
+    ```
 
-    def __init__(self,
-                 name: str,
-                 text: str,
-                 geschichte: 'DialogGeschichte',
-                 vorherige: Union[str, None, VorList] = None,
-                 wiederhole: Opt[int] = None,
-                 min_freundlich: Opt[int] = None,
-                 direkt: bool = False,
-                 effekt: Opt[DialogFn] = None,
-                 gruppe: Opt[str] = None):
-        """
-        ```
-        Dialog("halloli", "Halloli",
-                ["Du bist ein Totenbeschwörer", Malp("Der Mensch weicht zurück")],
-               effekt=lambda n,m:m.welt.setze("totenbeschwörer")))
-        Dialog("geld", "Gib mir Geld", "Hilfe!", "halloli",
-                effekt=lambda n,m: m.erhalte("Gold", n.gold, n))
-        ```
+    :param name: Der kurze Name des Dialogs
+    :param text: Der lange Text in der Option
+    :param geschichte: Das, was beim Dialog passiert. Kann DialogFn sein
+        oder eine Liste von Strings und Malps, die dann gesagt werden.
+    :param effekt: Passiert zusätzlich noch nach Geschichte.
+    :param vorherige: Liste von Dialogen, die schon gesagt sein müssen
+    :param min_freundlich: Mindestfreundlichkeit für den Dialog
+    :param direkt: Wenn wahr, redet der Mänx dich an, statt du ihn.
+    :param gruppe: Nur ein Dialog einer gruppe darf gewählt werden.
+    """
+    name: str
+    text: str
+    geschichte: 'DialogGeschichte'
+    vorherige: VorList = field(converter=_vorherige_converter, factory=list)
+    _wiederhole: int = field(default=-1)
+    min_freundlich: int | None = None
+    direkt: bool = False
+    effekt: DialogFn | None = None
+    gruppe: str | None = None
+    wenn_fn: DialogFn | None = None
 
-        :param name: Der kurze Name des Dialogs
-        :param text: Der lange Text in der Option
-        :param geschichte: Das, was beim Dialog passiert. Kann DialogFn sein
-            oder eine Liste von Strings und Malps, die dann gesagt werden.
-        :param effekt: Passiert zusätzlich noch nach geschichte.
-        :param vorherige: Liste von Dialogen, die schon gesagt sein müssen
-        :param min_freundlich: Mindestfreundlichkeit für den Dialog
-        :param direkt: Wenn wahr, redet der Mänx dich an, statt du ihn.
-        :param gruppe: Nur ein Dialog einer gruppe darf gewählt werden.
-        """
-        self.direkt = direkt
-        self.min_freundlich = min_freundlich
-        self.name = name
-        self.text = text
-        if effekt:
-            if callable(geschichte):
-                raise TypeError("Geschichte und Effekt dürfen nicht beides "
-                                "Funktionen sein.")
-            elif isinstance(geschichte, str):
-                geschichte = [geschichte]
-            self.geschichte: DialogGeschichte = effekt
-            self.geschichte_text: Sequence[Union['Malp', str]] = geschichte
-        else:
-            self.geschichte = geschichte
-            self.geschichte_text = ()
-        self.effekt = effekt
-        self.vorherige: VorList
-        if isinstance(vorherige, str):
-            self.vorherige = [vorherige]
-        elif vorherige is not None:
-            self.vorherige = vorherige
-        else:
-            self.vorherige = []
-
-        self.gruppe = gruppe
-        self.wenn_fn = None
-        if wiederhole is None:
-            self.anzahl = 1 if direkt else 0
-        else:
-            self.anzahl = wiederhole
+    def __attrs_post_init__(self):
+        if self._wiederhole == -1:
+            self._wiederhole = int(self.direkt)
+        assert self._wiederhole >= 0
 
     def wenn(self, fn: DialogFn) -> 'Dialog':
         """Dieser Dialog soll nur aufrufbar sein, wenn die Funktion fn
@@ -130,13 +112,13 @@ class Dialog:
 
     def wiederhole(self, anzahl: int) -> 'Dialog':
         """Füge eine maximale Anzahl von Wiederholungen hinzu"""
-        self.anzahl = anzahl
+        self._wiederhole = anzahl
         return self
 
     def verfügbar(self, nsc: 'nsc.NSC', mänx: system.Mänx) -> bool:
         """Prüfe, ob der Dialog als Option verfügbar ist."""
         # Keine Wiederholungen mehr
-        if self.anzahl and nsc.dialog_anzahl.get(self.name, 0) >= self.anzahl:
+        if self._wiederhole and nsc.dialog_anzahl.get(self.name, 0) >= self._wiederhole:
             return False
         # Gruppe
         if self.gruppe and nsc.dialog_anzahl.get(self.gruppe, 0) >= 1:
@@ -208,7 +190,7 @@ class Ort(weg.Wegkreuzung):
                 text = [text]
             self.add_beschreibung(text)
         if isinstance(dorf, Ort):
-            self.dorf: Opt[Dorf] = dorf.dorf
+            self.dorf: Dorf | None = dorf.dorf
         else:
             self.dorf = dorf
         if self.dorf:
