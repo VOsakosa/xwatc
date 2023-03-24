@@ -1,4 +1,5 @@
 from __future__ import annotations
+from attrs import define
 from collections import defaultdict
 from collections.abc import Sequence, Callable, Iterator, Mapping
 from typing import (Dict, List, Tuple, TypeVar, Any, Union,
@@ -21,9 +22,18 @@ if typing.TYPE_CHECKING:
 SPEICHER_VERZEICHNIS = Path(__file__).parent.parent / "xwatc_saves"
 
 
+class HatMain(typing.Protocol):
+    """Eine Klasse für Objekte, die Geschichte haben und daher mit main()
+    ausgeführt werden können. Das können Menschen, aber auch Wegpunkte
+    und Pflanzen sein."""
+
+    def main(self, mänx: 'Mänx'):
+        """Lasse den Mänxen mit dem Objekt interagieren."""
+
+
 MänxFkt = Callable[['Mänx'], Any]  # Recursive type not allowed
 MänxPrädikat = Callable[['Mänx'], bool]
-Fortsetzung = Union[MänxFkt, 'HatMain', 'weg.Wegpunkt']
+Fortsetzung = Union[MänxFkt, HatMain, 'weg.Wegpunkt']
 ITEMVERZEICHNIS, UNTERKLASSEN, ALLGEMEINE_PREISE = lade_itemverzeichnis(
     Path(__file__).parent / "itemverzeichnis.txt")
 
@@ -414,7 +424,7 @@ class Welt:
 
     def obj(self, name: str) -> Any:
         """Hole ein registriertes oder existentes Objekt."""
-        
+
         if name in self.objekte:
             return self.objekte[name]
         from xwatc import nsc
@@ -457,13 +467,9 @@ def schiebe_inventar(start: Inventar, ziel: Inventar):
     start.clear()
 
 
-class HatMain(typing.Protocol):
-    """Eine Klasse für Objekte, die Geschichte haben und daher mit main()
-    ausgeführt werden können. Das können Menschen, aber auch Wegpunkte
-    und Pflanzen sein."""
-
-    def main(self, mänx: Mänx):
-        """Lasse den Mänxen mit dem Objekt interagieren."""
+@define
+class MissingIDError(Exception):
+    id_: str
 
 
 Speicherpunkt = Union[HatMain, MänxFkt]

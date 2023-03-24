@@ -19,19 +19,13 @@ from xwatc.weg import Himmelsrichtung
 __author__ = "jasper"
 
 
-NSCOptionen = Iterable[MenuOption[MänxFkt]]
-DialogFn = Callable[["nsc.NSC", system.Mänx],
-                    Union[None, bool, Fortsetzung, 'Rückkehr']]
-DialogErzeugerFn = Callable[[], Iterable['Dialog']]
-RunType = Union['Dialog', MänxFkt, 'Rückkehr']
-_MainOpts = List[MenuOption[RunType]]
-DialogGeschichte = Union[Sequence[Union['Malp', str]], DialogFn]
-
-
 class Rückkehr(Enum):
     WEITER_REDEN = 0
     ZURÜCK = 1
     VERLASSEN = 2
+
+
+NSCOptionen = Iterable[MenuOption[MänxFkt]]
 
 
 # Vorherige Dialoge, nur str für Name, sonst (name, mindestanzahl)
@@ -52,14 +46,18 @@ class Malp:
         return self.text
 
 
+DialogFn = Callable[["nsc.NSC", system.Mänx],
+                    Union[None, bool, Fortsetzung, Rückkehr]]
+
+
 class Dialog:
     """Ein einzelner Gesprächsfaden beim Gespräch mit einem NSC."""
-    wenn_fn: Opt[DialogFn]
+    wenn_fn: DialogFn | None
 
     def __init__(self,
                  name: str,
                  text: str,
-                 geschichte: DialogGeschichte,
+                 geschichte: 'DialogGeschichte',
                  vorherige: Union[str, None, VorList] = None,
                  wiederhole: Opt[int] = None,
                  min_freundlich: Opt[int] = None,
@@ -161,6 +159,12 @@ class Dialog:
 
     def zu_option(self) -> MenuOption['Dialog']:
         return (self.text, self.name, self)
+
+
+DialogGeschichte = Union[Sequence[Malp | str], DialogFn]
+DialogErzeugerFn = Callable[[], Iterable[Dialog]]
+RunType = MänxFkt | Rückkehr | Dialog
+_MainOpts = List[MenuOption[RunType]]
 
 
 def hallo(n, _m):

@@ -14,7 +14,9 @@ from xwatc import dorf
 from xwatc import system
 from xwatc import weg
 from xwatc.dorf import Fortsetzung, Rückkehr
-from xwatc.system import Inventar, MenuOption, malp, mint, schiebe_inventar
+from xwatc.system import Inventar, MenuOption, malp, mint, schiebe_inventar, MissingIDError
+from xwatc.serialize import converter
+import cattrs
 
 
 class Geschlecht(Enum):
@@ -113,21 +115,18 @@ class StoryChar:
         """
         self.vorstellen_fn = fn
         return fn
+    
+    @classmethod
+    def structure(cls, data, typ) -> 'StoryChar':
+        """Create the story char """
+        if id_ := data.get("id_"):
+            if id_ not in CHAR_REGISTER:
+                raise MissingIDError(id_)
+            return CHAR_REGISTER[id_]
+        return story_char_base_structure(data, typ)
 
-    def __getstate__(self) -> dict:
-        if self.id_:
-            return {"id_": self.id_}
-        dct = self.__dict__.copy()
-        return dct
-
-    def __setstate__(self, dct: dict) -> None:
-        if dct.get("id_"):
-            pass
-        self.__dict__.update(dct)
-        # self.dialoge = list(self._static_dialoge)
-        # if self._dlg:
-        #    self.dialoge.extend(self._dlg())
-
+converter.register_structure_hook(StoryChar, StoryChar.structure)
+story_char_base_structure = cattrs.gen.make_dict_structure_fn(StoryChar, converter)
 
 def _copy_inventar(old: Mapping[str, int]) -> defaultdict[str, int]:
     return defaultdict(int, old)
