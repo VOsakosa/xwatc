@@ -95,7 +95,7 @@ class Terminal:
 
     @staticmethod
     def spezial_taste(mänx: Mänx, taste: str,
-             save: Opt[system.Speicherpunkt] = None) -> bool:
+             save: 'Speicherpunkt | None' = None) -> bool:
         """Führe die Spezialaktion taste aus, oder gebe Falsch zurück."""
         from xwatc.system import Spielende
         from xwatc.untersystem import hilfe
