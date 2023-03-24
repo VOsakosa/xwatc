@@ -21,6 +21,14 @@ class TestNSC(unittest.TestCase):
         welt = Welt("Winkel")
         toro_nsc = welt.obj("jtg:toro")
         self.assertIs(toro_nsc.template, toro)
+    
+    def test_template_pickle(self):
+        """Test if the template can be pickled from its ID alone."""
+    
+    
+    def test_old_nsc_pickle(self):
+        """Test if OldNSC can be pickled."""
+        
 
 
 if __name__ == "__main__":
