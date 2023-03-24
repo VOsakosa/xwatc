@@ -435,7 +435,7 @@ class Welt:
 
     def obj(self, name: str) -> Any:
         """Hole ein registriertes oder existentes Objekt."""
-        
+
         if name in self.objekte:
             return self.objekte[name]
         from xwatc import nsc
