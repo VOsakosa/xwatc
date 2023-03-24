@@ -28,7 +28,9 @@ ADAPTER: Dict[str, 'WegAdapter'] = {}
 
 @dataclass
 class WegEnde:
-    """Markiert, dass das Wegsystem hier zu Ende ist und nichts mehr passiert.
+    """Wir vom Wegpunkt zurückgegeben und markiert, dass das
+    Wegsystem hier zu Ende ist und in das alte, MänxFkt-basierte
+    System übergegangen wird.
     """
     weiter: MänxFkt
 
@@ -200,6 +202,7 @@ class Wegtyp(enum.Enum):
 
 @dataclass
 class Richtung:
+    """Stellt eine wählbare Richtung an einem Wegpunkt dar."""
     ziel: Wegpunkt
     zielname: str = ""
     typ: Wegtyp = Wegtyp.WEG
