@@ -93,7 +93,7 @@ class StoryChar:
                text: str,
                geschichte: dorf.DialogGeschichte,
                vorherige: str | dorf.VorList = (),
-               wiederhole: int = -1,
+               wiederhole: int = 0,
                min_freundlich: int | None = None,
                zeitpunkt: dorf.Zeitpunkt = dorf.Zeitpunkt.Reden,
                effekt: dorf.DialogFn | None = None,
@@ -110,7 +110,7 @@ class StoryChar:
                     name: str,
                     text: str,
                     vorherige: str | dorf.VorList = (),
-                    wiederhole: int = -1,
+                    wiederhole: int = 0,
                     min_freundlich: int | None = None,
                     zeitpunkt: dorf.Zeitpunkt = dorf.Zeitpunkt.Reden,
                     effekt: dorf.DialogFn | None = None,
@@ -212,10 +212,10 @@ class NSC:
 
     def optionen(self, mänx: system.Mänx) -> Iterator[MenuOption[dorf.RunType]]:
         # yield ("kämpfen", "k", self.kampf)
-        yield ("fliehen" if self.freundlich < 0 else "zurück", "f", self.fliehen)
         for dialog in self.template.dialoge:
             if dialog.zeitpunkt == dorf.Zeitpunkt.Option and dialog.verfügbar(self, mänx):
                 yield dialog.zu_option()
+        yield ("fliehen" if self.freundlich < 0 else "zurück", "f", self.fliehen)
 
     def fliehen(self, __) -> None:
         """Vor NSCs kann man immer bedenkenlos fliehen"""

@@ -4,6 +4,7 @@ Xwatc' Ort- und Menschensystem.
 Seit 10.10.2020
 """
 from __future__ import annotations
+import attrs
 from attrs import define, field
 from enum import Enum
 from collections.abc import Sequence, Callable, Iterable
@@ -105,7 +106,7 @@ class Dialog:
     text: str
     geschichte: 'DialogGeschichte'
     vorherige: VorList = field(converter=_vorherige_converter, factory=list)
-    _wiederhole: int = 0
+    _wiederhole: int = field(validator=attrs.validators.ge(0), default=0)
     min_freundlich: int | None = None
     zeitpunkt: Zeitpunkt = Zeitpunkt.Reden
     effekt: DialogFn | None = None
