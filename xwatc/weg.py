@@ -45,10 +45,10 @@ class Wegpunkt(Protocol):
         hier aus erreichbar sind."""
         return []
 
-    def main(self, mänx: Mänx, von: Opt[Wegpunkt]) -> Union[Wegpunkt, WegEnde]:
+    def main(self, _mänx: Mänx, von: Opt[Wegpunkt]) -> Union[Wegpunkt, WegEnde]:
         """Betrete den Wegpunkt mit mänx aus von."""
 
-    def verbinde(self, anderer: Wegpunkt):
+    def verbinde(self, _anderer: Wegpunkt):
         """Verbinde den Wegpunkt mit anderer. Nur für Wegpunkte mit nur einer
         Seite."""
 
