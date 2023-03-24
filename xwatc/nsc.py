@@ -17,8 +17,6 @@ from xwatc.dorf import Fortsetzung, Rückkehr
 from xwatc.system import Inventar, MenuOption, malp, mint, schiebe_inventar
 
 
-
-
 class Geschlecht(Enum):
     Weiblich = 0
     Männlich = 1
@@ -31,7 +29,7 @@ def to_geschlecht(attr: Literal["m"] | Literal["w"] | Geschlecht) -> Geschlecht:
             return Geschlecht.Männlich
         case Geschlecht():
             return attr
-        case "f":
+        case "w":
             return Geschlecht.Weiblich
         case str(other):
             raise ValueError(f"Unbekanntes Geschlecht: {other}")
@@ -39,9 +37,10 @@ def to_geschlecht(attr: Literal["m"] | Literal["w"] | Geschlecht) -> Geschlecht:
 
 
 class Rasse(Enum):
+    """Die Rasse des intelligenten/humanoiden Wesens."""
     Mensch = 0
     Munin = 1
-    Tier = 2
+    Tier = 2  # TODO: remove
 
 
 @define
@@ -114,7 +113,7 @@ class StoryChar:
         """
         self.vorstellen_fn = fn
         return fn
-    
+
     def __getstate__(self) -> dict:
         if self.id_:
             return {"id_": self.id_}
@@ -130,7 +129,6 @@ class StoryChar:
         #    self.dialoge.extend(self._dlg())
 
 
-
 def _copy_inventar(old: Mapping[str, int]) -> defaultdict[str, int]:
     return defaultdict(int, old)
 
@@ -141,7 +139,7 @@ class NSC:
     der Rest der Datenstruktur beschäftigt sich mit dem momentanen Status dieses NSCs in der
     Welt."""
     template: StoryChar
-    inventar: Inventar = attrs.field(converter=_copy_inventar)
+    inventar: Inventar = attrs.field(converter=_copy_inventar, factory=lambda: defaultdict(int))
     variablen: set[str] = Factory(set)
     dialog_anzahl: dict[str, int] = Factory(dict)
     kennt_spieler: bool = False
@@ -360,11 +358,11 @@ class NSC:
 class OldNSC(NSC, system.InventarBasis):
     """Unterklasse von NSC, die dazu dient, das alte System mit dem neuen zu vereinen.
     Beim alten System war das Template nicht benamt und nicht gespeichert.
-    
+
     Stattdessen gab
     es die (pickelbare) DLG-Funktion, die dafür zuständig war, die (nicht-pickelbaren)
     Dialoge zu erzeugen. Die pickelbaren Dialoge waren dann außerdem in static_dialogs gespeichert.
-    
+
     """
     _ort: weg.Wegkreuzung | None
 
@@ -388,15 +386,14 @@ class OldNSC(NSC, system.InventarBasis):
             direkt_reden=direkt_reden,
             dialoge=list(dlg()) if dlg else [],
             startinventar=inventar,
-            vorstellen_fn = vorstellen
+            vorstellen_fn=vorstellen
         )
-        super().__init__(template, inventar=inventar, ort=ort)
+        super().__init__(template, inventar=inventar, ort=ort, freundlich=freundlich)
         self.kampf_fn = kampfdialog
         self.fliehen_fn = fliehen
-        self.freundlich = freundlich
         self._dlg = dlg
         self._static_dialoge: list[dorf.Dialog] = []
-        
+
         self.max_lp = max_lp or 100
         # Extra-Daten, die du einem NSC noch geben willst, wie z.B. seine
         # Geschwindigkeit, Alter, ... (vorläufig)
@@ -426,6 +423,7 @@ class OldNSC(NSC, system.InventarBasis):
         """Ändere die Dialoge auf eine neue Dlg-Funktion"""
         self._dlg = new_dlg
         self.template.dialoge[:] = new_dlg()
+
 
 CHAR_REGISTER: dict[str, StoryChar] = {}
 """Ein zentrales Register für StoryChar nach id_"""
