@@ -181,7 +181,7 @@ class NSC:
         """So wird der NSC vorgestellt"""
         if self.template.vorstellen_fn:
             self._call_geschichte(
-                mänx, self.template.vorstellen_fn, use_print=True)
+                mänx, self.template.vorstellen_fn, erzähler=True)
 
     def optionen(self, mänx: system.Mänx) -> dorf.NSCOptionen:  # pylint: disable=unused-argument
         # yield ("kämpfen", "k", self.kampf)
@@ -288,10 +288,10 @@ class NSC:
     def _call_geschichte(self, mänx: system.Mänx,
                          geschichte: dorf.DialogGeschichte,
                          text: Sequence[dorf.Malp | str] = (),
-                         use_print: bool = False) -> Rückkehr | Fortsetzung:
+                         erzähler: bool = False) -> Rückkehr | Fortsetzung:
         ans: Rückkehr | Fortsetzung = Rückkehr.WEITER_REDEN
         if text:
-            self._call_inner(text, use_print)
+            self._call_inner(text, erzähler)
         if callable(geschichte):
             ans2 = geschichte(self, mänx)
             if ans2 is False:
@@ -301,17 +301,17 @@ class NSC:
             else:
                 ans = ans2
         else:
-            self._call_inner(geschichte, use_print, True)
+            self._call_inner(geschichte, erzähler, True)
         return ans
 
-    def _call_inner(self, text: Sequence[str | dorf.Malp], use_print: bool,
+    def _call_inner(self, text: Sequence[str | dorf.Malp], erzähler: bool,
                     warte: bool = True):
         if isinstance(text, str):
-            if use_print:
+            if erzähler:
                 malp(text)
             else:
                 self.sprich(text)
-        elif use_print:
+        elif erzähler:
             for g in text:
                 malp(g)
         else:
