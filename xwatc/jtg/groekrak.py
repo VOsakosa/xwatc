@@ -199,7 +199,8 @@ def carlo_kampf(n: NSC, m: Mänx):
     malp("Jetzt ist Carlo müde.")
 
 
-carlo = StoryChar("jtg:gr:carlo", "Carlo", Person("m", Rasse.Tier, art="Kater"),
+# TODO: Das ist keine Person
+carlo = StoryChar("jtg:gr:carlo", "Carlo", Person("m", art="Kater"),
                   vorstellen_fn=(
                       "Carlo ist der größte Kater in der Taverne.",),
                   startinventar={})

@@ -4,9 +4,9 @@ from xwatc import scenario
 from xwatc import weg
 from xwatc import system
 from xwatc.system import (Mänx, minput, ja_nein, register,
-                          Spielende, mint, sprich, kursiv, malp, get_classes)
+                          Spielende, mint, sprich, kursiv, malp, get_classes, Inventar)
 from xwatc import dorf
-from xwatc.dorf import Dorf, NSC, Ort, NSCOptionen, Dialog, HalloDialoge
+from xwatc.dorf import Dorf, Ort, NSCOptionen, Dialog, HalloDialoge, Malp
 from random import randint
 import random
 from xwatc.jtg.ressourcen import zufälliger_name
@@ -18,6 +18,8 @@ from xwatc.untersystem.acker import Wildpflanze
 from xwatc.jtg import mitose
 from typing import List, Tuple
 from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
+from xwatc.nsc import Person, StoryChar, NSC
+from collections import defaultdict
 
 
 def t2(mänx: Mänx) -> None:
@@ -182,7 +184,7 @@ def hexer_skelett(mänx: Mänx):
     ans = mänx.menu(mgn, "Wohin lässt du dich bringen?")
     if ans == "mitose":
         weg.wegsystem(mänx, "jtg:mitose")
-    elif ans == "disnajenbum":
+    elif ans == "disnajenbun":
         disnayenbum(mänx)
     else:
         süd_dorf(mänx)
@@ -334,134 +336,124 @@ SÜD_DORF_GENAUER = [
 SÜD_DORF_NAME = "Scherenfeld"
 
 
-@register("jtg:m:tobiac")
-class TobiacBerndoc(NSC):
-    def __init__(self) -> None:
-        super().__init__("Tobiac Berndoc", "Orgelspieler", dlg=self._tobias_dlg)
-
-    @staticmethod
-    def _tobias_dlg():
-        cls = TobiacBerndoc
-        yield Dialog("orgel",
-                     '"Warum spielst du Orgel? Es ist doch nicht Gottesdienst gerade?"',
-                     cls.reden_orgel)
-        yield Dialog("lernen",
-                     '"Kannst du mir beibringen, Orgel zu spielen?"',
-                     cls.reden_lernen)
-        yield Dialog("leo", '"Was ist dein Verhältnis zu Leo Berndoc?"',
-                     cls.reden_leo).wenn_var("kennt:hexer")
-        yield Dialog("wetter",
-                     '"Wie findest du das Wetter heute?"', cls.reden_wetter)
-        yield Dialog('ring',
-                     "Den Ring vorzeigen", cls.ring_zeigen).wenn(
-            lambda n, m: m.hat_item("Ring des Berndoc"))
-        yield Dialog('wo', '"Wo bin ich?"', cls.reden_wo_bin_ich)
-
-    def kampf(self, mänx: Mänx) -> None:
-        if mänx.hat_klasse("Waffe", "magische Waffe"):
-            malp("Er ist so sehr in sein Orgelspiel vertieft, dass er seinen "
-                 "Tod nicht kommen sieht.")
-            mint("Er fällt auf die Klaviatur, und "
-                 "sein letztes Lied endet jäh in einer langen Dissonanz.")
-            mint("Er hatte nichts von Wert an sich.")
-            self.tot = True
-        else:
-            malp("Du prügelst auf ihn ein, aber er wehrt sich nicht.")
-            if ja_nein(mänx, "Machst du weiter?"):
-                mint("Du schlägst ihn bewusstlos")
-
-    def zuhören(self, _mänx: Mänx) -> None:
-        mint("Tobiac spielt einfach weiter Orgel.\n"
-             "Du hast das Gefühl, er hat dich bemerkt, aber er lässt sich "
-             "nichts anmerken.")
-        sleep(2)
-        mint("Du gibt dich der Melodie hin.")
-
-    def vorstellen(self, mänx: Mänx) -> None:
-        malp("Tobiac spielt erst noch den Satz zu Ende.")
-        sleep(2)
-        malp("Er spricht mit leiser Stimme.")
-        sprich(self.name, f"Hallo, ich bin {self.name}.")
-        sprich("Du", "Ich bin $&%!")
-
-    def reden_orgel(self, mänx: Mänx) -> None:
-        sprich(self.name, "Ich spiele gerne Orgel. "
-               "Es beruhigt mich ungemein.")
-        sprich(self.name, "Wenn nur mein Sohn auch so gerne wie ich spielen würde.")
-        sprich(self.name, "Ich bin nie zu Hause und spiele lieber Orgel. "
-               "Und mein Sohn spielt lieber bei den Nachbarn nebenan.")
-        if ja_nein(mänx, self.name + " :Ich bin ein schlechter Vater, nicht?"):
-            mänx.titel.add("Respektloser")
-            sprich(self.name, "Es tut irgendwie doch weh, es so zu hören.")
-        else:
-            sprich(self.name, "Danke.")
-
-    def reden_lernen(self, mänx: Mänx) -> None:
-        sprich(self.name, "Ja, gerne!")
-        mint("Tobiac ist sofort voll in seinem Element. Dir ist, als wäre "
-             "er einsam und froh über deine Gesellschaft.")
-        mint("Du bleibt einige Tage bei ihm und lernst sein Handwerk.")
-        mänx.welt.nächster_tag(11)
-        mint("Je länger du übst, desto mehr siehst du, dass er so gut spielt "
-             "wie kein anderer.")
-        mänx.fähigkeiten.add("Orgel")
-
-    def reden_wetter(self, mänx: Mänx) -> None:  # pylint: disable=unused-argument
-        sprich(self.name + "(zögert kurz)", "Schön sonnig, nicht?")
-        malp("Draußen war es bewölkt.")
-        mint("Wie lange war Tobiac wohl nicht mehr draußen?")
-
-    def reden_leo(self, mänx: Mänx):  # pylint: disable=unused-argument
-        sprich(self.name, "Er ist mein Bruder, aber er hat sich in den "
-               "Wald zurückgezogen. Ich habe lange nicht mehr von ihm gehört.")
-        sprich(self.name, "Er war auch vorher sehr zurückgezogen.")
-        sprich(self.name, "Warum fragst du?")
-        return True
-
-    def ring_zeigen(self, mänx: Mänx) -> bool:
-        self.sprich("Das ist doch der Ring unserer Familie!")
-        self.sprich("Warte. Ich werde nicht fragen, wo du ihn her hast.")
-        malp("Du gibst ihm den Ring des Berndoc")
-        self.inventar["Ring des Berndoc"] += 1
-        mänx.inventar["Ring des Berndoc"] -= 1
-        return True
-
-    def reden_wo_bin_ich(self, mänx: Mänx) -> bool:  # pylint: disable=unused-argument
-        self.sprich(f"Du bist in {SÜD_DORF_NAME}, im Reich Jotungard.")
-        return True
-
-    def optionen(self, mänx: Mänx) -> NSCOptionen:
-        yield from super().optionen(mänx)
-        yield ("Ihm beim Spielen zuhören", "hören", self.zuhören)
-
-    def main(self, mänx: Mänx) -> None:
-        malp("Tobiac spielt auf der Orgel.")
-        malp("Die Melodie klingt ungewöhnlich, aber sehr schön.")
-        super().main(mänx)
+tobi = StoryChar("jtg:m:tobiac", "Tobiac Berndoc", Person("m", "Orgelspieler"), {},
+                 vorstellen_fn=["Tobiac spielt auf der Orgel.",
+                                "Die Melodie klingt ungewöhnlich, aber sehr schön."])
 
 
-class Waschweib(NSC):
-    def __init__(self):
-        name = zufälliger_name()
-        super().__init__(name, "Dorfbewohnerin")
-        self.art = "Hausfrau"
-        self.verheiratet = random.random() > 0.4
-        if self.verheiratet:
-            self.inventar["Schnöder Ehering"] += 1
-        elif random.random() > 0.5:
-            self.inventar["Gänseblümchen"] += 5
-        self.inventar["Einfaches Kleid"] += 1
-        self.inventar["Unterhose"] += 1
-        self.inventar["BH" if random.random() < 0.6 else "Großer BH"] += 1
-        if random.random() > 0.8:
-            self.inventar["Haarband"] += 1
-            self.inventar["Armband"] += 2
-        if random.random() > 0.8:
-            self.erhalte("Dolch")
-        self.inventar["Socke"] += 2
-        self.gold += max(0, random.randint(-4, 10))
-        self.direkt_reden = True
-        self.dialoge.extend(HalloDialoge)
+@tobi.dialog_deco("vor_reden", "--", direkt=True)
+def tobi_vorstellen(self: NSC, _mänx: Mänx) -> None:
+    malp("Tobiac spielt erst noch den Satz zu Ende.")
+    sleep(2)
+    malp("Er spricht mit leiser Stimme.")
+    sprich(self.name, f"Hallo, ich bin {self.name}.")
+    sprich("Du", "Ich bin $&%!")
+
+
+tobi.dialog("leo", '"Was ist dein Verhältnis zu Leo Berndoc?"',
+            ("Er ist mein Bruder, aber er hat sich in den "
+             "Wald zurückgezogen. Ich habe lange nicht mehr von ihm gehört.",
+             "Er war auch vorher sehr zurückgezogen.",
+             "Warum fragst du?")).wenn_var("kennt:hexer")
+tobi.dialog("wetter",
+            '"Wie findest du das Wetter heute?"',
+            ["(zögert kurz)", "Schön sonnig, nicht?",
+             Malp("Draußen war es bewölkt."),
+             Malp("Wie lange war Tobiac wohl nicht mehr draußen?")])
+tobi.dialog('wo', '"Wo bin ich?"',
+            f"Du bist in {SÜD_DORF_NAME}, im Reich Jotungard.")
+
+# TODO: Tobi kann auch kämpfen (zusammengeschlagen werden)
+
+
+def tobi_kampf(self, mänx: Mänx) -> None:
+    if mänx.hat_klasse("Waffe", "magische Waffe"):
+        malp("Er ist so sehr in sein Orgelspiel vertieft, dass er seinen "
+             "Tod nicht kommen sieht.")
+        mint("Er fällt auf die Klaviatur, und "
+             "sein letztes Lied endet jäh in einer langen Dissonanz.")
+        mint("Er hatte nichts von Wert an sich.")
+        self.tot = True
+    else:
+        malp("Du prügelst auf ihn ein, aber er wehrt sich nicht.")
+        if ja_nein(mänx, "Machst du weiter?"):
+            mint("Du schlägst ihn bewusstlos")
+
+
+@tobi.dialog_deco("hören", "Ihm beim Spielen zuhören", direkt=True)
+def zuhören(self, _mänx: Mänx) -> None:
+    mint("Tobiac spielt einfach weiter Orgel.\n"
+         "Du hast das Gefühl, er hat dich bemerkt, aber er lässt sich "
+         "nichts anmerken.")
+    sleep(2)
+    mint("Du gibt dich der Melodie hin.")
+
+
+@tobi.dialog_deco("orgel", '"Warum spielst du Orgel? Es ist doch nicht Gottesdienst gerade?"')
+def reden_orgel(self, mänx: Mänx) -> None:
+    sprich(self.name, "Ich spiele gerne Orgel. "
+           "Es beruhigt mich ungemein.")
+    sprich(self.name, "Wenn nur mein Sohn auch so gerne wie ich spielen würde.")
+    sprich(self.name, "Ich bin nie zu Hause und spiele lieber Orgel. "
+           "Und mein Sohn spielt lieber bei den Nachbarn nebenan.")
+    if ja_nein(mänx, self.name + " :Ich bin ein schlechter Vater, nicht?"):
+        mänx.titel.add("Respektloser")
+        sprich(self.name, "Es tut irgendwie doch weh, es so zu hören.")
+    else:
+        sprich(self.name, "Danke.")
+
+
+@tobi.dialog_deco("lernen", '"Kannst du mir beibringen, Orgel zu spielen?"')
+def tobi_lernen(self, mänx: Mänx) -> None:
+    sprich(self.name, "Ja, gerne!")
+    mint("Tobiac ist sofort voll in seinem Element. Dir ist, als wäre "
+         "er einsam und froh über deine Gesellschaft.")
+    mint("Du bleibt einige Tage bei ihm und lernst sein Handwerk.")
+    mänx.welt.nächster_tag(11)
+    mint("Je länger du übst, desto mehr siehst du, dass er so gut spielt "
+         "wie kein anderer.")
+    mänx.fähigkeiten.add("Orgel")
+
+
+def ring_zeigen(self, mänx: Mänx) -> bool:
+    self.sprich("Das ist doch der Ring unserer Familie!")
+    self.sprich("Warte. Ich werde nicht fragen, wo du ihn her hast.")
+    malp("Du gibst ihm den Ring des Berndoc")
+    self.inventar["Ring des Berndoc"] += 1
+    mänx.inventar["Ring des Berndoc"] -= 1
+    return True
+
+
+tobi.dialog('ring', "Den Ring vorzeigen", ring_zeigen).wenn(
+    lambda _n, m: m.hat_item("Ring des Berndoc"))
+
+
+def zufällige_frau():
+    name = zufälliger_name()
+    person = Person("w", "Hausfrau")
+    inventar: Inventar = defaultdict(int)
+    verheiratet = random.random() > 0.4
+    if verheiratet:
+        inventar["Schnöder Ehering"] += 1
+    elif random.random() > 0.5:
+        inventar["Gänseblümchen"] += 5
+    inventar["Einfaches Kleid"] += 1
+    inventar["Unterhose"] += 1
+    inventar["BH" if random.random() < 0.6 else "Großer BH"] += 1
+    if random.random() > 0.8:
+        inventar["Haarband"] += 1
+        inventar["Armband"] += 2
+    if random.random() > 0.8:
+        inventar["Dolch"] += 1
+    inventar["Socke"] += 2
+    inventar["Gold"] += max(0, random.randint(-4, 10))
+    char = StoryChar(None, name, person, inventar, direkt_reden=True)
+    char.dialoge.extend(HalloDialoge)
+
+    nsc = char.zu_nsc()
+    if not verheiratet:
+        nsc.variablen.add("ledig")
+    return nsc
 
 
 def gar_kampf(nsc, mänx: Mänx) -> None:
@@ -539,32 +531,25 @@ def rechtfertigen(mänx: Mänx, nsc):
         except AttributeError:
             pass
         sprich(helfer, "Du hast unseren kleinen Gaa angegriffen, das "
-                        "verzeihen wir dir nicht!")
+               "verzeihen wir dir nicht!")
         mänx.verbrechen[Verbrechen(Verbrechensart.MORD)] += 1
         raise Spielende
 
 
-@register("jtg:süd:garnichts")
-def garnichts() -> NSC:
-    nichts = NSC(
-        "Gaa Nix", "Junge", gar_kampf, direkt_reden=True,
-        startinventar=dict(
-            Schuh=1,
-            Socke=2,
-            Tomate=4,
-            Banane=2,
-            Ring=1,
-            Lederhose=1,
-            Unterhose=1,
-            Leinenhemd=1,
-            Oberhemd=1,
-        ),
-        vorstellen=["Ein sommersprössiger Junge mit braunen Haaren "]
-    )
-    return nichts
-
-
-zufälliges_waschweib = Waschweib
+StoryChar("jtg:süd:garnichts", "Gaa Nix", Person("m", art="Junge"), direkt_reden=True,
+          startinventar=dict(
+    Schuh=1,
+    Socke=2,
+    Tomate=4,
+    Banane=2,
+    Ring=1,
+    Lederhose=1,
+    Unterhose=1,
+    Leinenhemd=1,
+    Oberhemd=1,
+),
+    vorstellen_fn=["Ein sommersprössiger Junge mit braunen Haaren "]
+)
 
 
 def süd_dorf_wo(nsc: NSC, _mänx: Mänx):
@@ -584,7 +569,7 @@ def süd_dorf_grenzen(nsc: NSC, _mänx: Mänx):
     nsc.sprich("Nach Tauern und Eo natürlich.")
     nsc.sprich("In Tauern leben Taurer, das sind keine Menschen, sondern Wesen "
                "mit Köpfen, die Kühen ähneln.")
-    if isinstance(nsc, Waschweib):
+    if "ledig" in nsc.variablen:
         nsc.sprich("Ich finde Kühe aber niedlicher.")
     nsc.sprich("Und Eo...")
     nsc.sprich("Wir führen zwar keinen Krieg gegen sie, aber die Beziehungen "
@@ -607,17 +592,14 @@ SÜD_DORF_DIALOGE = [
 ]
 
 
-def _dorf_dlg():
-    return SÜD_DORF_DIALOGE
-
 
 def ende_des_waldes(mänx, morgen=False):
     mänx.welt.nächster_tag()
-    malp("Der Wald wird schnell viel weniger unheimlich")
+    malp("Der Wald wird schnell viel weniger unheimlich.")
     if not morgen:
         malp("Erschöpft legst du dich auf den Waldboden schlafen.")
         sleep(2)
-    malp("Im Süden siehst du ein Dorf")
+    malp("Im Süden siehst du ein Dorf.")
     süd_dorf(mänx)
 
 
@@ -626,13 +608,13 @@ def erzeuge_süd_dorf(mänx) -> Dorf:
     kirche = Ort("Kirche", do, [
         "Du bist in einer kleinen Kirche.",
         # Tobiac tot?
-        "Im Hauptschiff ist niemand, aber du hörst die Orgel"
+        "Im Hauptschiff ist niemand, aber du hörst die Orgel."
     ])
     mänx.welt.obj("jtg:m:tobiac").ort = kirche
     mänx.welt.obj("jtg:süd:garnichts").ort = kirche
     for _i in range(randint(2, 5)):
-        w = Waschweib()
-        w.change_dlg(_dorf_dlg)
+        w = zufällige_frau()
+        w.template.dialoge.extend(SÜD_DORF_DIALOGE)
         w.ort = do.orte[0]
     # TODO weitere Objekte
     return do

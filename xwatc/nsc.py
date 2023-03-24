@@ -1,18 +1,22 @@
 """Ein NSC-System, das das Template (bei Kompilierzeit erstellt, im Code) und den
 gespeicherten Teil trennt. Bei Erstellung soll alles einen eindeutigen Namen haben.
 """
+from collections import defaultdict
+from collections.abc import Mapping, Iterator, Sequence, Callable
+from enum import Enum
+import pickle
+from typing import Any, Literal
 
 from attrs import define, Factory
-from enum import Enum
-from collections.abc import Mapping, Iterator, Sequence
-from typing import Any, Literal
-from xwatc import system
-from xwatc.system import Inventar, MenuOption
+import attrs
+
 from xwatc import dorf
+from xwatc import system
 from xwatc import weg
 from xwatc.dorf import Fortsetzung, Rückkehr
-import attrs
-from collections import defaultdict
+from xwatc.system import Inventar, MenuOption, malp, mint, schiebe_inventar, MissingIDError
+from xwatc.serialize import converter
+import cattrs
 
 
 class Geschlecht(Enum):
@@ -27,7 +31,7 @@ def to_geschlecht(attr: Literal["m"] | Literal["w"] | Geschlecht) -> Geschlecht:
             return Geschlecht.Männlich
         case Geschlecht():
             return attr
-        case "f":
+        case "w":
             return Geschlecht.Weiblich
         case str(other):
             raise ValueError(f"Unbekanntes Geschlecht: {other}")
@@ -35,28 +39,35 @@ def to_geschlecht(attr: Literal["m"] | Literal["w"] | Geschlecht) -> Geschlecht:
 
 
 class Rasse(Enum):
+    """Die Rasse des intelligenten/humanoiden Wesens."""
     Mensch = 0
     Munin = 1
-    Tier = 2
+    Tier = 2  # TODO: remove
 
 
 @define
 class Person:
     """Definiert Eigenschaften, die jedes intelligente Wesen in Xvatc hat."""
     geschlecht: Geschlecht = attrs.field(converter=to_geschlecht)
-    rasse: Rasse = Rasse.Mensch
     art: str = ""
+    rasse: Rasse = Rasse.Mensch
 
 
 @define
 class StoryChar:
-    """Ein weltweit einzigartiger Charakter, mit eigenen Geschichten."""
+    """Ein weltweit einzigartiger Charakter, mit eigenen Geschichten.
+
+    Diese Klasse ist dazu gedacht, direkt auf Modul-Ebene erzeugt zu werden. Sie registriert
+    sich dann von alleine und kann wie durch den Objekt-Cache aufgerufen werden und den spezifischen
+    NSC erstellen.
+    """
     id_: str | None
     """Eine eindeutige Identifikation, wie jtg:torobiac"""
     name: str
     """Das ist der Ingame-Name, wie "Torobias Berndoc". """
     person: Person
     startinventar: Mapping[str, int]
+    """Das Inventar, mit dem der Charakter erzeugt wird."""
     ort: str = ""
     """Der Ort, an dem ein NSC startet. Wenn er leer ist, muss er manuell per Events in
     Orte geholt werden."""
@@ -75,7 +86,7 @@ class StoryChar:
     def zu_nsc(self) -> 'NSC':
         """Erzeuge den zugehörigen NSC aus dem Template."""
         # Der Ort ist zunächst immer None. Der Ort wird erst zugeordnet
-        return NSC(self, dict(self.startinventar))
+        return NSC(self, self.startinventar)
 
     def dialog(self,
                name: str,
@@ -94,7 +105,54 @@ class StoryChar:
             direkt=direkt, effekt=effekt, gruppe=gruppe)
         self.dialoge.append(dia)
         return dia
-    # TODO unfertig.
+
+    def dialog_deco(self,
+                    name: str,
+                    text: str,
+                    vorherige: str | None | dorf.VorList = None,
+                    wiederhole: int | None = None,
+                    min_freundlich: int | None = None,
+                    direkt: bool = False,
+                    effekt: dorf.DialogFn | None = None,
+                    gruppe: str | None = None) -> Callable[[dorf.DialogFn], dorf.Dialog]:
+        """Erstelle einen Dialog als Wrapper. Alle Parameter außer der Funktion sind gleich zu
+        Dialog"""
+        def wrapper(geschichte: dorf.DialogFn) -> dorf.Dialog:
+            dia = dorf.Dialog(
+                name=name, text=text, geschichte=geschichte,
+                vorherige=vorherige, wiederhole=wiederhole, min_freundlich=min_freundlich,
+                direkt=direkt, effekt=effekt, gruppe=gruppe)
+            self.dialoge.append(dia)
+            return dia
+        return wrapper
+
+    def vorstellen(self, fn: dorf.DialogGeschichte) -> dorf.DialogGeschichte:
+        """Dekorator, um die Vorstellen-Funktion zu setzen
+        >>>hans = StoryChar("test:hans", "Hans", Person("m","Spinner"), {})
+        ...@vorstellen
+        ...def hans_vorstellen(nsc, mänx):
+        ...   malp("Ein junger Mann schaut dich neugierig an.") 
+        """
+        self.vorstellen_fn = fn
+        return fn
+
+    @classmethod
+    def structure(cls, data, typ) -> 'StoryChar':
+        """Create the story char """
+        if id_ := data.get("id_"):
+            if id_ not in CHAR_REGISTER:
+                raise MissingIDError(id_)
+            return CHAR_REGISTER[id_]
+        return story_char_base_structure(data, typ)
+
+
+converter.register_structure_hook(StoryChar, StoryChar.structure)
+story_char_base_structure = cattrs.gen.make_dict_structure_fn(
+    StoryChar, converter)
+
+
+def _copy_inventar(old: Mapping[str, int]) -> defaultdict[str, int]:
+    return defaultdict(int, old)
 
 
 @define
@@ -103,7 +161,8 @@ class NSC:
     der Rest der Datenstruktur beschäftigt sich mit dem momentanen Status dieses NSCs in der
     Welt."""
     template: StoryChar
-    inventar: Inventar
+    inventar: Inventar = attrs.field(
+        converter=_copy_inventar, factory=lambda: defaultdict(int))
     variablen: set[str] = Factory(set)
     dialog_anzahl: dict[str, int] = Factory(dict)
     kennt_spieler: bool = False
@@ -146,7 +205,7 @@ class NSC:
         """So wird der NSC vorgestellt"""
         if self.template.vorstellen_fn:
             self._call_geschichte(
-                mänx, self.template.vorstellen_fn, use_print=True)
+                mänx, self.template.vorstellen_fn, erzähler=True)
 
     def optionen(self, mänx: system.Mänx) -> dorf.NSCOptionen:  # pylint: disable=unused-argument
         # yield ("kämpfen", "k", self.kampf)
@@ -170,8 +229,7 @@ class NSC:
     def main(self, mänx: system.Mänx) -> Fortsetzung | None:
         """Starte die Interaktion mit dem NSC."""
         if self.tot:
-            system.mint(
-                f"{self.template.name}s Leiche liegt still auf dem Boden.")
+            mint(f"{self.name}s Leiche liegt still auf dem Boden.")
             return None
         self.vorstellen(mänx)
         return self._main(mänx)
@@ -215,9 +273,9 @@ class NSC:
             optionen = list(self.dialog_optionen(mänx))
             if not optionen:
                 if start:
-                    system.malp("Du weißt nicht, was du sagen könntest.")
+                    malp("Du weißt nicht, was du sagen könntest.")
                 else:
-                    system.malp("Du hast nichts mehr zu sagen.")
+                    malp("Du hast nichts mehr zu sagen.")
                 return Rückkehr.ZURÜCK
             optionen.append(("Zurück", "f", Rückkehr.ZURÜCK))
             ans = self._run(mänx.menu(optionen), mänx)
@@ -254,10 +312,10 @@ class NSC:
     def _call_geschichte(self, mänx: system.Mänx,
                          geschichte: dorf.DialogGeschichte,
                          text: Sequence[dorf.Malp | str] = (),
-                         use_print: bool = False) -> Rückkehr | Fortsetzung:
+                         erzähler: bool = False) -> Rückkehr | Fortsetzung:
         ans: Rückkehr | Fortsetzung = Rückkehr.WEITER_REDEN
         if text:
-            self._call_inner(text, use_print)
+            self._call_inner(text, erzähler)
         if callable(geschichte):
             ans2 = geschichte(self, mänx)
             if ans2 is False:
@@ -267,19 +325,19 @@ class NSC:
             else:
                 ans = ans2
         else:
-            self._call_inner(geschichte, use_print, True)
+            self._call_inner(geschichte, erzähler, True)
         return ans
 
-    def _call_inner(self, text: Sequence[str | dorf.Malp], use_print: bool,
+    def _call_inner(self, text: Sequence[str | dorf.Malp], erzähler: bool,
                     warte: bool = True):
         if isinstance(text, str):
-            if use_print:
-                system.malp(text)
+            if erzähler:
+                malp(text)
             else:
                 self.sprich(text)
-        elif use_print:
+        elif erzähler:
             for g in text:
-                system.malp(g)
+                malp(g)
         else:
             for g in text:
                 if isinstance(g, dorf.Malp):
@@ -287,18 +345,18 @@ class NSC:
                 else:
                     self.sprich(g)
             if warte:
-                system.mint()
+                mint()
 
     def sprich(self, text: str | Sequence[str | dorf.Malp], *args, **kwargs) -> None:
         """Minte mit vorgestelltem Namen"""
         if isinstance(text, str):
-            system.sprich(self.template.name, text, *args, **kwargs)
+            system.sprich(self.name, text, *args, **kwargs)
         else:
             for block in text:
                 if isinstance(block, dorf.Malp):
                     block()
                 else:
-                    system.sprich(self.template.name, block, *args, **kwargs)
+                    system.sprich(self.name, block, *args, **kwargs)
 
     def add_freundlich(self, wert: int, grenze: int) -> None:
         """Füge Freundlichkeit hinzu, aber überschreite nicht die Grenze."""
@@ -309,9 +367,85 @@ class NSC:
         else:
             self.freundlich = max(grenze, wert + self.freundlich)
 
+    def dialog(self, *args, **kwargs) -> 'dorf.Dialog':
+        "Erstelle einen Dialog"
+        dia = self.template.dialog(*args, **kwargs)
+        assert pickle.dumps(dia)
+        return dia
+
     def plündern(self, mänx: system.Mänx) -> Any:
         """Schiebe das ganze Inventar von NSC zum Mänxen."""
-        system.schiebe_inventar(self.inventar, mänx.inventar)
+        schiebe_inventar(self.inventar, mänx.inventar)
+
+
+class OldNSC(NSC, system.InventarBasis):
+    """Unterklasse von NSC, die dazu dient, das alte System mit dem neuen zu vereinen.
+    Beim alten System war das Template nicht benamt und nicht gespeichert.
+
+    Stattdessen gab
+    es die (pickelbare) DLG-Funktion, die dafür zuständig war, die (nicht-pickelbaren)
+    Dialoge zu erzeugen. Die pickelbaren Dialoge waren dann außerdem in static_dialogs gespeichert.
+
+    """
+    _ort: weg.Wegkreuzung | None
+
+    def __init__(self,
+                 name: str,
+                 art: str,
+                 kampfdialog: dorf.DialogFn | None = None,
+                 fliehen: Callable[[system.Mänx], None] | None = None,
+                 direkt_reden: bool = False,
+                 freundlich: int = 0,
+                 startinventar: dict[str, int] | None = None,
+                 vorstellen: dorf.DialogGeschichte | None = None,
+                 ort: weg.Wegkreuzung | None = None,
+                 max_lp: int | None = None,
+                 dlg: dorf.DialogErzeugerFn | None = None):
+        inventar = startinventar or {}
+        template = StoryChar(
+            id_=None,
+            name=name,
+            person=Person("m", art=art),
+            direkt_reden=direkt_reden,
+            dialoge=list(dlg()) if dlg else [],
+            startinventar=inventar,
+            vorstellen_fn=vorstellen
+        )
+        super().__init__(template, inventar=inventar, ort=ort, freundlich=freundlich)
+        self.kampf_fn = kampfdialog
+        self.fliehen_fn = fliehen
+        self._dlg = dlg
+        self._static_dialoge: list[dorf.Dialog] = []
+
+        self.max_lp = max_lp or 100
+        # Extra-Daten, die du einem NSC noch geben willst, wie z.B. seine
+        # Geschwindigkeit, Alter, ... (vorläufig)
+        self.extra_daten: dict[str, Any] = {}
+
+    def kampf(self, mänx: system.Mänx) -> Fortsetzung | None:
+        """Starte den Kampf gegen mänx."""
+        self.kennt_spieler = True
+        if self.kampf_fn:
+            ret = self.kampf_fn(self, mänx)
+            if isinstance(ret, (bool, Rückkehr)):
+                return None
+            else:
+                return ret
+            # if isinstance(ret, Wegpunkt)
+        else:
+            malp("Dieser Kampfdialog wurde noch nicht hinzugefügt.")
+            return None
+
+    def fliehen(self, mänx: system.Mänx):
+        if self.fliehen_fn:
+            self.fliehen_fn(mänx)
+        elif self.freundlich < 0:
+            mint("Du entkommst mühelos.")
+
+    def change_dlg(self, new_dlg: dorf.DialogErzeugerFn):
+        """Ändere die Dialoge auf eine neue Dlg-Funktion"""
+        self._dlg = new_dlg
+        self.template.dialoge[:] = new_dlg()
 
 
 CHAR_REGISTER: dict[str, StoryChar] = {}
