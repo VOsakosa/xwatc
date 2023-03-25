@@ -23,7 +23,7 @@ def hauptmenu() -> None:
             return
         mgn2: list[MenuOption[Opt[Path]]] = [
             (path.name, path.name.lower(), path) for path in
-            SPEICHER_VERZEICHNIS.iterdir()
+            SPEICHER_VERZEICHNIS.iterdir()  # @UndefinedVariable
         ]
         mgn2.append(("Zurück", "zurück", None))
         wahl = system.ausgabe.menu(None, mgn2)
