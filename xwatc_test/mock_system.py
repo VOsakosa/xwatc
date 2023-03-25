@@ -76,11 +76,11 @@ class MockSystem:
         if not self.eingaben:
             raise ScriptEnde()
         eingabe = self.eingaben.pop(0)
+        if lower:
+            eingabe = eingabe.lower()
+            möglichkeiten = [a.lower() for a in möglichkeiten]
         if not möglichkeiten or eingabe in möglichkeiten:
-            if lower:
-                return eingabe.lower()
-            else:
-                return eingabe
+            return eingabe
         raise UnpassendeEingabe(eingabe, möglichkeiten)
 
     def mint(self, *text):
@@ -94,7 +94,7 @@ class MockSystem:
 
     def malp(self, *text, sep=" ", end='\n', warte=False) -> None:
         """Angenehm zu lesender, langsamer Print."""
-        self.ausgaben.append(sep.join(text) + end)
+        self.ausgaben.append((sep.join(text) + end).strip())
 
     def ja_nein(self, mänx, frage,
                 save: Speicherpunkt | None = None):
