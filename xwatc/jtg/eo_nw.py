@@ -2,21 +2,22 @@
 Die Geschichte an der Grenze von EO (nicht passierbar).
 Created on 21.10.2020
 """
+from xwatc.nsc import StoryChar
 __author__ = "jasper"
 from xwatc.system import mint, Mänx, sprich, kursiv, Spielende, malp
-from xwatc.dorf import NSC, Dialog
+from xwatc.dorf import Dialog
 from . import see
 from .. import jtg
 
 
 def eo_ww_o(mänx: Mänx):
     malp("Der Weg ist gepflastert, aber er wurde lange nicht mehr gepflegt "
-          "und genutzt.")
+         "und genutzt.")
     mint("Immer wieder musst du umgefallenen Baumstämmen ausweichen.")
     mint("Du kommst aus dem Wald in eine spärlich bewachsene Hügellandschaft.")
     malp("Ein schmaler Pfad biegt nach Süden ab.")
     opts = [
-        ("Folge dem Weg nach Norden", "norden",  eo_turm),
+        ("Folge dem Weg nach Norden", "norden", eo_turm),
         ("Kehre um nach Disnayenbum", "umk", jtg.disnayenbum),
         ("Biege auf den Pfad nach Süden ab", "süden", see.zugang_nord),
     ]
@@ -26,11 +27,11 @@ def eo_ww_o(mänx: Mänx):
 
 def eo_ww_n(mänx: Mänx):
     malp("Ein schmaler Pfad biegt nach Süden ab, der Weg macht eine Biegung "
-          "nach Südosten.")
+         "nach Südosten.")
     opts = [
-        ("Kehre um.", "umk",  eo_turm),
+        ("Kehre um.", "umk", eo_turm),
         ("Folge dem Weg", "südosten", jtg.disnayenbum),
-        ("Biege auf den Pfad nach Süden ab", "süden",  see.zugang_nord),
+        ("Biege auf den Pfad nach Süden ab", "süden", see.zugang_nord),
     ]
     mänx.menu(opts, gucken="Um dich erstreckt sich eine weite Hügellandschaft,"
               " im Norden meinst du einen Turm ausmachen zu können.")(mänx)
@@ -41,7 +42,7 @@ def eo_turm(mänx: Mänx):
     mint("Dieser hohe Turm steht auf einem Hügel und kann die ganze Landschaft "
          "überblicken.")
     malp("Am Wegesrand siehst du ein Schild: "
-          "\"Hier beginnt TERRITORIUM VON EO \\Betreten verboten\"")
+         "\"Hier beginnt TERRITORIUM VON EO \\Betreten verboten\"")
     opts = [
         ("Umgehe den Turm weiträumig in Richtung Norden", "umgehen", eo_umgehen),
         ("Folge dem Weg auf den Turm zu", "turm", eo_turm2),
@@ -52,7 +53,7 @@ def eo_turm(mänx: Mänx):
 
 def eo_turm2(mänx: Mänx):
     malp("Kaum kommst du in die Nähe des Turms, ruft eine laute Stimme "
-          "unfreundlich herab:")
+         "unfreundlich herab:")
     sprich("Eo-Wache", "Kannst du nicht lesen, hier ist Territorium von Eo!")
     sprich("Eo-Wache", "Kehre um oder wir müssen Gewalt anwenden!")
     opts = [
@@ -97,24 +98,25 @@ def eo_umgehen(mänx: Mänx):
 
 def eo_flucht(mänx: Mänx):
     malp("Du drehst dich um, und genau vor dir taucht eine Magierin auf.")
-    mänx.welt.get_or_else("jtg:eo:magierin", eo_magierin).main(mänx)
+    mänx.welt.obj("jtg:eo:magierin").main(mänx)
     eo_ww_n(mänx)
 
 
+magierin = StoryChar("jtg:eo:magierin", ("Lisc", "Śńeazrm", "Eo-Magierin"))
+
+
+@magierin.kampf
 def mg_kampf(_nsc, _m):
     mint("Du stürmst auf sie los. Aber ihre Umrisse verzerren sich, und "
          "kaum versiehst du dich, steckt ein Messer von hinten in deiner "
          "Brust.")
     raise Spielende
 
-def _eo_magierin_dlg():
-    yield Dialog("hallo", '"Hallo!"', [
-             "Nichts da 'Hallo'!", "Was suchst du hier?"])
-    yield Dialog("gehe", '"Ich gehe ja schon!"', [
-             "Ganz recht so. Komm nie wieder!"])
-    yield Dialog("heiße", '"Ich heiße %&"%, wie heißt du?"', [
-        "Ich heiße Lisc.", "Mach, dass du wegkommst."
-    ])
 
-def eo_magierin() -> NSC:
-    return NSC("Lisc Śńeazrm", "Eo-Magierin", mg_kampf, dlg=_eo_magierin_dlg)
+magierin.dialog("hallo", '"Hallo!"', [
+    "Nichts da 'Hallo'!", "Was suchst du hier?"])
+magierin.dialog("gehe", '"Ich gehe ja schon!"', [
+    "Ganz recht so. Komm nie wieder!"])
+magierin.dialog("heiße", '"Ich heiße %&"%, wie heißt du?"', [
+    "Ich heiße Lisc.", "Mach, dass du wegkommst."
+])
