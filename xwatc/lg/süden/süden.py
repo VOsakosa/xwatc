@@ -141,7 +141,7 @@ def duhastüberlebt(mänx):
                             "Dank deiner Fähigkeit mit Tieren zu reden, schnappst einige Worte auf.")
 
                 elif ark == "um":
-                    input("Immer darauf achtend, dass die 'Flecken' ", kursiv("ganz"),
+                    mänx.minput("Immer darauf achtend, dass die 'Flecken' ", kursiv("ganz"),
                           "weit weg von dir blieben, versuchst du sie zu umgehen...")
                     input('Da merkst du plötzlich, dass sich jemand von hinten an dich heranschleicht,'
                           'doch zu spät: Dieser Jemand haut dir auf den Kopf und du wirst ohnmächtig.')

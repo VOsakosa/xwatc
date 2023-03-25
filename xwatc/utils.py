@@ -3,7 +3,7 @@ Generelles, um Text zusammenzubauen.
 Created on 23.10.2020
 """
 from __future__ import annotations
-from typing import Sequence, Generic, TypeVar, Callable
+from typing import Sequence, Generic, TypeVar, Callable, cast
 __author__ = "jasper"
 
 Pred = TypeVar("Pred", bound=Callable, covariant=True)
@@ -22,7 +22,7 @@ class UndPred(Generic[Pred]):
         return all(p(*args, **kwargs) for p in self.prädikate)
     
     def __and__(self, other):
-        return type(self)(self, other)
+        return type(self)(cast(Pred, self), other)
     
 
 
