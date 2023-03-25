@@ -125,8 +125,8 @@ class OrfGrouundt(NSC):
         super().main(mänx)
 
 
-mario = StoryChar("nsc:Wachen_von_Gäfdah:MarioWittenpfäld", "Mario Wittenpfäld",
-                  Person("m", art="Wache"), WACHEN_INVENTAR,
+mario = StoryChar("nsc:Wachen_von_Gäfdah:MarioWittenpfäld", ("Mario", "Wittenpfäld", "Wache"),
+                  Person("m"), WACHEN_INVENTAR,
                   vorstellen_fn=("Die Wache steht herum und geht ernst und dienstbeflissen "
                                  "ihrer Arbeit nach."))
 

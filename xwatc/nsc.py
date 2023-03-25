@@ -42,7 +42,6 @@ class Rasse(Enum):
     """Die Rasse des intelligenten/humanoiden Wesens."""
     Mensch = 0
     Munin = 1
-    Tier = 2  # TODO: remove
 
 
 @define

@@ -4,7 +4,8 @@ Created on 15.10.2020
 """
 from xwatc.dorf import Ort, NSC, Malp, Dorf, Dialog
 from typing import Iterator
-from xwatc.nsc import Person, Rasse, StoryChar
+from xwatc import nsc
+from xwatc.nsc import StoryChar
 __author__ = "jasper"
 from xwatc.system import mint, Mänx, malp, HatMain, register, Welt, malpw
 
@@ -200,7 +201,7 @@ def carlo_kampf(n: NSC, m: Mänx):
 
 
 # TODO: Das ist keine Person
-carlo = StoryChar("jtg:gr:carlo", "Carlo", Person("m", art="Kater"),
+carlo = StoryChar("jtg:gr:carlo", ("Carlo", "Kater"),
                   vorstellen_fn=(
                       "Carlo ist der größte Kater in der Taverne.",),
                   startinventar={})
@@ -211,7 +212,7 @@ carlo.dialog("streicheln", "streicheln", [
     Malp("Carlo lässt sich bereitwillig streicheln.")])
 
 
-def fisch(n: NSC, m: Mänx):
+def fisch(n: nsc.NSC, m: Mänx):
     fisch = m.hat_klasse("Fisch")
     assert fisch
     m.erhalte(fisch, -1, n)

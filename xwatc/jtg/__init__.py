@@ -336,7 +336,7 @@ SÜD_DORF_GENAUER = [
 SÜD_DORF_NAME = "Scherenfeld"
 
 
-tobi = StoryChar("jtg:m:tobiac", "Tobiac Berndoc", Person("m", "Orgelspieler"), {},
+tobi = StoryChar("jtg:m:tobiac", ("Tobiac", "Berndoc", "Orgelspieler"), Person("m"), {},
                  vorstellen_fn=["Tobiac spielt auf der Orgel.",
                                 "Die Melodie klingt ungewöhnlich, aber sehr schön."])
 
@@ -364,6 +364,7 @@ tobi.dialog('wo', '"Wo bin ich?"',
             f"Du bist in {SÜD_DORF_NAME}, im Reich Jotungard.")
 
 # TODO: Tobi kann auch kämpfen (zusammengeschlagen werden)
+
 
 @tobi.kampf
 def tobi_kampf(self, mänx: Mänx) -> None:
@@ -430,7 +431,7 @@ tobi.dialog('ring', "Den Ring vorzeigen", ring_zeigen).wenn(
 
 def zufällige_frau():
     name = zufälliger_name()
-    person = Person("w", "Hausfrau")
+    person = Person("w")
     inventar: Inventar = defaultdict(int)
     verheiratet = random.random() > 0.4
     if verheiratet:
@@ -447,7 +448,8 @@ def zufällige_frau():
         inventar["Dolch"] += 1
     inventar["Socke"] += 2
     inventar["Gold"] += max(0, random.randint(-4, 10))
-    char = StoryChar(None, name, person, inventar, direkt_reden=True)
+    char = StoryChar(None, (name, "Hausfrau"), person,
+                     inventar, direkt_reden=True)
     char.dialoge.extend(HalloDialoge)
 
     nsc = char.zu_nsc()
@@ -536,7 +538,7 @@ def rechtfertigen(mänx: Mänx, nsc):
         raise Spielende
 
 
-StoryChar("jtg:süd:garnichts", "Gaa Nix", Person("m", art="Junge"), direkt_reden=True,
+StoryChar("jtg:süd:garnichts", ("Gaa", "Nix", "Junge"), Person("m"), direkt_reden=True,
           startinventar=dict(
     Schuh=1,
     Socke=2,
@@ -590,7 +592,6 @@ SÜD_DORF_DIALOGE = [
     Dialog("grenzen", '"Welche Grenzen?"', süd_dorf_grenzen, "wo"),
     Dialog("norden", '"Was ist mit dem Norden?"', süd_dorf_norden, "wo"),
 ]
-
 
 
 def ende_des_waldes(mänx, morgen=False):

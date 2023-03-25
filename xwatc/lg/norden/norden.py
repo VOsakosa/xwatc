@@ -2,6 +2,7 @@ from time import sleep
 import xwatc_Hauptgeschichte as xwatc
 from xwatc.system import Mänx, minput, ja_nein, Spielende, malp
 from xwatc.lg.norden.gäfdah import erzeuge_Gäfdah
+from xwatc.lg.norden import Fischerfrau_Massaker
 
 
 def Gäfdah(mänx):
@@ -65,7 +66,7 @@ def norden(mänx):
             pass
 
     elif antwort == "a":
-        fischerfraumassaker(mänx)
+        Fischerfrau_Massaker.fischerfraumassaker(mänx)
 
         # mänx.inventar_leeren()
 

@@ -25,8 +25,6 @@ from xwatc.system import (Fortsetzung, Speicherpunkt, SPEICHER_VERZEICHNIS,
 __author__ = "jasper"
 
 
-
-
 Text = str
 
 minput_return: queue.Queue = queue.Queue(1)
@@ -62,6 +60,7 @@ def _idle_wrapper(fn: Tcall) -> Tcall:
 
 class AnzeigeSpielEnde(BaseException):
     """Signalisiert, dass der Xvatc-Thread beendet werden muss, da die GUI geschlossen wurde."""
+
     def __init__(self, weiter: Opt[Path]):
         self.weiter = weiter
 
@@ -144,7 +143,7 @@ class XwatcFenster:
                 elif next_ == "l":  # Lademenü
                     mgn2: list[MenuOption[Opt[Path]]] = [
                         (path.stem, path.name.lower(), path) for path in
-                        SPEICHER_VERZEICHNIS.iterdir()
+                        SPEICHER_VERZEICHNIS.iterdir()  # @UndefinedVariable
                     ]
                     mgn2.append(("Zurück", "zurück", None))
                     wahl = system.ausgabe.menu(None, mgn2)
@@ -343,10 +342,12 @@ class XwatcFenster:
         self.push_stack()
         self.malp("Unter welchem Namen willst du speichern?")
         vergeben = [
-            path.stem for path in SPEICHER_VERZEICHNIS.iterdir() if path.suffix == ".pickle"]
+            path.stem for path in SPEICHER_VERZEICHNIS.iterdir()  # @UndefinedVariable
+            if path.suffix == ".pickle"]
         if vergeben:
             self.malp("Bereits vergeben sind:", ", ".join(vergeben))
-        self.eingabe("Als was möchstest du speichern?", action=self._speichern_als_name)
+        self.eingabe("Als was möchstest du speichern?",
+                     action=self._speichern_als_name)
 
     def _speichern_als_name(self, name: str):
         """Reagiert auf Speichern-Als."""

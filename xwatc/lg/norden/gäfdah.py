@@ -67,7 +67,7 @@ def erzeuge_Gäfdah(mänx: Mänx) -> Dorf:
 
 
 rob = StoryChar(
-    "lg:norden:robert", "Robert Nikc", Person("m", art="Schmiedegehilfe"),
+    "lg:norden:robert", ("Robert", "Nikc", "Schmiedegehilfe"), Person("m"),
     direkt_reden=True,
     startinventar=STANDARDKLEIDUNG | {
         "Schal": 1,
