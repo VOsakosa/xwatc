@@ -2,12 +2,11 @@
 Die große Feste von Grökrakchöl mitsamt umliegender Landschaft und See.
 Created on 15.10.2020
 """
-from xwatc.dorf import Ort, NSC, Malp, Dorf, Dialog
-from typing import Iterator
 from xwatc import nsc
-from xwatc.nsc import StoryChar
-__author__ = "jasper"
-from xwatc.system import mint, Mänx, malp, HatMain, register, Welt, malpw
+from xwatc.dorf import Ort, Malp, Dorf
+from xwatc.nsc import StoryChar, NSC, Person
+from xwatc.system import mint, Mänx, malp, HatMain, Welt, malpw
+__author__ = "jasper"   
 
 GENAUER = [
     "Hinter der Festung fangen Felder an.",
@@ -58,7 +57,7 @@ def grökrak(mänx: Mänx):
     if mänx.ja_nein("Willst du die Festung betreten?"):
         gkrak = mänx.welt.get_or_else(
             "jgt:dorf:grökrakchöl", erzeuge_grökrak, mänx.welt)
-        gkrak.main(mänx)  # TODO Rückgabewert
+        gkrak.main(mänx)  # TODO Rückgabewert (So kann man nicht von Canna teleportiert werden)
 
 
 def erzeuge_grökrak(welt: Welt) -> HatMain:
@@ -81,63 +80,65 @@ def erzeuge_grökrak(welt: Welt) -> HatMain:
     return Dorf("Grökrakchöl", [tor, haupt, taverne])
 
 
-@register("jtg:gr:özil")
-def özil() -> NSC:
-    """Özil ist Kellner in der Taverne"""
-    return NSC("Özil Çakır", "Kellner", startinventar={
-        "Tablett": 4,
-        "Anzug": 1,
-        "Tomate": 1,
-        "Speisekarte": 1,
-        "Gold": 13,
-    }, vorstellen=["Ein unsicher wirkender junger Kellner."], dlg=özil_dlg)
+özil = StoryChar("jtg:gr:özil", ("Özil", "Çakır", "Kellner"), startinventar={
+    "Tablett": 4,
+    "Anzug": 1,
+    "Tomate": 1,
+    "Speisekarte": 1,
+    "Gold": 13,
+}, vorstellen_fn=["Ein unsicher wirkender junger Kellner."])
 
 
-def özil_dlg() -> Iterator[Dialog]:
-
-    def bier(n: NSC, m: Mänx):
-        n.sprich("Kommt sofort.")
-        n.sprich("Das macht dann 2 Gold.")
-        if m.gold > 2:
-            m.erhalte("Gold", -2, n)
-            m.erhalte("Bier", 1)
-        else:
-            if n.inventar["Bier"] < 10:
-                n.inventar["Bier"] += 1
-            m.ausgabe.malp("Du hast nicht genug Geld.")
-    yield Dialog("bier", "Ein Bier bitte.", bier)
-    yield Dialog("hallo", "Hallo", "Hallo")
-    yield Dialog("taverne", "Erzähl mir etwas über die Taverne", [
-        "Das ist die Taverne Zum Katzenschweif.",
-        "Der ursprüngliche Besitzer war ein großer Fan von Katzen.",
-        "Nun sind Katzen das Erkennungsmerkmal unserer Taverne."
-    ])
-    yield Dialog("ursprünglich", "Ursprünglich?", [
-        "Ja, die ursprüngliche Besitzerin Catheryne hat vor 5 Jahren "
-        "Grökrakchöl verlassen.",
-        "Jetzt führt Frau Kloos den Laden."
-    ])
+def bier(n: NSC, m: Mänx):
+    n.sprich("Kommt sofort.")
+    n.sprich("Das macht dann 2 Gold.")
+    if m.gold > 2:
+        m.erhalte("Gold", -2, n)
+        m.erhalte("Bier", 1)
+    else:
+        if n.inventar["Bier"] < 10:
+            n.inventar["Bier"] += 1
+        m.ausgabe.malp("Du hast nicht genug Geld.")
 
 
-@register("jtg:gr:kloos")
-def kloos() -> NSC:
-    """Kloos ist die Besitzerin der Taverne. Sie ist kurz angebunden."""
-    return NSC("Miřam Kloos", "Wirtin", vorstellen=[
-        "Eine hochgewachsene Frau steht hinter dem Tresen"
-    ], startinventar={
-        "Gold": 124,
-        "Schürze": 1,
-        "Einfaches Kleid": 2,
-        "Socke": 2,
-        "Ring": 4,
-        "Mugel des Geschmacks": 1,
-    }, dlg=kloos_dlg)
+özil.dialog("bier", "Ein Bier bitte.", bier)
+özil.dialog("hallo", "Hallo", "Hallo")
+özil.dialog("taverne", "Erzähl mir etwas über die Taverne", [
+    "Das ist die Taverne Zum Katzenschweif.",
+    "Der ursprüngliche Besitzer war ein großer Fan von Katzen.",
+    "Nun sind Katzen das Erkennungsmerkmal unserer Taverne."
+])
+özil.dialog("ursprünglich", "Ursprünglich?", [
+    "Ja, die ursprüngliche Besitzerin Catheryne hat vor 5 Jahren "
+    "Grökrakchöl verlassen.",
+    "Jetzt führt Frau Kloos den Laden."
+], "taverne")
+
+kloos = StoryChar("jtg:gr:kloos", ("Miřam", "Kloos", "Wirtin"), vorstellen_fn=[
+    "Eine hochgewachsene Frau steht hinter dem Tresen"
+], startinventar={
+    "Gold": 124,
+    "Schürze": 1,
+    "Einfaches Kleid": 2,
+    "Socke": 2,
+    "Ring": 4,
+    "Mugel des Geschmacks": 1,
+})
+
+kloos.dialog("hallo", "Hallo", "Bier gibt's beim Kellner")
+
+canna = StoryChar("jtg:gr:canna", ("Canna", "Gill Darß", "Stammkundin"), Person("w"), startinventar={
+    "Tarotkarte": 64,
+    "Hose": 1,
+    "T-Shirt": 1,
+    "Gold": 34,
+    "Tasche": 1
+}, vorstellen_fn=[
+    "Canna trinkt Bier.", "Es ist sicherlich nicht das erste."]
+)
 
 
-def kloos_dlg() -> Iterator[Dialog]:
-    yield Dialog("hallo", "Hallo", "Bier gibt's beim Kellner")
-
-
+@canna.kampf
 def canna_kampf(canna: NSC, mänx: Mänx):
     canna.sprich("Häh?")
     malp("Obwohl sie betrunken ist, schafft sie es, dir auszuweichen.")
@@ -158,49 +159,25 @@ def canna_kampf(canna: NSC, mänx: Mänx):
         canna.tot = True
 
 
-@register("jtg:gr:canna")
-def canna() -> NSC:
-    """Canna sitzt nur in Taverne herum und trinkt."""
-
-    return NSC("Canna Gill Darß", "Stammkundin", canna_kampf, vorstellen=[
-        "Canna trinkt Bier.", "Es ist sicherlich nicht das erste."],
-        startinventar={
-        "Tarotkarte": 64,
-        "Hose": 1,
-        "T-Shirt": 1,
-        "Gold": 34,
-        "Tasche": 1
-    }, dlg=canna_dlg)
-
-
-def canna_dlg() -> Iterator[Dialog]:
-    yield Dialog("hallo", "Hallo", ["Hallöchen"], wiederhole=1)
-    yield Dialog("hallo2", "Hallo?", ["Hallöchen, Hallo, Hallöchen! *Hust*"], "hallo")
-    yield Dialog("zuschauen", "zuschauen", [
-        Malp("Canna trinkt ein Bier."), Malp("Dann noch eins."),
-        "Was starrst du mich so an?", Malp("Canna schaut wieder weg."),
-        "Miřam, noch eins!"])
-    yield Dialog("betrinken", "Warum betrinkst du dich den ganzen Tag?", [
-        "Geht dich das was an?",
-        "Bier schmeckt, Bier ist gut, Bier ist toll.",
-        "Brauche ich noch einen anderen Grund?",
-    ], "zuschauen")
-    yield Dialog("gr", "Kannst du mir etwas über Grökrakchöl erzählen?", [
-        "Grökrakchöl, ja, das ist eine große Festung hier an der Grenze.",
-        "Es gibt gutes Bier, gute Katzen und gute Arbeit.",
-        "Nur die Soldaten reden die ganze Zeit von Tauern."
-    ], "hallo")
+canna.dialog("hallo", "Hallo", ["Hallöchen"], wiederhole=1)
+canna.dialog("hallo2", "Hallo?", [
+             "Hallöchen, Hallo, Hallöchen! *Hust*"], "hallo")
+canna.dialog("zuschauen", "zuschauen", [
+    Malp("Canna trinkt ein Bier."), Malp("Dann noch eins."),
+    "Was starrst du mich so an?", Malp("Canna schaut wieder weg."),
+    "Miřam, noch eins!"])
+canna.dialog("betrinken", "Warum betrinkst du dich den ganzen Tag?", [
+    "Geht dich das was an?",
+    "Bier schmeckt, Bier ist gut, Bier ist toll.",
+    "Brauche ich noch einen anderen Grund?",
+], "zuschauen")
+canna.dialog("gr", "Kannst du mir etwas über Grökrakchöl erzählen?", [
+    "Grökrakchöl, ja, das ist eine große Festung hier an der Grenze.",
+    "Es gibt gutes Bier, gute Katzen und gute Arbeit.",
+    "Nur die Soldaten reden die ganze Zeit von Tauern."
+], "hallo")
 
 
-def carlo_kampf(n: NSC, m: Mänx):
-    malp(f"{n.name} faucht")
-    m.sleep(0.2)
-    malp("Aber er scheint Gefallen an eurem Testkampf zu finden.")
-    m.sleep(0.5)
-    malp("Jetzt ist Carlo müde.")
-
-
-# TODO: Das ist keine Person
 carlo = StoryChar("jtg:gr:carlo", ("Carlo", "Kater"),
                   vorstellen_fn=(
                       "Carlo ist der größte Kater in der Taverne.",),
@@ -210,6 +187,15 @@ carlo = StoryChar("jtg:gr:carlo", ("Carlo", "Kater"),
 carlo.dialog("hallo", "Hallo", ("Miao",))
 carlo.dialog("streicheln", "streicheln", [
     Malp("Carlo lässt sich bereitwillig streicheln.")])
+
+
+@carlo.kampf
+def carlo_kampf(n: NSC, m: Mänx):
+    malp(f"{n.name} faucht")
+    m.sleep(0.2)
+    malp("Aber er scheint Gefallen an eurem Testkampf zu finden.")
+    m.sleep(0.5)
+    malp("Jetzt ist Carlo müde.")
 
 
 def fisch(n: nsc.NSC, m: Mänx):
@@ -225,13 +211,11 @@ carlo.dialog("fisch", "Fisch geben",
              ).wenn(lambda _n, m: bool(m.hat_klasse("Fisch")))
 
 
-@register("jtg:gr:klavier")
-def klavier() -> NSC:
-    return NSC("Klavier", "Klavier", klavier_kampf,
-               vorstellen=("Ein großes Klavier steht in der Taverne."),
-               dlg=klavier_dlg)
+klavier = StoryChar("jtg:gr:klavier", "Klavier",
+                    vorstellen_fn=("Ein großes Klavier steht in der Taverne."),)
 
 
+@klavier.kampf
 def klavier_kampf(klavier: NSC, mänx: Mänx) -> None:
     if mänx.hat_item("Axt"):
         klavier.tot = True
@@ -245,13 +229,14 @@ def klavier_kampf(klavier: NSC, mänx: Mänx) -> None:
               "beschädigen.")
 
 
-def klavier_dlg() -> Iterator[Dialog]:
-    def kann_spielen(n, m):
-        return m.hat_fähigkeit("Orgel")
-    yield Dialog("ein fröhliches Lied spielen", "froh", [
-        Malp("Die Stimmung in der Taverne hellt sich auf.")]).wenn(kann_spielen)
-    yield Dialog("den gestiefelten Kater spielen", "kater", [
-        Malp("Die Melodie klingt durch die Taverne")]).wenn(kann_spielen)
+def kann_spielen(n, m):
+    return m.hat_fähigkeit("Orgel")
+
+
+klavier.dialog("ein fröhliches Lied spielen", "froh", [
+    Malp("Die Stimmung in der Taverne hellt sich auf.")]).wenn(kann_spielen)
+klavier.dialog("den gestiefelten Kater spielen", "kater", [
+    Malp("Die Melodie klingt durch die Taverne")]).wenn(kann_spielen)
 
 
 if __name__ == '__main__':
