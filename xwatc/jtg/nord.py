@@ -10,6 +10,8 @@ import re
 from typing import Optional, Iterable
 from xwatc.scenario import Scenario
 from xwatc import jtg
+from xwatc import nsc
+from xwatc.nsc import StoryChar
 __author__ = "jasper"
 
 
@@ -22,7 +24,7 @@ def frage_melken(nsc: NSC, _mänx: Mänx):
         malp("Sie ist echt wütend!")
 
 
-def kampf_in_disnayenbum(nsc: NSC, mänx: Mänx):
+def kampf_in_disnayenbum(nsc: nsc.NSC, mänx: Mänx):
     axtmann_da = False
     if isinstance(mänx.context, Scenario):
         axtmann_da = mänx.welt.am_leben("jtg:axtmann")
@@ -134,7 +136,7 @@ class NoMuh(NSC):
             mint("NoMuh tritt dich ins Gesicht.")
 
 
-def kampf_axtmann(nsc: NSC, mänx: Mänx):
+def kampf_axtmann(nsc: nsc.NSC, mänx: Mänx):
     malp("Ganz miese Idee, dich mit ihm anzulegen.")
     if mänx.ja_nein("Willst du es wirklich tun?"):
         if mänx.hat_klasse("legendäre Waffe") and random.random() > 0.97:
@@ -338,74 +340,76 @@ def kirie_dlg() -> Iterable[Dialog]:
         lambda n, m: m.welt.am_leben("jtg:axtmann"))
 
 
-@register("jtg:lina")
-def lina() -> NSC:
-    n = NSC("Lína Fórmayr", "Bäuerin", kampfdialog=kampf_in_disnayenbum,
-            startinventar=dict(
-                Unterhose=1,
-                Hose=1,
-                Top=1,
-                Ehering=1,
-                Gold=14,
-                Wischmopp=1,
-                Schürze=1,
-                Sachbuch=2,
-            ), freundlich=1, direkt_reden=True,
-            vorstellen=["Eine Frau von ca. 170cm mit großen Brüsten und "
-                        "braunem Haar sitzt auf einem Stuhl und liest."],
-            dlg=lina_dlg)
-    n.inventar["Großer BH"] += 1
-    n.wurde_bestarrt = False  # type: ignore
-    return n
+lina = StoryChar("jtg:lina", ("Lína", "Fórmayr", "Bäuerin"),
+                 startinventar={
+    "Großer BH": 1,
+    "Unterhose": 1,
+    "Hose": 1,
+    "Top": 1,
+    "Ehering": 1,
+    "Gold": 14,
+    "Wischmopp": 1,
+    "Schürze": 1,
+    "Sachbuch": 2,
+}, direkt_reden=True,
+    vorstellen_fn=["Eine Frau von ca. 170cm mit großen Brüsten und "
+                   "braunem Haar sitzt auf einem Stuhl und liest."]
+)
+
+lina.kampf(kampf_in_disnayenbum)
 
 
-def lina_dlg() -> Iterable[Dialog]:
+def lina_hallo(n, m):
+    if n.freundlich > -1:
+        n.sprich("Hallo! Ich bin Lina.")
+        n.sprich("Du kannst dich hier gerne für die Nacht ausruhen, "
+                 "wenn du willst.", warte=True)
+    else:
+        n.sprich("Hallo, ich bin Lina.")
+        m.sleep(1)
+        n.sprich("Die Höflichkeit gebietet es mir, dich hier übernachten "
+                 "zu lassen.", warte=True)
 
-    def hallo(n, m):
-        if n.freundlich > 0:
-            n.sprich("Hallo! Ich bin Lina.")
-            n.sprich("Du kannst dich hier gerne für die Nacht ausruhen, "
-                     "wenn du willst.", warte=True)
-        else:
-            n.sprich("Hallo, ich bin Lina.")
-            m.sleep(1)
-            n.sprich("Die Höflichkeit gebietet es mir, dich hier übernachten "
-                     "zu lassen.", warte=True)
-    yield Dialog("hallo", '"Hallo!"', hallo)
 
-    def starren(n, m: Mänx):
-        if n.freundlich > 0:
-            n.freundlich -= 1
-            malp("Sie wirft dir einen Blick zu und du wendest schnell den Blick ab.")
-        elif n.wurde_bestarrt:
-            n.sprich("BRíAN!")
-            m.welt.setze("kennt:jtg:axtmann")
-            mint("Der Mann mit der Axt stürmt herein und gibt dir eines auf die "
-                 "Mütze.")
-            malp("Du wirst ohnmächtig")
-            m.sleep(12)
-            m.welt.nächster_tag()
-            mint("Du wachst erst am nächsten Tag auf.")
-            return Rückkehr.VERLASSEN
-        else:
-            m.welt.setze("kennt:jtg:axtmann")
-            n.sprich("Freundchen, hör damit auf oder ich rufe Brían.")
-            n.wurde_bestarrt = True
+lina.dialog("hallo", '"Hallo!"', lina_hallo)
 
-    yield Dialog("brüste", 'auf die Brüste starren', starren).wenn(
-        lambda n, m: "Perversling" in m.titel)
 
-    def übernachten(n, m):
-        n.sprich("Ich führe dich sofort zu deinem Bett.")
-        malp("Du legst dich schlafen.")
-        m.sleep(6)
+def starren(n, m: Mänx):
+    if n.freundlich >= 0:
+        n.freundlich -= 1
+        malp("Sie wirft dir einen Blick zu und du wendest schnell den Blick ab.")
+    elif "wurde_bestarrt" in n.variablen:
+        n.sprich("BRíAN!")
+        m.welt.setze("kennt:jtg:axtmann")
+        mint("Der Mann mit der Axt stürmt herein und gibt dir eines auf die "
+             "Mütze.")
+        malp("Du wirst ohnmächtig")
+        m.sleep(12)
         m.welt.nächster_tag()
+        mint("Du wachst erst am nächsten Tag auf.")
         return Rückkehr.VERLASSEN
+    else:
+        m.welt.setze("kennt:jtg:axtmann")
+        n.sprich("Freundchen, hör damit auf oder ich rufe Brían.")
+        n.variablen.add("wurde_bestarrt")
 
-    yield Dialog("ruhen", "ruhen", übernachten, "hallo")
-    yield Dialog("kiste", '"Kann ich an die Kiste?"', [
-        "Ja, du kannst dir gerne Essen aus dem ersten Fach der Kiste holen."],
-        "hallo")
+
+lina.dialog("brüste", 'auf die Brüste starren', starren).wenn(
+    lambda n, m: "Perversling" in m.titel)
+
+
+def übernachten(n, m):
+    n.sprich("Ich führe dich sofort zu deinem Bett.")
+    malp("Du legst dich schlafen.")
+    m.sleep(6)
+    m.welt.nächster_tag()
+    return Rückkehr.VERLASSEN
+
+
+lina.dialog("ruhen", "ruhen", übernachten, "hallo")
+lina.dialog("kiste", '"Kann ich an die Kiste?"', [
+    "Ja, du kannst dir gerne Essen aus dem ersten Fach der Kiste holen."],
+    "hallo")
 
 
 @register("jtg:obj:kiste")
