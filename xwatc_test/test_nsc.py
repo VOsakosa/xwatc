@@ -3,12 +3,19 @@ from collections.abc import Iterator
 from xwatc.serialize import converter
 import unittest
 
-from xwatc.dorf import Ort, Dialog
-from xwatc.nsc import StoryChar, Person, Rasse, Geschlecht, NSC, CHAR_REGISTER, OldNSC, bezeichnung
-from xwatc.system import Welt, Mänx
+from xwatc.dorf import Ort, Dialog, Zeitpunkt
+from xwatc.nsc import StoryChar, Person, Rasse, Geschlecht, NSC, CHAR_REGISTER, OldNSC, bezeichnung,\
+    Bezeichnung
+from xwatc.system import Welt
 from xwatc.haendler import mache_händler
 from xwatc_test.mock_system import MockSystem
 from xwatc import system
+
+
+def slots_var(obj: object) -> dict:
+    if hasattr(obj, "__dict__"):
+        return obj.__dict__
+    return {s: getattr(obj, s, None) for s in getattr(obj, '__slots__')}
 
 
 class TestPerson(unittest.TestCase):
@@ -22,6 +29,14 @@ class TestPerson(unittest.TestCase):
         self.assertNotEqual(Person("m").geschlecht, Geschlecht.Weiblich)
         with self.assertRaises(ValueError):
             Person("f")  # type: ignore
+
+    def test_zu_bezeichnung(self):
+        self.assertEqual(bezeichnung(Bezeichnung("a", "b", "c")),
+                         Bezeichnung("a", "b", "c"))
+        self.assertEqual(bezeichnung("A"), Bezeichnung("A", "", "A"))
+        self.assertEqual(bezeichnung(("A", "B")), Bezeichnung("A", "B", "A"))
+        self.assertEqual(bezeichnung(("Lina", "Vollmayr", "Wirtin")),
+                         Bezeichnung("Lina Vollmayr", "Wirtin", "Lina"))
 
 
 def dlg_fn_für_test() -> Iterator[Dialog]:
@@ -40,7 +55,7 @@ class TestNSC(unittest.TestCase):
         self.assertEqual(jonas.person.rasse, Rasse.Mensch)
         self.assertDictEqual(jonas.startinventar, {"Unterhose": 3})
         # With registration
-        toro = StoryChar("jtg:toro", "Toro Berncod",
+        toro = StoryChar("jtg:toro", ("Toro Berncod", "Pianist"),
                          Person("m"), {"Klavier": 1})
         self.assertEqual(toro.id_, "jtg:toro")
 
@@ -48,6 +63,28 @@ class TestNSC(unittest.TestCase):
         welt = Welt("Winkel")
         toro_nsc = welt.obj("jtg:toro")
         self.assertIs(toro_nsc.template, toro)
+        self.assertEqual(toro_nsc.name, "Toro Berncod")
+        self.assertEqual(toro_nsc.art, "Pianist")
+
+    def test_dialog_fns(self):
+        jon = StoryChar(None, "Jon", Person("m"))
+        jon.dialog("hallo", "Hallo", "Hallo dir auch")
+
+        def und_dlg(nsc, mänx):
+            nsc.sprich(mänx.minput("Was sagst du Jon?"))
+        jon.dialog_deco("und", "Und was ist?", "hallo")(und_dlg)
+
+        self.assertEqual(slots_var(jon.dialoge[0]), slots_var(Dialog(
+            "hallo", "Hallo", "Hallo dir auch")))
+        self.assertEqual(slots_var(jon.dialoge[1]), slots_var(Dialog(
+            "und", "Und was ist?", und_dlg, "hallo")))
+        
+        jon.vorstellen("Jon ist dumm")
+        self.assertEqual(jon.vorstellen_fn, "Jon ist dumm")
+        
+        jon.kampf(und_dlg)
+        self.assertEqual(slots_var(jon.dialoge[2]), slots_var(Dialog(
+            "k", "Angreifen", und_dlg, zeitpunkt=Zeitpunkt.Option)))
 
     def test_template_pickle(self):
         """Test if the template can be pickled from its ID alone and then updated."""
@@ -98,12 +135,16 @@ class TestNSC(unittest.TestCase):
         juicy.ort = ort
         self.assertIs(ort, juicy.ort)
         self.assertIn(juicy, ort.menschen)
+    
+    def test_vorstellen(self):
+        """Test the vorstellen function."""
 
 
 class TestHändler(unittest.TestCase):
     def test_kaufen(self):
         hdl = StoryChar(None, ("Bob", "Händler"))
-        mache_händler(hdl, verkauft={}, kauft=["Kleidung"], gold=100, aufpreis=2)
+        mache_händler(hdl, verkauft={}, kauft=[
+                      "Kleidung"], gold=100, aufpreis=2)
         hdl_min = hdl.zu_nsc()
         self.assertEqual(hdl_min.gold, 100)
         sys = MockSystem()

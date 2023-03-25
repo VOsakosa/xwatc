@@ -105,7 +105,7 @@ class Dialog:
     name: str
     text: str
     geschichte: 'DialogGeschichte'
-    vorherige: VorList = field(converter=_vorherige_converter, factory=list)
+    vorherige: VorList = field(converter=_vorherige_converter, factory=tuple)
     _wiederhole: int = field(validator=attrs.validators.ge(0), default=0)
     min_freundlich: int | None = None
     zeitpunkt: Zeitpunkt = Zeitpunkt.Reden

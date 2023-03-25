@@ -61,11 +61,12 @@ class Bezeichnung:
 
 
 def bezeichnung(val: str | tuple[str, str] | tuple[str, str, str] | Bezeichnung) -> Bezeichnung:
+    """Converter zu Bezeichnung."""
     match val:
         case Bezeichnung():
             return val
         case str():
-            return Bezeichnung(val, "?", val)
+            return Bezeichnung(val, "", val)
         case [name, art]:
             return Bezeichnung(name, art, name)
         case [vorname, nachname, art]:
