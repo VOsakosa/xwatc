@@ -4,7 +4,7 @@ from xwatc.serialize import converter
 import unittest
 
 from xwatc.dorf import Ort, Dialog
-from xwatc.nsc import StoryChar, Person, Rasse, Geschlecht, NSC, CHAR_REGISTER, OldNSC
+from xwatc.nsc import StoryChar, Person, Rasse, Geschlecht, NSC, CHAR_REGISTER, OldNSC, bezeichnung
 from xwatc.system import Welt
 
 
@@ -32,7 +32,8 @@ class TestNSC(unittest.TestCase):
         # Without registration
         jonas = StoryChar(None, "Jonas Berncod", Person("m"), {"Unterhose": 3})
         self.assertEqual(jonas.id_, None)
-        self.assertEqual(jonas.name, "Jonas Berncod")
+        self.assertEqual(jonas.bezeichnung.name, "Jonas Berncod")
+        assert jonas.person
         self.assertEqual(jonas.person.rasse, Rasse.Mensch)
         self.assertDictEqual(jonas.startinventar, {"Unterhose": 3})
         # With registration
@@ -47,14 +48,14 @@ class TestNSC(unittest.TestCase):
 
     def test_template_pickle(self):
         """Test if the template can be pickled from its ID alone and then updated."""
-        jonas = StoryChar("test:jonas", "Jonas Berncdo", Person("m", art="Subokianer"),
+        jonas = StoryChar("test:jonas", ("Jonas Berndoc", "Subokianer"), Person("m"),
                           {"Unterhose": 3})
         jonas1 = jonas.zu_nsc()
         jonas1.inventar["Unterhose"] += 1
         pickled = converter.unstructure(jonas1)
         CHAR_REGISTER.clear()
-        char2 = StoryChar("test:jonas", "Jonas Berndoc",
-                          Person("m", art="Subokianer"), {"Unterhose": 3, "Messer": 1})
+        char2 = StoryChar("test:jonas", ("Jonas Berndoc", "Subokianer"),
+                          Person("m"), {"Unterhose": 3, "Messer": 1})
         jonas2 = converter.structure(pickled, NSC)
         self.assertIs(jonas2.template, char2)
         self.assertEqual(jonas2.inventar["Unterhose"], 4)
@@ -68,13 +69,13 @@ class TestNSC(unittest.TestCase):
         jonas2 = converter.structure(pickled, OldNSC)
         self.assertEqual(jonas2.name, "Jonas Berncdo")
         self.assertIs(jonas2._dlg, dlg_fn_für_test)
-        
 
     def test_ort(self):
         """Test if the Ort attribute adds the NSC to the Ort's menschen attribute"""
         ort = Ort("Geheim", dorf=None)
         # On init
-        juicy = NSC(StoryChar(None, "Juicy", Person("w"), {}), ort=ort)
+        juicy = NSC(StoryChar(None, "Juicy", Person("w"), {}),
+                    bezeichnung("Juicy"), ort=ort)
         self.assertIs(ort, juicy.ort)
         self.assertIn(juicy, ort.menschen)
         # On set
