@@ -5,14 +5,14 @@ from __future__ import annotations
 
 from attrs import define
 from collections import defaultdict
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 import re
 
-from xwatc.dorf import Rückkehr, Zeitpunkt
+from xwatc.dorf import Rückkehr, Zeitpunkt, Dialog, DialogFn
 from xwatc.nsc import StoryChar, NSC
-from xwatc.system import Mänx, ja_nein, get_classes, malp,\
-    Fortsetzung, ALLGEMEINE_PREISE, InventarBasis, Speicherpunkt, MenuOption
+from xwatc.system import (Mänx, get_classes, malp, Fortsetzung,
+                          ALLGEMEINE_PREISE, Speicherpunkt, MenuOption)
 
 
 Preis = int
@@ -23,8 +23,8 @@ Klasse = str
 def mache_händler(
     nsc: StoryChar, verkauft: Mapping[Item, tuple[int, Preis]],
     kauft: Sequence[Klasse], gold: int = 0, direkt_handeln: bool = False,
-        aufpreis: float = 1.05,
-) -> StoryChar:
+        aufpreis: float = 0., rückkauf: bool = False
+) -> Dialog:
     """Füge einem NSC die nötigen Funktionen hinzu, um ihn zum Händler zu machen,
     einem NSC, von dem du in einem Menü kaufen und verkaufen kannst.
 
@@ -38,11 +38,11 @@ def mache_händler(
     new_inventar["Gold"] += gold
 
     handel = HandelsFn(
-        {item: preis for item, (__, preis) in verkauft.items()}, kauft, aufpreis)
-    nsc.dialog("h", "Handeln", handel, min_freundlich=0,
-               zeitpunkt=Zeitpunkt.Vorstellen if direkt_handeln else Zeitpunkt.Option)
-    return nsc
+        {item: preis for item, (__, preis) in verkauft.items()}, kauft, aufpreis, rückkauf)
+    return nsc.dialog("h", "Handeln", handel, min_freundlich=0,
+                      zeitpunkt=Zeitpunkt.Vorstellen if direkt_handeln else Zeitpunkt.Option)
 
+KaufenHook = Callable[[NSC, Mänx, Item, Preis, int], None]
 
 @define
 class HandelsFn:
@@ -50,7 +50,9 @@ class HandelsFn:
     verkauft: dict[Item, Preis]
     kauft: Sequence[Klasse]
     aufpreis: float
-    rückkauf: bool = False
+    rückkauf: bool
+    _kaufen_hook: KaufenHook | None = None
+    _verkaufen_hook: KaufenHook | None = None
 
     def kaufen(self, nsc: NSC, mänx: Mänx, name: str, anzahl: int = 1) -> str:
         """Mänx kauft von Händler"""
@@ -68,6 +70,8 @@ class HandelsFn:
             nsc.inventar["Gold"] += preis
             mänx.gold -= preis
             mänx.inventar[name] += anzahl
+            if self._kaufen_hook:
+                self._kaufen_hook(nsc, mänx, name, preis, anzahl)
             return "Gekauft."
 
     def kann_kaufen(self, name: str):
@@ -84,6 +88,8 @@ class HandelsFn:
             nsc.inventar[name] += anzahl
             if self.rückkauf and name not in self.verkauft:
                 self.verkauft[name] = (preis * self.aufpreis).__ceil__()
+            if self._verkaufen_hook:
+                self._verkaufen_hook(nsc, mänx, name, preis, anzahl)
             return True
         return False
 
@@ -91,7 +97,9 @@ class HandelsFn:
         """Berechne den Ankaufpreis für das Objekt name.
         :return: Preis in Gold, oder None, wenn nicht gekauft wird.
         """
-        return ALLGEMEINE_PREISE.get(name)
+        if name in ALLGEMEINE_PREISE:
+            return (ALLGEMEINE_PREISE[name] * self.aufpreis).__ceil__()
+        return None
 
     def _verkaufen(self, nsc: NSC, mänx: Mänx, gegenstand: Item, menge: int) -> None:
         """Versuch interaktiv, an den Händler zu verkaufen."""
@@ -111,8 +119,8 @@ class HandelsFn:
             preis = self.get_preis(gegenstand)
             if preis is None:
                 malp("Der Händler kann dir dafür keinen Preis nennen")
-            elif preis * menge >= mänx.inventar["Gold"]:
-                malp("So viel kannst du dir nicht leisten")
+            elif preis * menge >= nsc.gold:
+                malp("Der Händler kann dir nicht so viel davon abkaufen.")
             else:
                 self.verkaufen(nsc, mänx, gegenstand, preis, menge)
                 malp("Verkauft.")
@@ -170,6 +178,14 @@ class HandelsFn:
                     return ans
             else:
                 assert False
+    
+    def kaufen_hook(self, fn: KaufenHook) -> KaufenHook:
+        self._kaufen_hook = fn
+        return fn
+    
+    def verkaufen_hook(self, fn: KaufenHook) -> KaufenHook:
+        self._verkaufen_hook = fn
+        return fn
 
 
 @dataclass

@@ -13,13 +13,13 @@ Links abbiegen führt zu Kiri-Wölfen=> Kampf
 
 """
 from xwatc.system import Mänx, register, malp, HatMain, mint
-from xwatc.dorf import NSC, Dorf, Malp, NSCOptionen, Dialog, Ort, Zeitpunkt
+from xwatc.dorf import Dorf, Malp, Dialog, Ort, Zeitpunkt
 from xwatc import weg
 from xwatc import jtg
-from xwatc import haendler
-from xwatc.haendler import Preis
+from xwatc.haendler import Preis, mache_händler, HandelsFn
 from xwatc.weg import Wegkreuzung
-from typing import List, Tuple, Union, Sequence
+from typing import List, Tuple, Sequence
+from xwatc.nsc import Person, StoryChar, bezeichnung, NSC, OldNSC
 __author__ = "jasper"
 
 GEFUNDEN = "quest:saxaring:gefunden"
@@ -28,19 +28,19 @@ ABGEGEBEN = "quest:saxaring:abgegeben"
 
 @register("jtg:saxa")
 def erzeuge_saxa():
-    return NSC("Saxa Kautohoa", "Holzfällerin",
-               startinventar={
-                   "Unterhose": 1,
-                   "Hemd": 1,
-                   "Strumpfhose": 1,
-                   "Socke": 1,
-                   "BH": 1,
-                   "Kappe": 1,
-                   "Hose": 1,
-                   "Gold": 14,
-               }, vorstellen=[
-                   "Eine Holzfällerin von ungefähr 40 Jahren steht vor dir."],
-               dlg=saxa_dlg)
+    return OldNSC("Saxa Kautohoa", "Holzfällerin",
+                  startinventar={
+                      "Unterhose": 1,
+                      "Hemd": 1,
+                      "Strumpfhose": 1,
+                      "Socke": 1,
+                      "BH": 1,
+                      "Kappe": 1,
+                      "Hose": 1,
+                      "Gold": 14,
+                  }, vorstellen=[
+                      "Eine Holzfällerin von ungefähr 40 Jahren steht vor dir."],
+                  dlg=saxa_dlg)
 
 
 def saxa_dlg():
@@ -150,200 +150,197 @@ class Kiliwolf(HatMain):
             return True
         return False
 
-@register("jtg:mädchen")
-class Mädchen(NSC):  # TODO Händler
-    """Mädchen am Weg nach Norden.
 
-    Stand: Bürger
-    Familie: Vater, Onkel, Opa, Oma
-    Hintergrund: Nach dem Tod ihrer Mutter (Kauffrau) wollte ihr Vater
-        (Sekretär)
-         sie schnell loswerden
-        und dazu an den nächstbesten verheiraten. Sie floh nach Norden.
-    """
+def in_disnayenbum(nsc: NSC, _mänx: Mänx) -> bool:
+    return "gefährte" not in nsc.variablen
 
-    def __init__(self) -> None:
-        super().__init__("Mädchen", kauft=["Kleidung"], verkauft={
-            "Rose": (1, Preis(10))
-        }, gold=Preis(0), art="Mädchen",
-            direkt_handeln=True, startinventar={
-                "BH": 1,
-                "Unterhose": 1,
-                "Socke": 2,
-                "Schuh": 2,
-                "Lumpen": 1,
-        }, dlg=self.dlg_base)
-        self.in_disnajenbum = True
 
-    @staticmethod
-    def dlg_base():
-        yield Dialog("hallo", "Hallo, kann ich dir helfen?", Mädchen.hallo)
-        yield Dialog("rose", "Woher hast du die Rose?",
-                     ["Die Rosen wachsen hier im Wald, aber es ist gefährlich,"
-                      " sie zu holen."], "hallo")
-        yield Dialog("woher", "Woher kommst du?",
+def als_gefährte(nsc: NSC, _mänx: Mänx) -> bool:
+    return "gefährte" in nsc.variablen
+
+
+älen = StoryChar("jtg:mädchen", "Mädchen", Person("w"), {
+    "BH": 1,
+    "Unterhose": 1,
+    "Socke": 2,
+    "Schuh": 2,
+    "Lumpen": 1,
+})
+handel = mache_händler(älen, kauft=["Kleidung"], verkauft={
+    "Rose": (1, Preis(10))
+}, direkt_handeln=True, aufpreis=0.).wenn(in_disnayenbum)
+
+älen.dialog("vorstellen", "Vorstellen", [
+    "Am Wegesrand vor dem Dorfeingang siehst du ein Mädchen in Lumpen.", "Sie scheint zu frieren."
+    ], zeitpunkt=Zeitpunkt.Vorstellen).wenn(in_disnayenbum)
+
+älen.dialog("rose", "Woher hast du die Rose?",
+            ["Die Rosen wachsen hier im Wald, aber es ist gefährlich,"
+             " sie zu holen."], "hallo").wenn(in_disnayenbum)
+älen.dialog("woher", "Woher kommst du?",
                      ["Ich komme aus Grökrakchöl, das liegt im Süden."],
                      "hallo", wiederhole=1)
-        yield Dialog("heißt", "Wie heißt du?", Mädchen.heißt, "hallo")
-        yield Dialog("allein", "Warum bist du allein? Hast du einen Grund, nicht nach "
-                     "*Grökaköl zurückkehren zu können?",
-                     [
-                         Malp("Das Mädchen zögert etwas."),
-                         "Ich ...",
-                         "Ich bin geflohen. Nach dem Tod meiner Mutter hatte "
-                         "meine Familie finanzielle Schwierigkeiten.",
-                         "Ich sollte verheiratet werden.",
-                         "Darüber gerieten wir in Streit, und ich floh, um "
-                         "zu meinen Großeltern in Gibon zu kommen."
-                     ], "woher", min_freundlich=10, wiederhole=1)
-        yield Dialog("helfen", "Das ist ja schrecklich! Ich helfe dir, nach "
-                     "Gibon zu kommen.", Mädchen.helfen, "allein")
+älen.dialog("allein", "Warum bist du allein? Hast du einen Grund, nicht nach "
+            "*Grökaköl zurückkehren zu können?",
+            [
+                Malp("Das Mädchen zögert etwas."),
+                "Ich ...",
+                "Ich bin geflohen. Nach dem Tod meiner Mutter hatte "
+                "meine Familie finanzielle Schwierigkeiten.",
+                "Ich sollte verheiratet werden.",
+                "Darüber gerieten wir in Streit, und ich floh, um "
+                "zu meinen Großeltern in Gibon zu kommen."
+            ], "woher", min_freundlich=10, wiederhole=1)
 
-    def hallo(self, _mänx: Mänx):
-        if self.hat_item("Rose"):
-            self.sprich("Willst du für zehn Gold eine Rose kaufen?")
-            mint("Das Mädchen spricht leise und vorsichtig, mit merkbar "
-                 "schlechten Gewissen, denn eine Rose ist keine 10 Gold "
-                 "wert.")
-        else:
-            self.sprich("Du hast mir mit dem Gold schon genug geholfen.")
-            mint("Sie nickt mit dem Kopf, um dir zu danken.")
 
-    def heißt(self, _mänx: Mänx):
-        self.name = "Älen Kafuga"
-        self.sprich("Älen, Älen Kafuga", warte=True)
+@älen.dialog_deco("hallo", "Hallo, kann ich dir helfen?")
+def älen_hallo(self: NSC, _mänx: Mänx):
+    if self.hat_item("Rose"):
+        self.sprich("Willst du für zehn Gold eine Rose kaufen?")
+        mint("Das Mädchen spricht leise und vorsichtig, mit merkbar "
+             "schlechten Gewissen, denn eine Rose ist keine 10 Gold "
+             "wert.")
+    else:
+        self.sprich("Du hast mir mit dem Gold schon genug geholfen.")
+        mint("Sie nickt mit dem Kopf, um dir zu danken.")
 
-    def helfen(self, mänx: Mänx):
-        self.sprich('Willst du auch nach Gibon?')
-        opts: List[Tuple[str, str, Sequence[Union[str, Malp]]]]
-        opts = [
-            ('»irgendwann«', "irgendwann",
-             [Malp('"Nein, ich erkunde hier die Gegend, irgendwann werde ich '
-                   'nach Gibon kommen."'),
-              "Kann ich dann trotzdem mit dir mit? Es macht mir nichts aus, "
-              "wenn wir nicht direkt nach Gibon gehen."]),
-            ("»ja«", 'ja', "Dann gehe ich mit dir mit."),
-            ("»nein«", '»Nein, aber ich kann dich trotzdem dahin bringen.«',
-             "Ist das wirklich in Ordnung? Danke!")
-        ]
-        antwort = mänx.menu(opts)  # TODO kaputt
-        self.sprich(antwort)
-        self.change_dlg(self.gefährte_dlg)
-        self.in_disnajenbum = False
-        mänx.add_gefährte(self)
 
-    @staticmethod
-    def gefährte_dlg():
-        yield Dialog("gibon", '"Wo ist Gibon eigentlich?"',
+@älen.dialog_deco("heißt", "Wie heißt du?", "hallo")
+def heißt(self: NSC, _mänx: Mänx):
+    self.bezeichnung = bezeichnung(("Älen", "Kafuga", "Mädchen"))
+    self.sprich("Älen, Älen Kafuga", warte=True)
+
+
+@älen.dialog_deco("helfen", "Das ist ja schrecklich! Ich helfe dir, nach  Gibon zu kommen.",
+                  "allein")
+def helfen(self: NSC, mänx: Mänx):
+    self.sprich('Willst du auch nach Gibon?')
+    opts: List[Tuple[str, str, Sequence[str | Malp]]]  # @UnusedVariable
+    opts = [
+        ('»irgendwann«', "irgendwann",
+         [Malp('"Nein, ich erkunde hier die Gegend, irgendwann werde ich '
+               'nach Gibon kommen."'),
+          "Kann ich dann trotzdem mit dir mit? Es macht mir nichts aus, "
+          "wenn wir nicht direkt nach Gibon gehen."]),
+        ("»ja«", 'ja', "Dann gehe ich mit dir mit."),
+        ("»nein«", '»Nein, aber ich kann dich trotzdem dahin bringen.«',
+         "Ist das wirklich in Ordnung? Danke!")
+    ]
+    antwort = mänx.menu(opts)  # TODO kaputt
+    self.sprich(antwort)
+    self.variablen.add("gefährte")
+    mänx.add_gefährte(self)
+
+
+älen.dialog("gibon", '"Wo ist Gibon eigentlich?"',
                      ["In Tauern, direkt hinter der Grenze.",
-                      "Tauern liegt im Nordosten von Jotungard."])
-        yield Dialog("umarmen", '"Kann ich dich umarmen?"', Mädchen.umarmen,
-                     min_freundlich=30)
-        yield Dialog("großeltern", '"Wie sind deine Großeltern so?"',
-                     ["Mein Aba ist ein strenger Mann. Er schätzt Disziplin "
-                      "über alles, aber er ist eigentlich ganz nett.",
-                      "Meine Ama ist emotional sehr intelligent. Sie ergänzen "
-                      "sich echt gut.",
-                      "Ich habe sie selten gesehen, weil sie weit weg wohnen "
-                      "und sie meinen Vater nicht schätzten."
-                      ])
-        yield Dialog("grökrakchöl", '„Hast du keine Bekannten mehr in Grökrakchöl?"',
-                     ["Nein, zumindest keine, die ich sehr gut kenne.",
-                      ])
-        yield Dialog("waffe", '', [
+                      "Tauern liegt im Nordosten von Jotungard."], "helfen")
+
+älen.dialog("großeltern", '"Wie sind deine Großeltern so?"',
+            ["Mein Aba ist ein strenger Mann. Er schätzt Disziplin "
+             "über alles, aber er ist eigentlich ganz nett.",
+             "Meine Ama ist emotional sehr intelligent. Sie ergänzen "
+             "sich echt gut.",
+             "Ich habe sie selten gesehen, weil sie weit weg wohnen "
+             "und sie meinen Vater nicht schätzten."
+             ], "helfen")
+älen.dialog("grökrakchöl", '„Hast du keine Bekannten mehr in Grökrakchöl?"',
+            ["Nein, zumindest keine, die ich sehr gut kenne.",
+             ], "helfen")
+älen.dialog("waffe", '', [
             "Ich hätte gerne eine Waffe.",
             "Ich muss mich doch irgendwie wehren können."
             "Dann kann ich dir auch helfen."
-        ], zeitpunkt=Zeitpunkt.Ansprechen, wiederhole=0).wenn(
-            lambda n, __: not n.hat_klasse("Waffe"))
+            ], "helfen", zeitpunkt=Zeitpunkt.Ansprechen, wiederhole=0).wenn(
+    lambda n, __: not n.hat_klasse("Waffe"))
 
-    def optionen(self, mänx: Mänx) -> NSCOptionen:
-        if self.in_disnajenbum:
-            yield ("handeln", "handel", self.handeln)
-        yield from NSC.optionen(self, mänx)
 
-    def umarmen(self, mänx: Mänx):
-        if self.freundlich >= 80:
-            self.sprich("Gerne?")
-            malp("Ihr umarmt euch")
-            return
-        opts = [
-            ("einfach so", '"Einfach so."', "e"),
-            ("einsam", '"Ich bin etwas einsam."', "einsam"),
-            ("mag", '"Ich mag dich."', "mag"),
-            ("kalt", '"Mir ist kalt."', "kalt"),
-        ]
-        ans = mänx.menu(opts, '„Warum?"')
-        if ans == "e":
-            self.sprich("Äh, okay...")
-            malp("Du umarmst sie kurz. Sie schaut weg.")
-        elif ans == "einsam":
+@älen.dialog_deco("umarmen", '"Kann ich dich umarmen?"', "helfen", min_freundlich=30)
+def umarmen(self: NSC, mänx: Mänx) -> None:
+    if self.freundlich >= 80:
+        self.sprich("Gerne?")
+        malp("Ihr umarmt euch")
+        return
+    opts = [
+        ("einfach so", '"Einfach so."', "e"),
+        ("einsam", '"Ich bin etwas einsam."', "einsam"),
+        ("mag", '"Ich mag dich."', "mag"),
+        ("kalt", '"Mir ist kalt."', "kalt"),
+    ]
+    ans = mänx.menu(opts, '„Warum?"')
+    if ans == "e":
+        self.sprich("Äh, okay...")
+        malp("Du umarmst sie kurz. Sie schaut weg.")
+    elif ans == "einsam":
+        self.sprich("..")
+        malp("Ihr umarmt euch.")
+        self.sprich("Ich auch.", wie="flüstert")
+        self.add_freundlich(10, 60)
+    elif ans == "mag":
+        if self.freundlich >= 60:
+            self.sprich("Das ist so plötzlich", wie="errötet")
             self.sprich("..")
-            malp("Ihr umarmt euch.")
-            self.sprich("Ich auch.", wie="flüstert")
-            self.add_freundlich(10, 60)
-        elif ans == "mag":
-            if self.freundlich >= 60:
-                self.sprich("Das ist so plötzlich", wie="errötet")
-                self.sprich("..")
-                self.sprich("Ich mag dich auch.")
-                # unverbindlich?
-                malp("Ihr umarmt euch")
-                self.freundlich += 20
-            else:
-                self.sprich("Sagst du so etwas zu jedem Mädchen, das dir "
-                            "über den Weg läuft?", warte=True)
-                malp("Sie stößt dich weg.")
-                self.add_freundlich(-2, 30)
-        else:  # "kalt"
-            if len(mänx.gefährten) <= 2:
-                self.sprich("Naja, mir ist auch kalt.")
-                malp("Ihr wärmt euch gegenseitig.")
-                self.add_freundlich(5, 40)
-            else:
-                self.sprich("Hier sind genug andere Ninen. Warum mich?")
-                malp("Sie geht davon.")
-
-    def vorstellen(self, mänx):
-        malp("Am Wegesrand vor dem Dorfeingang siehst du ein Mädchen in Lumpen. "
-             "Sie scheint zu frieren.")
-
-    def get_preis(self, _) -> Preis:
-        return Preis(0)
-
-    def kampf(self, mänx: Mänx) -> None:
-        malp("Das Mädchen ist schwach. Niemand hindert dich daran, sie "
-             "auf offener Straße zu schlagen.")
-        malp("Sie hat nichts außer ihren Lumpen.", end="")
-        if self.hat_item("Rose"):
-            malp(
-                ", die Blume, die sie dir verkaufen wollte, ist beim Kampf zertreten worden.")
-            del self.inventar["Rose"]
+            self.sprich("Ich mag dich auch.")
+            # unverbindlich?
+            malp("Ihr umarmt euch")
+            self.freundlich += 20
         else:
-            malp(".")
-        self.plündern(mänx)
-        self.tot = True
-
-    def verkaufen(self, mänx: Mänx, name: str, preis: Preis, anzahl: int=1)->bool:
-        ans = super().verkaufen(mänx, name, preis, anzahl=anzahl)
-        if ans and name == "Unterhose":
-            malp("Das Mädchen ist sichtlich verwirrt, dass "
-                 "du ihr eine Unterhose gegeben hast.")
-            mint("Es hält sie vor sich und mustert sie. Dann sagt sie artig danke.")
-            mänx.titel.add("Perversling")
-        elif ans and name == "Mantel":
-            malp("Das Mädchen bedeutet dir, dass sie nur den halben Mantel braucht.")
-            malp("Du schneidest den Mantel entzwei, und gibst ihr nur die Hälfte.")
-            mänx.inventar["halber Mantel"] += 1
-            mänx.titel.add("Samariter")
-            self.freundlich += 10
+            self.sprich("Sagst du so etwas zu jedem Mädchen, das dir "
+                        "über den Weg läuft?", warte=True)
+            malp("Sie stößt dich weg.")
+            self.add_freundlich(-2, 30)
+    else:  # "kalt"
+        if len(mänx.gefährten) <= 2:
+            self.sprich("Naja, mir ist auch kalt.")
+            malp("Ihr wärmt euch gegenseitig.")
+            self.add_freundlich(5, 40)
         else:
-            malp("Das Mädchen scheint alles an Kleidung zu brauchen.")
-        return ans
+            self.sprich("Hier sind genug andere Ninen. Warum mich?")
+            malp("Sie geht davon.")
 
-    def kaufen(self, mänx: Mänx, name: str, anzahl: int=1)->str:
-        ans = super().kaufen(mänx, name, anzahl=anzahl)
-        if ans and name == "Rose":
-            self.freundlich += 10
-            return "Das Mädchen ist dankbar für das Gold."
-        return ans
+
+@älen.kampf
+def älen_kampf(self, mänx: Mänx) -> None:
+    malp("Das Mädchen ist schwach. Niemand hindert dich daran, sie "
+         "auf offener Straße zu schlagen.")
+    malp("Sie hat nichts außer ihren Lumpen.", end="")
+    if self.hat_item("Rose"):
+        malp(
+            ", die Blume, die sie dir verkaufen wollte, ist beim Kampf zertreten worden.")
+        del self.inventar["Rose"]
+    else:
+        malp(".")
+    self.plündern(mänx)
+    self.tot = True
+
+
+älen_kampf.wenn(in_disnayenbum)
+
+handel_fn = handel.geschichte
+assert isinstance(handel_fn, HandelsFn)
+
+@handel_fn.verkaufen_hook
+def verkaufen(nsc: NSC, mänx: Mänx, name: str, preis: Preis, anzahl: int = 1) -> None:
+    if name == "Unterhose":
+        malp("Das Mädchen ist sichtlich verwirrt, dass "
+             "du ihr eine Unterhose gegeben hast.")
+        mint("Es hält sie vor sich und mustert sie. Dann sagt sie artig danke.")
+        mänx.titel.add("Perversling")
+    elif name == "Mantel":
+        malp("Das Mädchen bedeutet dir, dass sie nur den halben Mantel braucht.")
+        malp("Du schneidest den Mantel entzwei, und gibst ihr nur die Hälfte.")
+        mänx.inventar["halber Mantel"] += 1
+        mänx.titel.add("Samariter")
+        nsc.freundlich += 10
+    else:
+        malp("Das Mädchen scheint alles an Kleidung zu brauchen.")
+
+@handel_fn.kaufen_hook
+def kaufen(nsc: NSC, mänx: Mänx, name: str, preis: Preis, anzahl: int = 1) -> None:
+    if name == "Rose":
+        nsc.freundlich += 10
+        malp("Das Mädchen ist dankbar für das Gold.")
+
+if __name__ == '__main__':
+    import xwatc.anzeige
+    xwatc.anzeige.main(erzeuge_norddörfer)

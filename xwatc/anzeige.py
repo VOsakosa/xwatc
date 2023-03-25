@@ -471,9 +471,11 @@ class AnzeigeDaten(Protocol):
         """Aktualisiert das Anzeige-Widget mit den Daten."""
 
 
-def main(startpunkt: Opt[Fortsetzung] = None):
+def main(startpunkt: Fortsetzung | str | None = None):
     global _main_thread
     app = Gtk.Application()
+    if isinstance(startpunkt, str):
+        startpunkt = system.Besuche(startpunkt)
     app.connect("activate", XwatcFenster, startpunkt)
     _main_thread = threading.main_thread()
     app.run()

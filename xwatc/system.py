@@ -20,6 +20,7 @@ if typing.TYPE_CHECKING:
     from xwatc import dorf  # @UnusedImport
     from xwatc import anzeige  # @UnusedImport
     from xwatc import weg  # @UnusedImport
+    from xwatc import nsc  # @UnusedImport
 
 
 SPEICHER_VERZEICHNIS = Path(__file__).parent.parent / "xwatc_saves"
@@ -352,7 +353,7 @@ class Mänx(InventarBasis, Persönlichkeit):
             if not any(inv.items()):
                 return
 
-    def add_gefährte(self, gefährte: 'dorf.NSC'):
+    def add_gefährte(self, gefährte: 'nsc.NSC'):
         self.gefährten.append(gefährte)
 
     def add_verbrechen(self, name: str | Verbrechen | Verbrechensart, versuch=False):

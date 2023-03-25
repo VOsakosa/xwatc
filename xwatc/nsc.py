@@ -156,11 +156,11 @@ class StoryChar:
         self.vorstellen_fn = fn
         return fn
 
-    def kampf(self, fn: dorf.DialogGeschichte) -> dorf.DialogGeschichte:
+    def kampf(self, fn: dorf.DialogGeschichte) -> dorf.Dialog:
         """Dekorator, um die Kampf-Funktion zu setzen"""
-        self.dialoge.append(dorf.Dialog(
-            "k", "Angreifen", fn, zeitpunkt=dorf.Zeitpunkt.Option))
-        return fn
+        dia = dorf.Dialog("k", "Angreifen", fn, zeitpunkt=dorf.Zeitpunkt.Option)
+        self.dialoge.append(dia)
+        return dia
 
     @classmethod
     def structure(cls, data, typ) -> 'StoryChar':
@@ -182,7 +182,7 @@ def _copy_inventar(old: Mapping[str, int]) -> defaultdict[str, int]:
 
 
 @define
-class NSC:
+class NSC(system.InventarBasis):
     """Ein NSC, mit dem der Spieler interagieren kann. Alles konkretes ist in template und
     der Rest der Datenstruktur beschäftigt sich mit dem momentanen Status dieses NSCs in der
     Welt."""
@@ -413,7 +413,7 @@ class NSC:
         schiebe_inventar(self.inventar, mänx.inventar)
 
 
-class OldNSC(NSC, system.InventarBasis):
+class OldNSC(NSC):
     """Unterklasse von NSC, die dazu dient, das alte System mit dem neuen zu vereinen.
     Beim alten System war das Template nicht benamt und nicht gespeichert.
 
