@@ -151,7 +151,7 @@ class Kiliwolf(HatMain):
         return False
 
 @register("jtg:mädchen")
-class Mädchen(haendler.Händler):
+class Mädchen(NSC):  # TODO Händler
     """Mädchen am Weg nach Norden.
 
     Stand: Bürger

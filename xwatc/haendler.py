@@ -4,8 +4,9 @@ Ein Händler ist ein spezieller NSC, der Kaufen und Verkaufen von Items erlaubt.
 from __future__ import annotations
 
 from attrs import define
+from collections import defaultdict
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from typing import (Optional as Opt, Sequence)
 import re
 
 from xwatc.dorf import Rückkehr, Zeitpunkt
@@ -20,7 +21,7 @@ Klasse = str
 
 
 def mache_händler(
-    nsc: StoryChar, verkauft: dict[Item, Preis],
+    nsc: StoryChar, verkauft: Mapping[Item, tuple[int, Preis]],
     kauft: Sequence[Klasse], gold: int = 0, direkt_handeln: bool = False,
         aufpreis: float = 1.05,
 ) -> StoryChar:
@@ -29,9 +30,16 @@ def mache_händler(
 
     :param direkt_handeln: Fange an zu handeln, noch bevor r,k,f gezeigt wird.
     """
-    nsc.startinventar = dict(Gold=gold) | nsc.startinventar
+    new_inventar = defaultdict[Item, Preis](int)
+    for item, anzahl in nsc.startinventar.items():
+        new_inventar[item] += anzahl
+    for item, (anzahl, _preis) in verkauft.items():
+        new_inventar[item] += anzahl
+    new_inventar["Gold"] += gold
 
-    nsc.dialog("h", "Handeln", HandelsFn(verkauft, kauft, aufpreis), min_freundlich=0,
+    handel = HandelsFn(
+        {item: preis for item, (__, preis) in verkauft.items()}, kauft, aufpreis)
+    nsc.dialog("h", "Handeln", handel, min_freundlich=0,
                zeitpunkt=Zeitpunkt.Vorstellen if direkt_handeln else Zeitpunkt.Option)
     return nsc
 

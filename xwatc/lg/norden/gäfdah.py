@@ -1,7 +1,7 @@
-from xwatc.system import Mänx
+
+from xwatc.system import Mänx, Inventar
 from xwatc.dorf import Dorf, Ort, Malp
 from random import randint
-from xwatc.lg.norden.Maria_Fischfrisch import Fischerfrau
 from xwatc.jtg import zufällige_frau
 from xwatc.lg.nsc.Wachen_von_Gäfdah import (
     SakcaBrauc, OrfGrouundt, ThomarcAizenfjäld)
@@ -11,7 +11,7 @@ from xwatc.nsc import StoryChar, Person
 
 
 GÄFDAH_NAME = "Gäfdah"
-STANDARDKLEIDUNG = {
+STANDARDKLEIDUNG: Inventar = {
     "Schuh": 2,
     "Socke": 2,
     "Hose": 1,
@@ -46,8 +46,7 @@ def erzeuge_Gäfdah(mänx: Mänx) -> Dorf:
     haus1 = Ort("Haus Nummer1", d, [
         "Du kommst in ein kleines Haus."
     ])
-    mänx.welt.get_or_else(
-        "lg:norden:Maria_Fischfrisch:maria_fischfrisch", Fischerfrau).ort = kirche
+    mänx.welt.obj("lg:norden:Maria_Fischfrisch:maria_fischfrisch").ort = kirche
     # schmiede.menschen.append(mänx.welt.get_or_else)
     # d.orte.append(schmiede)
     mänx.welt.obj("nsc:Wachen_von_Gäfdah:MarioWittenpfäld").ort = rathaus
