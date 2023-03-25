@@ -247,6 +247,14 @@ class NSC(system.InventarBasis):
     def fliehen(self, __) -> None:
         """Vor NSCs kann man immer bedenkenlos fliehen"""
         return None
+    
+    def kampf(self, mänx: system.Mänx) -> None:
+        for dia in self.template.dialoge:
+            if dia.name == "k" and dia.verfügbar(self, mänx):
+                self._run(dia, mänx)
+                return
+        malp(f"Dir ist nicht danach, {self.name} anzugreifen.")
+            
 
     def dialog_optionen(self, mänx: system.Mänx) -> Iterator[MenuOption[dorf.Dialog]]:
         for d in self.template.dialoge:

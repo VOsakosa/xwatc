@@ -23,7 +23,7 @@ Klasse = str
 def mache_händler(
     nsc: StoryChar, verkauft: Mapping[Item, tuple[int, Preis]],
     kauft: Sequence[Klasse], gold: int = 0, direkt_handeln: bool = False,
-        aufpreis: float = 0., rückkauf: bool = False
+        aufpreis: float = 1.05, rückkauf: bool = False
 ) -> Dialog:
     """Füge einem NSC die nötigen Funktionen hinzu, um ihn zum Händler zu machen,
     einem NSC, von dem du in einem Menü kaufen und verkaufen kannst.
@@ -36,6 +36,7 @@ def mache_händler(
     for item, (anzahl, _preis) in verkauft.items():
         new_inventar[item] += anzahl
     new_inventar["Gold"] += gold
+    nsc.startinventar = new_inventar
 
     handel = HandelsFn(
         {item: preis for item, (__, preis) in verkauft.items()}, kauft, aufpreis, rückkauf)
@@ -119,7 +120,7 @@ class HandelsFn:
             preis = self.get_preis(gegenstand)
             if preis is None:
                 malp("Der Händler kann dir dafür keinen Preis nennen")
-            elif preis * menge >= nsc.gold:
+            elif preis * menge > nsc.gold:
                 malp("Der Händler kann dir nicht so viel davon abkaufen.")
             else:
                 self.verkaufen(nsc, mänx, gegenstand, preis, menge)
@@ -128,7 +129,7 @@ class HandelsFn:
     def zeige_auslage(self, nsc: NSC) -> None:
         """Printe die Auslage auf den Bildschirm."""
         etwas_da = False
-        länge = max(len(a) for a in self.verkauft) + 1
+        länge = max((len(a) for a in self.verkauft), default=0) + 1
         for item, preis in self.verkauft.items():
             anzahl = nsc.inventar[item]
             if anzahl:
@@ -176,8 +177,11 @@ class HandelsFn:
                 ans = nsc.reden(mänx)
                 if ans != Rückkehr.ZURÜCK:
                     return ans
+            elif a == "kämpfen":
+                nsc.kampf(mänx)
+                return Rückkehr.ZURÜCK
             else:
-                assert False
+                assert False, f"Illegale Rückgabe {a}"
     
     def kaufen_hook(self, fn: KaufenHook) -> KaufenHook:
         self._kaufen_hook = fn

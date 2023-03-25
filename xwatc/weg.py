@@ -428,8 +428,8 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                 self.beschreibe_kreuzung(ri_name.nr)
             else:
                 self.beschreibe_kreuzung(None)
-        for mensch in self.menschen:
-            mensch.vorstellen(mänx)
+        # for mensch in self.menschen:
+        #    mensch.vorstellen(mänx)
 
     @overload
     def __getitem__(self, i: slice) -> List[Opt[Richtung]]: ...  # @UnusedVariable
@@ -559,7 +559,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
 
     def main(self, mänx: Mänx, von: Opt[Wegpunkt] = None) -> Wegpunkt:
         """Fragt nach allen Richtungen."""
-        from xwatc.dorf import NSC
+        from xwatc.nsc import NSC
         von_key = None
         if von is not self:
             for key, value in self.nachbarn.items():

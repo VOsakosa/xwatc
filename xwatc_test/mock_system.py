@@ -34,8 +34,9 @@ class MockSystem:
     ausgaben: list[str] = Factory(list)
     eingaben: list[str] = Factory(list)
 
-    def install(self):
+    def install(self) -> system.Mänx:
         system.ausgabe = self  # type: ignore
+        return system.Mänx(self)
 
     def ein(self, txt: str):
         self.eingaben.append(txt)

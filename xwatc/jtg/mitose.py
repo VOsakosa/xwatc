@@ -165,13 +165,17 @@ def als_gefährte(nsc: NSC, _mänx: Mänx) -> bool:
     "Schuh": 2,
     "Lumpen": 1,
 })
-handel = mache_händler(älen, kauft=["Kleidung"], verkauft={
-    "Rose": (1, Preis(10))
-}, direkt_handeln=True, aufpreis=0.).wenn(in_disnayenbum)
 
 älen.dialog("vorstellen", "Vorstellen", [
-    "Am Wegesrand vor dem Dorfeingang siehst du ein Mädchen in Lumpen.", "Sie scheint zu frieren."
+    Malp("Am Wegesrand vor dem Dorfeingang siehst du ein Mädchen in Lumpen."),
+    Malp("Sie scheint zu frieren."),
+    Malp("Sie verkauft Rosen.")
 ], zeitpunkt=Zeitpunkt.Vorstellen).wenn(in_disnayenbum)
+
+handel = mache_händler(älen, kauft=["Kleidung"], verkauft={
+    "Rose": (1, Preis(10))
+}, aufpreis=0.).wenn(in_disnayenbum)
+
 
 älen.dialog("rose", "Woher hast du die Rose?",
             ["Die Rosen wachsen hier im Wald, aber es ist gefährlich,"
@@ -194,7 +198,7 @@ handel = mache_händler(älen, kauft=["Kleidung"], verkauft={
 
 @älen.dialog_deco("hallo", "Hallo, kann ich dir helfen?")
 def älen_hallo(self: NSC, _mänx: Mänx):
-    if self.hat_item("Rose"):
+    if not self.hat_item("Gold"):
         self.sprich("Willst du für zehn Gold eine Rose kaufen?")
         mint("Das Mädchen spricht leise und vorsichtig, mit merkbar "
              "schlechten Gewissen, denn eine Rose ist keine 10 Gold "
@@ -211,7 +215,7 @@ def heißt(self: NSC, _mänx: Mänx):
 
 
 @älen.dialog_deco("helfen", "Das ist ja schrecklich! Ich helfe dir, nach  Gibon zu kommen.",
-                  "allein")
+                  "allein", wiederhole=1)
 def helfen(self: NSC, mänx: Mänx):
     self.sprich('Willst du auch nach Gibon?')
     opts: List[Tuple[str, str, Sequence[str | Malp]]]  # @UnusedVariable
