@@ -19,61 +19,60 @@ from xwatc import jtg
 from xwatc.haendler import Preis, mache_händler, HandelsFn
 from xwatc.weg import Wegkreuzung
 from typing import List, Tuple, Sequence
-from xwatc.nsc import Person, StoryChar, bezeichnung, NSC, OldNSC
+from xwatc.nsc import Person, StoryChar, bezeichnung, NSC
 __author__ = "jasper"
 
 GEFUNDEN = "quest:saxaring:gefunden"
 ABGEGEBEN = "quest:saxaring:abgegeben"
 
 
-@register("jtg:saxa")
-def erzeuge_saxa():
-    return OldNSC("Saxa Kautohoa", "Holzfällerin",
-                  startinventar={
-                      "Unterhose": 1,
-                      "Hemd": 1,
-                      "Strumpfhose": 1,
-                      "Socke": 1,
-                      "BH": 1,
-                      "Kappe": 1,
-                      "Hose": 1,
-                      "Gold": 14,
-                  }, vorstellen=[
-                      "Eine Holzfällerin von ungefähr 40 Jahren steht vor dir."],
-                  dlg=saxa_dlg)
+saxa = StoryChar("jtg:saxa", ("Saxa", "Kautohoa", "Holzfällerin"), Person("w"),
+                 startinventar={
+    "Unterhose": 1,
+    "Hemd": 1,
+    "Strumpfhose": 1,
+    "Socke": 1,
+    "BH": 1,
+    "Kappe": 1,
+    "Hose": 1,
+    "Gold": 14,
+}, vorstellen_fn=[
+    "Eine Holzfällerin von ungefähr 40 Jahren steht vor dir."],
+)
 
-
-def saxa_dlg():
-    yield Dialog("hallo", "Hallo", ["Hallo, ich bin Saxa."])
-    yield Dialog("bedrückt", "Bedrückt dich etwas?",
-                 [
-                     "Ich habe beim Kräutersammeln meinen Ehering im Wald verloren.",
-                     "Er hat uns beiden immer Glück gebracht.",
-                     "Du bist doch ein Abenteurer, kannst du den Ring finden?"
-                 ], effekt=lambda n, m: m.welt.setze("quest:saxaring")).wenn(
-                     lambda n, m: not m.welt.ist(ABGEGEBEN))
-    yield Dialog("wo", "Wo warst du Kräuter sammeln?",
-                 ["Im Wald östlich von hier.",
+saxa.dialog("hallo", "Hallo", ["Hallo, ich bin Saxa."])
+saxa.dialog("bedrückt", "Bedrückt dich etwas?",
+            [
+                "Ich habe beim Kräutersammeln meinen Ehering im Wald verloren.",
+                "Er hat uns beiden immer Glück gebracht.",
+                "Du bist doch ein Abenteurer, kannst du den Ring finden?"
+            ], effekt=lambda n, m: m.welt.setze("quest:saxaring")).wenn(
+    lambda n, m: not m.welt.ist(ABGEGEBEN))
+saxa.dialog("wo", "Wo warst du Kräuter sammeln?",
+            ["Im Wald östlich von hier.",
                   "Ein Pfad führt bis zur Stelle.",
                   "Bei der Kreuzung musst du rechts abbiegen."], "bedrückt")
 
-    def gefunden(n, m):
-        n.add_freundlich(40, 100)
-        n.erhalte("Saxas Ehering", von=m)
-        m.welt.setze(ABGEGEBEN)
-    yield Dialog("gefunden", "Ich habe deinen Ring gefunden.",
-                 ["Danke!", "Das bedeutet uns sehr viel."],
-                 effekt=gefunden).wenn_var(GEFUNDEN).wenn(
-        lambda n, m: m.hat_item("Saxas Ehering"))
 
-    yield Dialog("verloren", "Ich habe deinen Ring gefunden, aber wieder verloren.",
-                 ["Was soll das jetzt heißen?", "Hast du ihn etwa verkauft?"],
-                 effekt=lambda n, m: n.add_freundlich(-30, -20)
-                 ).wenn(
-        lambda n, m: (
-            m.welt.ist(GEFUNDEN)
-            and not m.welt.ist(ABGEGEBEN)
-            and not m.hat_item("Saxas Ehering")))
+def gefunden(n, m):
+    n.add_freundlich(40, 100)
+    n.erhalte("Saxas Ehering", von=m)
+    m.welt.setze(ABGEGEBEN)
+
+
+saxa.dialog("gefunden", "Ich habe deinen Ring gefunden.",
+            ["Danke!", "Das bedeutet uns sehr viel."],
+            effekt=gefunden).wenn_var(GEFUNDEN).wenn(
+    lambda n, m: m.hat_item("Saxas Ehering"))
+
+saxa.dialog("verloren", "Ich habe deinen Ring gefunden, aber wieder verloren.",
+            ["Was soll das jetzt heißen?", "Hast du ihn etwa verkauft?"],
+            effekt=lambda n, m: n.add_freundlich(-30, -20)
+            ).wenn(
+    lambda n, m: (
+        m.welt.ist(GEFUNDEN)
+        and not m.welt.ist(ABGEGEBEN)
+        and not m.hat_item("Saxas Ehering")))
 
 
 @weg.gebiet("jtg:mitose")
@@ -172,7 +171,7 @@ handel = mache_händler(älen, kauft=["Kleidung"], verkauft={
 
 älen.dialog("vorstellen", "Vorstellen", [
     "Am Wegesrand vor dem Dorfeingang siehst du ein Mädchen in Lumpen.", "Sie scheint zu frieren."
-    ], zeitpunkt=Zeitpunkt.Vorstellen).wenn(in_disnayenbum)
+], zeitpunkt=Zeitpunkt.Vorstellen).wenn(in_disnayenbum)
 
 älen.dialog("rose", "Woher hast du die Rose?",
             ["Die Rosen wachsen hier im Wald, aber es ist gefährlich,"
@@ -319,6 +318,7 @@ def älen_kampf(self, mänx: Mänx) -> None:
 handel_fn = handel.geschichte
 assert isinstance(handel_fn, HandelsFn)
 
+
 @handel_fn.verkaufen_hook
 def verkaufen(nsc: NSC, mänx: Mänx, name: str, preis: Preis, anzahl: int = 1) -> None:
     if name == "Unterhose":
@@ -335,11 +335,13 @@ def verkaufen(nsc: NSC, mänx: Mänx, name: str, preis: Preis, anzahl: int = 1) 
     else:
         malp("Das Mädchen scheint alles an Kleidung zu brauchen.")
 
+
 @handel_fn.kaufen_hook
 def kaufen(nsc: NSC, mänx: Mänx, name: str, preis: Preis, anzahl: int = 1) -> None:
     if name == "Rose":
         nsc.freundlich += 10
         malp("Das Mädchen ist dankbar für das Gold.")
+
 
 if __name__ == '__main__':
     import xwatc.anzeige
