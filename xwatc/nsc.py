@@ -9,6 +9,7 @@ from typing import Any, Literal
 
 from attrs import define, Factory
 import attrs
+import cattrs
 
 from xwatc import dorf
 from xwatc import system
@@ -16,7 +17,6 @@ from xwatc import weg
 from xwatc.dorf import Fortsetzung, Rückkehr
 from xwatc.system import Inventar, MenuOption, malp, mint, schiebe_inventar, MissingIDError
 from xwatc.serialize import converter
-import cattrs
 
 
 class Geschlecht(Enum):
@@ -49,8 +49,29 @@ class Rasse(Enum):
 class Person:
     """Definiert Eigenschaften, die jedes intelligente Wesen in Xvatc hat."""
     geschlecht: Geschlecht = attrs.field(converter=to_geschlecht)
-    art: str = ""
     rasse: Rasse = Rasse.Mensch
+
+
+@define(frozen=True)
+class Bezeichnung:
+    """Die Ingame-Bezeichnung für den NSC. Sie kann zwischen dem vollen Namen und einer Abkürzung
+    für sprich unterscheiden."""
+    name: str
+    art: str
+    kurz_name: str
+
+
+def bezeichnung(val: str | tuple[str, str] | tuple[str, str, str] | Bezeichnung) -> Bezeichnung:
+    match val:
+        case Bezeichnung():
+            return val
+        case str():
+            return Bezeichnung(val, "?", val)
+        case [name, art]:
+            return Bezeichnung(name, art, name)
+        case [vorname, nachname, art]:
+            return Bezeichnung(vorname + " " + nachname, art, vorname)
+    raise TypeError(f"{val} ist keine Bezeichnung", val)
 
 
 @define
@@ -63,10 +84,10 @@ class StoryChar:
     """
     id_: str | None
     """Eine eindeutige Identifikation, wie jtg:torobiac"""
-    name: str
-    """Das ist der Ingame-Name, wie "Torobias Berndoc". """
-    person: Person
-    startinventar: Mapping[str, int]
+    bezeichnung: Bezeichnung = attrs.field(converter=bezeichnung)
+    """Das ist der Ingame-Name, wie "Torobias Berndoc, Magier". """
+    person: Person | None = None
+    startinventar: Mapping[str, int] = Factory(lambda: defaultdict(int))
     """Das Inventar, mit dem der Charakter erzeugt wird."""
     ort: str = ""
     """Der Ort, an dem ein NSC startet. Wenn er leer ist, muss er manuell per Events in
@@ -86,7 +107,7 @@ class StoryChar:
     def zu_nsc(self) -> 'NSC':
         """Erzeuge den zugehörigen NSC aus dem Template."""
         # Der Ort ist zunächst immer None. Der Ort wird erst zugeordnet
-        return NSC(self, self.startinventar)
+        return NSC(self, self.bezeichnung, self.startinventar)
 
     def dialog(self,
                name: str,
@@ -167,6 +188,7 @@ class NSC:
     der Rest der Datenstruktur beschäftigt sich mit dem momentanen Status dieses NSCs in der
     Welt."""
     template: StoryChar
+    bezeichnung: Bezeichnung
     inventar: Inventar = attrs.field(
         converter=_copy_inventar, factory=lambda: defaultdict(int))
     variablen: set[str] = Factory(set)
@@ -182,11 +204,11 @@ class NSC:
 
     @property
     def name(self) -> str:
-        return self.template.name
+        return self.bezeichnung.name
 
     @property
     def art(self) -> str:
-        return self.template.person.art
+        return self.bezeichnung.art
 
     @property
     def ort(self) -> weg.Wegkreuzung | None:
@@ -418,14 +440,15 @@ class OldNSC(NSC, system.InventarBasis):
         inventar = startinventar or {}
         template = StoryChar(
             id_=None,
-            name=name,
-            person=Person("m", art=art),
+            bezeichnung=(name, art),
+            person=None,
             direkt_reden=direkt_reden,
             dialoge=list(dlg()) if dlg else [],
             startinventar=inventar,
             vorstellen_fn=vorstellen
         )
-        super().__init__(template, inventar=inventar, ort=ort, freundlich=freundlich)
+        super().__init__(template, template.bezeichnung,
+                         inventar=inventar, ort=ort, freundlich=freundlich)
         self.kampf_fn = kampfdialog
         self.fliehen_fn = fliehen
         self._dlg = dlg
