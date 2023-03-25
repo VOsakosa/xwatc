@@ -3,13 +3,15 @@ Ein Händler ist ein spezieller NSC, der Kaufen und Verkaufen von Items erlaubt.
 """
 from __future__ import annotations
 
-from typing import (List, Optional as Opt, Dict, Tuple, Sequence)
-
-from xwatc.dorf import NSC, NSCOptionen, Rückkehr, DialogErzeugerFn
-from xwatc.system import Mänx, minput, ja_nein, get_classes, Inventar, malp,\
-    Fortsetzung, ALLGEMEINE_PREISE, InventarBasis, Speicherpunkt, MenuOption
-import re
+from attrs import define
 from dataclasses import dataclass
+from typing import (Optional as Opt, Sequence)
+import re
+
+from xwatc.dorf import Rückkehr, Zeitpunkt
+from xwatc.nsc import StoryChar, NSC
+from xwatc.system import Mänx, ja_nein, get_classes, malp,\
+    Fortsetzung, ALLGEMEINE_PREISE, InventarBasis, Speicherpunkt, MenuOption
 
 
 Preis = int
@@ -17,48 +19,45 @@ Item = str
 Klasse = str
 
 
-class Händler(NSC):
-    """Ein NSC, von dem du in einem Menü kaufen und verkaufen kannst."""
+def mache_händler(
+    nsc: StoryChar, verkauft: dict[Item, Preis],
+    kauft: Sequence[Klasse], gold: int = 0, direkt_handeln: bool = False,
+        aufpreis: float = 1.05,
+) -> StoryChar:
+    """Füge einem NSC die nötigen Funktionen hinzu, um ihn zum Händler zu machen,
+    einem NSC, von dem du in einem Menü kaufen und verkaufen kannst.
 
-    def __init__(self,
-                 name: str,
-                 kauft: Opt[List[Klasse]],
-                 verkauft: Dict[Item, Tuple[int, int]],
-                 gold: int,
-                 art="Händler",
-                 direkt_handeln: bool = False,
-                 startinventar: Opt[Inventar] = None,
-                 dlg: Opt[DialogErzeugerFn] = None):
-        """Neuer Händler namens *name*, der Sachen aus den Kategorien *kauft* kauft.
-        *verkauft* ist das Inventar. *gold* ist die Anzahl von Gold."""
-        super().__init__(name, art, dlg=dlg)
-        self.kauft = kauft
-        # Anzahl, Preis
-        self.verkauft: Dict[Item, int] = {}
-        for ware, (anzahl, preis) in verkauft.items():
-            self.verkauft[ware] = preis
-            self.inventar[ware] += anzahl
-        if startinventar:
-            for item, anzahl in startinventar.items():
-                self.inventar[item] += anzahl
-        self.gold = gold
-        self.rückkauf = False
-        self.direkt_handeln = direkt_handeln
+    :param direkt_handeln: Fange an zu handeln, noch bevor r,k,f gezeigt wird.
+    """
+    nsc.startinventar = dict(Gold=gold) | nsc.startinventar
 
-    def kaufen(self, mänx: Mänx, name: str, anzahl: int = 1) -> str:
+    nsc.dialog("h", "Handeln", HandelsFn(verkauft, kauft, aufpreis), min_freundlich=0,
+               zeitpunkt=Zeitpunkt.Vorstellen if direkt_handeln else Zeitpunkt.Option)
+    return nsc
+
+
+@define
+class HandelsFn:
+    """Die Dialog-Funktion für Händler."""
+    verkauft: dict[Item, Preis]
+    kauft: Sequence[Klasse]
+    aufpreis: float
+    rückkauf: bool = False
+
+    def kaufen(self, nsc: NSC, mänx: Mänx, name: str, anzahl: int = 1) -> str:
         """Mänx kauft von Händler"""
         if anzahl <= 0:
             return "Du musst eine positive Anzahl kaufen."
         elif name not in self.verkauft:
-            return f"\"{name}\" hat {self.name} nicht."
+            return f"\"{name}\" hat {nsc.name} nicht."
         preis = self.verkauft[name] * anzahl
-        if self.inventar[name] < anzahl:
+        if nsc.inventar[name] < anzahl:
             return f"Der Händler hat nicht genug {name}."
         elif mänx.gold < preis:
             return "Du hast nicht genug Geld dafür."
         else:
-            self.inventar[name] -= anzahl
-            self.gold += preis
+            nsc.inventar[name] -= anzahl
+            nsc.inventar["Gold"] += preis
             mänx.gold -= preis
             mänx.inventar[name] += anzahl
             return "Gekauft."
@@ -68,25 +67,25 @@ class Händler(NSC):
         return self.kauft is None or any(
             cls in self.kauft for cls in get_classes(name))
 
-    def verkaufen(self, mänx: Mänx, name: str, preis: Preis, anzahl: int = 1) -> bool:
+    def verkaufen(self, nsc: NSC, mänx: Mänx, name: str, preis: Preis, anzahl: int = 1) -> bool:
         """Mänx verkauft an Händler"""
-        if self.kann_kaufen(name) and self.gold >= preis * anzahl:
-            self.gold -= preis * anzahl
+        if self.kann_kaufen(name) and nsc.inventar["Gold"] >= preis * anzahl:
+            nsc.inventar["Gold"] -= preis * anzahl
             mänx.gold += preis * anzahl
             mänx.inventar[name] -= anzahl
-            self.inventar[name] += anzahl
+            nsc.inventar[name] += anzahl
             if self.rückkauf and name not in self.verkauft:
-                self.verkauft[name] = preis + 1
+                self.verkauft[name] = (preis * self.aufpreis).__ceil__()
             return True
         return False
 
-    def get_preis(self, name: str) -> Opt[int]:
+    def get_preis(self, name: str) -> int | None:
         """Berechne den Ankaufpreis für das Objekt name.
         :return: Preis in Gold, oder None, wenn nicht gekauft wird.
         """
         return ALLGEMEINE_PREISE.get(name)
 
-    def _verkaufen(self, mänx, gegenstand, menge):
+    def _verkaufen(self, nsc: NSC, mänx: Mänx, gegenstand: Item, menge: int) -> None:
         """Versuch interaktiv, an den Händler zu verkaufen."""
         if menge <= 0:
             malp("Jetzt mal ernsthaft, gib eine positive Anzahl an.")
@@ -107,47 +106,30 @@ class Händler(NSC):
             elif preis * menge >= mänx.inventar["Gold"]:
                 malp("So viel kannst du dir nicht leisten")
             else:
-                self.verkaufen(mänx, gegenstand, preis, menge)
+                self.verkaufen(nsc, mänx, gegenstand, preis, menge)
                 malp("Verkauft.")
 
-    def zeige_auslage(self) -> None:
+    def zeige_auslage(self, nsc: NSC) -> None:
         """Printe die Auslage auf den Bildschirm."""
         etwas_da = False
         länge = max(len(a) for a in self.verkauft) + 1
         for item, preis in self.verkauft.items():
-            anzahl = self.inventar[item]
+            anzahl = nsc.inventar[item]
             if anzahl:
                 etwas_da = True
                 malp(f"{item:<{länge}}{anzahl:04}x {preis:3} Gold")
         if not etwas_da:
             malp("Der Händler*in hat nichts mehr zu verkaufen")
 
-    def vorstellen(self, mänx: Mänx) -> None:
-        malp("Du stehst du vor dem Händler*in", self.name)
-        if self.kauft is None:
-            malp("Er kauft grundsätzlich alles")
-        elif self.kauft:
-            malp("Er kauft", ", ".join(self.kauft))
-        self.zeige_auslage()
-
-    def optionen(self, mänx: Mänx) -> NSCOptionen:
-        yield ("handeln", "handel", self.handeln)
-        yield from super().optionen(mänx)
-
-    def _main(self, mänx: Mänx):
-        if self.direkt_handeln:
-            self.handeln(mänx)
-        else:
-            super()._main(mänx)
-
-    def handeln(self, mänx: Mänx) -> Rückkehr | Fortsetzung:
+    def __call__(self, nsc: NSC, mänx: Mänx) -> Rückkehr | Fortsetzung:
         """Lass Spieler mit Mänx handeln"""
+        self.zeige_auslage(nsc)
         if mänx.ausgabe.terminal:
             mänx.tutorial("handel")
         menu = InventarMenu([
-            InventarOption("kaufen", self),
-            InventarOption("verkaufen", mänx),
-            InventarOption("preis", self, menge=False),
+            InventarOption("kaufen",),
+            InventarOption("verkaufen",),
+            InventarOption("preis", menge=False),
             "auslage",
             "reden",
             "kämpfen",
@@ -157,12 +139,12 @@ class Händler(NSC):
             "nur k zum Kämpfen, p [Item] um nach dem Preis zu fragen."
         )
         while True:
-            a, gegenstand, menge = menu.main(mänx, save=self)
+            a, gegenstand, menge = menu.main(mänx, save=nsc)
             al = a[0]
             if a == "kaufen":
-                malp(self.kaufen(mänx, gegenstand, menge))
+                malp(self.kaufen(nsc, mänx, gegenstand, menge))
             elif al == "v":
-                self._verkaufen(mänx, gegenstand, menge)
+                self._verkaufen(nsc, mänx, gegenstand, menge)
             elif al == "p":
                 preis = self.get_preis(gegenstand)
                 if preis is None:
@@ -171,15 +153,11 @@ class Händler(NSC):
                     malp(
                         f"Der Händler ist bereit, dir dafür {preis} Gold zu zahlen.")
             elif al == "a":
-                self.zeige_auslage()
+                self.zeige_auslage(nsc)
             elif al == "z" or al == "w" or al == "f":
                 return Rückkehr.ZURÜCK
-            elif al == "k":
-                if ja_nein(mänx, "Wirklich kämpfen? "):
-                    self.kampf(mänx)
-                    return Rückkehr.VERLASSEN
             elif al == "r":
-                ans = self.reden(mänx)
+                ans = nsc.reden(mänx)
                 if ans != Rückkehr.ZURÜCK:
                     return ans
             else:
@@ -190,7 +168,7 @@ class Händler(NSC):
 class InventarOption:
     """Eine Option für InventarMenu."""
     name: str
-    inventar: InventarBasis
+#    inventar: InventarBasis
     menge: bool = True
     allow_missing: bool = True
 
