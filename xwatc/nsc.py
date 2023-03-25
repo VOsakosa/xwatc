@@ -385,13 +385,13 @@ class NSC(system.InventarBasis):
     def sprich(self, text: str | Sequence[str | dorf.Malp], *args, **kwargs) -> None:
         """Minte mit vorgestelltem Namen"""
         if isinstance(text, str):
-            system.sprich(self.name, text, *args, **kwargs)
+            system.sprich(self.bezeichnung.kurz_name, text, *args, **kwargs)
         else:
             for block in text:
                 if isinstance(block, dorf.Malp):
                     block()
                 else:
-                    system.sprich(self.name, block, *args, **kwargs)
+                    system.sprich(self.bezeichnung.kurz_name, block, *args, **kwargs)
 
     def add_freundlich(self, wert: int, grenze: int) -> None:
         """Füge Freundlichkeit hinzu, aber überschreite nicht die Grenze."""
