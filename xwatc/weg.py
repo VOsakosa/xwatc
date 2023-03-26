@@ -3,14 +3,14 @@ Wegpunkte für JTGs Wegesystem.
 Created on 17.10.2020
 """
 from __future__ import annotations
+from collections.abc import Collection, Callable, Iterable, Iterator, Mapping, Sequence
 import enum
 import random
 from dataclasses import dataclass
 from xwatc.utils import uartikel, bartikel, adj_endung, UndPred
 import typing
-from typing import (List, Any, Optional as Opt, cast, Iterable, Union, Sequence,
-                    Collection, Callable, Dict, Tuple, NewType, Mapping,
-                    overload, Iterator, TYPE_CHECKING,
+from typing import (Any, Optional as Opt, cast, Union, NewType,
+                    overload, TYPE_CHECKING,
                     runtime_checkable, Protocol)
 from xwatc.system import (Mänx, MenuOption, MänxFkt, InventarBasis, malp, mint,
                           MänxPrädikat)
@@ -20,15 +20,15 @@ if TYPE_CHECKING:
 
 __author__ = "jasper"
 
-GEBIETE: Dict[str, Callable[[Mänx], 'Wegpunkt']] = {}
+GEBIETE: dict[str, Callable[[Mänx], 'Wegpunkt']] = {}
 # Die Verbindungen zwischen Gebieten
-EINTRITTSPUNKTE: Dict[Tuple[str, str], 'Gebietsende'] = {}
-ADAPTER: Dict[str, 'WegAdapter'] = {}
+EINTRITTSPUNKTE: dict[tuple[str, str], 'Gebietsende'] = {}
+ADAPTER: dict[str, 'WegAdapter'] = {}
 
 
 @dataclass
 class WegEnde:
-    """Wir vom Wegpunkt zurückgegeben und markiert, dass das
+    """Wird vom Wegpunkt zurückgegeben und markiert, dass das
     Wegsystem hier zu Ende ist und in das alte, MänxFkt-basierte
     System übergegangen wird.
     """
@@ -40,34 +40,34 @@ class Wegpunkt(Protocol):
     """Wegpunkte sind die Einheiten im Wegegraph.
     """
 
-    def get_nachbarn(self) -> List[Wegpunkt]:
+    def get_nachbarn(self) -> list[Wegpunkt]:
         """Gebe eine Liste von Nachbarn aus, sprich Wegpunkte, die von
         hier aus erreichbar sind."""
         return []
 
-    def main(self, _mänx: Mänx, von: Opt[Wegpunkt]) -> Union[Wegpunkt, WegEnde]:
+    def main(self, _mänx: Mänx, von: Wegpunkt | None) -> Wegpunkt | WegEnde:
         """Betrete den Wegpunkt mit mänx aus von."""
 
     def verbinde(self, _anderer: Wegpunkt):
-        """Verbinde den Wegpunkt mit anderer. Nur für Wegpunkte mit nur einer
+        """Verbinde den Wegpunkt mit anderen. Nur für Wegpunkte mit nur einer
         Seite."""
 
 
 class _Strecke(Wegpunkt):
     """Abstrakte Basisklasse für Wegpunkte, die zwei Orte verbinden."""
 
-    def __init__(self, p1: Opt[Wegpunkt], p2: Opt[Wegpunkt] = None):
+    def __init__(self, p1: Wegpunkt | None, p2: Wegpunkt | None = None):
         super().__init__()
         self.p1 = self._verbinde(p1)
         self.p2 = self._verbinde(p2)
 
-    def _verbinde(self, anderer: Opt[Wegpunkt]) -> Opt[Wegpunkt]:
+    def _verbinde(self, anderer: Wegpunkt | None) -> Wegpunkt | None:
         """Ruft anderer.verbinde(self) auf."""
         if anderer:
             anderer.verbinde(self)
         return anderer
 
-    def get_nachbarn(self) -> List[Wegpunkt]:
+    def get_nachbarn(self) -> list[Wegpunkt]:
         return [a for a in (self.p1, self.p2) if a]
 
     def verbinde(self, anderer: Wegpunkt) -> None:
@@ -99,10 +99,10 @@ class Weg(_Strecke):
     Zwei Menschen auf dem Weg zählen als nicht benachbart."""
 
     def __init__(self, länge: float,
-                 p1: Opt[Wegpunkt] = None,
-                 p2: Opt[Wegpunkt] = None,
-                 monster_tag: Opt[List[MonsterChance]] = None,
-                 monster_nachts: Opt[List[MonsterChance]] = None):
+                 p1: Wegpunkt | None = None,
+                 p2: Wegpunkt | None = None,
+                 monster_tag: Opt[list[MonsterChance]] = None,
+                 monster_nachts: Opt[list[MonsterChance]] = None):
         """
         :param länge: Länge in Stunden
         :param p1: Startpunkt
@@ -132,7 +132,7 @@ class Weg(_Strecke):
                     return mon.main(mänx)
         return False
 
-    def main(self, mänx: Mänx, von: Opt[Wegpunkt]) -> Wegpunkt:
+    def main(self, mänx: Mänx, von: Wegpunkt | None) -> Wegpunkt:
         tagrest = mänx.welt.tag % 1.0
         if tagrest < 0.5 and tagrest + self.länge >= 0.5:
             if von and mänx.ja_nein("Du wirst nicht vor Ende der Nacht ankommen. "
@@ -163,7 +163,7 @@ class Weg(_Strecke):
 
 
 class Wegtyp(enum.Enum):
-    """Ein Typ von Weg, mit entsprechenden autogenerierten Meldungen an
+    """Ein Typ von Weg, mit entsprechenden auto-generierten Meldungen an
     Kreuzungen."""
     STRASSE = "Straße", "f"
     ALTE_STRASSE = "alt# Straße", "f"
@@ -220,7 +220,7 @@ HIMMELSRICHTUNGEN = [a + "en" for a in (
 )]
 HIMMELSRICHTUNG_KURZ = ["n", "no", "o", "so", "s", "sw", "w", "nw"]
 _StrAsHimmelsrichtung = NewType("_StrAsHimmelsrichtung", str)
-NachbarKey = Union['Himmelsrichtung', _StrAsHimmelsrichtung]
+
 
 
 class Himmelsrichtung:
@@ -231,7 +231,7 @@ class Himmelsrichtung:
         self.nr = nr
 
     @classmethod
-    def from_kurz(cls, kurz: str) -> NachbarKey:
+    def from_kurz(cls, kurz: str) -> 'NachbarKey':
         try:
             nr = HIMMELSRICHTUNG_KURZ.index(kurz)
             return cls(kurz, nr)
@@ -261,6 +261,8 @@ class Himmelsrichtung:
     def __str__(self):
         return self.kurz
 
+NachbarKey = _StrAsHimmelsrichtung | Himmelsrichtung
+
 
 class Beschreibung:
     """Das Äquivalent von Dialogen für Wegpunkte.
@@ -269,12 +271,12 @@ class Beschreibung:
     Wenn der Mänx den Wegpunkt aus einer der genannten Richtungen betritt, wird
     die Beschreibung abgespielt.
     """
-    geschichte: Union[Sequence[str], MänxFkt]
+    geschichte: Sequence[str] | MänxFkt
 
     def __init__(self,
-                 geschichte: Union[Sequence[str], MänxFkt],
-                 nur: Opt[Collection[Opt[str]]] = None,
-                 außer: Opt[Collection[Opt[str]]] = None,
+                 geschichte: Sequence[str] | MänxFkt,
+                 nur: Collection[str | None] | None = None,
+                 außer: Collection[str | None] | None = None,
                  warten: bool = False):
         if isinstance(geschichte, str):
             self.geschichte = [geschichte]
@@ -287,7 +289,7 @@ class Beschreibung:
         self.außer = self._nur(außer)
         self.warten = warten
 
-    def beschreibe(self, mänx: Mänx, von: Opt[str]) -> Opt[Any]:
+    def beschreibe(self, mänx: Mänx, von: str | None) -> Any | None:
         """Führe die Beschreibung aus."""
         if (not self.nur or von in self.nur) and (
                 not self.außer or von not in self.außer):
@@ -303,7 +305,7 @@ class Beschreibung:
         return None
 
     @staticmethod
-    def _nur(nur: Opt[Collection[Opt[str]]]) -> Opt[Collection[Opt[str]]]:
+    def _nur(nur: Opt[Collection[str | None]]) -> Opt[Collection[str | None]]:
         """Macht einen String zu einer Liste von Strings"""
         if isinstance(nur, str):
             return [nur]
@@ -322,7 +324,7 @@ _NSpec = _NotSpecifiedT(object())
 OpRiIn = Union[RiIn, _NotSpecifiedT]
 
 
-def _to_richtung(richtung: RiIn) -> Opt[Richtung]:
+def _to_richtung(richtung: RiIn) -> Richtung | None:
     if isinstance(richtung, Richtung) or richtung is None:
         return richtung
     else:
@@ -380,18 +382,18 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         for ri in self.nachbarn.values():
             if ri:
                 ri.ziel.verbinde(self)
-        self.beschreibungen: List[Beschreibung] = []
+        self.beschreibungen: list[Beschreibung] = []
         self.menschen = list(menschen)
         self.gucken = gucken
         self.immer_fragen = immer_fragen
         self.kreuzung_beschreiben = kreuzung_beschreiben
-        self._gebiet: Opt[str] = None
+        self._gebiet: str | None = None
         self._wenn_fn: dict[str, MänxPrädikat] = {}
 
     def add_beschreibung(self,
-                         geschichte: Union[Sequence[str], MänxFkt],
-                         nur: Opt[Sequence[Opt[str]]] = None,
-                         außer: Opt[Sequence[Opt[str]]] = None,
+                         geschichte: Sequence[str] | MänxFkt,
+                         nur: Sequence[str | None] | None = None,
+                         außer: Sequence[str | None] | None = None,
                          warten: bool = False):
         """Füge eine Beschreibung hinzu, die immer abgespielt wird, wenn
         der Wegpunkt betreten wird."""
@@ -399,9 +401,9 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
             Beschreibung(geschichte, nur, außer, warten))
 
     def add_effekt(self,
-                   geschichte: Union[Sequence[str], MänxFkt],
-                   nur: Opt[Sequence[Opt[str]]] = None,
-                   außer: Opt[Sequence[Opt[str]]] = None,
+                   geschichte: Sequence[str] | MänxFkt,
+                   nur: Sequence[str | None] | None = None,
+                   außer: Sequence[str | None] | None = None,
                    warten: bool = True):
         """Füge eine Geschichte hinzu, die passiert, wenn der Ort betreten
         wird."""
@@ -409,12 +411,15 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
             Beschreibung(geschichte, nur, außer, warten))
 
     def wenn(self, richtung: str, fn: MänxPrädikat) -> None:
+        """Erlaube eine Richtung nur, wenn die folgende Funktion wahr ist.
+        Mehrere Funktionen werden verundet.
+        """
         if richtung in self._wenn_fn:
             self._wenn_fn[richtung] = UndPred(self._wenn_fn[richtung], fn)
         else:
             self._wenn_fn[richtung] = fn
 
-    def beschreibe(self, mänx: Mänx, ri_name: Opt[str | Himmelsrichtung]):
+    def beschreibe(self, mänx: Mänx, ri_name: str | Himmelsrichtung | None):
         """Beschreibe die Kreuzung von richtung kommend.
 
         Beschreibe muss idempotent sein, das heißt, mehrfache Aufrufe verändern
@@ -432,10 +437,11 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         #    mensch.vorstellen(mänx)
 
     @overload
-    def __getitem__(self, i: slice) -> List[Opt[Richtung]]: ...  # @UnusedVariable
+    def __getitem__(
+        self, i: slice) -> list[Richtung | None]: ...  # @UnusedVariable
 
     @overload
-    def __getitem__(self, i: int) -> Opt[Richtung]: ...  # @UnusedVariable
+    def __getitem__(self, i: int) -> Richtung | None: ...  # @UnusedVariable
 
     @overload
     def __getitem__(self, i: str) -> Richtung: ...  # @UnusedVariable
@@ -455,13 +461,13 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                 return ans
         raise TypeError(i, "must be str, int or slice.")
 
-    def _finde_texte(self, richtung: int) -> List[str]:
+    def _finde_texte(self, richtung: int) -> list[str]:
         """Finde die Beschreibungstexte, die auf die Kreuzung passen."""
         rs = self[richtung:] + self[:richtung]
-        ans: List[str] = []
+        ans: list[str] = []
         min_arten = 8
         for flt, txt in WEGPUNKTE_TEXTE:
-            typen: Dict[int, Wegtyp] = {}
+            typen: dict[int, Wegtyp] = {}
             art_count = 0
             for stp, tp in zip(rs, flt):
                 if tp == 0 and stp is None:
@@ -483,7 +489,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                 ans.append(txt.format(w=typen))
         return ans
 
-    def beschreibe_kreuzung(self, richtung: Opt[int]):  # pylint: disable=unused-argument
+    def beschreibe_kreuzung(self, richtung: int | None):  # pylint: disable=unused-argument
         """Beschreibe die Kreuzung anhand ihrer Form."""
         rs = self[:]
         if richtung is not None:
@@ -505,7 +511,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                          HIMMELSRICHTUNGEN[i] + ".")
 
     def optionen(self, mänx: Mänx,
-                 von: Opt[NachbarKey]) -> Iterable[MenuOption[
+                 von: NachbarKey | None) -> Iterable[MenuOption[
                      Union[Wegpunkt, 'dorf.NSC', 'nsc.NSC']]]:
         """Sammelt Optionen, wie der Mensch sich verhalten kann."""
         for mensch in self.menschen:
@@ -527,14 +533,14 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                     ziel = himri
                 yield (ziel, format(himri).lower(), ri.ziel)
 
-    def _richtungen(self, mänx: Mänx, von: Opt[NachbarKey]
+    def _richtungen(self, mänx: Mänx, von: NachbarKey | None
                     ) -> Iterator[tuple[Richtung, NachbarKey]]:
         """Liste alle möglichen Richtungen in der richtigen Reihenfolge auf.
 
         Zuerst kommen die Himmelsrichtungen, je gerader desto besser.
         Dann kommen die speziellen Orte.
         """
-        def inner() -> Iterator[tuple[NachbarKey, Opt[Richtung]]]:
+        def inner() -> Iterator[tuple[NachbarKey, Richtung | None]]:
             if isinstance(von, Himmelsrichtung):
                 for rirel in self.OPTS:
                     riabs = von + rirel
@@ -554,10 +560,10 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
             if name not in self._wenn_fn or self._wenn_fn[name](mänx):
                 yield richtung, himri_oder_name
 
-    def get_nachbarn(self) -> List[Wegpunkt]:
+    def get_nachbarn(self) -> list[Wegpunkt]:
         return [ri.ziel for ri in self.nachbarn.values() if ri]
 
-    def main(self, mänx: Mänx, von: Opt[Wegpunkt] = None) -> Wegpunkt:
+    def main(self, mänx: Mänx, von: Wegpunkt | None = None) -> Wegpunkt:
         """Fragt nach allen Richtungen."""
         from xwatc.nsc import NSC
         von_key = None
@@ -596,7 +602,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                          nach: Wegkreuzung,
                          länge: float,
                          richtung: str,
-                         richtung2: Opt[str] = None,
+                         richtung2: str | None = None,
                          typ: Wegtyp = Wegtyp.WEG,
                          beschriftung_hin: str = "",
                          beschriftung_zurück: str = "",
@@ -630,7 +636,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
 class WegAdapter(_Strecke):
     """Ein Übergang von Wegesystem zum normalen System."""
 
-    def __init__(self, nächster: Opt[Wegpunkt], zurück: MänxFkt,
+    def __init__(self, nächster: Wegpunkt | None, zurück: MänxFkt,
                  name: str = ""):
         super().__init__(nächster, None)
         self.zurück = zurück
@@ -638,7 +644,7 @@ class WegAdapter(_Strecke):
         if name:
             ADAPTER[name] = self
 
-    def main(self, mänx: Mänx, von: Opt[Wegpunkt]) -> Union[Wegpunkt, WegEnde]:
+    def main(self, mänx: Mänx, von: Wegpunkt | None) -> Union[Wegpunkt, WegEnde]:
         if von:
             return WegEnde(self.zurück)
         assert self.p1, "Loses Ende"
@@ -666,14 +672,14 @@ class WegSperre(_Strecke):
     ```
     """
 
-    def __init__(self, start: Opt[Wegpunkt], ende: Opt[Wegpunkt],
+    def __init__(self, start: Wegpunkt | None, ende: Wegpunkt | None,
                  hin: Opt[MänxPrädikat] = None,
                  zurück: Opt[MänxPrädikat] = None):
         super().__init__(start, ende)
         self.hin = hin
         self.zurück = zurück
 
-    def main(self, mänx: Mänx, von: Opt[Wegpunkt]) -> Union[Wegpunkt, WegEnde]:
+    def main(self, mänx: Mänx, von: Wegpunkt | None) -> Union[Wegpunkt, WegEnde]:
         assert self.p2
         assert self.p1
         if von is self.p1:
@@ -692,7 +698,7 @@ class WegSperre(_Strecke):
 class Gebietsende(_Strecke):
     """Das Ende eines Gebietes ist der Anfang eines anderen."""
 
-    def __init__(self, von: Opt[Wegpunkt],
+    def __init__(self, von: Wegpunkt | None,
                  gebiet: str,  # pylint: disable=redefined-outer-name
                  port: str, nach: str):
         """Erzeuge ein Gebietsende.
@@ -710,14 +716,14 @@ class Gebietsende(_Strecke):
         assert nach in GEBIETE, f"Unbekanntes Gebiet: {nach}"
 
     @property
-    def von(self) -> Opt[Wegpunkt]:
+    def von(self) -> Wegpunkt | None:
         return self.p1
 
     @von.setter
-    def von(self, wegpunkt: Opt[Wegpunkt]):
+    def von(self, wegpunkt: Wegpunkt | None):
         self.p1 = wegpunkt
 
-    def main(self, mänx: Mänx, von: Opt[Wegpunkt]) -> Wegpunkt:
+    def main(self, mänx: Mänx, von: Wegpunkt | None) -> Wegpunkt:
         if self.p2:
             return self.p2
         else:
@@ -769,7 +775,7 @@ def wegsystem(mänx: Mänx, start: Union[Wegpunkt, str]) -> None:
     typing.cast(WegEnde, wp).weiter(mänx)
 
 
-WEGPUNKTE_TEXTE: List[Tuple[List[int], str]] = [
+WEGPUNKTE_TEXTE: list[tuple[list[int], str]] = [
 
     ([1, 0, 0, 0, 2, 0, 0, 0], "{w[1]:111} wird zu {w[2]:03}"),
     # Kurven
