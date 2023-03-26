@@ -46,10 +46,10 @@ class Wegpunkt(Protocol):
         hier aus erreichbar sind."""
         return []
 
-    def main(self, _mänx: Mänx, von: Wegpunkt | None) -> Wegpunkt | WegEnde:
+    def main(self, __mänx: Mänx, von: Wegpunkt | None) -> Wegpunkt | WegEnde:
         """Betrete den Wegpunkt mit mänx aus von."""
 
-    def verbinde(self, _anderer: Wegpunkt):
+    def verbinde(self, __anderer: Wegpunkt):
         """Verbinde den Wegpunkt mit anderen. Nur für Wegpunkte mit nur einer
         Seite."""
 
@@ -339,6 +339,27 @@ def _to_richtung(richtung: RiIn) -> Richtung | None:
         return Richtung(ziel=richtung)
 
 
+def kreuzung(
+    name: str,
+    gucken: MänxFkt | None = None,
+    kreuzung_beschreiben: bool = False,
+    immer_fragen: bool = False,
+    menschen: Sequence[dorf.NSC | nsc.NSC] = (),
+    **kwargs: RiIn
+) -> 'Wegkreuzung':
+    """Konstruktor für Wegkreuzungen ursprünglichen Typs, die nicht auf einem Gitter liegen,
+    aber hauptsächlich Himmelsrichtungen für Richtungen verwenden."""
+    hri_dct = {}
+    andere = {}
+    for key, value in kwargs.items():
+        if key in HIMMELSRICHTUNG_KURZ:
+            hri_dct[key] = value
+        else:
+            andere[key] = value
+    return Wegkreuzung(name, gucken=gucken, kreuzung_beschreiben=kreuzung_beschreiben,
+                       immer_fragen=immer_fragen, menschen=menschen, andere=andere, **hri_dct)
+
+
 class Wegkreuzung(Wegpunkt, InventarBasis):
     """Eine Wegkreuzung enthält ist ein Punkt, wo
     1) mehrere Wege fortführen
@@ -519,8 +540,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                          HIMMELSRICHTUNGEN[i] + ".")
 
     def optionen(self, mänx: Mänx,
-                 von: NachbarKey | None) -> Iterable[MenuOption[
-                     Union[Wegpunkt, 'dorf.NSC', 'nsc.NSC']]]:
+                 von: NachbarKey | None) -> Iterable[MenuOption[Wegpunkt | 'nsc.NSC']]:
         """Sammelt Optionen, wie der Mensch sich verhalten kann."""
         for mensch in self.menschen:
             yield ("Mit " + mensch.name + " reden", mensch.name.lower(),

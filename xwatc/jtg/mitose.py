@@ -17,7 +17,7 @@ from xwatc.dorf import Dorf, Malp, Dialog, Ort, Zeitpunkt
 from xwatc import weg
 from xwatc import jtg
 from xwatc.haendler import Preis, mache_händler, HandelsFn
-from xwatc.weg import Wegkreuzung
+from xwatc.weg import kreuzung
 from typing import List, Tuple, Sequence
 from xwatc.nsc import Person, StoryChar, bezeichnung, NSC
 __author__ = "jasper"
@@ -97,11 +97,11 @@ def erzeuge_norddörfer(mänx: Mänx) -> weg.Wegpunkt:
                     "Ein unkrautbewucherter Hinterhof des Rathaus.")
     mitose_ort.verbinde(hinterhof)
 
-    kraut = Wegkreuzung("kraut", immer_fragen=True)
+    kraut = kreuzung("kraut", immer_fragen=True)
     kraut.add_effekt(kräutergebiet)
-    kili = Wegkreuzung("kili", immer_fragen=True)
+    kili = kreuzung("kili", immer_fragen=True)
     kili.add_effekt(mänx.welt.obj("jtg:kiliwolf").main)
-    waldkreuz = Wegkreuzung("waldkreuz")
+    waldkreuz = kreuzung("waldkreuz")
     waldkreuz.add_beschreibung("Der Pfad gabelt sich.", nur="o")
     waldkreuz.add_beschreibung("Du kommst zurück an die Gabelung",
                                nur=["sw", "nw"])
