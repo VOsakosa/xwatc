@@ -95,7 +95,7 @@ class Terminal:
 
     @staticmethod
     def spezial_taste(mänx: Mänx, taste: str,
-             save: 'Speicherpunkt | None' = None) -> bool:
+                      save: 'Speicherpunkt | None' = None) -> bool:
         """Führe die Spezialaktion taste aus, oder gebe Falsch zurück."""
         from xwatc.system import Spielende
         from xwatc.untersystem import hilfe
@@ -106,8 +106,6 @@ class Terminal:
         elif taste == "uhr" or taste == "uhrzeit":
             print("Tag {}, {:02}:{:02} Uhr".format(
                 mänx.welt.get_tag() + 1, *mänx.welt.uhrzeit()))
-        elif taste == "q":
-            print(mänx.missionen_zeigen())
         elif taste == "hilfe":
             print("Entkomme mit 'sofort sterben'. Nebeneffekt: Tod.")
             print("Wenn du einfach nur Hilfe zu irgendwas haben willst, schreibe"
@@ -122,7 +120,6 @@ class Terminal:
             else:
                 print("Hier kannst du nicht speichern.")
         elif taste.startswith("hilfe "):
-
             args = taste[6:]
             if args.lower() in hilfe.HILFEN:
                 for line in hilfe.HILFEN[args.lower()]:

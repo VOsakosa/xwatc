@@ -171,7 +171,7 @@ class Mänx(InventarBasis, Persönlichkeit):
         super().__init__()
         self.ausgabe: Terminal | 'anzeige.XwatcFenster' = ausgabe
         self.gebe_startinventar()
-        self.gefährten: List['dorf.NSC'] = []
+        self.gefährten: List['nsc.NSC'] = []
         self.titel: Set[str] = set()
         self.lebenspunkte = 100
         self.fähigkeiten: Set[str] = set()
@@ -196,13 +196,6 @@ class Mänx(InventarBasis, Persönlichkeit):
         self.inventar["Socke"] = 2
         self.inventar["Turnschuh"] = 2
         self.inventar["Mütze"] = 1
-
-    def missionen_zeigen(self):
-        ans = []
-        for item, anzahl in self.inventar.items():
-            if anzahl:
-                ans.append(f"{anzahl}x {item}")
-        return ", ".join(ans)
 
     def inventar_leeren(self) -> None:
         """Töte den Menschen, leere sein Inventar und entlasse
