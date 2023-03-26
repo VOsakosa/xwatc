@@ -1,5 +1,3 @@
-from time import sleep
-import xwatc_Hauptgeschichte as xwatc
 from xwatc.system import Mänx, minput, kursiv, ja_nein, mint, Spielende, malp
 from xwatc import jtg as jaspersteilgeschichte
 import random
@@ -10,34 +8,35 @@ def osten(mänx: Mänx):
          "dein Proviant ist aufgebraucht, dein Mund trocken und"
          " dein Magen knurrt.")
     malp("Es ist heiß, höllisch heiß. In der Ferne siehst du einen Höhleneingang. In der anderen Richtung"
-          " siehst du etwas das wie eine Oase aussieht.")
-    richtung = minput(mänx, "Gehst du einfach geradeaus, gehst du zur Oase oder zum Höhleneingang?"
-                      "w/Oase/Höhle", ["w", "oase", "höhle"]).lower()
+         " siehst du etwas das wie eine Oase aussieht.")
+    richtung = mänx.minput("Gehst du einfach geradeaus, gehst du zur Oase oder zum Höhleneingang?",
+                           ["w", "oase", "höhle"])
     if richtung == "oase":
         mint("Du läufst zur Oase, aber als du dort ankommst ist sie weg. An ihrer Stelle"
              "stehen dort zwei Türen. Eine Inschrift verkündet: Die eine in den Tode führet, "
              "die andre zu nem andren Ort.")
-        weg = minput(mänx, "In welche Tür gehst du? t1/t2", ["t2", "t1"])
+        weg = minput(mänx, "In welche Tür gehst du?", ["t1", "t2"])
         if weg == "t1":
             malp("Du spürst instinktiv, dass das die falsche Entscheidung war.")
             raise Spielende
-        elif weg == "t2":
+        else:
+            assert weg == "t2"
             malp("Hinter der Tür ist es warm und sonnig.")
-            sleep(1)
+            mänx.sleep(1)
             mänx.welt.setze("jtg:t2")
             jaspersteilgeschichte.t2(mänx)
     elif richtung == "w":
         mint("Du läufst weiter bis du eine Karawane siehst. Ein sonnengebräunter Mann läuft zu dir. ")
         mint("Du hast die Wahl, sagt der Mann. Wenn du mich "
-             "tötest gehört die gesamte Karawane dir. Du kannst aber auch mein Leibdiener werden."
-             " Dann bekommst du täglich Essen und dir wird sogar ein kleiner Lohn für 1 Gold pro"
-             " Woche ausgezahlt. Mit 10 Gold kannst du dich dann freikaufen.")
+             "tötest, gehört die gesamte Karawane dir. Du kannst aber auch mein Leibdiener werden. "
+             "Dann bekommst du täglich Essen und dir wird sogar ein kleiner Lohn, 31 Gold pro "
+             "Woche, ausgezahlt. Mit 310 Gold kannst du dich dann freikaufen.")
         Entscheidung = minput(mänx, "Wirst du sein Leibdiener oder kämpfst du gegen ihn?"
                               "leibdiener/kampf/flucht.(l/k/f)", ["l", "k", "f"])
 
         if Entscheidung == "l":
             malp('"Hurra!", der Mann strahlt. Ich hatte noch nie einen Arak als Diener!')
-            sleep(1)
+            mänx.sleep(1)
             mint("Nun beginnt dein Leben als Diener")
 
         elif Entscheidung == "k":
@@ -52,7 +51,8 @@ def osten(mänx: Mänx):
 
             raise Spielende
 
-    else:  # richtung == "höhle":
+    else: 
+        assert richtung == "höhle"
         höhle(mänx)
 
 
@@ -76,12 +76,12 @@ def höhle(mänx: Mänx):
 
 def bergbau(mänx: Mänx):
     malp("Du nimmst dir eine Spitzhacke und fängst an, den Stein zu bearbeiten. Warte eine Minute.")
-    sleep(61)
+    mänx.sleep(61)
     mänx.inventar["Spitzhacke"] += 1
     mänx.inventar["Stein"] += 4
     minput(mänx, "Du bekommst Zeug")
     if mänx.ja_nein("Arbeitest du weiter?"):
-        sleep(59)
+        mänx.sleep(59)
         a = random.randint(1, 120)
         if 1 <= a <= 27:
             mint("Du bekommst ein bisschen Stein")
@@ -229,7 +229,7 @@ def monster(mänx: Mänx):
         malp("Nein... Anscheinend befindest du dich in einer Höhle.")
         mint("In einer mit leuchtend blauem Gras bewachsenen Höhle.")
         malp("Und noch etwas war seltsam: "
-              "Irgendwie fühlst du dich kräftiger, ", kursiv("lebendiger!"), "")
+             "Irgendwie fühlst du dich kräftiger, ", kursiv("lebendiger!"), "")
         mint("Unwillkürlich schaust du an dir herunter – Und erstarrst!")
         mint("Keine Haut mehr an deinem Fleisch, "
              "kein Fleisch mehr an deinen Knochen: "
