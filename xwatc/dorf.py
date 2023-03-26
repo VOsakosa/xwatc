@@ -207,56 +207,9 @@ def ort(
                           *menschen], immer_fragen=True, dorf=dorf)
     if text:
         ans.add_beschreibung(text)
-
+    if dorf:
+        dorf.orte.append(ans)
     return ans
-
-
-class Ort(weg.Wegkreuzung):
-    """Ein Ort im Dorf, wo sich Menschen aufhalten können"""
-
-    def __init__(self,
-                 name: str,
-                 dorf: Union[None, Dorf, Ort],
-                 text: Opt[Sequence[str]] = None,
-                 menschen: Sequence[nsc.NSC] = ()):
-        """
-        ```
-        ort = Ort("Taverne Zum Katzenschweif", None, # wird noch hinzugefügt
-                  "Eine lebhafte Taverne voller Katzen",
-                  [
-                      welt.obj("genshin:mond:diona"),
-                      welt.obj("genshin:mond:margaret")
-                  ])
-        ```
-        """
-        super().__init__(name, {}, menschen=[*menschen], immer_fragen=True)
-        if text:
-            if isinstance(text, str):
-                text = [text]
-            self.add_beschreibung(text)
-        if isinstance(dorf, Ort):
-            self.dorf: Dorf | None = dorf.dorf
-        else:
-            self.dorf = dorf
-        if self.dorf:
-            self.dorf.orte.append(self)
-
-    def verbinde(self,
-                 anderer: weg.Wegpunkt, richtung: str = "",
-                 typ: weg.Wegtyp = weg.Wegtyp.WEG, ziel: str = ""):
-        if isinstance(anderer, Ort) and not richtung:
-            anderer.nachbarn[Himmelsrichtung.from_kurz(
-                self.name)] = weg.Richtung(self)
-            self.nachbarn[Himmelsrichtung.from_kurz(
-                anderer.name)] = weg.Richtung(anderer)
-        else:
-            super().verbinde(anderer, richtung=richtung, typ=typ, ziel=ziel)
-
-    def __repr__(self):
-        if self.dorf:
-            return f"Ort {self.name} von {self.dorf.name}"
-        else:
-            return f"Ort {self.name}, Teil keines Dorfes"
 
 
 class Dorf:
@@ -264,33 +217,33 @@ class Dorf:
     Es gibt einen Standard-Ort, nämlich "draußen".
     """
 
-    def __init__(self, name: str, orte: list[Ort] | None = None) -> None:
+    def __init__(self, name: str, orte: list[weg.Wegkreuzung] | None = None) -> None:
         if orte:
             self.orte = orte
         else:
             self.orte = []
-            Ort("draußen", self, "Du bist draußen.")
+            ort("draußen", self, "Du bist draußen.")
         self.name = name
 
     def main(self, mänx) -> Fortsetzung | None:
         malp(f"Du bist in {self.name}. Möchtest du einen der Orte betreten oder "
              "draußen bleiben?")
-        orte: list[MenuOption[Ort | None]] = [
+        orte: list[MenuOption[weg.Wegkreuzung | None]] = [
             (ort.name, ort.name.lower(), ort) for ort in self.orte[1:]]
         orte.append(("Bleiben", "", self.orte[0]))
         orte.append((f"{self.name} verlassen", "v", None))
         loc = mänx.menu(orte, frage="Wohin? ", save=self)
-        while isinstance(loc, Ort):
+        while isinstance(loc, weg.Wegkreuzung):
             loc = self.ort_main(mänx, loc)
         return loc
 
-    def get_ort(self, name: str) -> Ort:
+    def get_ort(self, name: str) -> weg.Wegkreuzung:
         for ort in self.orte:
             if ort.name.casefold() == name.casefold():
                 return ort
         raise KeyError(f"In {self.name} unbekannter Ort {name}")
 
-    def ort_main(self, mänx, ort: Ort) -> Ort | Fortsetzung | None:
+    def ort_main(self, mänx, ort: weg.Wegkreuzung) -> weg.Wegkreuzung | Fortsetzung | None:
         ort.menschen[:] = filter(lambda m: not m.tot, ort.menschen)
         ort.beschreibe(mänx, None)
         if ort.menschen:
@@ -299,7 +252,7 @@ class Dorf:
                 malp(f"{mensch.name}, {mensch.art}")
         else:
             malp("Hier ist niemand.")
-        optionen: list[MenuOption[nsc.NSC | Ort | None]]  # @UnusedVariable
+        optionen: list[MenuOption[nsc.NSC | weg.Wegkreuzung | None]]  # @UnusedVariable
         optionen = [("Mit " + mensch.name + " reden", mensch.name.lower(),
                      mensch) for mensch in ort.menschen]
         optionen.extend((f"Nach {o.name} gehen", o.name.lower(), o)
@@ -308,7 +261,7 @@ class Dorf:
         opt = mänx.menu(optionen, save=self)  # TODO: Den Ort speichern
         if isinstance(opt, nsc.NSC):
             ans = opt.main(mänx)
-            if isinstance(ans, Ort):
+            if isinstance(ans, weg.Wegkreuzung):
                 return ans
             elif ans:
                 return ans
