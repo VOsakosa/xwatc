@@ -331,28 +331,28 @@ def lade_scenario(mänx: Mänx, path: str) -> Op[Any]:
             return ans.ergebnis
     return None
 
-class ScenarioWegpunkt(weg.Wegkreuzung):
-    """Macht ein Scenario zu einem Wegpunkt"""
-    def __init__(self, name: str, scenario: Union[str, Scenario], *args, **kwargs):
-        super().__init__(name, *args, **kwargs)
-        if isinstance(scenario, str):
-            path = scenario
-            if not path.endswith(".txt"):
-                path += ".txt"
-            path = os.path.join(SCENARIO_ORT, path)
-            self.scenario = Scenario.laden(path)
-        else:
-            self.scenario = scenario
-    
-    def main(self, mänx: Mänx, von: Op[weg.Wegpunkt] = None) -> weg.Wegpunkt:
-        # TODO von könnte für verschiedene Spawnpunkte genutzt werden
-        ans = self.scenario.einleiten(mänx)
-        if ans.tot:
-            raise system.Spielende()
-        elif ans.ergebnis:
-            return self[ans.ergebnis].ziel
-        else:
-            raise RuntimeError("Scenario endete ohne Ergebnis!")
+# class ScenarioWegpunkt(weg.Wegkreuzung):
+#     """Macht ein Scenario zu einem Wegpunkt"""
+#     def __init__(self, name: str, scenario: Union[str, Scenario], *args, **kwargs):
+#         super().__init__(name, *args, **kwargs)
+#         if isinstance(scenario, str):
+#             path = scenario
+#             if not path.endswith(".txt"):
+#                 path += ".txt"
+#             path = os.path.join(SCENARIO_ORT, path)
+#             self.scenario = Scenario.laden(path)
+#         else:
+#             self.scenario = scenario
+#
+#     def main(self, mänx: Mänx, von: Op[weg.Wegpunkt] = None) -> weg.Wegpunkt:
+#         # TODO von könnte für verschiedene Spawnpunkte genutzt werden
+#         ans = self.scenario.einleiten(mänx)
+#         if ans.tot:
+#             raise system.Spielende()
+#         elif ans.ergebnis:
+#             return self[ans.ergebnis].ziel
+#         else:
+#             raise RuntimeError("Scenario endete ohne Ergebnis!")
         
 if __name__ == '__main__':
     from xwatc.anzeige import main

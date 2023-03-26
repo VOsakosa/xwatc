@@ -349,63 +349,39 @@ def kreuzung(
 ) -> 'Wegkreuzung':
     """Konstruktor für Wegkreuzungen ursprünglichen Typs, die nicht auf einem Gitter liegen,
     aber hauptsächlich Himmelsrichtungen für Richtungen verwenden."""
-    return Wegkreuzung(name, gucken=gucken, kreuzung_beschreiben=kreuzung_beschreiben,
-                       immer_fragen=immer_fragen, menschen=menschen, **kwargs)
+    nb = {Himmelsrichtung.from_kurz(key): _to_richtung(value)
+          for key, value in kwargs.items()}
+    return Wegkreuzung(name, nb, gucken=gucken, kreuzung_beschreiben=kreuzung_beschreiben,
+                       immer_fragen=immer_fragen, menschen=[*menschen])
 
 
+@define
 class Wegkreuzung(Wegpunkt, InventarBasis):
     """Eine Wegkreuzung enthält ist ein Punkt, wo
     1) mehrere Wege fortführen
     2) NSCs herumstehen, mit denen interagiert werden kann.
 
-    Hier passiert etwas.
+    :param nachbarn: Nachbarn der Kreuzung, nach Richtung oder Ziel
+    :param gucken: das passiert beim gucken
+    :param kreuzung_beschreiben: Ob die Kreuzung sich anhand ihrer
+    angrenzenden Wege beschreiben soll.
+    :param immer_fragen: immer fragen, wie weitergegangen werden soll, auch
+    wenn es keine Abzweigung ist
+    :param menschen: Menschen, die an der Wegkreuzung stehen und angesprochen werden können.
     """
     OPTS: ClassVar[Sequence[int]] = [4, 3, 5, 2, 6, 1, 7]
+    name: str
     nachbarn: dict[NachbarKey, Richtung | None]
+    menschen: list[nsc.NSC] = field(factory=list)
+    immer_fragen: bool = False
+    kreuzung_beschreiben: bool = False
+    gucken: MänxFkt | None = None
+    _gebiet: str | None = None
+    beschreibungen: list[Beschreibung] = field(factory=list)
+    _wenn_fn: dict[str, MänxPrädikat] = field(factory=dict)
 
-    def __init__(self,
-                 name: str,
-                 n: OpRiIn = _NSpec,
-                 nw: OpRiIn = _NSpec,
-                 no: OpRiIn = _NSpec,
-                 o: OpRiIn = _NSpec,
-                 w: OpRiIn = _NSpec,
-                 sw: OpRiIn = _NSpec,
-                 so: OpRiIn = _NSpec,
-                 s: OpRiIn = _NSpec,
-                 gucken: MänxFkt | None = None,
-                 kreuzung_beschreiben: bool = False,
-                 immer_fragen: bool = False,
-                 menschen: Sequence[dorf.NSC | nsc.NSC] = ()):
-        """Erzeuge eine neue Wegkreuzung
-        :param n,nw,no,o,w,sw,s,so: Nachbarn nach Himmelsrichtungen
-        :param andere: weitere Nachbarn
-        :param gucken: das passiert beim gucken
-        :param kreuzung_beschreiben: Ob die Kreuzung sich anhand ihrer
-        angrenzenden Wege beschreiben soll.
-        :param immer_fragen: immer fragen, wie weitergegangen werden soll, auch
-        wenn es keine Abzweigung ist
-        :param menschen: Menschen, die an der Wegkreuzung stehen und angesprochen werden können.
-        """
-        # TODO gucken
+    def __attrs_pre_init__(self):
         super().__init__()
-        self.name = name
-        richtungen = [n, no, o, so, s, sw, w, nw]
-        self.nachbarn = {}
-        for richtung, nr in zip(richtungen, range(8)):
-            if richtung is not _NSpec:
-                self.nachbarn[Himmelsrichtung.from_nr(
-                    nr)] = _to_richtung(cast(RiIn, richtung))
-        for ri in self.nachbarn.values():
-            if ri:
-                ri.ziel.verbinde(self)
-        self.beschreibungen: list[Beschreibung] = []
-        self.menschen = list(menschen)
-        self.gucken = gucken
-        self.immer_fragen = immer_fragen
-        self.kreuzung_beschreiben = kreuzung_beschreiben
-        self._gebiet: str | None = None
-        self._wenn_fn: dict[str, MänxPrädikat] = {}
 
     def add_beschreibung(self,
                          geschichte: Sequence[str] | MänxFkt,

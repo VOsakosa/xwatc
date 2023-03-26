@@ -201,7 +201,7 @@ class Ort(weg.Wegkreuzung):
                   ])
         ```
         """
-        super().__init__(name, menschen=menschen, immer_fragen=True)
+        super().__init__(name, {}, menschen=[*menschen], immer_fragen=True)
         if text:
             if isinstance(text, str):
                 text = [text]
