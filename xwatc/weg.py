@@ -3,18 +3,21 @@ Wegpunkte für JTGs Wegesystem.
 Created on 17.10.2020
 """
 from __future__ import annotations
+
 from attrs import define, field
-from collections.abc import Collection, Callable, Iterable, Iterator, Mapping, Sequence
+from collections.abc import Collection, Callable, Iterable, Iterator, Sequence
+from dataclasses import dataclass
 import enum
 import random
-from dataclasses import dataclass
-from xwatc.utils import uartikel, bartikel, adj_endung, UndPred
+from typing import (
+    Any, ClassVar, Optional as Opt, Union, NewType, overload, TYPE_CHECKING, runtime_checkable,
+    Protocol)
 import typing
-from typing import (Any, ClassVar, Optional as Opt, cast, Union, NewType,
-                    overload, TYPE_CHECKING,
-                    runtime_checkable, Protocol)
+
 from xwatc.system import (Mänx, MenuOption, MänxFkt, InventarBasis, malp, mint,
                           MänxPrädikat)
+from xwatc.utils import uartikel, bartikel, adj_endung, UndPred
+
 if TYPE_CHECKING:
     from xwatc import nsc
     from xwatc import dorf
