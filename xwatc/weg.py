@@ -15,7 +15,7 @@ from typing import (
 import typing
 
 from xwatc.system import (Mänx, MenuOption, MänxFkt, InventarBasis, malp, mint,
-                          MänxPrädikat)
+                          MänxPrädikat, Welt)
 from xwatc.utils import uartikel, bartikel, adj_endung, UndPred
 
 if TYPE_CHECKING:
@@ -380,6 +380,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
     kreuzung_beschreiben: bool = False
     gucken: MänxFkt | None = None
     _gebiet: str | None = None
+    dorf: 'dorf.Dorf | None' = None
     beschreibungen: list[Beschreibung] = field(factory=list)
     _wenn_fn: dict[str, MänxPrädikat] = field(factory=dict)
 
@@ -580,6 +581,13 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
             ans.main(mänx)
         return self
 
+    def __sub__(self, anderer: 'Wegkreuzung') -> 'Wegkreuzung':
+        anderer.nachbarn[Himmelsrichtung.from_kurz(
+            self.name)] = Richtung(self)
+        self.nachbarn[Himmelsrichtung.from_kurz(
+            anderer.name)] = Richtung(anderer)
+        return anderer
+
     def verbinde(self,  # pylint: disable=arguments-differ
                  anderer: Wegpunkt, richtung: str = "",
                  typ: Wegtyp = Wegtyp.WEG, ziel: str = ""):
@@ -621,6 +629,10 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                     ), "Überschreibt bisherigen Weg."
         self.nachbarn[ri1] = Richtung(weg, beschriftung_hin, typ=typ)
         nach.nachbarn[ri2] = Richtung(weg, beschriftung_zurück, typ=typ)
+    
+    def add_nsc(self, welt: Welt, name: str, fkt: Callable[..., nsc.NSC],
+                *args, **kwargs):
+        welt.get_or_else(name, fkt, *args, **kwargs).ort = self
 
     def get_state(self):
         """Wenn der Wegpunkt Daten hat, die über die Versionen behalten

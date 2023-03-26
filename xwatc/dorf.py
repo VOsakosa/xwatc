@@ -183,6 +183,34 @@ HalloDialoge = [
 ]
 
 
+def ort(
+        name: str,
+        dorf: Union[None, Dorf, weg.Wegkreuzung],
+        text: Opt[Sequence[str]] = None,
+        menschen: Sequence[nsc.NSC] = ()) -> weg.Wegkreuzung:
+    """
+    Konstruiere einen neuen Ort. Das ist eine Wegkreuzung, die zu einem Dorf
+    gehört und generell mit Namen statt mit Himmelsrichtung verbunden wird.
+    
+    ```
+    ort = ort("Taverne Zum Katzenschweif", None, # wird noch hinzugefügt
+              "Eine lebhafte Taverne voller Katzen",
+              [
+                  welt.obj("genshin:mond:diona"),
+                  welt.obj("genshin:mond:margaret")
+              ])
+    ```
+    """
+    if isinstance(dorf, weg.Wegkreuzung):
+        dorf = dorf.dorf
+    ans = weg.Wegkreuzung(name, {}, menschen=[
+                          *menschen], immer_fragen=True, dorf=dorf)
+    if text:
+        ans.add_beschreibung(text)
+
+    return ans
+
+
 class Ort(weg.Wegkreuzung):
     """Ein Ort im Dorf, wo sich Menschen aufhalten können"""
 
@@ -213,13 +241,6 @@ class Ort(weg.Wegkreuzung):
         if self.dorf:
             self.dorf.orte.append(self)
 
-    def __sub__(self, anderer: Ort) -> Ort:
-        anderer.nachbarn[Himmelsrichtung.from_kurz(
-            self.name)] = weg.Richtung(self)
-        self.nachbarn[Himmelsrichtung.from_kurz(
-            anderer.name)] = weg.Richtung(anderer)
-        return anderer
-
     def verbinde(self,
                  anderer: weg.Wegpunkt, richtung: str = "",
                  typ: weg.Wegtyp = weg.Wegtyp.WEG, ziel: str = ""):
@@ -230,10 +251,6 @@ class Ort(weg.Wegkreuzung):
                 anderer.name)] = weg.Richtung(anderer)
         else:
             super().verbinde(anderer, richtung=richtung, typ=typ, ziel=ziel)
-
-    def add_nsc(self, welt: Welt, name: str, fkt: Callable[..., nsc.NSC],
-                *args, **kwargs):
-        welt.get_or_else(name, fkt, *args, **kwargs).ort = self
 
     def __repr__(self):
         if self.dorf:
@@ -247,7 +264,7 @@ class Dorf:
     Es gibt einen Standard-Ort, nämlich "draußen".
     """
 
-    def __init__(self, name: str, orte: Opt[List[Ort]] = None) -> None:
+    def __init__(self, name: str, orte: list[Ort] | None = None) -> None:
         if orte:
             self.orte = orte
         else:
