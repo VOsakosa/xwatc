@@ -3,6 +3,7 @@ Wegpunkte für JTGs Wegesystem.
 Created on 17.10.2020
 """
 from __future__ import annotations
+from attrs import define, field
 from collections.abc import Collection, Callable, Iterable, Iterator, Mapping, Sequence
 import enum
 import random
@@ -222,7 +223,6 @@ HIMMELSRICHTUNG_KURZ = ["n", "no", "o", "so", "s", "sw", "w", "nw"]
 _StrAsHimmelsrichtung = NewType("_StrAsHimmelsrichtung", str)
 
 
-
 class Himmelsrichtung:
     """Himmelsrichtungen sind besondere Richtungen an Kreuzungen."""
 
@@ -261,9 +261,27 @@ class Himmelsrichtung:
     def __str__(self):
         return self.kurz
 
+
 NachbarKey = _StrAsHimmelsrichtung | Himmelsrichtung
 
 
+def _geschichte(geschichte: Sequence[str] | MänxFkt) -> Sequence[str] | MänxFkt:
+    """Converter for `Beschreibung.geschichte`, um Strings als Liste aus einem String zu behandeln.
+    """
+    if isinstance(geschichte, str):
+        return (geschichte,)
+    return geschichte
+
+
+def _nur(nur: Collection[str | None]) -> Sequence[str | None]:
+    """Macht einen String zu einer Liste von Strings"""
+    if isinstance(nur, str):
+        return [nur]
+    else:
+        return [*nur]
+
+
+@define
 class Beschreibung:
     """Das Äquivalent von Dialogen für Wegpunkte.
 
@@ -271,23 +289,16 @@ class Beschreibung:
     Wenn der Mänx den Wegpunkt aus einer der genannten Richtungen betritt, wird
     die Beschreibung abgespielt.
     """
-    geschichte: Sequence[str] | MänxFkt
+    geschichte: Sequence[str] | MänxFkt = field(converter=_geschichte)
+    nur: Sequence[str | None] = field(converter=_nur, default=())
+    außer: Sequence[str | None] = field(converter=_nur, default=())
+    warten: bool = field(default=False)
 
-    def __init__(self,
-                 geschichte: Sequence[str] | MänxFkt,
-                 nur: Collection[str | None] | None = None,
-                 außer: Collection[str | None] | None = None,
-                 warten: bool = False):
-        if isinstance(geschichte, str):
-            self.geschichte = [geschichte]
-        else:
-            self.geschichte = geschichte
-        if nur and außer:
-            raise TypeError("Nur und außer können nicht gleichzeitig gegeben "
-                            "sein.")
-        self.nur = self._nur(nur)
-        self.außer = self._nur(außer)
-        self.warten = warten
+    @nur.validator  # type: ignore
+    def _check_nur(self, _attr, _value) -> None:
+        if self.nur and self.außer:
+            raise ValueError(
+                "nur und außer können nicht beide gesetzt werden.")
 
     def beschreibe(self, mänx: Mänx, von: str | None) -> Any | None:
         """Führe die Beschreibung aus."""
@@ -304,24 +315,21 @@ class Beschreibung:
                     malp(self.geschichte[-1])
         return None
 
-    @staticmethod
-    def _nur(nur: Opt[Collection[str | None]]) -> Opt[Collection[str | None]]:
-        """Macht einen String zu einer Liste von Strings"""
-        if isinstance(nur, str):
-            return [nur]
-        else:
-            return nur
-
 
 def cap(a: str) -> str:
     """Macht den ersten Buchstaben groß."""
     return a[:1].upper() + a[1:]
 
 
-RiIn = Union[None, Wegpunkt, Richtung]
-_NotSpecifiedT = NewType("_NotSpecifiedT", object)
-_NSpec = _NotSpecifiedT(object())
-OpRiIn = Union[RiIn, _NotSpecifiedT]
+RiIn = Wegpunkt | Richtung | None
+
+
+class _NotSpecifiedT(enum.Enum):
+    SingleValue = 0
+
+
+_NSpec = _NotSpecifiedT.SingleValue
+OpRiIn = RiIn | _NotSpecifiedT
 
 
 def _to_richtung(richtung: RiIn) -> Richtung | None:
@@ -351,7 +359,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                  sw: OpRiIn = _NSpec,
                  so: OpRiIn = _NSpec,
                  s: OpRiIn = _NSpec,
-                 andere: Opt[Mapping[str, RiIn]] = None,
+                 andere: Mapping[str, RiIn] | None = None,
                  gucken: MänxFkt | None = None,
                  kreuzung_beschreiben: bool = False,
                  immer_fragen: bool = False,
@@ -392,8 +400,8 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
 
     def add_beschreibung(self,
                          geschichte: Sequence[str] | MänxFkt,
-                         nur: Sequence[str | None] | None = None,
-                         außer: Sequence[str | None] | None = None,
+                         nur: Sequence[str | None] = (),
+                         außer: Sequence[str | None] = (),
                          warten: bool = False):
         """Füge eine Beschreibung hinzu, die immer abgespielt wird, wenn
         der Wegpunkt betreten wird."""
@@ -402,8 +410,8 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
 
     def add_effekt(self,
                    geschichte: Sequence[str] | MänxFkt,
-                   nur: Sequence[str | None] | None = None,
-                   außer: Sequence[str | None] | None = None,
+                   nur: Sequence[str | None] = (),
+                   außer: Sequence[str | None] = (),
                    warten: bool = True):
         """Füge eine Geschichte hinzu, die passiert, wenn der Ort betreten
         wird."""

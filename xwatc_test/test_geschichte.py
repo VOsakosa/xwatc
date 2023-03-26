@@ -4,7 +4,7 @@ Created on 25.03.2023
 import unittest
 from xwatc_test.mock_system import MockSystem, ScriptEnde
 from xwatc_Hauptgeschichte import himmelsrichtungen
-from xwatc.system import Mänx, _OBJEKT_REGISTER
+from xwatc.system import _OBJEKT_REGISTER
 __author__ = "Jasper Ischebeck"
 
 

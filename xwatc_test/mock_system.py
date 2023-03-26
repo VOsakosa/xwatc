@@ -41,8 +41,10 @@ class MockSystem:
     def ein(self, txt: str):
         self.eingaben.append(txt)
 
-    def aus(self, txt: str):
-        self.ausgaben.append(txt)
+    def pop_ausgaben(self) -> list[str]:
+        ans = list(self.ausgaben)
+        self.ausgaben.clear()
+        return ans
 
     def menu(self,
              mänx: Mänx | None,
