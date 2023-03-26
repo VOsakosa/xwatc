@@ -440,7 +440,6 @@ class OldNSC(NSC):
                  name: str,
                  art: str,
                  kampfdialog: dorf.DialogFn | None = None,
-                 fliehen: Callable[[system.Mänx], None] | None = None,
                  direkt_reden: bool = False,
                  freundlich: int = 0,
                  startinventar: dict[str, int] | None = None,
@@ -462,15 +461,8 @@ class OldNSC(NSC):
                          inventar=inventar, ort=ort, freundlich=freundlich)
         if kampfdialog:
             self.template.kampf(kampfdialog)
-        self.fliehen_fn = fliehen
         self._dlg = dlg
         self._static_dialoge: list[dorf.Dialog] = []
-
-    def fliehen(self, mänx: system.Mänx):
-        if self.fliehen_fn:
-            self.fliehen_fn(mänx)
-        elif self.freundlich < 0:
-            mint("Du entkommst mühelos.")
 
     def change_dlg(self, new_dlg: dorf.DialogErzeugerFn):
         """Ändere die Dialoge auf eine neue Dlg-Funktion"""
