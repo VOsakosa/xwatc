@@ -704,8 +704,8 @@ class Gebietsende(_Strecke):
         self.gebiet = gebiet
         self.nach = nach
         self.port = port
-        assert ((self.gebiet, self.port) not in EINTRITTSPUNKTE
-                ), "Eintrittspunkt existiert schon!"
+        # TODO: Das passt nicht. Der Punkt darf sich nicht global eintragen, wenn
+        # er weltabhängig ist
         EINTRITTSPUNKTE[self.gebiet, self.port] = self
         assert self.gebiet in GEBIETE, f"Unbekanntes Gebiet: {self.gebiet}"
         assert nach in GEBIETE, f"Unbekanntes Gebiet: {nach}"
