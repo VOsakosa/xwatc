@@ -24,8 +24,9 @@ class TestIntegration(unittest.TestCase):
         """Instantiiere alle Gebiete und prüfe damit, ob alle funktionieren."""
         import xwatc_Hauptgeschichte  # @UnusedImport
         mänx = Mänx()
-        for gebiet in GEBIETE.values():  # @UndefinedVariable
-            gebiet(mänx)
+        for name, gebiet in GEBIETE.items():  # @UndefinedVariable
+            with self.subTest(name=name):
+                gebiet(mänx)
 
 
 if __name__ == "__main__":

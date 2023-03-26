@@ -2,10 +2,11 @@
 from collections.abc import Iterator
 from xwatc.serialize import converter
 import unittest
+from unittest.mock import patch
 
 from xwatc.dorf import Ort, Dialog, Zeitpunkt
-from xwatc.nsc import StoryChar, Person, Rasse, Geschlecht, NSC, CHAR_REGISTER, OldNSC, bezeichnung,\
-    Bezeichnung
+from xwatc import nsc
+from xwatc.nsc import StoryChar, Person, Rasse, Geschlecht, NSC, OldNSC, bezeichnung,  Bezeichnung
 from xwatc.system import Welt
 from xwatc.haendler import mache_händler
 from xwatc_test.mock_system import MockSystem
@@ -59,10 +60,11 @@ class TestNSC(unittest.TestCase):
                          Person("m"), {"Klavier": 1})
         self.assertEqual(toro.id_, "jtg:toro")
 
-        # Mit Ort
         welt = Welt("Winkel")
         toro_nsc = welt.obj("jtg:toro")
         self.assertIs(toro_nsc.template, toro)
+        toro_nsc2 = welt.obj("jtg:toro")
+        self.assertIs(toro_nsc, toro_nsc2)
         self.assertEqual(toro_nsc.name, "Toro Berncod")
         self.assertEqual(toro_nsc.art, "Pianist")
 
@@ -86,6 +88,7 @@ class TestNSC(unittest.TestCase):
         self.assertEqual(slots_var(jon.dialoge[2]), slots_var(Dialog(
             "k", "Angreifen", und_dlg, zeitpunkt=Zeitpunkt.Option)))
 
+    @patch("xwatc.nsc.CHAR_REGISTER", {})
     def test_template_pickle(self):
         """Test if the template can be pickled from its ID alone and then updated."""
         jonas = StoryChar("test:jonas", ("Jonas Berndoc", "Subokianer"), Person("m"),
@@ -93,7 +96,7 @@ class TestNSC(unittest.TestCase):
         jonas1 = jonas.zu_nsc()
         jonas1.inventar["Unterhose"] += 1
         pickled = converter.unstructure(jonas1)
-        CHAR_REGISTER.clear()
+        nsc.CHAR_REGISTER.clear()
         char2 = StoryChar("test:jonas", ("Jonas Berndoc", "Subokianer"),
                           Person("m"), {"Unterhose": 3, "Messer": 1})
         jonas2 = converter.structure(pickled, NSC)
@@ -104,7 +107,7 @@ class TestNSC(unittest.TestCase):
     def test_old_nsc_pickle(self):
         """Test if OldNSC can be pickled."""
         jonas = OldNSC("Jonas Berncdo", "Subokianer",
-                       None, None, dlg=dlg_fn_für_test)
+                       None, dlg=dlg_fn_für_test)
         jonas.inventar["Unterhose"] += 2
         pickled = converter.unstructure(jonas)
         jonas2 = converter.structure(pickled, OldNSC)
