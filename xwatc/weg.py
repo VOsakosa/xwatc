@@ -10,7 +10,7 @@ import random
 from dataclasses import dataclass
 from xwatc.utils import uartikel, bartikel, adj_endung, UndPred
 import typing
-from typing import (Any, Optional as Opt, cast, Union, NewType,
+from typing import (Any, ClassVar, Optional as Opt, cast, Union, NewType,
                     overload, TYPE_CHECKING,
                     runtime_checkable, Protocol)
 from xwatc.system import (Mänx, MenuOption, MänxFkt, InventarBasis, malp, mint,
@@ -349,15 +349,8 @@ def kreuzung(
 ) -> 'Wegkreuzung':
     """Konstruktor für Wegkreuzungen ursprünglichen Typs, die nicht auf einem Gitter liegen,
     aber hauptsächlich Himmelsrichtungen für Richtungen verwenden."""
-    hri_dct = {}
-    andere = {}
-    for key, value in kwargs.items():
-        if key in HIMMELSRICHTUNG_KURZ:
-            hri_dct[key] = value
-        else:
-            andere[key] = value
     return Wegkreuzung(name, gucken=gucken, kreuzung_beschreiben=kreuzung_beschreiben,
-                       immer_fragen=immer_fragen, menschen=menschen, andere=andere, **hri_dct)
+                       immer_fragen=immer_fragen, menschen=menschen, **kwargs)
 
 
 class Wegkreuzung(Wegpunkt, InventarBasis):
@@ -367,7 +360,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
 
     Hier passiert etwas.
     """
-    OPTS = [4, 3, 5, 2, 6, 1, 7]
+    OPTS: ClassVar[Sequence[int]] = [4, 3, 5, 2, 6, 1, 7]
     nachbarn: dict[NachbarKey, Richtung | None]
 
     def __init__(self,
@@ -380,7 +373,6 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                  sw: OpRiIn = _NSpec,
                  so: OpRiIn = _NSpec,
                  s: OpRiIn = _NSpec,
-                 andere: Mapping[str, RiIn] | None = None,
                  gucken: MänxFkt | None = None,
                  kreuzung_beschreiben: bool = False,
                  immer_fragen: bool = False,
@@ -399,11 +391,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         super().__init__()
         self.name = name
         richtungen = [n, no, o, so, s, sw, w, nw]
-        if andere:
-            self.nachbarn = {Himmelsrichtung.from_kurz(name): _to_richtung(v)
-                             for name, v in andere.items()}
-        else:
-            self.nachbarn = {}
+        self.nachbarn = {}
         for richtung, nr in zip(richtungen, range(8)):
             if richtung is not _NSpec:
                 self.nachbarn[Himmelsrichtung.from_nr(
