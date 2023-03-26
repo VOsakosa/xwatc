@@ -3,7 +3,7 @@ Die große Feste von Grökrakchöl mitsamt umliegender Landschaft und See.
 Created on 15.10.2020
 """
 from xwatc import nsc
-from xwatc.dorf import Ort, Malp, Dorf
+from xwatc.dorf import ort, Malp, Dorf
 from xwatc.nsc import StoryChar, NSC, Person
 from xwatc.system import mint, Mänx, malp, HatMain, Welt, malpw
 __author__ = "jasper"   
@@ -62,13 +62,13 @@ def grökrak(mänx: Mänx):
 
 def erzeuge_grökrak(welt: Welt) -> HatMain:
     """"""
-    tor = Ort("Stadttor", None,
+    tor = ort("Stadttor", None,
               "Am Stadttor von Grökrakchöl herrscht reger Betrieb.")
-    haupt = Ort("Hauptplatz", None, "Vor dem Burgfried Grökrakchöls ist ein großer,"
+    haupt = ort("Hauptplatz", None, "Vor dem Burgfried Grökrakchöls ist ein großer,"
                 "geschäftiger Platz. In der Mitte ist ein großer Springbrunnen, "
                 "davor eine Statue eines großen Denkers.")
 
-    taverne = Ort("Taverne Zum Katzenschweif", None,
+    taverne = ort("Taverne Zum Katzenschweif", None,
                   "Eine lebhafte Taverne voller Katzen",
                   [
                       welt.obj("jtg:gr:özil"),

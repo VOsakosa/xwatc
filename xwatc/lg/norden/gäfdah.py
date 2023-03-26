@@ -1,6 +1,6 @@
 
 from xwatc.system import Mänx, Inventar
-from xwatc.dorf import Dorf, Ort, Malp
+from xwatc.dorf import Dorf, ort, Malp
 from random import randint
 from xwatc.jtg import zufällige_frau
 from xwatc.lg.nsc.Wachen_von_Gäfdah import (
@@ -23,27 +23,27 @@ STANDARDKLEIDUNG: Inventar = {
 
 def erzeuge_Gäfdah(mänx: Mänx) -> Dorf:
     d = Dorf(GÄFDAH_NAME)
-    kirche = Ort("Kirche", d, [
+    kirche = ort("Kirche", d, [
         "Du bist in einer Kirche.",
 
     ])
-    schenke = Ort("Schenke", d, [
+    schenke = ort("Schenke", d, [
         "Du bist in einer Schenke.",
         "Sie ist voll von grölenden und betrunkenden Leuten."
     ])
-    schmiede = Ort("Schmiede", d, [
+    schmiede = ort("Schmiede", d, [
         "Du kommst in einen warmen, kleinen Raum, der irgendwie gemütlich wirkt und nach Schweiß riecht.",
         "Hinter der Theke steht ein bulliger Mann und verkauft wohl Waffen, Rüstungen und Anderes.",
 
     ])
     mänx.welt.obj("lg:norden:robert").ort = schmiede
 
-    rathaus = Ort("Rathaus", d, [
+    rathaus = ort("Rathaus", d, [
         "Du kommst in ein großes Haus mit Marmorfußboden.",
         "Drei Wachen kommen auf dich zu."
     ])
 
-    haus1 = Ort("Haus Nummer1", d, [
+    haus1 = ort("Haus Nummer1", d, [
         "Du kommst in ein kleines Haus."
     ])
     mänx.welt.obj("lg:norden:Maria_Fischfrisch:maria_fischfrisch").ort = kirche

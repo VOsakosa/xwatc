@@ -6,7 +6,7 @@ from xwatc import system
 from xwatc.system import (Mänx, minput, ja_nein, register,
                           Spielende, mint, sprich, kursiv, malp, get_classes, Inventar)
 from xwatc import dorf
-from xwatc.dorf import Dorf, Ort, NSCOptionen, Dialog, HalloDialoge, Malp, Zeitpunkt
+from xwatc.dorf import Dorf, ort, NSCOptionen, Dialog, HalloDialoge, Malp, Zeitpunkt
 from random import randint
 import random
 from xwatc.jtg.ressourcen import zufälliger_name
@@ -606,7 +606,7 @@ def ende_des_waldes(mänx, morgen=False):
 
 def erzeuge_süd_dorf(mänx) -> Dorf:
     do = Dorf(SÜD_DORF_NAME)
-    kirche = Ort("Kirche", do, [
+    kirche = ort("Kirche", do, [
         "Du bist in einer kleinen Kirche.",
         # Tobiac tot?
         "Im Hauptschiff ist niemand, aber du hörst die Orgel."
