@@ -159,7 +159,8 @@ class StoryChar:
 
     def kampf(self, fn: dorf.DialogGeschichte) -> dorf.Dialog:
         """Dekorator, um die Kampf-Funktion zu setzen"""
-        dia = dorf.Dialog("k", "Angreifen", fn, zeitpunkt=dorf.Zeitpunkt.Option)
+        dia = dorf.Dialog("k", "Angreifen", fn,
+                          zeitpunkt=dorf.Zeitpunkt.Option)
         self.dialoge.append(dia)
         return dia
 
@@ -239,7 +240,7 @@ class NSC(system.InventarBasis):
                 self._run(dialog, mänx)
 
     def optionen(self, mänx: system.Mänx) -> Iterator[MenuOption[dorf.RunType]]:
-        # yield ("kämpfen", "k", self.kampf)
+        """Gibt die zusätzlichen Optionen außer Reden zurück."""
         for dialog in self.template.dialoge:
             if dialog.zeitpunkt == dorf.Zeitpunkt.Option and dialog.verfügbar(self, mänx):
                 yield dialog.zu_option()
@@ -248,22 +249,23 @@ class NSC(system.InventarBasis):
     def fliehen(self, __) -> None:
         """Vor NSCs kann man immer bedenkenlos fliehen"""
         return None
-    
+
     def kampf(self, mänx: system.Mänx) -> None:
+        """Startet den Standard-Kampf, falls verfügbar."""
         for dia in self.template.dialoge:
             if dia.name == "k" and dia.verfügbar(self, mänx):
                 self._run(dia, mänx)
                 return
         malp(f"Dir ist nicht danach, {self.name} anzugreifen.")
-            
 
     def dialog_optionen(self, mänx: system.Mänx) -> Iterator[MenuOption[dorf.Dialog]]:
+        """Hole die Dialoge, die der Mänx einleitet."""
         for d in self.template.dialoge:
             if d.zeitpunkt == dorf.Zeitpunkt.Reden and d.verfügbar(self, mänx):
                 yield d.zu_option()
 
     def direkte_dialoge(self, mänx: system.Mänx) -> Iterator[dorf.Dialog]:
-        """Hole die Dialoge, die direkt abgespielt werden."""
+        """Hole die Dialoge, die direkt beim Ansprechen abgespielt werden."""
         for d in self.template.dialoge:
             if d.zeitpunkt == dorf.Zeitpunkt.Ansprechen and d.verfügbar(self, mänx):
                 yield d
@@ -400,7 +402,8 @@ class NSC(system.InventarBasis):
                 if isinstance(block, dorf.Malp):
                     block()
                 else:
-                    system.sprich(self.bezeichnung.kurz_name, block, *args, **kwargs)
+                    system.sprich(self.bezeichnung.kurz_name,
+                                  block, *args, **kwargs)
 
     def add_freundlich(self, wert: int, grenze: int) -> None:
         """Füge Freundlichkeit hinzu, aber überschreite nicht die Grenze."""
@@ -457,26 +460,11 @@ class OldNSC(NSC):
         )
         super().__init__(template, template.bezeichnung,
                          inventar=inventar, ort=ort, freundlich=freundlich)
-        self.kampf_fn = kampfdialog
+        if kampfdialog:
+            self.template.kampf(kampfdialog)
         self.fliehen_fn = fliehen
         self._dlg = dlg
         self._static_dialoge: list[dorf.Dialog] = []
-
-        self.max_lp = max_lp or 100
-
-    def kampf(self, mänx: system.Mänx) -> Fortsetzung | None:
-        """Starte den Kampf gegen mänx."""
-        self.kennt_spieler = True
-        if self.kampf_fn:
-            ret = self.kampf_fn(self, mänx)
-            if isinstance(ret, (bool, Rückkehr)):
-                return None
-            else:
-                return ret
-            # if isinstance(ret, Wegpunkt)
-        else:
-            malp("Dieser Kampfdialog wurde noch nicht hinzugefügt.")
-            return None
 
     def fliehen(self, mänx: system.Mänx):
         if self.fliehen_fn:

@@ -178,6 +178,7 @@ class HandelsFn:
                 if ans != Rückkehr.ZURÜCK:
                     return ans
             elif a == "kämpfen":
+                # Startet den Standard-Kampf, falls verfügbar.
                 nsc.kampf(mänx)
                 return Rückkehr.ZURÜCK
             else:
