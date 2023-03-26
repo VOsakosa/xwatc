@@ -5,10 +5,10 @@ from __future__ import annotations
 from typing import Optional as Opt, cast
 from xwatc.system import Mänx, mint, Spielende, malp, Fortsetzung, kursiv,\
     malpw
-from xwatc.dorf import Dialog, NSC
 import random
 from xwatc.untersystem.verbrechen import Verbrechensart
 import time
+from xwatc.nsc import NSC
 
 
 class ausgerüstet:
@@ -102,8 +102,7 @@ def dorfbewohner_kampf(self: NSC, mänx: Mänx) -> Opt[Fortsetzung]:
             else:
                 malpw("Sie flieht, nach Hilfe schreiend.")
             # Flucht
-            ausgang = self.extra_daten.setdefault(
-                "schnell", random.randint(1, 3))
+            ausgang = random.randint(1, 3)
             if ausgang == 1:
                 malp(f"{self.name} ist echt schnell auf den Beinen!")
                 malpw("Du schaffst es nicht,",

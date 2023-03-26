@@ -432,7 +432,7 @@ class Welt:
 
         if name in self.objekte:
             return self.objekte[name]
-        from xwatc import nsc
+        from xwatc import nsc  # @Reimport
         obj: HatMain
         if name in nsc.CHAR_REGISTER:
             obj = nsc.CHAR_REGISTER[name].zu_nsc()

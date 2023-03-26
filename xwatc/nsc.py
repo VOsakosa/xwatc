@@ -463,9 +463,6 @@ class OldNSC(NSC):
         self._static_dialoge: list[dorf.Dialog] = []
 
         self.max_lp = max_lp or 100
-        # Extra-Daten, die du einem NSC noch geben willst, wie z.B. seine
-        # Geschwindigkeit, Alter, ... (vorläufig)
-        self.extra_daten: dict[str, Any] = {}
 
     def kampf(self, mänx: system.Mänx) -> Fortsetzung | None:
         """Starte den Kampf gegen mänx."""
