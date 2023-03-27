@@ -22,7 +22,7 @@ STANDARDKLEIDUNG: Inventar = {
 
 
 def erzeuge_Gäfdah(mänx: Mänx) -> Dorf:
-    d = Dorf(GÄFDAH_NAME)
+    d = Dorf.mit_draußen(GÄFDAH_NAME)
     kirche = ort("Kirche", d, [
         "Du bist in einer Kirche.",
 
@@ -56,12 +56,11 @@ def erzeuge_Gäfdah(mänx: Mänx) -> Dorf:
                     "nsc:Wachen_von_Gäfdah:ThomarcAizenfjäld", ThomarcAizenfjäld)
     haus1.add_nsc(mänx.welt,
                   "nsc:Bürger_von_Gäfdah:MartinPortulakk", MartinPortulakk)
-    d.orte[0].add_nsc(
+    d.draußen.add_nsc(
         mänx.welt, "nsc:Wachen_von_Gäfdah:OrfGrouundt", OrfGrouundt)
     for _i in range(randint(2, 5)):
         w = zufällige_frau()
-        d.orte[0].menschen.append(w)
-    # TODO weitere Objekte
+        d.draußen.menschen.append(w)
     return d
 
 

@@ -5,10 +5,10 @@ Seit 10.10.2020
 """
 from __future__ import annotations
 import attrs
-from attrs import define, field
+from attrs import define, field, Factory
 from enum import Enum
 from collections.abc import Sequence, Callable, Iterable
-from typing import List, Tuple, Optional as Opt, Union
+from typing import List, Tuple, Optional as Opt, Union, TypeAlias
 from typing import TYPE_CHECKING
 from dataclasses import dataclass
 from xwatc.system import (malp, MenuOption, sprich, MänxFkt, Welt, Fortsetzung)
@@ -27,11 +27,11 @@ class Rückkehr(Enum):
     VERLASSEN = 2
 
 
-NSCOptionen = Iterable[MenuOption[MänxFkt]]
+NSCOptionen: TypeAlias = Iterable[MenuOption[MänxFkt]]
 
 
 # Vorherige Dialoge, nur str für Name, sonst (name, mindestanzahl)
-VorList = Sequence[str | Tuple[str, int]]
+VorList: TypeAlias = Sequence[str | Tuple[str, int]]
 
 
 @dataclass
@@ -209,66 +209,44 @@ def ort(
         ans.add_beschreibung(text)
     if dorf:
         dorf.orte.append(ans)
+        if dorf.hat_draußen and len(dorf.orte) > 1:
+            dorf.draußen - ans
     return ans
 
-
+@define
 class Dorf:
     """Ein Dorf besteht aus mehreren Orten, an denen man Menschen treffen kann.
-    Es gibt einen Standard-Ort, nämlich "draußen".
+    Ein Dorf kann eine Struktur haben, oder es gibt einfach nur ein draußen
+    und Gebäude. Wenn es ein draußen gibt, wird jeder Ort automatisch damit verbunden.
     """
+    name: str
+    orte: list[weg.Wegkreuzung]
+    hat_draußen: bool
+    
+    @classmethod
+    def mit_draußen(cls, name: str) -> 'Dorf':
+        """Erzeuge ein Dorf mit einem Standard-Ort (draußen), der wie das Dorf heißt."""
+        ans = cls(name, [], hat_draußen=True)
+        ort(name, ans)
+        return ans
+    
+    @property
+    def draußen(self) -> weg.Wegkreuzung:
+        return self.orte[0]
+    
+    @classmethod
+    def mit_struktur(cls, name: str, orte: Sequence[weg.Wegkreuzung]) -> 'Dorf':
+        return cls(name, [*orte], hat_draußen=False)
 
-    def __init__(self, name: str, orte: list[weg.Wegkreuzung] | None = None) -> None:
-        if orte:
-            self.orte = orte
-        else:
-            self.orte = []
-            ort("draußen", self, "Du bist draußen.")
-        self.name = name
-
-    def main(self, mänx) -> Fortsetzung | None:
-        malp(f"Du bist in {self.name}. Möchtest du einen der Orte betreten oder "
-             "draußen bleiben?")
-        orte: list[MenuOption[weg.Wegkreuzung | None]] = [
-            (ort.name, ort.name.lower(), ort) for ort in self.orte[1:]]
-        orte.append(("Bleiben", "", self.orte[0]))
-        orte.append((f"{self.name} verlassen", "v", None))
-        loc = mänx.menu(orte, frage="Wohin? ", save=self)
-        while isinstance(loc, weg.Wegkreuzung):
-            loc = self.ort_main(mänx, loc)
-        return loc
+    def main(self, _mänx) -> Fortsetzung | None:
+        malp(f"Du erreichst {self.name}.")
+        return self.orte[0]
 
     def get_ort(self, name: str) -> weg.Wegkreuzung:
         for ort in self.orte:
             if ort.name.casefold() == name.casefold():
                 return ort
         raise KeyError(f"In {self.name} unbekannter Ort {name}")
-
-    def ort_main(self, mänx, ort: weg.Wegkreuzung) -> weg.Wegkreuzung | Fortsetzung | None:
-        ort.menschen[:] = filter(lambda m: not m.tot, ort.menschen)
-        ort.beschreibe(mänx, None)
-        if ort.menschen:
-            malp("Hier sind:")
-            for mensch in ort.menschen:
-                malp(f"{mensch.name}, {mensch.art}")
-        else:
-            malp("Hier ist niemand.")
-        optionen: list[MenuOption[nsc.NSC | weg.Wegkreuzung | None]]  # @UnusedVariable
-        optionen = [("Mit " + mensch.name + " reden", mensch.name.lower(),
-                     mensch) for mensch in ort.menschen]
-        optionen.extend((f"Nach {o.name} gehen", o.name.lower(), o)
-                        for o in self.orte if o != ort)
-        optionen.append(("Ort verlassen", "fliehen", None))
-        opt = mänx.menu(optionen, save=self)  # TODO: Den Ort speichern
-        if isinstance(opt, nsc.NSC):
-            ans = opt.main(mänx)
-            if isinstance(ans, weg.Wegkreuzung):
-                return ans
-            elif ans:
-                return ans
-            return ort
-        else:
-            return opt
-
 
 from xwatc import nsc  # @Reimport
 NSC = nsc.OldNSC

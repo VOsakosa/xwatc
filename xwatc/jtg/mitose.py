@@ -79,8 +79,8 @@ saxa.dialog("verloren", "Ich habe deinen Ring gefunden, aber wieder verloren.",
 def erzeuge_norddörfer(mänx: Mänx) -> weg.Wegpunkt:
     zur_mitte = weg.Gebietsende(
         None, "jtg:mitose", "mitose-mitte", "jtg:mitte")
-    mitose = Dorf("Mitose")
-    mitose_ort = mitose.orte[0]
+    mitose = Dorf.mit_draußen("Mitose")
+    mitose_ort = mitose.draußen
     mitose_ort.verbinde(zur_mitte, "s")
     mitose_ort.beschreibungen.clear()
     mitose_ort.add_beschreibung([
@@ -93,9 +93,7 @@ def erzeuge_norddörfer(mänx: Mänx) -> weg.Wegpunkt:
     mitose_ort.verbinde(
         weg.Weg(
             0.5, weg.WegAdapter(None, jtg.disnayenbum, "jtg:mitose:nord")), "n")
-    hinterhof = ort("Hinterhof", mitose,
-                    "Ein unkrautbewucherter Hinterhof des Rathaus.")
-    mitose_ort - hinterhof
+    ort("Hinterhof", mitose, "Ein unkrautbewucherter Hinterhof des Rathauses.")
 
     kraut = kreuzung("kraut", immer_fragen=True)
     kraut.add_effekt(kräutergebiet)

@@ -605,7 +605,7 @@ def ende_des_waldes(mänx, morgen=False):
 
 
 def erzeuge_süd_dorf(mänx) -> Dorf:
-    do = Dorf(SÜD_DORF_NAME)
+    do = Dorf.mit_draußen(SÜD_DORF_NAME)
     kirche = ort("Kirche", do, [
         "Du bist in einer kleinen Kirche.",
         # Tobiac tot?

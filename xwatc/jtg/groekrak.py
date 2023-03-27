@@ -77,7 +77,8 @@ def erzeuge_grökrak(welt: Welt) -> HatMain:
                       welt.obj("jtg:gr:carlo"),
                       welt.obj("jtg:gr:klavier"),
                   ])
-    return Dorf("Grökrakchöl", [tor, haupt, taverne])
+    tor - haupt - taverne
+    return Dorf.mit_struktur("Grökrakchöl", [tor, haupt, taverne])
 
 
 özil = StoryChar("jtg:gr:özil", ("Özil", "Çakır", "Kellner"), startinventar={
