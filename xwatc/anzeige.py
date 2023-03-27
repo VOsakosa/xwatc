@@ -3,6 +3,7 @@ Anzeige für Xvatc mit GTK.
 """
 from __future__ import annotations
 
+from attrs import define
 from itertools import islice
 import os
 
@@ -14,6 +15,7 @@ from contextlib import contextmanager
 from functools import wraps
 from pathlib import Path
 import pickle
+from logging import getLogger
 import queue
 import threading
 from typing import (Tuple, Optional as Opt, Mapping,
@@ -30,6 +32,7 @@ Text = str
 _minput_return: queue.Queue[Any] = queue.Queue(1)
 _main_thread: threading.Thread
 
+# Abkürzungen für häufige Optionen
 KURZ_CODES = {
     "f": ("fliehen", "zurück"),
     "r": ("reden",),
@@ -57,21 +60,19 @@ def _idle_wrapper(fn: Tcall) -> Tcall:
 
     return wrapped  # type: ignore
 
-def get_minput_return() -> Any:
-    ans = _minput_return.get()
-    match ans:
-        case AnzeigeSpielEnde():
-            raise ans
-        case _:
-            return ans
-    
-
 
 class AnzeigeSpielEnde(BaseException):
     """Signalisiert, dass der Xvatc-Thread beendet werden muss, da die GUI geschlossen wurde."""
 
     def __init__(self, weiter: Opt[Path]):
         self.weiter = weiter
+
+
+@define
+class Unterbrechung:
+    """Signalisiert in minput_return, dass der Spieler eine ständig verfügbare Option ausgelöst
+    hat, wie z.B. mit seinen Gefährten zu reden."""
+    fkt: system.MänxFkt
 
 
 class XwatcFenster:
@@ -108,6 +109,7 @@ class XwatcFenster:
         # Spiel beginnen
         self.speicherpunkt: Opt[Speicherpunkt] = None
         self.mänx: Opt[system.Mänx] = None
+        self.unterbrochen = False
         system.ausgabe = self
         threading.Thread(target=self._xwatc_thread, args=(startpunkt,),
                          name="Xwatc-Geschichte", daemon=True).start()
@@ -172,18 +174,43 @@ class XwatcFenster:
         finally:
             GLib.idle_add(self.xwatc_ended)
 
+    def get_minput_return(self) -> Any:
+        while True:
+            ans = _minput_return.get()
+            match ans:
+                case AnzeigeSpielEnde():
+                    raise ans
+                case Unterbrechung(fkt=fkt):
+
+                    if self.mänx:
+                        if not self.unterbrochen:
+                            self.unterbrochen = True
+                            GLib.idle_add(self.push_stack)
+                            fkt(self.mänx)
+
+                            def ready():
+                                self.pop_stack()
+                                self.unterbrochen = False
+                            GLib.idle_add(ready)
+                    else:
+                        getLogger("xwatc.anzeige").error(
+                            "Unterbrechung eingereiht, ohne Mänxen.")
+
+                case _:
+                    return ans
+
     def malp(self, *text, sep=" ", end='\n', warte=False) -> None:
         """Zeigt *text* zusätzlich an."""
         self.add_text(sep.join(map(str, text)) + end)
         if warte:
             self.auswahl([("weiter", None)])
-            get_minput_return()
+            self.get_minput_return()
 
     def mint(self, *text):
         """Printe und warte auf ein Enter."""
         self.add_text(" ".join(str(t) for t in text) + "\n")
         self.auswahl([("weiter", None)])
-        get_minput_return()
+        self.get_minput_return()
 
     def sprich(self, sprecher: str, text: str, warte: bool = False, wie: str = ""):
         if wie:
@@ -191,7 +218,7 @@ class XwatcFenster:
         self.add_text(f'{sprecher}: »{text}«\n')
         if warte:
             self.auswahl([("weiter", None)])
-            get_minput_return()
+            self.get_minput_return()
 
     @_idle_wrapper
     def add_text(self, text: str) -> None:
@@ -207,7 +234,7 @@ class XwatcFenster:
             self.eingabe(prompt=None)
         else:
             self.auswahl([(mg, mg) for mg in möglichkeiten], save=save)
-        ans = get_minput_return()
+        ans = self.get_minput_return()
         if lower:
             ans = ans.lower()
         return ans
@@ -231,14 +258,14 @@ class XwatcFenster:
              save: Opt[system.Speicherpunkt] = None) -> T:
         self.auswahl([(name, value, shorthand)
                       for name, shorthand, value in optionen], versteckt, save=save)
-        ans = get_minput_return()
+        ans = self.get_minput_return()
         return ans
 
     def ja_nein(self, mänx: system.Mänx, frage: str,
                 save: Opt[system.Speicherpunkt] = None) -> bool:
         self.malp(frage)
         self.auswahl([("Ja", True), ("Nein", False)], save=save)
-        ans = get_minput_return()
+        ans = self.get_minput_return()
         return ans
 
     @_idle_wrapper
@@ -292,11 +319,8 @@ class XwatcFenster:
                     else:
                         self.malp_stack("Du kannst hier nicht speichern.")
                 elif taste == "g":
-                    if self.mänx.gefährten:
-                        self.malp_stack(
-                            "\n".join(g.name for g in self.mänx.gefährten))
-                    else:
-                        self.malp_stack("Du hast keine Gefährten.")
+                    _minput_return.put(Unterbrechung(
+                        system.Mänx.rede_mit_gefährten))
         # KEIN STRG
         elif not self.mgn:
             return False
@@ -404,7 +428,7 @@ class XwatcFenster:
         # TODO Kursiv
         return text
 
-    def push_stack(self):
+    def push_stack(self) -> None:
         """Legt ein neues Fenster auf den Stack."""
         self._stack.append(_StackItem(
             self.mgn.copy(),
@@ -421,7 +445,7 @@ class XwatcFenster:
                 break
         self._deactivate_choices()
 
-    def pop_stack(self):
+    def pop_stack(self) -> None:
         """Entfernt ein Fenster vom Stack."""
         self._remove_choices()
         [self.mgn, self.mgn_hidden_count, self.anzeigen,

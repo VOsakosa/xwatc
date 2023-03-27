@@ -7,7 +7,8 @@ from pathlib import Path
 import pickle
 from time import sleep
 from typing import TypeVar, Any, Protocol
-from typing import (Dict, List, Tuple, Union, Optional, Set, Optional as Opt)
+from typing import (Dict, List, Tuple, Union, Optional,
+                    Set, Optional as Opt, TypeAlias)
 import typing
 
 from xwatc.terminal import Terminal
@@ -69,8 +70,8 @@ def get_classes(item: str) -> Iterator[str]:
 
 T = TypeVar("T")
 Tcov = TypeVar("Tcov", covariant=True)
-MenuOption = Tuple[str, str, Tcov]
-Inventar = Dict[str, int]
+MenuOption: TypeAlias = tuple[str, str, Tcov]
+Inventar: TypeAlias = dict[str, int]
 _null_func = int
 
 
@@ -348,6 +349,15 @@ class Mänx(InventarBasis, Persönlichkeit):
 
     def add_gefährte(self, gefährte: 'nsc.NSC'):
         self.gefährten.append(gefährte)
+
+    def rede_mit_gefährten(self) -> None:
+        opts: list[MenuOption[nsc.NSC | None]] = [
+            (f"Mit {g.name} reden", g.bezeichnung.kurz_name.lower(), g) for g in self.gefährten]
+        if not opts:
+            malp("Du hast noch keine Gefährten.")
+        opts.append(("zurück", "f", None))
+        if gefährte := self.menu(opts):
+            gefährte.main(self)
 
     def add_verbrechen(self, name: str | Verbrechen | Verbrechensart, versuch=False):
         """Laste dem Mänxen ein Verbrechen an."""
