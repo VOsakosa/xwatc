@@ -1,6 +1,6 @@
 
 from xwatc.system import Mänx, Inventar
-from xwatc.dorf import Dorf, Ort, Malp
+from xwatc.dorf import Dorf, ort, Malp
 from random import randint
 from xwatc.jtg import zufällige_frau
 from xwatc.lg.nsc.Wachen_von_Gäfdah import (
@@ -22,28 +22,28 @@ STANDARDKLEIDUNG: Inventar = {
 
 
 def erzeuge_Gäfdah(mänx: Mänx) -> Dorf:
-    d = Dorf(GÄFDAH_NAME)
-    kirche = Ort("Kirche", d, [
+    d = Dorf.mit_draußen(GÄFDAH_NAME)
+    kirche = ort("Kirche", d, [
         "Du bist in einer Kirche.",
 
     ])
-    schenke = Ort("Schenke", d, [
+    schenke = ort("Schenke", d, [
         "Du bist in einer Schenke.",
         "Sie ist voll von grölenden und betrunkenden Leuten."
     ])
-    schmiede = Ort("Schmiede", d, [
+    schmiede = ort("Schmiede", d, [
         "Du kommst in einen warmen, kleinen Raum, der irgendwie gemütlich wirkt und nach Schweiß riecht.",
         "Hinter der Theke steht ein bulliger Mann und verkauft wohl Waffen, Rüstungen und Anderes.",
 
     ])
     mänx.welt.obj("lg:norden:robert").ort = schmiede
 
-    rathaus = Ort("Rathaus", d, [
+    rathaus = ort("Rathaus", d, [
         "Du kommst in ein großes Haus mit Marmorfußboden.",
         "Drei Wachen kommen auf dich zu."
     ])
 
-    haus1 = Ort("Haus Nummer1", d, [
+    haus1 = ort("Haus Nummer1", d, [
         "Du kommst in ein kleines Haus."
     ])
     mänx.welt.obj("lg:norden:Maria_Fischfrisch:maria_fischfrisch").ort = kirche
@@ -56,12 +56,11 @@ def erzeuge_Gäfdah(mänx: Mänx) -> Dorf:
                     "nsc:Wachen_von_Gäfdah:ThomarcAizenfjäld", ThomarcAizenfjäld)
     haus1.add_nsc(mänx.welt,
                   "nsc:Bürger_von_Gäfdah:MartinPortulakk", MartinPortulakk)
-    d.orte[0].add_nsc(
+    d.draußen.add_nsc(
         mänx.welt, "nsc:Wachen_von_Gäfdah:OrfGrouundt", OrfGrouundt)
     for _i in range(randint(2, 5)):
         w = zufällige_frau()
-        d.orte[0].menschen.append(w)
-    # TODO weitere Objekte
+        d.draußen.menschen.append(w)
     return d
 
 

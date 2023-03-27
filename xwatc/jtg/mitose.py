@@ -13,11 +13,11 @@ Links abbiegen führt zu Kiri-Wölfen=> Kampf
 
 """
 from xwatc.system import Mänx, register, malp, HatMain, mint
-from xwatc.dorf import Dorf, Malp, Dialog, Ort, Zeitpunkt
+from xwatc.dorf import Dorf, Malp, ort, Zeitpunkt
 from xwatc import weg
 from xwatc import jtg
 from xwatc.haendler import Preis, mache_händler, HandelsFn
-from xwatc.weg import Wegkreuzung
+from xwatc.weg import kreuzung
 from typing import List, Tuple, Sequence
 from xwatc.nsc import Person, StoryChar, bezeichnung, NSC
 __author__ = "jasper"
@@ -79,8 +79,8 @@ saxa.dialog("verloren", "Ich habe deinen Ring gefunden, aber wieder verloren.",
 def erzeuge_norddörfer(mänx: Mänx) -> weg.Wegpunkt:
     zur_mitte = weg.Gebietsende(
         None, "jtg:mitose", "mitose-mitte", "jtg:mitte")
-    mitose = Dorf("Mitose")
-    mitose_ort = mitose.orte[0]
+    mitose = Dorf.mit_draußen("Mitose")
+    mitose_ort = mitose.draußen
     mitose_ort.verbinde(zur_mitte, "s")
     mitose_ort.beschreibungen.clear()
     mitose_ort.add_beschreibung([
@@ -93,15 +93,13 @@ def erzeuge_norddörfer(mänx: Mänx) -> weg.Wegpunkt:
     mitose_ort.verbinde(
         weg.Weg(
             0.5, weg.WegAdapter(None, jtg.disnayenbum, "jtg:mitose:nord")), "n")
-    hinterhof = Ort("Hinterhof", mitose,
-                    "Ein unkrautbewucherter Hinterhof des Rathaus.")
-    mitose_ort.verbinde(hinterhof)
+    ort("Hinterhof", mitose, "Ein unkrautbewucherter Hinterhof des Rathauses.")
 
-    kraut = Wegkreuzung("kraut", immer_fragen=True)
+    kraut = kreuzung("kraut", immer_fragen=True)
     kraut.add_effekt(kräutergebiet)
-    kili = Wegkreuzung("kili", immer_fragen=True)
+    kili = kreuzung("kili", immer_fragen=True)
     kili.add_effekt(mänx.welt.obj("jtg:kiliwolf").main)
-    waldkreuz = Wegkreuzung("waldkreuz")
+    waldkreuz = kreuzung("waldkreuz")
     waldkreuz.add_beschreibung("Der Pfad gabelt sich.", nur="o")
     waldkreuz.add_beschreibung("Du kommst zurück an die Gabelung",
                                nur=["sw", "nw"])

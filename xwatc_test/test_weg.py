@@ -3,7 +3,7 @@ Unittests für xwatc.weg
 
 """
 import unittest
-from xwatc.weg import Wegtyp, GEBIETE, Beschreibung
+from xwatc.weg import Wegtyp, GEBIETE, Beschreibung, get_gebiet
 from xwatc.system import Mänx, mint
 from xwatc_test.mock_system import MockSystem
 
@@ -56,9 +56,9 @@ class TestIntegration(unittest.TestCase):
         """Instantiiere alle Gebiete und prüfe damit, ob alle funktionieren."""
         import xwatc_Hauptgeschichte  # @UnusedImport
         mänx = Mänx()
-        for name, gebiet in GEBIETE.items():  # @UndefinedVariable
+        for name in GEBIETE:  # @UndefinedVariable
             with self.subTest(name=name):
-                gebiet(mänx)
+                get_gebiet(mänx, name)
 
 
 if __name__ == "__main__":

@@ -5,10 +5,10 @@ Seit 10.10.2020
 """
 from __future__ import annotations
 import attrs
-from attrs import define, field
+from attrs import define, field, Factory
 from enum import Enum
 from collections.abc import Sequence, Callable, Iterable
-from typing import List, Tuple, Optional as Opt, Union
+from typing import List, Tuple, Optional as Opt, Union, TypeAlias
 from typing import TYPE_CHECKING
 from dataclasses import dataclass
 from xwatc.system import (malp, MenuOption, sprich, MänxFkt, Welt, Fortsetzung)
@@ -27,11 +27,11 @@ class Rückkehr(Enum):
     VERLASSEN = 2
 
 
-NSCOptionen = Iterable[MenuOption[MänxFkt]]
+NSCOptionen: TypeAlias = Iterable[MenuOption[MänxFkt]]
 
 
 # Vorherige Dialoge, nur str für Name, sonst (name, mindestanzahl)
-VorList = Sequence[str | Tuple[str, int]]
+VorList: TypeAlias = Sequence[str | Tuple[str, int]]
 
 
 @dataclass
@@ -183,122 +183,70 @@ HalloDialoge = [
 ]
 
 
-class Ort(weg.Wegkreuzung):
-    """Ein Ort im Dorf, wo sich Menschen aufhalten können"""
+def ort(
+        name: str,
+        dorf: Union[None, Dorf, weg.Wegkreuzung],
+        text: Opt[Sequence[str]] = None,
+        menschen: Sequence[nsc.NSC] = ()) -> weg.Wegkreuzung:
+    """
+    Konstruiere einen neuen Ort. Das ist eine Wegkreuzung, die zu einem Dorf
+    gehört und generell mit Namen statt mit Himmelsrichtung verbunden wird.
+    
+    ```
+    ort = ort("Taverne Zum Katzenschweif", None, # wird noch hinzugefügt
+              "Eine lebhafte Taverne voller Katzen",
+              [
+                  welt.obj("genshin:mond:diona"),
+                  welt.obj("genshin:mond:margaret")
+              ])
+    ```
+    """
+    if isinstance(dorf, weg.Wegkreuzung):
+        dorf = dorf.dorf
+    ans = weg.Wegkreuzung(name, {}, menschen=[
+                          *menschen], immer_fragen=True, dorf=dorf)
+    if text:
+        ans.add_beschreibung(text)
+    if dorf:
+        dorf.orte.append(ans)
+        if dorf.hat_draußen and len(dorf.orte) > 1:
+            dorf.draußen - ans
+    return ans
 
-    def __init__(self,
-                 name: str,
-                 dorf: Union[None, Dorf, Ort],
-                 text: Opt[Sequence[str]] = None,
-                 menschen: Sequence[nsc.NSC] = ()):
-        """
-        ```
-        ort = Ort("Taverne Zum Katzenschweif", None, # wird noch hinzugefügt
-                  "Eine lebhafte Taverne voller Katzen",
-                  [
-                      welt.obj("genshin:mond:diona"),
-                      welt.obj("genshin:mond:margaret")
-                  ])
-        ```
-        """
-        super().__init__(name, menschen=menschen, immer_fragen=True)
-        if text:
-            if isinstance(text, str):
-                text = [text]
-            self.add_beschreibung(text)
-        if isinstance(dorf, Ort):
-            self.dorf: Dorf | None = dorf.dorf
-        else:
-            self.dorf = dorf
-        if self.dorf:
-            self.dorf.orte.append(self)
-
-    def __sub__(self, anderer: Ort) -> Ort:
-        anderer.nachbarn[Himmelsrichtung.from_kurz(
-            self.name)] = weg.Richtung(self)
-        self.nachbarn[Himmelsrichtung.from_kurz(
-            anderer.name)] = weg.Richtung(anderer)
-        return anderer
-
-    def verbinde(self,
-                 anderer: weg.Wegpunkt, richtung: str = "",
-                 typ: weg.Wegtyp = weg.Wegtyp.WEG, ziel: str = ""):
-        if isinstance(anderer, Ort) and not richtung:
-            anderer.nachbarn[Himmelsrichtung.from_kurz(
-                self.name)] = weg.Richtung(self)
-            self.nachbarn[Himmelsrichtung.from_kurz(
-                anderer.name)] = weg.Richtung(anderer)
-        else:
-            super().verbinde(anderer, richtung=richtung, typ=typ, ziel=ziel)
-
-    def add_nsc(self, welt: Welt, name: str, fkt: Callable[..., nsc.NSC],
-                *args, **kwargs):
-        welt.get_or_else(name, fkt, *args, **kwargs).ort = self
-
-    def __repr__(self):
-        if self.dorf:
-            return f"Ort {self.name} von {self.dorf.name}"
-        else:
-            return f"Ort {self.name}, Teil keines Dorfes"
-
-
+@define
 class Dorf:
     """Ein Dorf besteht aus mehreren Orten, an denen man Menschen treffen kann.
-    Es gibt einen Standard-Ort, nämlich "draußen".
+    Ein Dorf kann eine Struktur haben, oder es gibt einfach nur ein draußen
+    und Gebäude. Wenn es ein draußen gibt, wird jeder Ort automatisch damit verbunden.
     """
+    name: str
+    orte: list[weg.Wegkreuzung]
+    hat_draußen: bool
+    
+    @classmethod
+    def mit_draußen(cls, name: str) -> 'Dorf':
+        """Erzeuge ein Dorf mit einem Standard-Ort (draußen), der wie das Dorf heißt."""
+        ans = cls(name, [], hat_draußen=True)
+        ort(name, ans)
+        return ans
+    
+    @property
+    def draußen(self) -> weg.Wegkreuzung:
+        return self.orte[0]
+    
+    @classmethod
+    def mit_struktur(cls, name: str, orte: Sequence[weg.Wegkreuzung]) -> 'Dorf':
+        return cls(name, [*orte], hat_draußen=False)
 
-    def __init__(self, name: str, orte: Opt[List[Ort]] = None) -> None:
-        if orte:
-            self.orte = orte
-        else:
-            self.orte = []
-            Ort("draußen", self, "Du bist draußen.")
-        self.name = name
+    def main(self, _mänx) -> Fortsetzung | None:
+        malp(f"Du erreichst {self.name}.")
+        return self.orte[0]
 
-    def main(self, mänx) -> Fortsetzung | None:
-        malp(f"Du bist in {self.name}. Möchtest du einen der Orte betreten oder "
-             "draußen bleiben?")
-        orte: list[MenuOption[Ort | None]] = [
-            (ort.name, ort.name.lower(), ort) for ort in self.orte[1:]]
-        orte.append(("Bleiben", "", self.orte[0]))
-        orte.append((f"{self.name} verlassen", "v", None))
-        loc = mänx.menu(orte, frage="Wohin? ", save=self)
-        while isinstance(loc, Ort):
-            loc = self.ort_main(mänx, loc)
-        return loc
-
-    def get_ort(self, name: str) -> Ort:
+    def get_ort(self, name: str) -> weg.Wegkreuzung:
         for ort in self.orte:
             if ort.name.casefold() == name.casefold():
                 return ort
         raise KeyError(f"In {self.name} unbekannter Ort {name}")
-
-    def ort_main(self, mänx, ort: Ort) -> Ort | Fortsetzung | None:
-        ort.menschen[:] = filter(lambda m: not m.tot, ort.menschen)
-        ort.beschreibe(mänx, None)
-        if ort.menschen:
-            malp("Hier sind:")
-            for mensch in ort.menschen:
-                malp(f"{mensch.name}, {mensch.art}")
-        else:
-            malp("Hier ist niemand.")
-        optionen: list[MenuOption[nsc.NSC | Ort | None]]  # @UnusedVariable
-        optionen = [("Mit " + mensch.name + " reden", mensch.name.lower(),
-                     mensch) for mensch in ort.menschen]
-        optionen.extend((f"Nach {o.name} gehen", o.name.lower(), o)
-                        for o in self.orte if o != ort)
-        optionen.append(("Ort verlassen", "fliehen", None))
-        opt = mänx.menu(optionen, save=self)  # TODO: Den Ort speichern
-        if isinstance(opt, nsc.NSC):
-            ans = opt.main(mänx)
-            if isinstance(ans, Ort):
-                return ans
-            elif ans:
-                return ans
-            return ort
-        else:
-            return opt
-
 
 from xwatc import nsc  # @Reimport
 NSC = nsc.OldNSC

@@ -6,7 +6,7 @@ from xwatc import weg
 from xwatc.dorf import NSC
 __author__ = "jasper"
 from xwatc.system import Mänx, register, malp, Spielende
-from xwatc.weg import gebiet, WegAdapter, Wegkreuzung, Wegtyp
+from xwatc.weg import gebiet, WegAdapter, kreuzung, Wegtyp
 
 ZOLL_PREIS = 10
 
@@ -38,7 +38,7 @@ def rückweg(mänx: Mänx):
 def erzeuge_tauern(mänx: Mänx) -> WegAdapter:
     import xwatc.jtg.gibon as __
     ein_adap = WegAdapter(None, rückweg)
-    eintritt = Wegkreuzung("eintritt", sw=ein_adap)
+    eintritt = kreuzung("eintritt", sw=ein_adap)
     eintritt.add_beschreibung([
         "Der Weg führt weiter am Fluss entlang, das Land wird hügeliger.",
         "Die Vegetation wird spärlicher.",
@@ -46,7 +46,7 @@ def erzeuge_tauern(mänx: Mänx) -> WegAdapter:
     eintritt.add_beschreibung([
         "Der Weg folgt dem Fluss in einen Wald."], nur="no")
 
-    vorbrück = Wegkreuzung("vorbrück")
+    vorbrück = kreuzung("vorbrück")
     vorbrück.verbinde_mit_weg(eintritt, 0.3, "sw", None, Wegtyp.WEG, "Jotungard",
                               "Tauern")
     vorbrück.add_beschreibung([
@@ -59,7 +59,7 @@ def erzeuge_tauern(mänx: Mänx) -> WegAdapter:
     vorbrück.add_beschreibung(
         "Ein Trampelpfad führt den Fluss entlang nach rechts.", nur="brücke")
 
-    steilwand = Wegkreuzung("steilwand", immer_fragen=True)
+    steilwand = kreuzung("steilwand", immer_fragen=True)
     vorbrück.verbinde_mit_weg(
         steilwand, 0.05, "no", None, Wegtyp.TRAMPELPFAD, beschriftung_zurück="Brücke"
     )
@@ -70,7 +70,7 @@ def erzeuge_tauern(mänx: Mänx) -> WegAdapter:
     zoll = weg.WegSperre(None, None, zoll_fn, zoll_fn)
     vorbrück.verbinde(zoll, "o", ziel="Über die Brücke")
 
-    hinterbrück = Wegkreuzung("hinterbrück", immer_fragen=True, w=zoll)
+    hinterbrück = kreuzung("hinterbrück", immer_fragen=True, w=zoll)
     hinterbrück.add_beschreibung("Vor dir liegt nun Tauern.", "w")
     hinterbrück.add_beschreibung("Du kommst an eine Zollbrücke.", "o")
 

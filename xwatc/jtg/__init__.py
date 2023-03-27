@@ -6,7 +6,7 @@ from xwatc import system
 from xwatc.system import (Mänx, minput, ja_nein, register,
                           Spielende, mint, sprich, kursiv, malp, get_classes, Inventar)
 from xwatc import dorf
-from xwatc.dorf import Dorf, Ort, NSCOptionen, Dialog, HalloDialoge, Malp, Zeitpunkt
+from xwatc.dorf import Dorf, ort, NSCOptionen, Dialog, HalloDialoge, Malp, Zeitpunkt
 from random import randint
 import random
 from xwatc.jtg.ressourcen import zufälliger_name
@@ -47,17 +47,17 @@ def beeren() -> Wildpflanze:
 def erzeuge_mitte(_mänx: Mänx) -> 'weg.Wegpunkt':
     westw = weg.Weg(2, weg.WegAdapter(None, groekrak.zugang_ost,
                                       "jtg:mitte:west"), None)
-    bogen = weg.Wegkreuzung("bogen", w=weg.Richtung(westw))
+    bogen = weg.kreuzung("bogen", w=weg.Richtung(westw))
     bogen.add_beschreibung("Der Weg macht nach einer Weile eine Biegung "
                            "nach rechts.", nur="n")
     bogen.add_beschreibung("Der Weg macht einen Bogen nach links, nach Norden.",
                            nur="w")
-    west = weg.Wegkreuzung("west")
+    west = weg.kreuzung("west")
     west.verbinde_mit_weg(bogen, 0.4, "s", typ=weg.Wegtyp.WEG)
 
     nordw = weg.Weg(
         5, weg.Gebietsende(None, "jtg:mitte", "mitose-mitte", "jtg:mitose"))
-    nordk = weg.Wegkreuzung("nordk", n=weg.Richtung(nordw))
+    nordk = weg.kreuzung("nordk", n=weg.Richtung(nordw))
     nordk.add_beschreibung(
         ("Der kleine Pfad stößt spitz auf einen Weg von links.",),
         nur="s")
@@ -71,13 +71,13 @@ def erzeuge_mitte(_mänx: Mänx) -> 'weg.Wegpunkt':
     nordk.verbinde_mit_weg(west, 3, "sw", "n")
 
     süd = weg.WegAdapter(None, t2_süd)
-    osten = weg.Wegkreuzung("osten", immer_fragen=True)
+    osten = weg.kreuzung("osten", immer_fragen=True)
     osten.add_beschreibung(("Das Gestrüpp wird immer dichter.",
                             "Hohe Brombeerhecken verstellen dir den Weg."))
     osten.add_effekt(system.Besuche("jtg:beeren").main)
     osten.add_beschreibung("Du kommst hier nicht weiter. Umkehren?")
 
-    lichtung = weg.Wegkreuzung(
+    lichtung = weg.kreuzung(
         "lichtung",
         s=weg.Richtung(süd, typ=weg.Wegtyp.PFAD),
         gucken=lichtung_gucken)
@@ -605,8 +605,8 @@ def ende_des_waldes(mänx, morgen=False):
 
 
 def erzeuge_süd_dorf(mänx) -> Dorf:
-    do = Dorf(SÜD_DORF_NAME)
-    kirche = Ort("Kirche", do, [
+    do = Dorf.mit_draußen(SÜD_DORF_NAME)
+    kirche = ort("Kirche", do, [
         "Du bist in einer kleinen Kirche.",
         # Tobiac tot?
         "Im Hauptschiff ist niemand, aber du hörst die Orgel."
