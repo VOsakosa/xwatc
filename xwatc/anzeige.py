@@ -16,8 +16,8 @@ from pathlib import Path
 import pickle
 import queue
 import threading
-from typing import (Tuple, List, Optional as Opt, TextIO, Mapping,
-                    Protocol, Sequence, Any, get_type_hints, TypeVar, Callable,
+from typing import (Tuple, Optional as Opt, Mapping,
+                    Protocol, Sequence, Any, TypeVar, Callable,
                     ClassVar, NamedTuple)
 from xwatc import system
 from xwatc.system import (Fortsetzung, Speicherpunkt, SPEICHER_VERZEICHNIS,
@@ -27,7 +27,7 @@ __author__ = "jasper"
 
 Text = str
 
-minput_return: queue.Queue = queue.Queue(1)
+_minput_return: queue.Queue[Any] = queue.Queue(1)
 _main_thread: threading.Thread
 
 KURZ_CODES = {
@@ -56,6 +56,15 @@ def _idle_wrapper(fn: Tcall) -> Tcall:
             GLib.idle_add(inner)
 
     return wrapped  # type: ignore
+
+def get_minput_return() -> Any:
+    ans = _minput_return.get()
+    match ans:
+        case AnzeigeSpielEnde():
+            raise ans
+        case _:
+            return ans
+    
 
 
 class AnzeigeSpielEnde(BaseException):
@@ -133,7 +142,7 @@ class XwatcFenster:
                     except AnzeigeSpielEnde as ende:
                         next_ = ende.weiter
                         continue
-                    except Exception as exp:
+                    except Exception:
                         import traceback
                         self.mint("Xwatc ist abgestürzt:\n"
                                   + traceback.format_exc())
@@ -168,17 +177,13 @@ class XwatcFenster:
         self.add_text(sep.join(map(str, text)) + end)
         if warte:
             self.auswahl([("weiter", None)])
-            ans = minput_return.get()
-            if isinstance(ans, AnzeigeSpielEnde):
-                raise ans
+            get_minput_return()
 
     def mint(self, *text):
         """Printe und warte auf ein Enter."""
         self.add_text(" ".join(str(t) for t in text) + "\n")
         self.auswahl([("weiter", None)])
-        ans = minput_return.get()
-        if isinstance(ans, AnzeigeSpielEnde):
-            raise ans
+        get_minput_return()
 
     def sprich(self, sprecher: str, text: str, warte: bool = False, wie: str = ""):
         if wie:
@@ -186,9 +191,7 @@ class XwatcFenster:
         self.add_text(f'{sprecher}: »{text}«\n')
         if warte:
             self.auswahl([("weiter", None)])
-            ans = minput_return.get()
-            if isinstance(ans, AnzeigeSpielEnde):
-                raise ans
+            get_minput_return()
 
     @_idle_wrapper
     def add_text(self, text: str) -> None:
@@ -204,9 +207,7 @@ class XwatcFenster:
             self.eingabe(prompt=None)
         else:
             self.auswahl([(mg, mg) for mg in möglichkeiten], save=save)
-        ans = minput_return.get()
-        if isinstance(ans, AnzeigeSpielEnde):
-            raise ans
+        ans = get_minput_return()
         if lower:
             ans = ans.lower()
         return ans
@@ -230,18 +231,14 @@ class XwatcFenster:
              save: Opt[system.Speicherpunkt] = None) -> T:
         self.auswahl([(name, value, shorthand)
                       for name, shorthand, value in optionen], versteckt, save=save)
-        ans = minput_return.get()
-        if isinstance(ans, AnzeigeSpielEnde):
-            raise ans
+        ans = get_minput_return()
         return ans
 
     def ja_nein(self, mänx: system.Mänx, frage: str,
                 save: Opt[system.Speicherpunkt] = None) -> bool:
         self.malp(frage)
         self.auswahl([("Ja", True), ("Nein", False)], save=save)
-        ans = minput_return.get()
-        if isinstance(ans, AnzeigeSpielEnde):
-            raise ans
+        ans = get_minput_return()
         return ans
 
     @_idle_wrapper
@@ -331,7 +328,7 @@ class XwatcFenster:
         return False
 
     def malp_stack(self, nachricht: str) -> None:
-        """Zeige eine Nachricht und mache dann weiter."""
+        """Lege eine Nachricht auf den Stack -- Zeige diese und mache dann weiter."""
         self.push_stack()
         self.malp(nachricht)
         self.auswahl([("weiter", None)],
@@ -369,7 +366,7 @@ class XwatcFenster:
 
     def _remove_choices(self):
         # entferne buttons
-        for i in range(len(self.grid.get_children())):
+        for _i in range(len(self.grid.get_children())):
             self.grid.remove_row(0)
         for typ, anzeige in self.anzeigen.items():
             if typ not in self.sichtbare_anzeigen:
@@ -387,7 +384,7 @@ class XwatcFenster:
         """Beantwortet die gestellte Frage mit *text*."""
         self._deactivate_choices()
         if self.choice_action is None:
-            minput_return.put(text)
+            _minput_return.put(text)
         else:
             self.choice_action(text)
 
@@ -396,7 +393,7 @@ class XwatcFenster:
 
     def fenster_schließt(self, _window: Gtk.Window) -> bool:
         # xwatc-thread umbringen
-        minput_return.put(AnzeigeSpielEnde(None))
+        _minput_return.put(AnzeigeSpielEnde(None))
         return False
 
     def xwatc_ended(self):
@@ -404,7 +401,7 @@ class XwatcFenster:
         self.main_grid.get_toplevel().destroy()
 
     def kursiv(self, text: str) -> Text:
-        # TODO
+        # TODO Kursiv
         return text
 
     def push_stack(self):
@@ -448,6 +445,7 @@ class XwatcFenster:
 
 
 class _StackItem(NamedTuple):
+    """Represents a single page to be displayed in the window."""
     mgn: dict[str, Any]
     # Die Anzahl der nicht versteckten Optionen
     mgn_hidden_count: int
