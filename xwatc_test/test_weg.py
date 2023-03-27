@@ -3,7 +3,7 @@ Unittests für xwatc.weg
 
 """
 import unittest
-from xwatc.weg import Wegtyp, GEBIETE, Beschreibung, get_gebiet
+from xwatc.weg import Wegtyp, GEBIETE, Beschreibung, get_gebiet, Gebiet, Himmelsrichtung
 from xwatc.system import Mänx, mint
 from xwatc_test.mock_system import MockSystem
 
@@ -48,6 +48,22 @@ class TestWeg(unittest.TestCase):
         self.assertListEqual(system.pop_ausgaben(), ["Nur der Text"])
         d.beschreibe(mänx, von="Nein")
         self.assertListEqual(system.pop_ausgaben(), [])
+    
+    def test_gitter(self):
+        gebiet = Gebiet("Test-Gebiet")
+        p1 = gebiet.neuer_punkt((1,1), "oase")
+        self.assertIs(gebiet.get_punkt_at(1,1), p1)
+        self.assertIs(p1.gebiet, gebiet)
+        p2 = gebiet.neuer_punkt((3,1), "karawanenort")
+        self.assertIs(p1.nachbarn[Himmelsrichtung.from_kurz("o")].ziel, p2)
+        self.assertListEqual(p1.get_nachbarn(), [p2])
+        p3 = gebiet.neuer_punkt((2,1), "zwischenpunkt")
+        self.assertListEqual(p1.get_nachbarn(), [p3])
+        self.assertListEqual(p2.get_nachbarn(), [p3])
+        self.assertListEqual(p3.get_nachbarn(), [p1, p2])
+        p4 = gebiet.neuer_punkt((3,2), "sandwurmplatz")
+        self.assertListEqual(p2.get_nachbarn(), [p3, p4])
+        
 
 
 class TestIntegration(unittest.TestCase):
