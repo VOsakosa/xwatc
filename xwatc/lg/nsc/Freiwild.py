@@ -162,10 +162,10 @@ class RuboicHätxrik(NSC):
                 mänx.erhalte("Lichtschwert", 1)
                 mänx.erhalte("Honigpastete", 5)
                 malp("NOEL hinterlässt dir eine Nachricht:")
-                mint("", kursiv("Komm zu mir, komm/komm/komm/komm/"
-                                "komm/komm/komm\komm\komm\komm\komm\/"
-                                "komm\komm\komm\komm\komm\komm\komm/\/"
-                                "komm\komm/komm\komm/komm zu mir"), "")
+                mint("", kursiv(r"Komm zu mir, komm/komm/komm/komm/"
+                                r"komm/komm/komm\komm\komm\komm\komm\/"
+                                r"komm\komm\komm\komm\komm\komm\komm/\/"
+                                r"komm\komm/komm\komm/komm zu mir"), "")
                 if ja_nein(mänx, "Willst du mitkommen?"):
                     malp('Irgendwo schien jemand sich zu freuen.')
                     kursiv('"Du wirst es sicherlich nicht bereuen."')

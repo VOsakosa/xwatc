@@ -4,7 +4,7 @@ Created on 17.10.2020
 """
 from __future__ import annotations
 
-from attrs import define, field
+from attrs import define, field, Factory
 from collections.abc import Collection, Callable, Iterable, Iterator, Sequence
 from dataclasses import dataclass
 import enum
@@ -17,6 +17,7 @@ import typing
 from xwatc.system import (Mänx, MenuOption, MänxFkt, InventarBasis, malp, mint,
                           MänxPrädikat, Welt)
 from xwatc.utils import uartikel, bartikel, adj_endung, UndPred
+from itertools import repeat
 
 if TYPE_CHECKING:
     from xwatc import nsc
@@ -81,8 +82,16 @@ class _Strecke(Wegpunkt):
             self.p2 = anderer
 
     def __repr__(self):
-        return (f"{type(self).__name__} von {type(self.p1).__name__} "
-                f"nach {type(self.p2).__name__}")
+        def name(pk: Wegpunkt | None):
+            match pk:
+                case None:
+                    return "Leeres Ende"
+                case object(name=str(ans)) if ans:  # type: ignore
+                    return ans
+                case _:
+                    return type(pk).__name__
+        return (f"{type(self).__name__} von {name(self.p1)} "
+                f"nach {name(self.p2)}")
 
 
 class MonsterChance:
@@ -244,6 +253,10 @@ class Himmelsrichtung:
     @classmethod
     def from_nr(cls, nr: int) -> Himmelsrichtung:
         return cls(HIMMELSRICHTUNG_KURZ[nr], nr)
+    
+    @property
+    def gegenrichtung(self) -> Himmelsrichtung:
+        return self + 4
 
     def __add__(self, other: int | Himmelsrichtung) -> Himmelsrichtung:
         if isinstance(other, Himmelsrichtung):
@@ -379,7 +392,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
     immer_fragen: bool = False
     kreuzung_beschreiben: bool = False
     gucken: MänxFkt | None = None
-    _gebiet: str | None = None
+    _gebiet: 'Gebiet | None' = None
     dorf: 'dorf.Dorf | None' = None
     beschreibungen: list[Beschreibung] = field(factory=list)
     _wenn_fn: dict[str, MänxPrädikat] = field(factory=dict)
@@ -637,6 +650,73 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
     def get_state(self):
         """Wenn der Wegpunkt Daten hat, die über die Versionen behalten
         werden sollen."""
+        return None
+
+@define
+class Gebiet:
+    name: str
+    gitterlänge: float = 5/64
+    _punkte: list[list[Wegkreuzung | None]] = Factory(list)
+    
+    def neuer_punkt(self, koordinate: tuple[int, int], name: str) -> Wegkreuzung:
+        """Erzeuge einen neuen Gitterpunkt und verbinde ihn entsprechend seiner Position."""
+        x, y = koordinate
+        if alter_pkt := self.get_punkt_at(x, y):
+            raise ValueError(f"Kann keinen neuen Punkt {name} bei {x},{y} erstellen, da durch "
+                             "{alter_pkt.name} besetzt.")
+        pkt = Wegkreuzung(name=name, nachbarn={}, gebiet=self)
+        self._put_punkt(x, y, pkt)
+        # Verbinden
+        größe_x, größe_y = self.größe
+        for ri_x, ri_y, ri_name in (
+            (1, 0, "o"),
+            (0, 1, "s"),
+            (-1, 0, "w"),
+            (0, -1, "n"),
+        ):
+            vbind_x, vbind_y = x,y
+            lg = 1
+            while True:
+                vbind_x += ri_x
+                vbind_y += ri_y
+                if vbind_x < 0 or vbind_y < 0 or vbind_x >= größe_x or vbind_y >= größe_y:
+                    break
+                if vbind := self.get_punkt_at(vbind_x, vbind_y):
+                    self._verbind(pkt, vbind, ri_name, lg)
+                    break
+                lg += 1
+        return pkt
+    
+    def _put_punkt(self, x: int, y: int, wegpunkt: Wegkreuzung) -> None:
+        if self._punkte and y >= (ylen := len(self._punkte[0])):
+            for row in self._punkte:
+                row.extend(repeat(None, y-ylen+1)) 
+        if x >= len(self._punkte):
+            self._punkte.extend([None for __ in range(y+1)] for __ in range(len(self._punkte), x+1))
+        self._punkte[x][y] = wegpunkt
+    
+    def _verbind(self, pkt1: Wegkreuzung, pkt2: Wegkreuzung, ri_name: str, länge: int) -> None:
+        ri1 = Himmelsrichtung.from_kurz(ri_name)
+        assert isinstance(ri1, Himmelsrichtung)
+        ri2 = ri1.gegenrichtung
+
+        weg = Weg(länge * self.gitterlänge, pkt1, pkt2)
+        pkt1.nachbarn[ri1] = Richtung(weg, pkt2.name)
+        pkt2.nachbarn[ri2] = Richtung(weg, pkt1.name)
+    
+    @property
+    def größe(self) -> tuple[int, int]:
+        if self._punkte:
+            return len(self._punkte), len(self._punkte[0])
+        return 0,0
+    
+    def get_punkt_at(self, x: int, y: int) -> Wegkreuzung | None:
+        """Gebe den Gitterpunkt an der Stelle (x|y), wenn existent, zurück."""
+        if x >= 0 and y >= 0:
+            try:
+                return self._punkte[x][y]
+            except IndexError:
+                return None
         return None
 
 
