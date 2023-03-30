@@ -874,6 +874,27 @@ def get_eintritt(mänx: Mänx, name_or_gebiet: Wegpunkt | str | tuple[str, str])
         return name_or_gebiet
 
 
+@define
+class Eintritt:
+    """Mache eine Gebiets- oder Eintritts-ID zu einer Fortsetzung.
+
+    Definiert ein Modul z.B.::
+
+        MITTE = weg.Eintritt("lg:mitte")
+
+    Dann kann eine andere Mänx-Fkt einfach::
+
+        return MITTE
+
+    schreiben, um eine Fortsetzung in MITTE zu erwirken.
+
+    """
+    name_or_gebiet: Wegpunkt | str | tuple[str, str]
+
+    def __call__(self, mänx: Mänx) -> Fortsetzung:
+        return get_eintritt(mänx, self.name_or_gebiet)
+
+
 GebietsFn: TypeAlias = Callable[[Mänx, Gebiet], Wegpunkt | None]
 
 
@@ -900,7 +921,7 @@ def gebiet(name: str) -> Callable[[GebietsFn], MänxFkt[Gebiet]]:
 def wegsystem(mänx: Mänx, start: Union[Wegpunkt, str], return_fn: bool = False
               ) -> MänxFkt[Fortsetzung]:
     """Startet das Wegsystem mit mänx am Wegpunkt start.
-    
+
     :param return_fn: Wenn false, wird die Fortsetzung ausgeführt, bevor sie zurückgegeben wird.
     """
     wp: Union[Wegpunkt, WegEnde] = get_eintritt(mänx, start)
