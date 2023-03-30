@@ -8,10 +8,11 @@ from attrs import define, field, Factory
 from collections.abc import Collection, Callable, Iterable, Iterator, Sequence
 from dataclasses import dataclass
 import enum
+from functools import wraps
 import random
 from typing import (
     Any, ClassVar, Optional as Opt, Union, NewType, overload, TYPE_CHECKING, runtime_checkable,
-    Protocol)
+    Protocol, TypeAlias)
 import typing
 
 from xwatc.system import (Mänx, MenuOption, MänxFkt, InventarBasis, malp, mint,
@@ -25,7 +26,6 @@ if TYPE_CHECKING:
 
 __author__ = "jasper"
 
-GEBIETE: dict[str, Callable[[Mänx], 'Wegpunkt']] = {}
 # Die Verbindungen zwischen Gebieten
 EINTRITTSPUNKTE: dict[tuple[str, str], 'Gebietsende'] = {}
 ADAPTER: dict[str, 'WegAdapter'] = {}
@@ -253,7 +253,7 @@ class Himmelsrichtung:
     @classmethod
     def from_nr(cls, nr: int) -> Himmelsrichtung:
         return cls(HIMMELSRICHTUNG_KURZ[nr], nr)
-    
+
     @property
     def gegenrichtung(self) -> Himmelsrichtung:
         return self + 4
@@ -642,7 +642,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                     ), "Überschreibt bisherigen Weg."
         self.nachbarn[ri1] = Richtung(weg, beschriftung_hin, typ=typ)
         nach.nachbarn[ri2] = Richtung(weg, beschriftung_zurück, typ=typ)
-    
+
     def add_nsc(self, welt: Welt, name: str, fkt: Callable[..., nsc.NSC],
                 *args, **kwargs):
         welt.get_or_else(name, fkt, *args, **kwargs).ort = self
@@ -652,14 +652,16 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         werden sollen."""
         return None
 
+
 @define
 class Gebiet:
     """Fasst mehrere Wegkreuzungen zusammen. Wegkreuzung können als Punkte auf einem Gitter
     erzeugt werden und werden dann automatisch mit ihren Nachbarn verbunden."""
     name: str
-    gitterlänge: float = 5/64
+    gitterlänge: float = 5 / 64
     _punkte: list[list[Wegkreuzung | None]] = Factory(list)
-    
+    eintrittspunkte: dict[str, Wegpunkt] = Factory(dict)
+
     def neuer_punkt(self, koordinate: tuple[int, int], name: str) -> Wegkreuzung:
         """Erzeuge einen neuen Gitterpunkt und verbinde ihn entsprechend seiner Position."""
         x, y = koordinate
@@ -676,7 +678,7 @@ class Gebiet:
             (-1, 0, "w"),
             (0, -1, "n"),
         ):
-            vbind_x, vbind_y = x,y
+            vbind_x, vbind_y = x, y
             lg = 1
             while True:
                 vbind_x += ri_x
@@ -688,15 +690,16 @@ class Gebiet:
                     break
                 lg += 1
         return pkt
-    
+
     def _put_punkt(self, x: int, y: int, wegpunkt: Wegkreuzung) -> None:
         if self._punkte and y >= (ylen := len(self._punkte[0])):
             for row in self._punkte:
-                row.extend(repeat(None, y-ylen+1)) 
+                row.extend(repeat(None, y - ylen + 1))
         if x >= len(self._punkte):
-            self._punkte.extend([None for __ in range(y+1)] for __ in range(len(self._punkte), x+1))
+            self._punkte.extend([None for __ in range(y + 1)]
+                                for __ in range(len(self._punkte), x + 1))
         self._punkte[x][y] = wegpunkt
-    
+
     def _verbind(self, pkt1: Wegkreuzung, pkt2: Wegkreuzung, ri_name: str, länge: int) -> None:
         ri1 = Himmelsrichtung.from_kurz(ri_name)
         assert isinstance(ri1, Himmelsrichtung)
@@ -705,13 +708,13 @@ class Gebiet:
         weg = Weg(länge * self.gitterlänge, pkt1, pkt2)
         pkt1.nachbarn[ri1] = Richtung(weg, pkt2.name)
         pkt2.nachbarn[ri2] = Richtung(weg, pkt1.name)
-    
+
     @property
     def größe(self) -> tuple[int, int]:
         if self._punkte:
             return len(self._punkte), len(self._punkte[0])
-        return 0,0
-    
+        return 0, 0
+
     def get_punkt_at(self, x: int, y: int) -> Wegkreuzung | None:
         """Gebe den Gitterpunkt an der Stelle (x|y), wenn existent, zurück."""
         if x >= 0 and y >= 0:
@@ -837,16 +840,24 @@ def get_gebiet(mänx: Mänx, name_or_gebiet: Union[Wegpunkt, str]) -> Wegpunkt:
         return name_or_gebiet
 
 
-def gebiet(name: str):
+GebietsFn: TypeAlias = Callable[[Mänx, Gebiet], Wegpunkt]
+
+
+def gebiet(name: str) -> Callable[[GebietsFn], MänxFkt[Wegpunkt]]:
     """Dekorator für Gebietserzeugungsfunktionen.
 
     >>>@gebiet("jtg:banane")
-    >>>def erzeuge_banane(mänx: Mänx)-> Wegpunkt:
+    >>>def erzeuge_banane(mänx: Mänx, gebiet: weg.Gebiet) -> Wegpunkt:
     >>>    ...
     """
-    def wrapper(funk: MänxFkt[Wegpunkt]):
+    def wrapper(funk: GebietsFn) -> MänxFkt[Wegpunkt]:
         GEBIETE[name] = funk
-        return funk
+
+        @wraps(funk)
+        def wrapped(mänx: Mänx) -> Wegpunkt:
+            gebiet = Gebiet(name)
+            return funk(mänx, gebiet)
+        return wrapped
     return wrapper
 
 
@@ -864,6 +875,7 @@ def wegsystem(mänx: Mänx, start: Union[Wegpunkt, str]) -> None:
     typing.cast(WegEnde, wp).weiter(mänx)
 
 
+GEBIETE: dict[str, GebietsFn] = {}
 WEGPUNKTE_TEXTE: list[tuple[list[int], str]] = [
 
     ([1, 0, 0, 0, 2, 0, 0, 0], "{w[1]:111} wird zu {w[2]:03}"),

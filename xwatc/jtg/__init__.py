@@ -44,7 +44,7 @@ def beeren() -> Wildpflanze:
 
 
 @weg.gebiet("jtg:mitte")
-def erzeuge_mitte(_mänx: Mänx) -> 'weg.Wegpunkt':
+def erzeuge_mitte(_mänx: Mänx, gebiet: weg.Gebiet) -> 'weg.Wegpunkt':
     westw = weg.Weg(2, weg.WegAdapter(None, groekrak.zugang_ost,
                                       "jtg:mitte:west"), None)
     bogen = weg.kreuzung("bogen", w=weg.Richtung(westw))

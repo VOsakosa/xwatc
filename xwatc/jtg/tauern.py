@@ -35,8 +35,8 @@ def rückweg(mänx: Mänx):
 
 
 @gebiet("jtg:tauern")
-def erzeuge_tauern(mänx: Mänx) -> WegAdapter:
-    import xwatc.jtg.gibon as __
+def erzeuge_tauern(mänx: Mänx, gebiet: weg.Gebiet) -> WegAdapter:
+    import xwatc.jtg.gibon as __  # @UnusedImport
     ein_adap = WegAdapter(None, rückweg)
     eintritt = kreuzung("eintritt", sw=ein_adap)
     eintritt.add_beschreibung([
