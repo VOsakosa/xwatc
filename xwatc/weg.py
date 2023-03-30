@@ -364,8 +364,12 @@ def kreuzung(
     aber hauptsächlich Himmelsrichtungen für Richtungen verwenden."""
     nb = {Himmelsrichtung.from_kurz(key): _to_richtung(value)
           for key, value in kwargs.items()}
-    return Wegkreuzung(name, nb, gucken=gucken, kreuzung_beschreiben=kreuzung_beschreiben,
+    ans = Wegkreuzung(name, nb, gucken=gucken, kreuzung_beschreiben=kreuzung_beschreiben,
                        immer_fragen=immer_fragen, menschen=[*menschen])
+    for ri in nb.values():
+        if ri:
+            ri.ziel.verbinde(ans)
+    return ans
 
 
 @define
