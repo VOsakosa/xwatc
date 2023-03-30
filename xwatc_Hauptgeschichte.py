@@ -1,8 +1,5 @@
 import pickle
-from xwatc.lg.norden import norden
-from xwatc.lg.westen import westen
-from xwatc.lg.osten import osten
-from xwatc.lg.süden import süden
+from logging import getLogger
 from xwatc.system import (Mänx, Spielende, mint, malp, SPEICHER_VERZEICHNIS,
                           Fortsetzung, MenuOption)
 import random
@@ -10,6 +7,7 @@ from xwatc import system
 from xwatc import weg
 from pathlib import Path
 from typing import Optional as Opt
+from xwatc.lg import mitte
 
 
 def hauptmenu() -> None:
@@ -81,9 +79,9 @@ def waffe_wählen(mänx: Mänx) -> Fortsetzung:
         malp(f'Hier liegt kein/e/er "{waffe}"!')
         waffe = "Leere"
     mänx.inventar[waffe.capitalize()] += 1
-    malp(f"Übrigens, dein Inventar enthält jetzt: {mänx.inventar_zeigen()}. "
+    mint(f"Übrigens, dein Inventar enthält jetzt: {mänx.inventar_zeigen()}. "
          "(Mit der Taste e kannst du dein Inventar überprüfen.)")
-    return himmelsrichtungen
+    return weg.get_eintritt(mänx, mitte.MITTE)
 
 
 def main(mänx: Mänx):
@@ -97,15 +95,16 @@ def main(mänx: Mänx):
             punkt = waffe_wählen
         try:
             while punkt:
+                getLogger("xwatc").info(f"Betrete {punkt}.")
                 if isinstance(punkt, weg.Wegpunkt):
                     punkt = weg.wegsystem(mänx, punkt, return_fn=True)
-                    break
                 elif callable(punkt):
                     punkt = punkt(mänx)
                 else:
                     punkt = punkt.main(mänx)
         except Spielende:
             malp("Du bist tot")
+            punkt = None
         except EOFError:
             ende = True
         else:
@@ -118,24 +117,6 @@ def main(mänx: Mänx):
             malp("Aber keine Sorge, du wirst wiedergeboren")
         elif not mänx.ausgabe.terminal:
             mänx.menu([("Beenden", "weiter", None)])
-
-
-def himmelsrichtungen(mänx: Mänx):
-    richtung = mänx.minput(
-        "Wohin gehst du jetzt? "
-        "In Richtung Norden ist das nächste Dorf, im Süden warten "
-        "Monster auf dich, im Westen liegt "
-        "das Meer und der Osten ist unentdeckt.",
-        ["Norden", "Osten", "Süden", "Westen"],
-        save=himmelsrichtungen)
-    if richtung == "norden":
-        norden.norden(mänx)
-    elif richtung == "osten":
-        osten.osten(mänx)
-    elif richtung == "süden":
-        süden.süden(mänx)
-    else:  # if richtung == "westen":
-        westen.westen(mänx)
 
 
 if __name__ == '__main__':
