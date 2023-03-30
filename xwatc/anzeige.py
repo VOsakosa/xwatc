@@ -71,12 +71,15 @@ class AnzeigeSpielEnde(BaseException):
 @define
 class Unterbrechung:
     """Signalisiert in minput_return, dass der Spieler eine ständig verfügbare Option ausgelöst
-    hat, wie z.B. mit seinen Gefährten zu reden."""
+    hat, wie z.B. mit seinen Gefährten zu reden. Diese wird auf einem neuen Stack ausgeführt."""
     fkt: system.MänxFkt
 
 
 class XwatcFenster:
-    """Ein Fenster, um Xwatc zu spielen."""
+    """Ein Fenster, um Xwatc zu spielen. Es funktioniert als eigene Ausgabe. Die Anzeige
+    funktioniert auf Basis eines Stacks, sodass aus geöffneten Menus auf vorherige Stufen
+    zurückgekehrt werden kann. Ausgaben werden auf ein Textfeld geschrieben. Eingaben werden
+    von Buttons am Ende des Fensters eingeholt."""
     terminal: ClassVar[bool] = False
 
     def __init__(self, app: Gtk.Application, startpunkt: Opt[Fortsetzung] = None):
@@ -181,7 +184,6 @@ class XwatcFenster:
                 case AnzeigeSpielEnde():
                     raise ans
                 case Unterbrechung(fkt=fkt):
-
                     if self.mänx:
                         if not self.unterbrochen:
                             self.unterbrochen = True

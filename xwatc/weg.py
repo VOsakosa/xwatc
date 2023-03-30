@@ -4,30 +4,28 @@ Created on 17.10.2020
 """
 from __future__ import annotations
 
-from attrs import define, field
+from attrs import define, field, Factory
 from collections.abc import Collection, Callable, Iterable, Iterator, Sequence
 from dataclasses import dataclass
 import enum
+from functools import wraps
+from logging import getLogger
 import random
 from typing import (
     Any, ClassVar, Optional as Opt, Union, NewType, overload, TYPE_CHECKING, runtime_checkable,
-    Protocol)
+    Protocol, TypeAlias)
 import typing
 
 from xwatc.system import (Mänx, MenuOption, MänxFkt, InventarBasis, malp, mint,
-                          MänxPrädikat, Welt)
+                          MänxPrädikat, Welt, MissingID)
 from xwatc.utils import uartikel, bartikel, adj_endung, UndPred
+from itertools import repeat
 
 if TYPE_CHECKING:
     from xwatc import nsc
     from xwatc import dorf
 
 __author__ = "jasper"
-
-GEBIETE: dict[str, Callable[[Mänx], 'Wegpunkt']] = {}
-# Die Verbindungen zwischen Gebieten
-EINTRITTSPUNKTE: dict[tuple[str, str], 'Gebietsende'] = {}
-ADAPTER: dict[str, 'WegAdapter'] = {}
 
 
 @dataclass
@@ -81,8 +79,16 @@ class _Strecke(Wegpunkt):
             self.p2 = anderer
 
     def __repr__(self):
-        return (f"{type(self).__name__} von {type(self.p1).__name__} "
-                f"nach {type(self.p2).__name__}")
+        def name(pk: Wegpunkt | None):
+            match pk:
+                case None:  # @UnusedVariable
+                    return "Leeres Ende"
+                case object(name=str(ans)) if ans:  # type: ignore
+                    return ans
+                case _:
+                    return type(pk).__name__
+        return (f"{type(self).__name__} von {name(self.p1)} "
+                f"nach {name(self.p2)}")
 
 
 class MonsterChance:
@@ -245,6 +251,10 @@ class Himmelsrichtung:
     def from_nr(cls, nr: int) -> Himmelsrichtung:
         return cls(HIMMELSRICHTUNG_KURZ[nr], nr)
 
+    @property
+    def gegenrichtung(self) -> Himmelsrichtung:
+        return self + 4
+
     def __add__(self, other: int | Himmelsrichtung) -> Himmelsrichtung:
         if isinstance(other, Himmelsrichtung):
             other = other.nr
@@ -354,8 +364,12 @@ def kreuzung(
     aber hauptsächlich Himmelsrichtungen für Richtungen verwenden."""
     nb = {Himmelsrichtung.from_kurz(key): _to_richtung(value)
           for key, value in kwargs.items()}
-    return Wegkreuzung(name, nb, gucken=gucken, kreuzung_beschreiben=kreuzung_beschreiben,
+    ans = Wegkreuzung(name, nb, gucken=gucken, kreuzung_beschreiben=kreuzung_beschreiben,
                        immer_fragen=immer_fragen, menschen=[*menschen])
+    for ri in nb.values():
+        if ri:
+            ri.ziel.verbinde(ans)
+    return ans
 
 
 @define
@@ -374,12 +388,12 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
     """
     OPTS: ClassVar[Sequence[int]] = [4, 3, 5, 2, 6, 1, 7]
     name: str
-    nachbarn: dict[NachbarKey, Richtung | None]
+    nachbarn: dict[NachbarKey, Richtung | None] = field(repr=False)
     menschen: list[nsc.NSC] = field(factory=list)
     immer_fragen: bool = False
     kreuzung_beschreiben: bool = False
     gucken: MänxFkt | None = None
-    _gebiet: str | None = None
+    _gebiet: 'Gebiet | None' = None
     dorf: 'dorf.Dorf | None' = None
     beschreibungen: list[Beschreibung] = field(factory=list)
     _wenn_fn: dict[str, MänxPrädikat] = field(factory=dict)
@@ -629,7 +643,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                     ), "Überschreibt bisherigen Weg."
         self.nachbarn[ri1] = Richtung(weg, beschriftung_hin, typ=typ)
         nach.nachbarn[ri2] = Richtung(weg, beschriftung_zurück, typ=typ)
-    
+
     def add_nsc(self, welt: Welt, name: str, fkt: Callable[..., nsc.NSC],
                 *args, **kwargs):
         welt.get_or_else(name, fkt, *args, **kwargs).ort = self
@@ -640,16 +654,92 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         return None
 
 
+@define
+class Gebiet:
+    """Fasst mehrere Wegkreuzungen zusammen. Wegkreuzung können als Punkte auf einem Gitter
+    erzeugt werden und werden dann automatisch mit ihren Nachbarn verbunden."""
+    name: str
+    gitterlänge: float = 5 / 64
+    _punkte: list[list[Wegkreuzung | None]] = Factory(list)
+    eintrittspunkte: dict[str, Wegpunkt] = Factory(dict)
+
+    def neuer_punkt(self, koordinate: tuple[int, int], name: str) -> Wegkreuzung:
+        """Erzeuge einen neuen Gitterpunkt und verbinde ihn entsprechend seiner Position."""
+        x, y = koordinate
+        if alter_pkt := self.get_punkt_at(x, y):
+            raise ValueError(f"Kann keinen neuen Punkt {name} bei {x},{y} erstellen, da durch "
+                             "{alter_pkt.name} besetzt.")
+        pkt = Wegkreuzung(name=name, nachbarn={}, gebiet=self)
+        self._put_punkt(x, y, pkt)
+        # Verbinden
+        größe_x, größe_y = self.größe
+        for ri_x, ri_y, ri_name in (
+            (1, 0, "o"),
+            (0, 1, "s"),
+            (-1, 0, "w"),
+            (0, -1, "n"),
+        ):
+            vbind_x, vbind_y = x, y
+            lg = 1
+            while True:
+                vbind_x += ri_x
+                vbind_y += ri_y
+                if vbind_x < 0 or vbind_y < 0 or vbind_x >= größe_x or vbind_y >= größe_y:
+                    break
+                if vbind := self.get_punkt_at(vbind_x, vbind_y):
+                    self._verbind(pkt, vbind, ri_name, lg)
+                    break
+                lg += 1
+        return pkt
+
+    def _put_punkt(self, x: int, y: int, wegpunkt: Wegkreuzung) -> None:
+        if self._punkte and y >= (ylen := len(self._punkte[0])):
+            for row in self._punkte:
+                row.extend(repeat(None, y - ylen + 1))
+        if x >= len(self._punkte):
+            self._punkte.extend([None for __ in range(y + 1)]
+                                for __ in range(len(self._punkte), x + 1))
+        self._punkte[x][y] = wegpunkt
+
+    def _verbind(self, pkt1: Wegkreuzung, pkt2: Wegkreuzung, ri_name: str, länge: int) -> None:
+        ri1 = Himmelsrichtung.from_kurz(ri_name)
+        assert isinstance(ri1, Himmelsrichtung)
+        ri2 = ri1.gegenrichtung
+
+        weg = Weg(länge * self.gitterlänge, pkt1, pkt2)
+        pkt1.nachbarn[ri1] = Richtung(weg, pkt2.name)
+        pkt2.nachbarn[ri2] = Richtung(weg, pkt1.name)
+
+    @property
+    def größe(self) -> tuple[int, int]:
+        if self._punkte:
+            return len(self._punkte), len(self._punkte[0])
+        return 0, 0
+
+    def get_punkt_at(self, x: int, y: int) -> Wegkreuzung | None:
+        """Gebe den Gitterpunkt an der Stelle (x|y), wenn existent, zurück."""
+        if x >= 0 and y >= 0:
+            try:
+                return self._punkte[x][y]
+            except IndexError:
+                return None
+        return None
+
+    def main(self, _mänx: Mänx) -> Wegpunkt:
+        return self.eintrittspunkte["start"]
+
+
 class WegAdapter(_Strecke):
     """Ein Übergang von Wegesystem zum normalen System."""
 
     def __init__(self, nächster: Wegpunkt | None, zurück: MänxFkt,
-                 name: str = ""):
+                 name: str = "", gebiet: Gebiet | None = None):
         super().__init__(nächster, None)
         self.zurück = zurück
         self.name = name
-        if name:
-            ADAPTER[name] = self
+        if gebiet and name:
+            assert name not in gebiet.eintrittspunkte, f"Eintrittspunkt {name} schon in Gebiet"
+            gebiet.eintrittspunkte[name] = self
 
     def main(self, mänx: Mänx, von: Wegpunkt | None) -> Union[Wegpunkt, WegEnde]:
         if von:
@@ -706,7 +796,7 @@ class Gebietsende(_Strecke):
     """Das Ende eines Gebietes ist der Anfang eines anderen."""
 
     def __init__(self, von: Wegpunkt | None,
-                 gebiet: str,  # pylint: disable=redefined-outer-name
+                 gebiet: Gebiet,  # pylint: disable=redefined-outer-name
                  port: str, nach: str):
         """Erzeuge ein Gebietsende.
 
@@ -716,10 +806,9 @@ class Gebietsende(_Strecke):
         self.gebiet = gebiet
         self.nach = nach
         self.port = port
-        # TODO: Das passt nicht. Der Punkt darf sich nicht global eintragen, wenn
-        # er weltabhängig ist
-        EINTRITTSPUNKTE[self.gebiet, self.port] = self
-        assert self.gebiet in GEBIETE, f"Unbekanntes Gebiet: {self.gebiet}"
+        assert self.port not in self.gebiet.eintrittspunkte, (
+            f"Doppelt registrierter Port: {self.port} in {self.gebiet.name}")
+        self.gebiet.eintrittspunkte[self.port] = self
         assert nach in GEBIETE, f"Unbekanntes Gebiet: {nach}"
 
     @property
@@ -731,48 +820,89 @@ class Gebietsende(_Strecke):
         self.p1 = wegpunkt
 
     def main(self, mänx: Mänx, von: Wegpunkt | None) -> Wegpunkt:
+        if von is not self.p1:
+            assert self.p1, "Loses Ende"
+            return self.p1
         if self.p2:
             return self.p2
         else:
-            get_gebiet(mänx, self.nach)
             try:
-                self.p2 = EINTRITTSPUNKTE[self.nach, self.port].von
-                assert self.p2, "Loses Ende!"
+                self.p2 = get_eintritt(mänx, (self.nach, self.port))
             except KeyError:
-                raise KeyError("Erstellen des Gebietes ")
+                raise MissingID(
+                    f"Gebietsende {self.gebiet}:{self.port} ist lose.")
             else:
                 return self.p2
+    
+    def __str__(self) -> str:
+        return f"Gebietsende {self.gebiet.name} - {self.port} - {self.nach}"
 
 
-def get_gebiet(mänx: Mänx, name_or_gebiet: Union[Wegpunkt, str]) -> Wegpunkt:
-    """Lade ein Gebiet von seinem Namen."""
-    if isinstance(name_or_gebiet, str):
-        if name_or_gebiet in ADAPTER:
-            return ADAPTER[name_or_gebiet]
+def get_gebiet(mänx: Mänx, name: str) -> Gebiet:
+    """Hole oder erzeuge das Gebiet `name` in `mänx`."""
+    if name not in GEBIETE:
+        raise MissingID(f"Unbekanntes Gebiet {name}")
+    return mänx.welt.get_or_else(f"weg:{name}", GEBIETE[name], mänx)
+
+
+def get_eintritt(mänx: Mänx, name_or_gebiet: Wegpunkt | str | tuple[str, str]) -> Wegpunkt:
+    """Lade einen Eintrittspunkt mit seiner ID.
+
+    :param name_or_gebiet:
+        Entweder
+        1. ein Wegpunkt: dieser wird so zurückgegeben
+        2. ein Tupel Gebiet, Port
+        3. ein String Gebiet:Port
+        4. ein Name eines Gebiets, dann Gebiet:"start"
+    :raises MissingID: Wenn kein solcher Punkt registriert ist.
+    """
+    if isinstance(name_or_gebiet, (str, tuple)):
+        if isinstance(name_or_gebiet, tuple):
+            gebiet_name, port = name_or_gebiet
+        elif name_or_gebiet in GEBIETE:
+            gebiet_name = name_or_gebiet
+            port = "start"
+        else:
+            gebiet_name, _sep, port = name_or_gebiet.rpartition(":")
+        gebiet: Gebiet = get_gebiet(mänx, gebiet_name)
+        if port not in gebiet.eintrittspunkte:
+            raise MissingID(f"Gebiet {gebiet_name} hat keinen Eingang {port}!")
+        return gebiet.eintrittspunkte[port]
         return mänx.welt.get_or_else(
             "weg:" + name_or_gebiet, GEBIETE[name_or_gebiet], mänx)
     else:
         return name_or_gebiet
 
 
-def gebiet(name: str):
+GebietsFn: TypeAlias = Callable[[Mänx, Gebiet], Wegpunkt | None]
+
+
+def gebiet(name: str) -> Callable[[GebietsFn], MänxFkt[Gebiet]]:
     """Dekorator für Gebietserzeugungsfunktionen.
 
     >>>@gebiet("jtg:banane")
-    >>>def erzeuge_banane(mänx: Mänx)-> Wegpunkt:
+    >>>def erzeuge_banane(mänx: Mänx, gebiet: weg.Gebiet) -> Wegpunkt:
     >>>    ...
     """
-    def wrapper(funk: MänxFkt[Wegpunkt]):
-        GEBIETE[name] = funk
-        return funk
+    def wrapper(funk: GebietsFn) -> MänxFkt[Gebiet]:
+        @wraps(funk)
+        def wrapped(mänx: Mänx) -> Gebiet:
+            gebiet = Gebiet(name)
+            if start := funk(mänx, gebiet):
+                gebiet.eintrittspunkte.setdefault("start", start)
+            return gebiet
+
+        GEBIETE[name] = wrapped
+        return wrapped
     return wrapper
 
 
 def wegsystem(mänx: Mänx, start: Union[Wegpunkt, str]) -> None:
     """Startet das Wegsystem mit mänx am Wegpunkt start."""
-    wp: Union[Wegpunkt, WegEnde] = get_gebiet(mänx, start)
+    wp: Union[Wegpunkt, WegEnde] = get_eintritt(mänx, start)
     last = None
     while not isinstance(wp, WegEnde):
+        getLogger("xwatc.weg").info(f"Move to {wp}")
         try:
             mänx.context = wp
             last, wp = wp, wp.main(mänx, von=last)
@@ -782,6 +912,7 @@ def wegsystem(mänx: Mänx, start: Union[Wegpunkt, str]) -> None:
     typing.cast(WegEnde, wp).weiter(mänx)
 
 
+GEBIETE: dict[str, MänxFkt[Gebiet]] = {}
 WEGPUNKTE_TEXTE: list[tuple[list[int], str]] = [
 
     ([1, 0, 0, 0, 2, 0, 0, 0], "{w[1]:111} wird zu {w[2]:03}"),

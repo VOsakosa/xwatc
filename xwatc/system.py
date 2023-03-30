@@ -3,6 +3,8 @@ from __future__ import annotations
 from attrs import define
 from collections import defaultdict
 from collections.abc import Sequence, Callable, Iterator, Mapping
+from logging import getLogger
+import logging
 from pathlib import Path
 import pickle
 from time import sleep
@@ -25,7 +27,7 @@ if typing.TYPE_CHECKING:
 
 
 SPEICHER_VERZEICHNIS = Path(__file__).parent.parent / "xwatc_saves"
-
+getLogger("xwatc").addHandler(logging.StreamHandler())
 
 class HatMain(typing.Protocol):
     """Eine Klasse für Objekte, die Geschichte haben und daher mit main()
@@ -44,6 +46,10 @@ class MänxFkt(Protocol[M_cov]):
 
     def __call__(self, __mänx: 'Mänx') -> M_cov:
         """Call this MänxFkt."""
+
+
+class MissingID(KeyError):
+    """Zeigt an, dass ein Objekt per ID gesucht wurde, aber nicht existiert."""
 
 
 MänxPrädikat = MänxFkt[bool]
@@ -449,7 +455,7 @@ class Welt:
         elif name in _OBJEKT_REGISTER:
             obj = _OBJEKT_REGISTER[name]()
         else:
-            raise KeyError(f"Das Objekt {name} existiert nicht.")
+            raise MissingID(f"Das Objekt {name} existiert nicht.")
         self.objekte[name] = obj
         return obj
 

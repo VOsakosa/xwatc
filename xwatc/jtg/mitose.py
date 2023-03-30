@@ -76,9 +76,9 @@ saxa.dialog("verloren", "Ich habe deinen Ring gefunden, aber wieder verloren.",
 
 
 @weg.gebiet("jtg:mitose")
-def erzeuge_norddörfer(mänx: Mänx) -> weg.Wegpunkt:
+def erzeuge_norddörfer(mänx: Mänx, gebiet: weg.Gebiet) -> weg.Wegpunkt:
     zur_mitte = weg.Gebietsende(
-        None, "jtg:mitose", "mitose-mitte", "jtg:mitte")
+        None, gebiet, "mitose-mitte", "jtg:mitte")
     mitose = Dorf.mit_draußen("Mitose")
     mitose_ort = mitose.draußen
     mitose_ort.verbinde(zur_mitte, "s")
@@ -92,7 +92,7 @@ def erzeuge_norddörfer(mänx: Mänx) -> weg.Wegpunkt:
 
     mitose_ort.verbinde(
         weg.Weg(
-            0.5, weg.WegAdapter(None, jtg.disnayenbum, "jtg:mitose:nord")), "n")
+            0.5, weg.WegAdapter(None, jtg.disnayenbum, "nord", gebiet)), "n")
     ort("Hinterhof", mitose, "Ein unkrautbewucherter Hinterhof des Rathauses.")
 
     kraut = kreuzung("kraut", immer_fragen=True)
@@ -347,4 +347,6 @@ def kaufen(nsc: NSC, mänx: Mänx, name: str, preis: Preis, anzahl: int = 1) -> 
 
 if __name__ == '__main__':
     import xwatc.anzeige
+    from logging import getLogger, INFO
+    getLogger("xwatc").setLevel(INFO)
     xwatc.anzeige.main(erzeuge_norddörfer)

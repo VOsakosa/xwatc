@@ -3,7 +3,7 @@ Unittests für xwatc.weg
 
 """
 import unittest
-from xwatc.weg import Wegtyp, GEBIETE, Beschreibung, get_gebiet
+from xwatc.weg import Wegtyp, GEBIETE, Beschreibung, get_gebiet, Gebiet, Himmelsrichtung, Weg
 from xwatc.system import Mänx, mint
 from xwatc_test.mock_system import MockSystem
 
@@ -48,6 +48,41 @@ class TestWeg(unittest.TestCase):
         self.assertListEqual(system.pop_ausgaben(), ["Nur der Text"])
         d.beschreibe(mänx, von="Nein")
         self.assertListEqual(system.pop_ausgaben(), [])
+    
+    def test_gitter(self) -> None:
+        gebiet = Gebiet("Test-Gebiet")
+        self.assertEqual(gebiet.größe, (0,0))
+        p1 = gebiet.neuer_punkt((1,1), "oase")
+        self.assertEqual(gebiet.größe, (2,2))
+        self.assertIs(gebiet.get_punkt_at(1,1), p1)
+        self.assertIs(p1._gebiet, gebiet)
+        with self.assertRaises(ValueError):
+            gebiet.neuer_punkt((1,1), "oase_kopie")
+        p2 = gebiet.neuer_punkt((3,1), "karawanenort")
+        self.assertEqual(gebiet.größe, (4,2))
+        richtung = p1.nachbarn[Himmelsrichtung.from_kurz("o")]
+        assert richtung
+        self.assertIsInstance(richtung.ziel, Weg)
+        self.assertIn(p2, richtung.ziel.get_nachbarn())
+        def get_nachbarn2(pt) -> set:
+            ans = set()
+            for nb in pt.get_nachbarn():
+                self.assertIsInstance(nb, Weg)
+                if nb.p1 == pt:
+                    ans.add(nb.p2.name)
+                else:
+                    ans.add(nb.p1.name)
+            return ans
+        self.assertSetEqual(get_nachbarn2(p1), {p2.name})
+        p3 = gebiet.neuer_punkt((2,1), "zwischenpunkt")
+        self.assertSetEqual(get_nachbarn2(p1), {p3.name})
+        self.assertSetEqual(get_nachbarn2(p2), {p3.name})
+        self.assertSetEqual(get_nachbarn2(p3), {p1.name, p2.name})
+        p4 = gebiet.neuer_punkt((3,2), "sandwurmplatz")
+        self.assertSetEqual(get_nachbarn2(p2), {p3.name, p4.name})
+        self.assertEqual(gebiet.größe, (4,3))
+        for row in gebiet._punkte:
+            self.assertEqual(len(row), 3)
 
 
 class TestIntegration(unittest.TestCase):
