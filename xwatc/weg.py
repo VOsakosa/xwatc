@@ -84,7 +84,7 @@ class _Strecke(Wegpunkt):
     def __repr__(self):
         def name(pk: Wegpunkt | None):
             match pk:
-                case None:
+                case None:  # @UnusedVariable
                     return "Leeres Ende"
                 case object(name=str(ans)) if ans:  # type: ignore
                     return ans
@@ -654,6 +654,8 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
 
 @define
 class Gebiet:
+    """Fasst mehrere Wegkreuzungen zusammen. Wegkreuzung können als Punkte auf einem Gitter
+    erzeugt werden und werden dann automatisch mit ihren Nachbarn verbunden."""
     name: str
     gitterlänge: float = 5/64
     _punkte: list[list[Wegkreuzung | None]] = Factory(list)

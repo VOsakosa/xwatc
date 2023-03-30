@@ -49,7 +49,7 @@ class TestWeg(unittest.TestCase):
         d.beschreibe(mänx, von="Nein")
         self.assertListEqual(system.pop_ausgaben(), [])
     
-    def test_gitter(self):
+    def test_gitter(self) -> None:
         gebiet = Gebiet("Test-Gebiet")
         self.assertEqual(gebiet.größe, (0,0))
         p1 = gebiet.neuer_punkt((1,1), "oase")
