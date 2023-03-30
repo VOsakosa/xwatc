@@ -2,7 +2,7 @@
 Das Zentrum der LG, die Stelle, wo man seine erste Himmelsrichtung wählt.
 Created on 30.03.2023
 """
-from xwatc.weg import gebiet, Gebiet, Wegkreuzung, WegAdapter
+from xwatc.weg import gebiet, Gebiet, Wegkreuzung, WegAdapter, Eintritt
 from xwatc.system import Mänx
 from xwatc.lg.norden import norden
 from xwatc.lg.westen import westen
@@ -24,3 +24,6 @@ def himmelsrichtungen(mänx: Mänx, gb: Gebiet) -> Wegkreuzung:
     mitte.verbinde(WegAdapter(None, osten.osten, "osten", gb), "o")
     mitte.verbinde(WegAdapter(None, westen.westen, "westen", gb), "w")
     return mitte
+
+MITTE = "lg:mitte"
+MITTE_EINTRITT = Eintritt(MITTE)
