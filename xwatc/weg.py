@@ -16,7 +16,7 @@ from typing import (
     Protocol, TypeAlias)
 import typing
 
-from xwatc.system import (Mänx, MenuOption, MänxFkt, InventarBasis, malp, mint,
+from xwatc.system import (Fortsetzung, Mänx, MenuOption, MänxFkt, InventarBasis, malp, mint,
                           MänxPrädikat, Welt, MissingID)
 from xwatc.utils import uartikel, bartikel, adj_endung, UndPred
 from itertools import repeat
@@ -34,7 +34,7 @@ class WegEnde:
     Wegsystem hier zu Ende ist und in das alte, MänxFkt-basierte
     System übergegangen wird.
     """
-    weiter: MänxFkt
+    weiter: MänxFkt[Fortsetzung]
 
 
 @runtime_checkable
@@ -365,7 +365,7 @@ def kreuzung(
     nb = {Himmelsrichtung.from_kurz(key): _to_richtung(value)
           for key, value in kwargs.items()}
     ans = Wegkreuzung(name, nb, gucken=gucken, kreuzung_beschreiben=kreuzung_beschreiben,
-                       immer_fragen=immer_fragen, menschen=[*menschen])
+                      immer_fragen=immer_fragen, menschen=[*menschen])
     for ri in nb.values():
         if ri:
             ri.ziel.verbinde(ans)
@@ -833,7 +833,7 @@ class Gebietsende(_Strecke):
                     f"Gebietsende {self.gebiet}:{self.port} ist lose.")
             else:
                 return self.p2
-    
+
     def __str__(self) -> str:
         return f"Gebietsende {self.gebiet.name} - {self.port} - {self.nach}"
 
@@ -897,8 +897,12 @@ def gebiet(name: str) -> Callable[[GebietsFn], MänxFkt[Gebiet]]:
     return wrapper
 
 
-def wegsystem(mänx: Mänx, start: Union[Wegpunkt, str]) -> None:
-    """Startet das Wegsystem mit mänx am Wegpunkt start."""
+def wegsystem(mänx: Mänx, start: Union[Wegpunkt, str], return_fn: bool = False
+              ) -> MänxFkt[Fortsetzung]:
+    """Startet das Wegsystem mit mänx am Wegpunkt start.
+    
+    :param return_fn: Wenn false, wird die Fortsetzung ausgeführt, bevor sie zurückgegeben wird.
+    """
     wp: Union[Wegpunkt, WegEnde] = get_eintritt(mänx, start)
     last = None
     while not isinstance(wp, WegEnde):
@@ -909,7 +913,10 @@ def wegsystem(mänx: Mänx, start: Union[Wegpunkt, str]) -> None:
             mänx.welt.tick(1 / 96)
         finally:
             mänx.context = None
-    typing.cast(WegEnde, wp).weiter(mänx)
+    ans = typing.cast(WegEnde, wp).weiter
+    if not return_fn:
+        ans(mänx)
+    return ans
 
 
 GEBIETE: dict[str, MänxFkt[Gebiet]] = {}

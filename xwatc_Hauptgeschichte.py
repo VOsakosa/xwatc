@@ -3,8 +3,8 @@ from xwatc.lg.norden import norden
 from xwatc.lg.westen import westen
 from xwatc.lg.osten import osten
 from xwatc.lg.süden import süden
-from xwatc.system import Mänx, minput, Spielende, mint, malp, SPEICHER_VERZEICHNIS,\
-    MänxFkt, HatMain, Fortsetzung, MenuOption
+from xwatc.system import (Mänx, Spielende, mint, malp, SPEICHER_VERZEICHNIS,
+                          Fortsetzung, MenuOption)
 import random
 from xwatc import system
 from xwatc import weg
@@ -35,7 +35,7 @@ def hauptmenu() -> None:
             return
 
 
-def waffe_wählen(mänx: Mänx):
+def waffe_wählen(mänx: Mänx) -> Fortsetzung:
     mint("Du wirst nun einem kleinen Persönlichkeitstest unterzogen.")
     if mänx.ausgabe.terminal:
         mgn = None
@@ -87,19 +87,18 @@ def waffe_wählen(mänx: Mänx):
 
 
 def main(mänx: Mänx):
-    """Die Hauptschleife von Xwatc"""
+    """Die Hauptschleife von Xwatc."""
     if not mänx.speicherpunkt:
         malp("Willkommen bei Xwatc")
     ende = False
-    punkt: Opt[Fortsetzung] = mänx.speicherpunkt
+    punkt: Fortsetzung | None = mänx.speicherpunkt
     while not ende:
         if not punkt:
             punkt = waffe_wählen
         try:
             while punkt:
                 if isinstance(punkt, weg.Wegpunkt):
-                    weg.wegsystem(mänx, punkt)
-                    punkt = None
+                    punkt = weg.wegsystem(mänx, punkt, return_fn=True)
                     break
                 elif callable(punkt):
                     punkt = punkt(mänx)
@@ -119,6 +118,7 @@ def main(mänx: Mänx):
             malp("Aber keine Sorge, du wirst wiedergeboren")
         elif not mänx.ausgabe.terminal:
             mänx.menu([("Beenden", "weiter", None)])
+
 
 def himmelsrichtungen(mänx: Mänx):
     richtung = mänx.minput(

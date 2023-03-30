@@ -5,7 +5,7 @@ Created on 15.10.2020
 from xwatc import weg
 from xwatc.dorf import NSC
 __author__ = "jasper"
-from xwatc.system import Mänx, register, malp, Spielende
+from xwatc.system import Mänx, register, malp, Spielende, Fortsetzung
 from xwatc.weg import gebiet, WegAdapter, kreuzung, Wegtyp
 
 ZOLL_PREIS = 10
@@ -24,8 +24,8 @@ KRIEGER_INVENTAR = {
 }
 
 
-def land_der_kühe(mänx: Mänx):
-    return weg.wegsystem(mänx, "jtg:tauern")
+def land_der_kühe(mänx: Mänx) -> Fortsetzung:
+    return weg.wegsystem(mänx, "jtg:tauern", return_fn=True)
 
 
 def rückweg(mänx: Mänx):

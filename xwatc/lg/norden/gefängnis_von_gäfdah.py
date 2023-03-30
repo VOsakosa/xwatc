@@ -116,7 +116,7 @@ class GefängnisGäfdah:
             
         elif rand == "m":
             # MITOSE
-            return lambda m: weg.wegsystem(m, "jtg:mitose")
+            return weg.get_eintritt(mänx, "jtg:mitose")
         elif rand == "d":
             # GÄFDAH
             from xwatc.lg.norden.norden import norden
