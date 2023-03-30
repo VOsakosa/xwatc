@@ -9,6 +9,7 @@ from collections.abc import Collection, Callable, Iterable, Iterator, Sequence
 from dataclasses import dataclass
 import enum
 from functools import wraps
+from logging import getLogger
 import random
 from typing import (
     Any, ClassVar, Optional as Opt, Union, NewType, overload, TYPE_CHECKING, runtime_checkable,
@@ -16,7 +17,7 @@ from typing import (
 import typing
 
 from xwatc.system import (Mänx, MenuOption, MänxFkt, InventarBasis, malp, mint,
-                          MänxPrädikat, Welt)
+                          MänxPrädikat, Welt, MissingID)
 from xwatc.utils import uartikel, bartikel, adj_endung, UndPred
 from itertools import repeat
 
@@ -25,10 +26,6 @@ if TYPE_CHECKING:
     from xwatc import dorf
 
 __author__ = "jasper"
-
-# Die Verbindungen zwischen Gebieten
-EINTRITTSPUNKTE: dict[tuple[str, str], 'Gebietsende'] = {}
-ADAPTER: dict[str, 'WegAdapter'] = {}
 
 
 @dataclass
@@ -387,7 +384,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
     """
     OPTS: ClassVar[Sequence[int]] = [4, 3, 5, 2, 6, 1, 7]
     name: str
-    nachbarn: dict[NachbarKey, Richtung | None]
+    nachbarn: dict[NachbarKey, Richtung | None] = field(repr=False)
     menschen: list[nsc.NSC] = field(factory=list)
     immer_fragen: bool = False
     kreuzung_beschreiben: bool = False
@@ -724,17 +721,21 @@ class Gebiet:
                 return None
         return None
 
+    def main(self, _mänx: Mänx) -> Wegpunkt:
+        return self.eintrittspunkte["start"]
+
 
 class WegAdapter(_Strecke):
     """Ein Übergang von Wegesystem zum normalen System."""
 
     def __init__(self, nächster: Wegpunkt | None, zurück: MänxFkt,
-                 name: str = ""):
+                 name: str = "", gebiet: Gebiet | None = None):
         super().__init__(nächster, None)
         self.zurück = zurück
         self.name = name
-        if name:
-            ADAPTER[name] = self
+        if gebiet and name:
+            assert name not in gebiet.eintrittspunkte, f"Eintrittspunkt {name} schon in Gebiet"
+            gebiet.eintrittspunkte[name] = self
 
     def main(self, mänx: Mänx, von: Wegpunkt | None) -> Union[Wegpunkt, WegEnde]:
         if von:
@@ -791,7 +792,7 @@ class Gebietsende(_Strecke):
     """Das Ende eines Gebietes ist der Anfang eines anderen."""
 
     def __init__(self, von: Wegpunkt | None,
-                 gebiet: str,  # pylint: disable=redefined-outer-name
+                 gebiet: Gebiet,  # pylint: disable=redefined-outer-name
                  port: str, nach: str):
         """Erzeuge ein Gebietsende.
 
@@ -801,10 +802,9 @@ class Gebietsende(_Strecke):
         self.gebiet = gebiet
         self.nach = nach
         self.port = port
-        # TODO: Das passt nicht. Der Punkt darf sich nicht global eintragen, wenn
-        # er weltabhängig ist
-        EINTRITTSPUNKTE[self.gebiet, self.port] = self
-        assert self.gebiet in GEBIETE, f"Unbekanntes Gebiet: {self.gebiet}"
+        assert self.port not in self.gebiet.eintrittspunkte, (
+            f"Doppelt registrierter Port: {self.port} in {self.gebiet.name}")
+        self.gebiet.eintrittspunkte[self.port] = self
         assert nach in GEBIETE, f"Unbekanntes Gebiet: {nach}"
 
     @property
@@ -816,56 +816,89 @@ class Gebietsende(_Strecke):
         self.p1 = wegpunkt
 
     def main(self, mänx: Mänx, von: Wegpunkt | None) -> Wegpunkt:
+        if von is not self.p1:
+            assert self.p1, "Loses Ende"
+            return self.p1
         if self.p2:
             return self.p2
         else:
-            get_gebiet(mänx, self.nach)
             try:
-                self.p2 = EINTRITTSPUNKTE[self.nach, self.port].von
-                assert self.p2, "Loses Ende!"
+                self.p2 = get_eintritt(mänx, (self.nach, self.port))
             except KeyError:
-                raise KeyError("Erstellen des Gebietes ")
+                raise MissingID(
+                    f"Gebietsende {self.gebiet}:{self.port} ist lose.")
             else:
                 return self.p2
+    
+    def __str__(self) -> str:
+        return f"Gebietsende {self.gebiet.name} - {self.port} - {self.nach}"
 
 
-def get_gebiet(mänx: Mänx, name_or_gebiet: Union[Wegpunkt, str]) -> Wegpunkt:
-    """Lade ein Gebiet von seinem Namen."""
-    if isinstance(name_or_gebiet, str):
-        if name_or_gebiet in ADAPTER:
-            return ADAPTER[name_or_gebiet]
+def get_gebiet(mänx: Mänx, name: str) -> Gebiet:
+    """Hole oder erzeuge das Gebiet `name` in `mänx`."""
+    if name not in GEBIETE:
+        raise MissingID(f"Unbekanntes Gebiet {name}")
+    return mänx.welt.get_or_else(f"weg:{name}", GEBIETE[name], mänx)
+
+
+def get_eintritt(mänx: Mänx, name_or_gebiet: Wegpunkt | str | tuple[str, str]) -> Wegpunkt:
+    """Lade einen Eintrittspunkt mit seiner ID.
+
+    :param name_or_gebiet:
+        Entweder
+        1. ein Wegpunkt: dieser wird so zurückgegeben
+        2. ein Tupel Gebiet, Port
+        3. ein String Gebiet:Port
+        4. ein Name eines Gebiets, dann Gebiet:"start"
+    :raises MissingID: Wenn kein solcher Punkt registriert ist.
+    """
+    if isinstance(name_or_gebiet, (str, tuple)):
+        if isinstance(name_or_gebiet, tuple):
+            gebiet_name, port = name_or_gebiet
+        elif name_or_gebiet in GEBIETE:
+            gebiet_name = name_or_gebiet
+            port = "start"
+        else:
+            gebiet_name, _sep, port = name_or_gebiet.rpartition(":")
+        gebiet: Gebiet = get_gebiet(mänx, gebiet_name)
+        if port not in gebiet.eintrittspunkte:
+            raise MissingID(f"Gebiet {gebiet_name} hat keinen Eingang {port}!")
+        return gebiet.eintrittspunkte[port]
         return mänx.welt.get_or_else(
             "weg:" + name_or_gebiet, GEBIETE[name_or_gebiet], mänx)
     else:
         return name_or_gebiet
 
 
-GebietsFn: TypeAlias = Callable[[Mänx, Gebiet], Wegpunkt]
+GebietsFn: TypeAlias = Callable[[Mänx, Gebiet], Wegpunkt | None]
 
 
-def gebiet(name: str) -> Callable[[GebietsFn], MänxFkt[Wegpunkt]]:
+def gebiet(name: str) -> Callable[[GebietsFn], MänxFkt[Gebiet]]:
     """Dekorator für Gebietserzeugungsfunktionen.
 
     >>>@gebiet("jtg:banane")
     >>>def erzeuge_banane(mänx: Mänx, gebiet: weg.Gebiet) -> Wegpunkt:
     >>>    ...
     """
-    def wrapper(funk: GebietsFn) -> MänxFkt[Wegpunkt]:
-        GEBIETE[name] = funk
-
+    def wrapper(funk: GebietsFn) -> MänxFkt[Gebiet]:
         @wraps(funk)
-        def wrapped(mänx: Mänx) -> Wegpunkt:
+        def wrapped(mänx: Mänx) -> Gebiet:
             gebiet = Gebiet(name)
-            return funk(mänx, gebiet)
+            if start := funk(mänx, gebiet):
+                gebiet.eintrittspunkte.setdefault("start", start)
+            return gebiet
+
+        GEBIETE[name] = wrapped
         return wrapped
     return wrapper
 
 
 def wegsystem(mänx: Mänx, start: Union[Wegpunkt, str]) -> None:
     """Startet das Wegsystem mit mänx am Wegpunkt start."""
-    wp: Union[Wegpunkt, WegEnde] = get_gebiet(mänx, start)
+    wp: Union[Wegpunkt, WegEnde] = get_eintritt(mänx, start)
     last = None
     while not isinstance(wp, WegEnde):
+        getLogger("xwatc.weg").info(f"Move to {wp}")
         try:
             mänx.context = wp
             last, wp = wp, wp.main(mänx, von=last)
@@ -875,7 +908,7 @@ def wegsystem(mänx: Mänx, start: Union[Wegpunkt, str]) -> None:
     typing.cast(WegEnde, wp).weiter(mänx)
 
 
-GEBIETE: dict[str, GebietsFn] = {}
+GEBIETE: dict[str, MänxFkt[Gebiet]] = {}
 WEGPUNKTE_TEXTE: list[tuple[list[int], str]] = [
 
     ([1, 0, 0, 0, 2, 0, 0, 0], "{w[1]:111} wird zu {w[2]:03}"),

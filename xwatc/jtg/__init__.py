@@ -45,8 +45,8 @@ def beeren() -> Wildpflanze:
 
 @weg.gebiet("jtg:mitte")
 def erzeuge_mitte(_mänx: Mänx, gebiet: weg.Gebiet) -> 'weg.Wegpunkt':
-    westw = weg.Weg(2, weg.WegAdapter(None, groekrak.zugang_ost,
-                                      "jtg:mitte:west"), None)
+    westw = weg.Weg(2, weg.WegAdapter(
+        None, groekrak.zugang_ost, "west", gebiet), None)
     bogen = weg.kreuzung("bogen", w=weg.Richtung(westw))
     bogen.add_beschreibung("Der Weg macht nach einer Weile eine Biegung "
                            "nach rechts.", nur="n")
@@ -56,7 +56,7 @@ def erzeuge_mitte(_mänx: Mänx, gebiet: weg.Gebiet) -> 'weg.Wegpunkt':
     west.verbinde_mit_weg(bogen, 0.4, "s", typ=weg.Wegtyp.WEG)
 
     nordw = weg.Weg(
-        5, weg.Gebietsende(None, "jtg:mitte", "mitose-mitte", "jtg:mitose"))
+        5, weg.Gebietsende(None, gebiet, "mitose-mitte", "jtg:mitose"))
     nordk = weg.kreuzung("nordk", n=weg.Richtung(nordw))
     nordk.add_beschreibung(
         ("Der kleine Pfad stößt spitz auf einen Weg von links.",),
