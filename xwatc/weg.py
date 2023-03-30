@@ -918,13 +918,13 @@ def gebiet(name: str) -> Callable[[GebietsFn], MänxFkt[Gebiet]]:
     return wrapper
 
 
-def wegsystem(mänx: Mänx, start: Union[Wegpunkt, str], return_fn: bool = False
+def wegsystem(mänx: Mänx, start: Wegpunkt | str | tuple[str, str], return_fn: bool = False
               ) -> MänxFkt[Fortsetzung]:
     """Startet das Wegsystem mit mänx am Wegpunkt start.
 
     :param return_fn: Wenn false, wird die Fortsetzung ausgeführt, bevor sie zurückgegeben wird.
     """
-    wp: Union[Wegpunkt, WegEnde] = get_eintritt(mänx, start)
+    wp: Wegpunkt | WegEnde = get_eintritt(mänx, start)
     last = None
     while not isinstance(wp, WegEnde):
         getLogger("xwatc.weg").info(f"Move to {wp}")
