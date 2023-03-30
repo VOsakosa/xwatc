@@ -81,7 +81,7 @@ def waffe_wählen(mänx: Mänx) -> Fortsetzung:
     mänx.inventar[waffe.capitalize()] += 1
     mint(f"Übrigens, dein Inventar enthält jetzt: {mänx.inventar_zeigen()}. "
          "(Mit der Taste e kannst du dein Inventar überprüfen.)")
-    return weg.get_eintritt(mänx, mitte.MITTE)
+    return mitte.MITTE_EINTRITT
 
 
 def main(mänx: Mänx):

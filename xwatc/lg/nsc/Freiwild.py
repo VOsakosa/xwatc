@@ -1,10 +1,12 @@
 from xwatc.dorf import NSC
-from xwatc.system import mint, kursiv, Mänx, ja_nein, minput, Spielende, malp, sprich
+from xwatc.system import mint, kursiv, Mänx, ja_nein, minput, Spielende, malp, sprich, Fortsetzung
 import random
 from xwatc.jtg import t2
 from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
 import xwatc_Hauptgeschichte
 from time import sleep
+from xwatc.lg import mitte
+from xwatc.weg import get_eintritt
 
 
 class RuboicHätxrik(NSC):
@@ -55,7 +57,7 @@ class RuboicHätxrik(NSC):
 
     @staticmethod
     def sgh(mänx):
-        gäfdah = mänx.welt.obj("Gäfdah")
+        # gäfdah = mänx.welt.obj("Gäfdah")
         if ja_nein(mänx, "Durchsuchst du den Mann?"):
             mänx.erhalte("Äntorenmantel", 1)
             mänx.erhalte("Äntorenstiefel", 2)
@@ -144,7 +146,7 @@ class RuboicHätxrik(NSC):
         mänx.erhalte("Bantoriitensamen", 5)
         return self.sgh(mänx)
 
-    def reden_ares(self, mänx: Mänx) -> None:
+    def reden_ares(self, mänx: Mänx) -> Fortsetzung | None:
         mint("Ares?", kursiv("Du?!"), "bist es?")
         a = random.randint(1, 500)
         if a == 1:
@@ -173,7 +175,7 @@ class RuboicHätxrik(NSC):
                     if b == 1:
                         gefängnis_von_gäfdah
                     elif b == 2:
-                        xwatc_Hauptgeschichte.himmelsrichtungen(mänx)
+                        return mitte.MITTE_EINTRITT
                     else:
                         t2(mänx)
                 else:
@@ -211,7 +213,7 @@ class RuboicHätxrik(NSC):
 
             mint("Der Mann stirbt")
         self.tot = True
-        return self.sgh(mänx)
+        return self.sgh
 
     def reden_hallo(self, mänx: Mänx) -> None:
         mint('"Äch ben Hätrik"')

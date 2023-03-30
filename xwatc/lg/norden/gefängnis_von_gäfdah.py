@@ -4,6 +4,8 @@ from xwatc.system import (mint, register, Mänx, malp, ja_nein, Fortsetzung,
 
 from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
 from xwatc import weg
+from xwatc.weg import get_eintritt
+from xwatc.lg import mitte
 
 
 @register("lg:gefängnis_von_gäfdah")
@@ -105,8 +107,7 @@ class GefängnisGäfdah:
         mänx.verbrechen.clear()
         rand = random.choice("hhhgmddk")
         if rand == "h":
-            from xwatc_Hauptgeschichte import himmelsrichtungen
-            return himmelsrichtungen
+            return mitte.MITTE_EINTRITT
         elif rand == "g":
             # GIBON
             # erzeugen

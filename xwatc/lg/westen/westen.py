@@ -1,5 +1,4 @@
 from time import sleep
-import xwatc_Hauptgeschichte as xwatc
 from xwatc.system import Mänx, minput, ja_nein, Spielende, mint, malp, Fortsetzung
 from xwatc.weg import get_eintritt
 

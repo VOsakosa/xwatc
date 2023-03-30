@@ -3,8 +3,9 @@ Created on 25.03.2023
 """
 import unittest
 from xwatc_test.mock_system import MockSystem, ScriptEnde
-from xwatc_Hauptgeschichte import himmelsrichtungen
+from xwatc.lg.mitte import MITTE
 from xwatc.system import _OBJEKT_REGISTER
+from xwatc.weg import wegsystem
 __author__ = "Jasper Ischebeck"
 
 
@@ -18,7 +19,7 @@ class TestLG(unittest.TestCase):
         self.system.ein("oase")
         self.system.ein("t2")
         with self.assertRaises(ScriptEnde):
-            himmelsrichtungen(self.mänx)
+            wegsystem(self.mänx, MITTE)
         self.assertIn("Es erwartet dich Vogelgezwitscher.",
                       self.system.ausgaben)
 

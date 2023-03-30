@@ -3,9 +3,10 @@ Die große Feste von Grökrakchöl mitsamt umliegender Landschaft und See.
 Created on 15.10.2020
 """
 from xwatc import nsc
-from xwatc.dorf import ort, Malp, Dorf
+from xwatc.dorf import ort, Malp, Dorf, Rückkehr
 from xwatc.nsc import StoryChar, NSC, Person
-from xwatc.system import mint, Mänx, malp, HatMain, Welt, malpw
+from xwatc.system import mint, Mänx, malp, HatMain, Welt, malpw, Fortsetzung
+from xwatc.weg import get_eintritt
 __author__ = "jasper"   
 
 GENAUER = [
@@ -140,7 +141,7 @@ canna = StoryChar("jtg:gr:canna", ("Canna", "Gill Darß", "Stammkundin"), Person
 
 
 @canna.kampf
-def canna_kampf(canna: NSC, mänx: Mänx):
+def canna_kampf(canna: NSC, mänx: Mänx) -> Rückkehr | Fortsetzung:
     canna.sprich("Häh?")
     malp("Obwohl sie betrunken ist, schafft sie es, dir auszuweichen.")
     if canna.hat_item("Tarotkarte"):
@@ -151,13 +152,13 @@ def canna_kampf(canna: NSC, mänx: Mänx):
         canna.sprich("Ich ziehe den Zauberer!", warte=True)
         canna.sprich("und den Stern!")
         malp("Die Welt verschwimmt vor dir.")
-        from xwatc_Hauptgeschichte import himmelsrichtungen
-        return himmelsrichtungen
+        return get_eintritt(mänx, "lg:mitte")
     else:
         canna.sprich("Wo sind meine Karten?")
         canna.sprich("Wo sind meine Karten?", wie="wimmernd")
         malp("Canna flieht.")
         canna.tot = True
+        return Rückkehr.VERLASSEN
 
 
 canna.dialog("hallo", "Hallo", ["Hallöchen"], wiederhole=1)

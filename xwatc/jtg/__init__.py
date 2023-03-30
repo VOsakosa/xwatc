@@ -20,6 +20,7 @@ from typing import List, Tuple
 from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
 from xwatc.nsc import Person, StoryChar, NSC
 from collections import defaultdict
+from xwatc.weg import wegsystem
 
 
 def t2(mänx: Mänx) -> None:
@@ -649,8 +650,8 @@ def hauptstadt_weg(mänx: Mänx):
                             "du hindurch?"):
                 malp("Du landest an einem vertrauten Ort.")
                 mint("Es ist der Ort, wo deine Geschichte begonnen hat.")
-                import xwatc_Hauptgeschichte
-                xwatc_Hauptgeschichte.himmelsrichtungen(mänx)
+                from xwatc.lg import mitte
+                wegsystem(mänx, mitte.MITTE)
             else:
                 sprich("Dryade", "Vertraust du mir nicht?")
                 mint("Die Stimme verstummt, das Portal schließt sich und "

@@ -1,16 +1,17 @@
-from time import sleep
-import xwatc_Hauptgeschichte as xwatc
-from xwatc.system import Mänx, minput, ja_nein, Spielende, malp
+from xwatc.system import Mänx, minput, ja_nein, Spielende, malp, Fortsetzung
 from xwatc.lg.norden.gäfdah import erzeuge_Gäfdah
 from xwatc.lg.norden import Fischerfrau_Massaker
+from xwatc.weg import Eintritt
+from xwatc.lg import mitte
 
 
 def Gäfdah(mänx):
     malp("Du wanderst 9 Tage lang gen Norden, bis du zu einem kleinen Fischerdorf "
-          "kommst.")
+         "kommst.")
     mänx.welt.get_or_else("Gäfdah", erzeuge_Gäfdah, mänx).main(mänx)
 
-def norden(mänx):
+
+def norden(mänx: Mänx) -> Fortsetzung | None:
     Gäfdah(mänx)
     while True:
         antwort = minput(mänx, "Willst du handeln, reden, sie angreifen oder einfach weitergehen? (h/r/a/w)",
@@ -30,7 +31,7 @@ def norden(mänx):
         malp("Du gehst weiter und triffst auf einen Bettler.")
         if mänx.hat_item("Gold"):
             malp("Du kannst ihm ein Stück Geld geben oder "
-                  "weitergehen.")
+                 "weitergehen.")
             if ja_nein(mänx, "Gibst du ihm Geld?"):
                 mänx.inventar["Gold"] -= 1
                 malp("Der Bettler blickt dich dankend an.")
@@ -51,7 +52,7 @@ def norden(mänx):
                          "chtung Norden? z/a/w"
                          "zurück/anders/weiter", ["z", "w", "a"])
             if weg == "z":
-                xwatc.himmelsrichtungen(mänx)
+                return Eintritt((mitte.MITTE, "norden"))
 
             if weg == "a":
                 k = minput(
@@ -71,6 +72,9 @@ def norden(mänx):
         # mänx.inventar_leeren()
 
         # waffe_wählen(mänx)
+    # TODO Hier ist die Geschichte zu Ende.
+    return None
+
 
 if __name__ == '__main__':
     try:
