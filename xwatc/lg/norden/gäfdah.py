@@ -22,6 +22,7 @@ STANDARDKLEIDUNG: Inventar = {
 
 
 def erzeuge_Gäfdah(mänx: Mänx) -> Dorf:
+    from xwatc.lg.norden import fischfrisch
     d = Dorf.mit_draußen(GÄFDAH_NAME)
     kirche = ort("Kirche", d, [
         "Du bist in einer Kirche.",
@@ -46,7 +47,8 @@ def erzeuge_Gäfdah(mänx: Mänx) -> Dorf:
     haus1 = ort("Haus Nummer1", d, [
         "Du kommst in ein kleines Haus."
     ])
-    mänx.welt.obj("lg:norden:Maria_Fischfrisch:maria_fischfrisch").ort = kirche
+    assert fischfrisch.frau.id_
+    mänx.welt.obj(fischfrisch.frau.id_).ort = kirche
     # schmiede.menschen.append(mänx.welt.get_or_else)
     # d.orte.append(schmiede)
     mänx.welt.obj("nsc:Wachen_von_Gäfdah:MarioWittenpfäld").ort = rathaus

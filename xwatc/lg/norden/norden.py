@@ -1,83 +1,63 @@
-from xwatc.system import Mänx, minput, ja_nein, Spielende, malp, Fortsetzung
-from xwatc.lg.norden.gäfdah import erzeuge_Gäfdah
-from xwatc.lg.norden import Fischerfrau_Massaker
-from xwatc.weg import Eintritt
+from xwatc.system import Mänx, minput, ja_nein, malp, Fortsetzung
+from xwatc.lg.norden import gäfdah as gäfdah_module
+from xwatc.weg import Eintritt, Gebiet, gebiet, Gebietsende
 from xwatc.lg import mitte
 
 
-def Gäfdah(mänx):
-    malp("Du wanderst 9 Tage lang gen Norden, bis du zu einem kleinen Fischerdorf "
-         "kommst.")
-    mänx.welt.get_or_else("Gäfdah", erzeuge_Gäfdah, mänx).main(mänx)
+norden = Eintritt(("lg:norden", "süden"))
 
+@gebiet("lg:norden")
+def erzeuge_norden(mänx: Mänx, gb: Gebiet) -> None:
+    gäfdah = mänx.welt.get_or_else("Gäfdah", gäfdah_module.erzeuge_Gäfdah, mänx)
+    gb.setze_punkt((1,1), gäfdah.draußen)
+    gäfdah.draußen.verbinde(Gebietsende(None, gb, "süden", mitte.MITTE, "norden"), "s")
+    gäfdah.draußen.add_beschreibung([
+        "Du wanderst 9 Tage lang gen Norden, bis du zu einem kleinen Fischerdorf "
+        "kommst."], nur="s")
+    
 
-def norden(mänx: Mänx) -> Fortsetzung | None:
-    Gäfdah(mänx)
-    while True:
-        antwort = minput(mänx, "Willst du handeln, reden, sie angreifen oder einfach weitergehen? (h/r/a/w)",
-                         ["h", "a", "w", "r"])
-        if antwort == "h":
-            if mänx.inventar["Gold"] >= 5:
-                fisch = minput(mänx, "Du kannst eine Scholle, eine Sardine oder einen Hering kaufen. "
-                               "abbrechen/Scholle/Sardine/Hering", ["abbrechen", "scholle", "sardine", "hering"])
-                if fisch != "abbrechen":
-                    mänx.inventar[fisch.capitalize()] += 1
-                    mänx.inventar["Gold"] -= 5
-            else:
-                malp("Du hast nicht genug Geld dafür")
-        else:
-            break
-    if antwort == "w":
-        malp("Du gehst weiter und triffst auf einen Bettler.")
-        if mänx.hat_item("Gold"):
-            malp("Du kannst ihm ein Stück Geld geben oder "
-                 "weitergehen.")
-            if ja_nein(mänx, "Gibst du ihm Geld?"):
-                mänx.inventar["Gold"] -= 1
-                malp("Der Bettler blickt dich dankend an.")
-                malp("Du erhältst einen Stein der Bettlerfreundschaft.")
-                mänx.inventar["Stein der Bettlerfreundschaft"] += 1
+def norden_alt(mänx: Mänx) -> Fortsetzung | None:
+    # TODO Den Bettler wieder einbauen
+    malp("Du gehst weiter und triffst auf einen Bettler.")
+    if mänx.hat_item("Gold"):
+        malp("Du kannst ihm ein Stück Geld geben oder "
+             "weitergehen.")
+        if ja_nein(mänx, "Gibst du ihm Geld?"):
+            mänx.inventar["Gold"] -= 1
+            malp("Der Bettler blickt dich dankend an.")
+            malp("Du erhältst einen Stein der Bettlerfreundschaft.")
+            mänx.inventar["Stein der Bettlerfreundschaft"] += 1
 
-        else:
-            malp("Du hast leider kein Geld.")
+    else:
+        malp("Du hast leider kein Geld.")
 
-        entscheidung = minput(mänx, "Du wanderst durch das kleine Dorf. Einige Gassenjungen "
-                              "folgen dir. Bleibst du im Dorf oder gehst du weiter? "
-                              "bleiben/w", ["bleiben", "w"])
-        if entscheidung == "w":
-            weg = minput(mänx, "Gehst du in die R"
-                         "ichtung aus der du gekom"
-                         "men bist, in eine völlig"
-                         " andere oder weiter in Ri"
-                         "chtung Norden? z/a/w"
-                         "zurück/anders/weiter", ["z", "w", "a"])
-            if weg == "z":
-                return Eintritt((mitte.MITTE, "norden"))
+    entscheidung = minput(mänx, "Du wanderst durch das kleine Dorf. Einige Gassenjungen "
+                          "folgen dir. Bleibst du im Dorf oder gehst du weiter? "
+                          "bleiben/w", ["bleiben", "w"])
+    if entscheidung == "w":
+        weg = minput(mänx, "Gehst du in die R"
+                     "ichtung aus der du gekom"
+                     "men bist, in eine völlig"
+                     " andere oder weiter in Ri"
+                     "chtung Norden? z/a/w"
+                     "zurück/anders/weiter", ["z", "w", "a"])
+        if weg == "z":
+            return Eintritt((mitte.MITTE, "norden"))
 
-            if weg == "a":
-                k = minput(
-                    mänx, "Gehst du in Richtung Westen oder in Richtung Osten? (w/o", ["w", "o"])
-                if k == "w":
-                    malp("Hallo")
+        if weg == "a":
+            k = minput(
+                mänx, "Gehst du in Richtung Westen oder in Richtung Osten? (w/o", ["w", "o"])
+            if k == "w":
+                malp("Hallo")
 
-            if weg == "w":
-                malp("Du gehst weiter in Richtung Norden")
+        if weg == "w":
+            malp("Du gehst weiter in Richtung Norden")
 
-        elif entscheidung == "bleiben":
-            pass
-
-    elif antwort == "a":
-        Fischerfrau_Massaker.fischerfraumassaker(mänx)
-
-        # mänx.inventar_leeren()
-
-        # waffe_wählen(mänx)
-    # TODO Hier ist die Geschichte zu Ende.
+    elif entscheidung == "bleiben":
+        pass
     return None
 
 
 if __name__ == '__main__':
-    try:
-        norden(Mänx())
-    except Spielende:
-        malp("Du bist übrigens tot.")
+    from xwatc import anzeige
+    anzeige.main(norden)

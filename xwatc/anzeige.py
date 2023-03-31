@@ -497,6 +497,8 @@ class AnzeigeDaten(Protocol):
 
 def main(startpunkt: Fortsetzung | str | None = None):
     global _main_thread
+    import logging
+    getLogger("xwatc").setLevel(logging.INFO)
     app = Gtk.Application()
     if isinstance(startpunkt, str):
         startpunkt = system.Besuche(startpunkt)

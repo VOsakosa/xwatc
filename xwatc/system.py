@@ -443,9 +443,10 @@ class Welt:
         else:
             return not getattr(obj, 'tot', False)
 
-    def obj(self, name: str) -> Any:
+    def obj(self, name: str | Besuche) -> Any:
         """Hole ein registriertes oder existentes Objekt."""
-
+        if isinstance(name, Besuche):
+            name = name.objekt_name
         if name in self.objekte:
             return self.objekte[name]
         from xwatc import nsc  # @Reimport

@@ -4,7 +4,6 @@ from xwatc.system import (mint, register, Mänx, malp, Fortsetzung,
 
 from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
 from xwatc import weg
-from xwatc.weg import get_eintritt
 from xwatc.lg import mitte
 
 
