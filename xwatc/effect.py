@@ -4,15 +4,21 @@ müssen. Das ist dann leichter zu speichern.
 
 Created on 31.03.2023
 """
-from attrs import define, field
+from attrs import define, field, Factory
 from bisect import bisect
-from collections.abc import Sequence
+from collections.abc import Sequence, Mapping
 import random
 from xwatc.system import MänxPrädikat, Fortsetzung, MänxFkt, Mänx, malp
 __author__ = "jasper"
 
 
-def _to_geschichte(text: str | Sequence[str] | MänxFkt[Fortsetzung | None]
+@define
+class Warten:
+    """Signalisiert statt Text Warten."""
+    length: float
+
+
+def _to_geschichte(text: Sequence[str | Warten] | MänxFkt[Fortsetzung | None]
                    ) -> MänxFkt[Fortsetzung | None]:
     match text:
         case str(txt):
@@ -25,11 +31,22 @@ def _to_geschichte(text: str | Sequence[str] | MänxFkt[Fortsetzung | None]
 
 @define
 class TextGeschichte:
-    texte: Sequence[str]
+    """Eine Geschichte, die nur aus gemalptem Text besteht. Listen von Strings werden zu
+    diesem Typ umgewandelt. Am Ende kann der Mänx eine Belohnung erhalten."""
+    texte: Sequence[str | Warten]
+    schatz: Mapping[str, int] = Factory(dict)
 
-    def __call__(self, _mänx: Mänx) -> None:
+    def __call__(self, mänx: Mänx) -> None:
         for text in self.texte:
-            malp(text)
+            match text:
+                case Warten(length=length):
+                    mänx.sleep(length)
+                case str():
+                    malp(text)
+                case _:
+                    raise TypeError("Wrong type in TextGeschichte", text)
+        for schatz, anzahl in self.schatz.items():
+            mänx.erhalte(schatz, anzahl)
 
 
 @define
@@ -88,15 +105,16 @@ class Zufällig:
         return cls(wahlen, wkeiten)
 
     @classmethod
-    def ungleichmäßig(cls, *fälle: tuple[str | Sequence[str] | MänxFkt[Fortsetzung | None], float]):
+    def ungleichmäßig(cls, *fälle: tuple[float, str | Sequence[str] | MänxFkt[Fortsetzung | None]]):
         if not fälle:
             raise TypeError("Zufällig braucht min. einen Ausgang")
-        if any(wkeit <= 0 for _fall, wkeit in fälle):
-            raise ValueError("Wahrscheinlichkeitsgewichte müssen positiv sein.")
-        wahlen = [_to_geschichte(fall) for fall, _wkeit in fälle]
-        gesamt = sum(wkeit for _f, wkeit in fälle)
-        zsum = 0.  # @UnusedVariable
-        wkeiten = [(zsum := zsum + wkeit) / gesamt for _f, wkeit in fälle[:-1]]
+        if any(wkeit <= 0 for wkeit, _fall in fälle):
+            raise ValueError(
+                "Wahrscheinlichkeitsgewichte müssen positiv sein.")
+        wahlen = [_to_geschichte(fall) for _wkeit, fall in fälle]
+        gesamt = sum(wkeit for wkeit, _f in fälle)
+        zsum: float = 0  # @UnusedVariable
+        wkeiten = [(zsum := zsum + wkeit) / gesamt for wkeit, _f in fälle[:-1]]
         return cls(wahlen, wkeiten)
 
     def __call__(self, mänx: Mänx) -> MänxFkt:
