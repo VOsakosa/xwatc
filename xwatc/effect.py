@@ -5,7 +5,9 @@ müssen. Das ist dann leichter zu speichern.
 Created on 31.03.2023
 """
 from attrs import define, field
+from bisect import bisect
 from collections.abc import Sequence
+import random
 from xwatc.system import MänxPrädikat, Fortsetzung, MänxFkt, Mänx, malp
 __author__ = "jasper"
 
@@ -53,6 +55,52 @@ class SetzeVariable:
 
     def __call__(self, mänx: Mänx) -> None:
         mänx.welt.setze(self.variablen_name)
+
+
+@define
+class Cooldown:
+    id_: str
+    zeit: int  # Die Zeit in Tagen
+
+    def __call__(self, mänx: Mänx) -> bool:
+        if self.id_ in mänx.welt.objekte:
+            ans = mänx.welt.objekte[self.id_] <= mänx.welt.tag - self.zeit
+        else:
+            ans = False
+        if ans:
+            mänx.welt.objekte[self.id_] = mänx.welt.tag
+        return ans
+
+
+@define(frozen=True)
+class Zufällig:
+    wahlen: Sequence[MänxFkt]
+    wkeiten: Sequence[float]
+
+    @classmethod
+    def gleichmäßig(cls, *fälle: str | Sequence[str] | MänxFkt[Fortsetzung | None]
+                    ) -> 'Zufällig':
+        if not fälle:
+            raise TypeError("Zufällig braucht min. einen Ausgang")
+        wahlen = [_to_geschichte(fall) for fall in fälle]
+        len_fälle = len(fälle)
+        wkeiten = [i / len_fälle for i in range(1, len_fälle)]
+        return cls(wahlen, wkeiten)
+
+    @classmethod
+    def ungleichmäßig(cls, *fälle: tuple[str | Sequence[str] | MänxFkt[Fortsetzung | None], float]):
+        if not fälle:
+            raise TypeError("Zufällig braucht min. einen Ausgang")
+        if any(wkeit <= 0 for _fall, wkeit in fälle):
+            raise ValueError("Wahrscheinlichkeitsgewichte müssen positiv sein.")
+        wahlen = [_to_geschichte(fall) for fall, _wkeit in fälle]
+        gesamt = sum(wkeit for _f, wkeit in fälle)
+        zsum = 0.  # @UnusedVariable
+        wkeiten = [(zsum := zsum + wkeit) / gesamt for _f, wkeit in fälle[:-1]]
+        return cls(wahlen, wkeiten)
+
+    def __call__(self, mänx: Mänx) -> MänxFkt:
+        return self.wahlen[bisect(self.wkeiten, random.random())]
 
 
 @define

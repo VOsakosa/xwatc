@@ -1,16 +1,18 @@
 """"""
 from collections.abc import Iterator
-from xwatc.serialize import converter
+from typing import cast
 import unittest
 from unittest.mock import patch
 
-from xwatc.dorf import Ort, Dialog, Zeitpunkt
-from xwatc import nsc
-from xwatc.nsc import StoryChar, Person, Rasse, Geschlecht, NSC, OldNSC, bezeichnung,  Bezeichnung
-from xwatc.system import Welt
-from xwatc.haendler import mache_händler
-from xwatc_test.mock_system import MockSystem
+from xwatc import nsc, dorf
 from xwatc import system
+from xwatc.dorf import Dialog, Zeitpunkt
+from xwatc.effect import Zufällig, TextGeschichte
+from xwatc.haendler import mache_händler
+from xwatc.nsc import StoryChar, Person, Rasse, Geschlecht, NSC, OldNSC, bezeichnung, Bezeichnung
+from xwatc.serialize import converter
+from xwatc.system import Welt
+from xwatc_test.mock_system import MockSystem
 
 
 def slots_var(obj: object) -> dict:
@@ -116,14 +118,14 @@ class TestNSC(unittest.TestCase):
 
     def test_ort(self):
         """Test if the Ort attribute adds the NSC to the Ort's menschen attribute"""
-        ort = Ort("Geheim", dorf=None)
+        ort = dorf.ort("Geheim", dorf=None)
         # On init
         juicy = NSC(StoryChar(None, "Juicy", Person("w"), {}),
                     bezeichnung("Juicy"), ort=ort)
         self.assertIs(ort, juicy.ort)
         self.assertIn(juicy, ort.menschen)
         # On set
-        ort2 = Ort("Publik", dorf=None)
+        ort2 = dorf.ort("Publik", dorf=None)
         juicy.ort = ort2
         self.assertIs(juicy.ort, ort2)
         self.assertIn(juicy, ort2.menschen)
@@ -167,6 +169,31 @@ class TestHändler(unittest.TestCase):
         gold_mantel = system.ALLGEMEINE_PREISE["Mantel"] * 2
         self.assertEqual(hdl_min.gold, 100 - gold_mantel)
         self.assertEqual(mx.gold - gold_start, gold_mantel)
+
+class TestEffect(unittest.TestCase):
+    
+    def test_zufällig_sanity_checks(self):
+        with self.assertRaises(ValueError):
+            Zufällig.ungleichmäßig(("Hallo", -1), ("Tschüss", 2))
+        with self.assertRaises(ValueError):
+            Zufällig.ungleichmäßig(("Hallo", 0), ("Tschüss", 2))
+        with self.assertRaises(TypeError):
+            Zufällig.gleichmäßig()
+        with self.assertRaises(TypeError):
+            Zufällig.ungleichmäßig()
+    
+    @patch("random.random")
+    def test_zufällig(self, rd):
+        zuf = Zufällig.gleichmäßig(*map(str, range(10)))
+        mx = MockSystem().install()
+        rd.return_value = 0
+        self.assertEqual(cast(TextGeschichte, zuf(mx)).texte[0], "0")
+        rd.return_value = 0.999
+        self.assertEqual(cast(TextGeschichte, zuf(mx)).texte[0], "9")
+        rd.return_value = 0.5
+        self.assertEqual(cast(TextGeschichte, zuf(mx)).texte[0], "5")
+        rd.return_value = 0.322
+        self.assertEqual(cast(TextGeschichte, zuf(mx)).texte[0], "3")
 
 
 if __name__ == "__main__":
