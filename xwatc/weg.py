@@ -800,7 +800,9 @@ class Gebietsende(_Strecke):
 
     def __init__(self, von: Wegpunkt | None,
                  gebiet: Gebiet,  # pylint: disable=redefined-outer-name
-                 port: str, nach: str):
+                 port: str,
+                 nach: str,
+                 nach_port: str = ""):
         """Erzeuge ein Gebietsende.
 
         >>> Gebietsende(None, "jtg:mitte", "mit-gkh", "jtg:gkh")
@@ -809,6 +811,7 @@ class Gebietsende(_Strecke):
         self.gebiet = gebiet
         self.nach = nach
         self.port = port
+        self.nach_port = nach_port or port
         assert self.port not in self.gebiet.eintrittspunkte, (
             f"Doppelt registrierter Port: {self.port} in {self.gebiet.name}")
         self.gebiet.eintrittspunkte[self.port] = self
@@ -823,14 +826,14 @@ class Gebietsende(_Strecke):
         self.p1 = wegpunkt
 
     def main(self, mänx: Mänx, von: Wegpunkt | None) -> Wegpunkt:
+        assert self.p1, "Loses Ende"
         if von is not self.p1:
-            assert self.p1, "Loses Ende"
             return self.p1
         if self.p2:
             return self.p2
         else:
             try:
-                self.p2 = get_eintritt(mänx, (self.nach, self.port))
+                self.p2 = get_eintritt(mänx, (self.nach, self.nach_port))
             except KeyError:
                 raise MissingID(
                     f"Gebietsende {self.gebiet}:{self.port} ist lose.")
@@ -838,7 +841,7 @@ class Gebietsende(_Strecke):
                 return self.p2
 
     def __str__(self) -> str:
-        return f"Gebietsende {self.gebiet.name} - {self.port} - {self.nach}"
+        return f"Gebietsende {self.gebiet.name}:{self.port} - {self.nach}:{self.nach_port}"
 
 
 def get_gebiet(mänx: Mänx, name: str) -> Gebiet:
