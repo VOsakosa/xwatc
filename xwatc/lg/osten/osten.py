@@ -1,7 +1,7 @@
 from xwatc.system import Mänx, minput, kursiv, ja_nein, mint, Spielende, malp, Fortsetzung
 import random
 from xwatc import jtg
-from xwatc.weg import gebiet, Gebiet, Gebietsende, WegAdapter, Eintritt
+from xwatc.weg import gebiet, Gebiet, Gebietsende, WegAdapter, kreuzung
 from xwatc.effect import Einmalig, NurWenn
 
 
@@ -37,8 +37,21 @@ def osten(_mänx: Mänx, gb: Gebiet) -> None:
     höhleneingang.add_beschreibung([
         "Die Höhle ist ein riesiges, dunkles Loch, das sich tief ins Erdreich auszubreiten "
         "scheint."], außer="Höhle")
-    höhleneingang.add_beschreibung("Dir schlägt die Hitze von draußen entgegen.", nur="Höhle")
-    höhleneingang.verbinde(WegAdapter(None, höhle, "höhle", gb), "Höhle")
+    höhleneingang.add_beschreibung(
+        "Dir schlägt die Hitze von draußen entgegen.", nur="Höhle")
+
+    höhle = kreuzung("Höhlenabzweig")
+    höhle - höhleneingang
+    höhle.add_beschreibung([
+        "In der Höhle ist es dunkel, aber es gibt sauberes Wasser und "
+        "hier wachsen essbare Pilze.",
+        "Du gehst tiefer und tiefer. Du stehst nun vor einer Abzweigung.",
+        "Auf dem Schildchen über dem einen Weg steht \"bergbau\" "
+        "und über dem anderen steht \"monster\"."], nur="Höhleneingang")
+    höhle.add_beschreibung(
+        "Du bist zurück an der Abzweigung.", außer="Höhleneingang")
+    höhle.verbinde(WegAdapter(None, monster, "monster", gb), "Monster")
+    höhle.verbinde(WegAdapter(None, bergbau, "bergbau", gb), "Bergbau")
 
 
 def t1(_mänx: Mänx):
@@ -79,24 +92,6 @@ def osten_alt(mänx: Mänx):
              'Dann siehst du beinahe in Zeitlupe eine Klinge herannahen.')
 
         raise Spielende
-
-
-def höhle(mänx: Mänx):
-    malp("In der Höhle ist es dunkel, aber es gibt sauberes Wasser und "
-         "hier wachsen essbare Pilze.")
-    if ja_nein(mänx, "Willst du die Höhle erkunden?"):
-        abzweigung = minput(mänx, "Du gehst tiefer und tiefer. Du stehst nun vor einer Abzweigung. "
-                            "Auf dem Schildchen über dem einen Weg steht \"bergbau\" "
-                            "und über dem anderen steht \"monster\". (b/m)", ["b", "m"])
-        if abzweigung == "b":
-            bergbau(mänx)
-        else:
-            monster(mänx)
-        mint("Urplötzlich fängt die Luft um dich herum an zu flimmern. Und dann...")
-        mänx.welt.setze("jtg:flimmern")
-        return jtg.t2
-    else:
-        return Eintritt(("lg:osten", "höhle"))
 
 
 def bergbau(mänx: Mänx):
