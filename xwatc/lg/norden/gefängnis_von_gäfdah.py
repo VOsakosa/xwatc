@@ -1,5 +1,5 @@
 import random
-from xwatc.system import (mint, register, Mänx, malp, ja_nein, Fortsetzung,
+from xwatc.system import (mint, register, Mänx, malp, Fortsetzung,
     sprich)
 
 from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart

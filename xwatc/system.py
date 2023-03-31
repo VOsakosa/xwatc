@@ -509,10 +509,7 @@ class Besuche:
         mänx.welt.obj(self.objekt_name).main(mänx)
 
 
-Decorator = Callable[[T], T]
-
-
-def register(name: str) -> Decorator[Callable[[], HatMain]]:
+def register(name: str) -> Callable[[Callable[[], HatMain]], Besuche]:
     """Registriere einen Erzeuger im Objekt-Register.
     Beispiel:
     ..
@@ -523,10 +520,10 @@ def register(name: str) -> Decorator[Callable[[], HatMain]]:
                     malp("Du rutscht auf der Banane aus.")
 
     """
-    def wrapper(func):
+    def wrapper(func: Callable[[], HatMain]) -> Besuche:
         # assert name not in _OBJEKT_REGISTER,("Doppelte Registrierung " + name)
         _OBJEKT_REGISTER[name] = func
-        return func
+        return Besuche(name)
     return wrapper
 # EIN- und AUSGABE
 

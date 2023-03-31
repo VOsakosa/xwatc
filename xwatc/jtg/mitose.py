@@ -98,7 +98,7 @@ def erzeuge_norddörfer(mänx: Mänx, gebiet: weg.Gebiet) -> weg.Wegpunkt:
     kraut = kreuzung("kraut", immer_fragen=True)
     kraut.add_effekt(kräutergebiet)
     kili = kreuzung("kili", immer_fragen=True)
-    kili.add_effekt(mänx.welt.obj("jtg:kiliwolf").main)
+    kili.add_effekt(Kiliwolf.main)
     waldkreuz = kreuzung("waldkreuz")
     waldkreuz.add_beschreibung("Der Pfad gabelt sich.", nur="o")
     waldkreuz.add_beschreibung("Du kommst zurück an die Gabelung",
@@ -126,12 +126,10 @@ def kräutergebiet(mänx: Mänx):
         mänx.welt.tick(1 / 96)
         treffen = False
         if mänx.welt.is_nacht():
-            treffen = mänx.welt.obj("jtg:kiliwolf").main(mänx)
+            treffen = kiliwolf.main(mänx)
         if not treffen:
             mänx.erhalte("Xaozja", 14)
 
-
-@register("jtg:kiliwolf")
 class Kiliwolf(HatMain):
     def __init__(self):
         super().__init__()
@@ -146,6 +144,8 @@ class Kiliwolf(HatMain):
             # TODO
             return True
         return False
+
+kiliwolf = register("jtg:kiliwolf")(Kiliwolf)
 
 
 def in_disnayenbum(nsc: NSC, _mänx: Mänx) -> bool:

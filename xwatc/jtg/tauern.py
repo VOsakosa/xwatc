@@ -35,9 +35,9 @@ def rückweg(mänx: Mänx):
 
 
 @gebiet("jtg:tauern")
-def erzeuge_tauern(mänx: Mänx, gebiet: weg.Gebiet) -> WegAdapter:
+def erzeuge_tauern(mänx: Mänx, gebiet: weg.Gebiet) -> None:
     import xwatc.jtg.gibon as __  # @UnusedImport
-    ein_adap = WegAdapter(None, rückweg)
+    ein_adap = WegAdapter(None, rückweg, "start", gebiet)
     eintritt = kreuzung("eintritt", sw=ein_adap)
     eintritt.add_beschreibung([
         "Der Weg führt weiter am Fluss entlang, das Land wird hügeliger.",
@@ -86,7 +86,6 @@ def erzeuge_tauern(mänx: Mänx, gebiet: weg.Gebiet) -> WegAdapter:
         1.5,
         richtung="o",
         beschriftung_zurück="Jotungard")
-    return ein_adap
 
 
 def zoll_fn(mänx: Mänx):

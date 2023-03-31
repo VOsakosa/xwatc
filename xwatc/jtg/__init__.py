@@ -75,7 +75,7 @@ def erzeuge_mitte(_mänx: Mänx, gebiet: weg.Gebiet) -> 'weg.Wegpunkt':
     osten = weg.kreuzung("osten", immer_fragen=True)
     osten.add_beschreibung(("Das Gestrüpp wird immer dichter.",
                             "Hohe Brombeerhecken verstellen dir den Weg."))
-    osten.add_effekt(system.Besuche("jtg:beeren").main)
+    osten.add_effekt(beeren.main)
     osten.add_beschreibung("Du kommst hier nicht weiter. Umkehren?")
 
     lichtung = weg.kreuzung(
