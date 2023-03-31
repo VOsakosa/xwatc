@@ -1,63 +1,88 @@
-from xwatc.system import Mänx, minput, kursiv, ja_nein, mint, Spielende, malp
-from xwatc import jtg as jaspersteilgeschichte
+from xwatc.system import Mänx, minput, kursiv, ja_nein, mint, Spielende, malp, Fortsetzung
 import random
+from xwatc import jtg
+from xwatc.weg import gebiet, Gebiet, Gebietsende, WegAdapter, Eintritt
+from xwatc.effect import Einmalig, NurWenn
 
 
-def osten(mänx: Mänx):
-    mint("Du wanderst lange, lange in Richtung Osten, "
-         "dein Proviant ist aufgebraucht, dein Mund trocken und"
-         " dein Magen knurrt.")
-    malp("Es ist heiß, höllisch heiß. In der Ferne siehst du einen Höhleneingang. In der anderen Richtung"
-         " siehst du etwas das wie eine Oase aussieht.")
-    richtung = mänx.minput("Gehst du einfach geradeaus, gehst du zur Oase oder zum Höhleneingang?",
-                           ["w", "oase", "höhle"])
-    if richtung == "oase":
-        mint("Du läufst zur Oase, aber als du dort ankommst ist sie weg. An ihrer Stelle"
-             "stehen dort zwei Türen. Eine Inschrift verkündet: Die eine in den Tode führet, "
-             "die andre zu nem andren Ort.")
-        weg = minput(mänx, "In welche Tür gehst du?", ["t1", "t2"])
-        if weg == "t1":
-            malp("Du spürst instinktiv, dass das die falsche Entscheidung war.")
-            raise Spielende
-        else:
-            assert weg == "t2"
-            malp("Hinter der Tür ist es warm und sonnig.")
-            mänx.sleep(1)
-            mänx.welt.setze("jtg:t2")
-            jaspersteilgeschichte.t2(mänx)
-    elif richtung == "w":
-        mint("Du läufst weiter bis du eine Karawane siehst. Ein sonnengebräunter Mann läuft zu dir. ")
-        mint("Du hast die Wahl, sagt der Mann. Wenn du mich "
-             "tötest, gehört die gesamte Karawane dir. Du kannst aber auch mein Leibdiener werden. "
-             "Dann bekommst du täglich Essen und dir wird sogar ein kleiner Lohn, 31 Gold pro "
-             "Woche, ausgezahlt. Mit 310 Gold kannst du dich dann freikaufen.")
-        Entscheidung = minput(mänx, "Wirst du sein Leibdiener oder kämpfst du gegen ihn?"
-                              "leibdiener/kampf/flucht.(l/k/f)", ["l", "k", "f"])
+@gebiet("lg:osten")
+def osten(_mänx: Mänx, gb: Gebiet) -> None:
+    treffpunkt = gb.neuer_punkt((0, 1), "treffpunkt")
+    treffpunkt.add_beschreibung([
+        "Du wanderst lange, lange in Richtung Osten, "
+        "dein Proviant ist aufgebraucht, dein Mund trocken und"
+        " dein Magen knurrt.",
+        "Es ist heiß, höllisch heiß. Im Süden in der Ferne siehst du einen Höhleneingang."
+        "In der anderen Richtung"
+        " siehst du etwas das wie eine Oase aussieht."
+    ], nur="w")
+    treffpunkt.verbinde(Gebietsende(
+        None, gb, "start", "lg:mitte", "osten"), "w")
 
-        if Entscheidung == "l":
-            malp('"Hurra!", der Mann strahlt. Ich hatte noch nie einen Arak als Diener!')
-            mänx.sleep(1)
-            mint("Nun beginnt dein Leben als Diener")
+    oase = gb.neuer_punkt((0, 0), "Oase")
+    oase.add_beschreibung(NurWenn(Einmalig("lg:osten:oase_besucht"), [
+        "Du läufst zur Oase, aber als du dort ankommst ist sie weg. An ihrer Stelle "
+        "stehen dort zwei Türen.",
+        "Eine Inschrift verkündet: Die eine in den Tode führet, "
+        "die andre zu nem andren Ort."
+    ], [
+        "Die beiden Türen sind noch da."
+    ]))
+    oase.verbinde(WegAdapter(None, t1), "Linke Tür")
+    oase.verbinde(WegAdapter(None, t2), "Rechte Tür")
 
-        elif Entscheidung == "k":
-            mint("")
+    höhleneingang = gb.neuer_punkt((0, 2), "Höhleneingang")
+    höhleneingang.add_beschreibung(
+        "Du kommst an einen Höhleneingang.", nur="w")
+    höhleneingang.add_beschreibung([
+        "Die Höhle ist ein riesiges, dunkles Loch, das sich tief ins Erdreich auszubreiten "
+        "scheint."], außer="Höhle")
+    höhleneingang.add_beschreibung("Dir schlägt die Hitze von draußen entgegen.", nur="Höhle")
+    höhleneingang.verbinde(WegAdapter(None, höhle, "höhle", gb), "Höhle")
 
-        elif Entscheidung == "f":
-            mint('Du rennst weg,'
-                 'doch der Karawanenbesitzer holt dich mit einer übermenschlichen Geschwindigkeit wieder ein '
-                 'und fasst dich am Kragen: '
-                 '"Schön hier geblieben." '
-                 'Dann siehst du beinahe in Zeitlupe eine Klinge herannahen.')
 
-            raise Spielende
+def t1(_mänx: Mänx):
+    malp("Du spürst instinktiv, dass das die falsche Entscheidung war.")
+    raise Spielende
 
-    else: 
-        assert richtung == "höhle"
-        höhle(mänx)
+
+def t2(mänx: Mänx) -> Fortsetzung:
+    malp("Hinter der Tür ist es warm und sonnig.")
+    mänx.sleep(1)
+    mänx.welt.setze("jtg:t2")
+    return jtg.t2
+
+
+def osten_alt(mänx: Mänx):
+    mint("Du läufst weiter bis du eine Karawane siehst. Ein sonnengebräunter Mann läuft zu dir. ")
+    mint("Du hast die Wahl, sagt der Mann. Wenn du mich "
+         "tötest, gehört die gesamte Karawane dir. Du kannst aber auch mein Leibdiener werden. "
+         "Dann bekommst du täglich Essen und dir wird sogar ein kleiner Lohn, 31 Gold pro "
+         "Woche, ausgezahlt. Mit 310 Gold kannst du dich dann freikaufen.")
+    Entscheidung = minput(mänx, "Wirst du sein Leibdiener oder kämpfst du gegen ihn?"
+                          "leibdiener/kampf/flucht.(l/k/f)", ["l", "k", "f"])
+
+    if Entscheidung == "l":
+        malp('"Hurra!", der Mann strahlt. Ich hatte noch nie einen Arak als Diener!')
+        mänx.sleep(1)
+        mint("Nun beginnt dein Leben als Diener")
+
+    elif Entscheidung == "k":
+        mint("")
+
+    else:
+        assert Entscheidung == "f"
+        mint('Du rennst weg,'
+             'doch der Karawanenbesitzer holt dich mit einer übermenschlichen Geschwindigkeit wieder ein '
+             'und fasst dich am Kragen: '
+             '"Schön hier geblieben." '
+             'Dann siehst du beinahe in Zeitlupe eine Klinge herannahen.')
+
+        raise Spielende
 
 
 def höhle(mänx: Mänx):
-    mint("In der Höhle ist es dunkel, aber es gibt sauberes Wasser und "
+    malp("In der Höhle ist es dunkel, aber es gibt sauberes Wasser und "
          "hier wachsen essbare Pilze.")
     if ja_nein(mänx, "Willst du die Höhle erkunden?"):
         abzweigung = minput(mänx, "Du gehst tiefer und tiefer. Du stehst nun vor einer Abzweigung. "
@@ -69,17 +94,17 @@ def höhle(mänx: Mänx):
             monster(mänx)
         mint("Urplötzlich fängt die Luft um dich herum an zu flimmern. Und dann...")
         mänx.welt.setze("jtg:flimmern")
-        jaspersteilgeschichte.t2(mänx)
+        return jtg.t2
     else:
-        osten(mänx)
+        return Eintritt(("lg:osten", "höhle"))
 
 
 def bergbau(mänx: Mänx):
     malp("Du nimmst dir eine Spitzhacke und fängst an, den Stein zu bearbeiten. Warte eine Minute.")
     mänx.sleep(61)
-    mänx.inventar["Spitzhacke"] += 1
-    mänx.inventar["Stein"] += 4
-    minput(mänx, "Du bekommst Zeug")
+    malp("Du bekommst Zeug")
+    mänx.erhalte("Spitzhacke")
+    mänx.erhalte("Stein", 4)
     if mänx.ja_nein("Arbeitest du weiter?"):
         mänx.sleep(59)
         a = random.randint(1, 120)
@@ -142,7 +167,6 @@ def bergbau(mänx: Mänx):
                 mint("Du fliehst aus der Höhle hinaus.")
                 mint("Doch kaum draußen angekommen fällst du in Ohnmacht. "
                      "Wieder aufgewacht, bist du an einem anderen Ort.")
-                jaspersteilgeschichte.t2(mänx)
 
             else:
                 mint("Du verbreiterst den Durchgang. "
@@ -161,7 +185,6 @@ def bergbau(mänx: Mänx):
                     mint("Dann eben nicht. Tja... ")
                     mint("Ich denke du solltest",
                          kursiv("woanders"), "hin...")
-                    jaspersteilgeschichte.t2(mänx)
         else:
             malp("Du stößt auf eine seltsam schimmernde Mauer.")
             if ja_nein(mänx, "Versuchst du sie zu durchbrechen?"):
@@ -177,14 +200,12 @@ def bergbau(mänx: Mänx):
                 mänx.inventar["Stein"] += 30
                 mänx.inventar["Talisman der Schreie"] += 1
                 mänx.inventar["Spitzhacke"] -= 1
-                jaspersteilgeschichte.t2(mänx)
 
             else:
                 malp("OK dann eben nicht.")
                 mint("Ich denke mal du solltest ",
                      kursiv("verschwinden!"), "")
                 mänx.inventar["Stein"] += 30
-                jaspersteilgeschichte.t2(mänx)
 
     else:
         mint("OK")

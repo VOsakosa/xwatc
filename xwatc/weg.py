@@ -665,7 +665,8 @@ class Gebiet:
 
     def neuer_punkt(self, koordinate: tuple[int, int], name: str) -> Wegkreuzung:
         """Erzeuge einen neuen Gitterpunkt und verbinde ihn entsprechend seiner Position."""
-        return self.setze_punkt(koordinate, Wegkreuzung(name=name, nachbarn={}, gebiet=self))
+        return self.setze_punkt(koordinate, Wegkreuzung(name=name, nachbarn={}, gebiet=self,
+                                                        immer_fragen=True))
 
     def setze_punkt(self, koordinate: tuple[int, int], pkt: Wegkreuzung) -> Wegkreuzung:
         x, y = koordinate
