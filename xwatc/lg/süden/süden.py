@@ -94,87 +94,86 @@ def duhastüberlebt(mänx) -> Fortsetzung:
         mänx.inventar["Riesenschneckeninnereien"] += 20
         mänx.inventar["Riesenschneckenfleisch"] += 20
     mut = minput(mänx, "Gehst du weiter oder kehrst du um? w/z", ["z", "w"])
-    if mut == "w":
-        malp("Du wagst dich tiefer ins Land der Monster.")
-        weg = minput(mänx, "Biegst du in Richtung Osten/Westen "
-                     "ab oder gehst du einfach geradeaus?     "
-                     "w/o/we         ", ["w", "o", "we"])
-        if weg == "w":
-            a = random.randint(1, 11)
-            if a == 1:
-                malp("Waldschrat (inteligent)")
-
-            elif a == 2:
-                malp("Du läufst kurz herum, dann fällst du in Ohnmacht. Im Traum spricht eine Stimme zu dir:"
-                     "Glückwunsch, du hast gewonnen! Eine gefühlte Ewigkeit später wachst du mit Kopfschmerzen auf.")
-
-            elif a == 3:
-                malp("Wachsam gehst du weiter.")
-                ark = minput(mänx, "Da bemerkst du am Horizont, ganz weit in der Ferne, einige weiß-graue Flecken.\n"
-                             "Gehst du darauf zu, versuchst du sie zu umgehen "
-                             "oder gehst du einfach hier und jetzt schlafen? (g/um/s)", ["g", "um", "s"])
-
-                if ark == "g":
-                    malp("Als du näher kommst,"
-                         "merkst du, dass es sich bei den 'Flecken' "
-                         "um eine Schar pickender und gurrender Tauben handelt. "
-                         "Es scheinen ganz normale Tauben zu sein. Also, abgesehen davon, dass sie etwa so groß wie Pferde sind.")
-                    if "Mit Tieren reden" in mänx.fähigkeiten:
-                        malp(
-                            "Dank deiner Fähigkeit mit Tieren zu reden, schnappst einige Worte auf.")
-
-                elif ark == "um":
-                    mänx.minput("Immer darauf achtend, dass die 'Flecken' ", kursiv("ganz"),
-                                "weit weg von dir blieben, versuchst du sie zu umgehen...")
-                    input('Da merkst du plötzlich, dass sich jemand von hinten an dich heranschleicht,'
-                          'doch zu spät: Dieser Jemand haut dir auf den Kopf und du wirst ohnmächtig.')
-
-                elif ark == "s":
-                    input(
-                        "Du suchst dir eine Mulde, kleidest sie mit Blättern aus und schläfst ein.")
-                    malp(
-                        "Als du am nächsten Morgen aufwachst, sind die 'Flecken' nicht mehr zu sehen...")
-
-            elif a == 4:
-                malp('Du läufst kurz herum, dann fällst du in Ohnmacht. Im Traum spricht eine Stimme zu dir:'
-                     'Juhu! du hast gewonnen! Eine gefühlte Ewigkeit später wachst du mit Kopfschmerzen auf.')
-
-            elif a == 5:
-                malp(kursiv(
-                    "Hallo"), "spricht plötzlich eine Stimme in deinem Kopf. Dann ist es wieder still.")
-
-            elif a == 6:
-                malp('JOEL schlägt zu.'
-                     'Tut mir wirklich sehr Leid, '
-                     'aber die Superentität JOEL, '
-                     'auch genannt böse-böser-Unsinn-Entität, '
-                     'ist zu stark.')
-                mint("Das Gift der Schnecke kommt in deinen Körper.Harharhar!"
-                     "lacht das Minigehirn der Schnecke Schade, leider bist du tot")
-                mint("Joel hat zugeschlagen.")
-                mint("Es tut mir wirklich ", kursiv("sehr"), "leid.")
-
-            elif a == 7:
-                malp("Riesige Spinne")
-
-            elif a == 8:
-                malp("Plötzlich wird dir kotzübel."
-                     "Dir ist als würde eine Stimme zu dir sprechen, bzw. dich anschreien: "
-                     "Du hast gewonnen, VERDAMMT!!! LASS MICH in RUHE!!! "
-                     "Dann bleibst du alleine und mit Kopfschmerzen zurück.")
-
-            elif a == 9:
-                malp("Panti-Jäger")
-
-            elif a == 10:
-                malp("Pferdegroßer Wolf")
-
-            else:
-                malp("Fleischfressende Pflanze")
-        raise Spielende()
-    else:
-        assert mut == "z"
+    if mut == "z":
         from xwatc.lg.mitte import MITTE
         return get_eintritt(mänx, (MITTE, "süden"))
+    assert mut == "w"
+    malp("Du wagst dich tiefer ins Land der Monster.")
+    weg = minput(mänx, "Biegst du in Richtung Osten/Westen "
+                 "ab oder gehst du einfach geradeaus?     "
+                 "w/o/we         ", ["w", "o", "we"])
+    if weg == "w":
+        a = random.randint(1, 11)
+        if a == 1:
+            malp("Waldschrat (inteligent)")
+
+        elif a == 2:
+            malp("Du läufst kurz herum, dann fällst du in Ohnmacht. Im Traum spricht eine Stimme zu dir:"
+                 "Glückwunsch, du hast gewonnen! Eine gefühlte Ewigkeit später wachst du mit Kopfschmerzen auf.")
+
+        elif a == 3:
+            malp("Wachsam gehst du weiter.")
+            ark = minput(mänx, "Da bemerkst du am Horizont, ganz weit in der Ferne, einige weiß-graue Flecken.\n"
+                         "Gehst du darauf zu, versuchst du sie zu umgehen "
+                         "oder gehst du einfach hier und jetzt schlafen? (g/um/s)", ["g", "um", "s"])
+
+            if ark == "g":
+                malp("Als du näher kommst,"
+                     "merkst du, dass es sich bei den 'Flecken' "
+                     "um eine Schar pickender und gurrender Tauben handelt. "
+                     "Es scheinen ganz normale Tauben zu sein. Also, abgesehen davon, dass sie etwa so groß wie Pferde sind.")
+                if "Mit Tieren reden" in mänx.fähigkeiten:
+                    malp(
+                        "Dank deiner Fähigkeit mit Tieren zu reden, schnappst einige Worte auf.")
+
+            elif ark == "um":
+                mänx.minput("Immer darauf achtend, dass die 'Flecken' ", kursiv("ganz"),
+                            "weit weg von dir blieben, versuchst du sie zu umgehen...")
+                input('Da merkst du plötzlich, dass sich jemand von hinten an dich heranschleicht,'
+                      'doch zu spät: Dieser Jemand haut dir auf den Kopf und du wirst ohnmächtig.')
+
+            elif ark == "s":
+                input(
+                    "Du suchst dir eine Mulde, kleidest sie mit Blättern aus und schläfst ein.")
+                malp(
+                    "Als du am nächsten Morgen aufwachst, sind die 'Flecken' nicht mehr zu sehen...")
+
+        elif a == 4:
+            malp('Du läufst kurz herum, dann fällst du in Ohnmacht. Im Traum spricht eine Stimme zu dir:'
+                 'Juhu! du hast gewonnen! Eine gefühlte Ewigkeit später wachst du mit Kopfschmerzen auf.')
+
+        elif a == 5:
+            malp(kursiv(
+                "Hallo"), "spricht plötzlich eine Stimme in deinem Kopf. Dann ist es wieder still.")
+
+        elif a == 6:
+            malp('JOEL schlägt zu.'
+                 'Tut mir wirklich sehr Leid, '
+                 'aber die Superentität JOEL, '
+                 'auch genannt böse-böser-Unsinn-Entität, '
+                 'ist zu stark.')
+            mint("Das Gift der Schnecke kommt in deinen Körper.Harharhar!"
+                 "lacht das Minigehirn der Schnecke Schade, leider bist du tot")
+            mint("Joel hat zugeschlagen.")
+            mint("Es tut mir wirklich ", kursiv("sehr"), "leid.")
+            raise Spielende()
+        elif a == 7:
+            malp("Riesige Spinne")
+
+        elif a == 8:
+            malp("Plötzlich wird dir kotzübel."
+                 "Dir ist als würde eine Stimme zu dir sprechen, bzw. dich anschreien: "
+                 "Du hast gewonnen, VERDAMMT!!! LASS MICH in RUHE!!! "
+                 "Dann bleibst du alleine und mit Kopfschmerzen zurück.")
+
+        elif a == 9:
+            malp("Panti-Jäger")
+
+        elif a == 10:
+            malp("Pferdegroßer Wolf")
+
+        else:
+            malp("Fleischfressende Pflanze")
+    raise Spielende()
 
     # elif mut=="z":
