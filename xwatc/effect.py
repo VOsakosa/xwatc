@@ -97,6 +97,8 @@ class Zufällig:
     @classmethod
     def gleichmäßig(cls, *fälle: str | Sequence[str] | MänxFkt[Fortsetzung | None]
                     ) -> 'Zufällig':
+        """Erzeuge eine zufällige Geschichte, wo alle möglichen Geschichten mit gleicher 
+        Wahrscheinlichkeit ausgeführt werden."""
         if not fälle:
             raise TypeError("Zufällig braucht min. einen Ausgang")
         wahlen = [_to_geschichte(fall) for fall in fälle]
@@ -106,6 +108,8 @@ class Zufällig:
 
     @classmethod
     def ungleichmäßig(cls, *fälle: tuple[float, str | Sequence[str] | MänxFkt[Fortsetzung | None]]):
+        """Erzeuge eine zufällige Geschichte, wo die möglichen Geschichten gemäß eines
+        Gewichtes gewählt werden."""
         if not fälle:
             raise TypeError("Zufällig braucht min. einen Ausgang")
         if any(wkeit <= 0 for wkeit, _fall in fälle):
@@ -117,9 +121,24 @@ class Zufällig:
         wkeiten = [(zsum := zsum + wkeit) / gesamt for wkeit, _f in fälle[:-1]]
         return cls(wahlen, wkeiten)
 
-    def __call__(self, mänx: Mänx) -> MänxFkt:
-        return self.wahlen[bisect(self.wkeiten, random.random())]
+    def __call__(self, mänx: Mänx) -> Fortsetzung | None:
+        return self.wahlen[bisect(self.wkeiten, random.random())](mänx)
 
+@define
+class Geschichtsfolge:
+    list_: Sequence[MänxFkt]
+    
+    def __call__(self, mänx: Mänx) -> Fortsetzung | None:
+        for fn in self.list_:
+            if (ans := fn(mänx)) is not None:
+                return ans
+        return None
+
+def in_folge(*geschichten: Sequence[str | Warten] | MänxFkt[Fortsetzung | None]) -> Geschichtsfolge:
+    """Führt mehrere Geschichten hintereinander aus. Gibt eine Geschichte eine Fortsetzung zurück,
+    wird diese zurückgegeben und die restlichen Funktionen verworfen.
+    """
+    return Geschichtsfolge([_to_geschichte(g) for g in geschichten])
 
 @define
 class Einmalig:
