@@ -665,11 +665,14 @@ class Gebiet:
 
     def neuer_punkt(self, koordinate: tuple[int, int], name: str) -> Wegkreuzung:
         """Erzeuge einen neuen Gitterpunkt und verbinde ihn entsprechend seiner Position."""
+        return self.setze_punkt(koordinate, Wegkreuzung(name=name, nachbarn={}, gebiet=self))
+
+    def setze_punkt(self, koordinate: tuple[int, int], pkt: Wegkreuzung) -> Wegkreuzung:
         x, y = koordinate
         if alter_pkt := self.get_punkt_at(x, y):
-            raise ValueError(f"Kann keinen neuen Punkt {name} bei {x},{y} erstellen, da durch "
+            raise ValueError(f"Kann keinen neuen Punkt {pkt.name} bei {x},{y} erstellen, da durch "
                              "{alter_pkt.name} besetzt.")
-        pkt = Wegkreuzung(name=name, nachbarn={}, gebiet=self)
+        pkt._gebiet = self
         self._put_punkt(x, y, pkt)
         # Verbinden
         größe_x, größe_y = self.größe
