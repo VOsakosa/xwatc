@@ -98,7 +98,7 @@ def erzeuge_norddörfer(mänx: Mänx, gebiet: weg.Gebiet) -> weg.Wegpunkt:
     kraut = kreuzung("kraut", immer_fragen=True)
     kraut.add_effekt(kräutergebiet)
     kili = kreuzung("kili", immer_fragen=True)
-    kili.add_effekt(Kiliwolf.main)
+    kili.add_effekt(kiliwolf.main)
     waldkreuz = kreuzung("waldkreuz")
     waldkreuz.add_beschreibung("Der Pfad gabelt sich.", nur="o")
     waldkreuz.add_beschreibung("Du kommst zurück an die Gabelung",
