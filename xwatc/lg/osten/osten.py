@@ -2,7 +2,7 @@ from xwatc.system import Mänx, minput, kursiv, ja_nein, mint, Spielende, malp, 
 import random
 from xwatc import jtg
 from xwatc.weg import gebiet, Gebiet, Gebietsende, WegAdapter, kreuzung
-from xwatc.effect import Einmalig, NurWenn
+from xwatc.effect import Einmalig, NurWenn, Zufällig, Warten, TextGeschichte, in_folge
 
 
 @gebiet("lg:osten")
@@ -51,7 +51,93 @@ def osten(_mänx: Mänx, gb: Gebiet) -> None:
     höhle.add_beschreibung(
         "Du bist zurück an der Abzweigung.", außer="Höhleneingang")
     höhle.verbinde(WegAdapter(None, monster, "monster", gb), "Monster")
-    höhle.verbinde(WegAdapter(None, bergbau, "bergbau", gb), "Bergbau")
+
+    bergbau = kreuzung("Bergbau", immer_fragen=True)
+    bergbau.add_beschreibung(
+        NurWenn(Einmalig("lg:osten:bergbau_getan"), TextGeschichte([
+            "Du nimmst dir eine Spitzhacke und fängst an, den Stein zu bearbeiten. Warte eine Minute.",
+            Warten(61),
+            "Du bekommst Zeug."
+        ], schatz={"Spitzhacke": 1, "Stein": 4}), in_folge(
+            ["Du arbeitest weiter.", Warten(59)], Zufällig.ungleichmäßig(
+                (27, TextGeschichte(
+                    ["Du bekommst ein bisschen Stein."], schatz={"Stein": 4})),
+                (27, TextGeschichte(
+                    ["Du bekommst ein wenig Stein."], schatz={"Stein": 5})),
+                (27, TextGeschichte(
+                    ["Du bekommst ein viel Stein."], schatz={"Stein": 6})),
+                (9, TextGeschichte(
+                    ["Du bekommst ein bisschen Kohle."], schatz={"Kohle": 3, "Stein": 1})),
+                (9, TextGeschichte(
+                    ["Du bekommst ein wenig Kohle."], schatz={"Kohle": 4, "Stein": 1})),
+                (9, TextGeschichte(
+                    ["Du findest eine winzige Kohleader!"], schatz={"Kohle": 5, "Stein": 1})),
+                (3, TextGeschichte(
+                    ["Du findest zwei Eisenklumpen."], schatz={"Eisen": 2, "Stein": 1})),
+                (3, TextGeschichte(
+                    ["Du findest drei Eisenklumpen."], schatz={"Eisen": 3, "Stein": 1})),
+                (3, TextGeschichte(
+                    ["Du findest fünf Eisenklumpen."], schatz={"Eisen": 5, "Stein": 1})),
+                (1, TextGeschichte(["Du arbeitest in der Mine und bautest gerade eine Kohlemine "
+                                    "ab, da findest du etwas:",
+                                    "Du traust deinen Augen nicht: " + kursiv("ein Diamant!")],
+                                   schatz={"Diamant": 1, "Kohle": 20, "Stein": 1})
+                 ),
+                (1, hohlraum),
+                (1, schimmernde_mauer),
+            ))))
+    höhle - bergbau
+
+
+def hohlraum(mänx: Mänx) -> Fortsetzung | None:
+    mint("Plötzlich stößt du auf einen Hohlraum.")
+    if not mänx.ja_nein('Verbreiterst du den Eingang oder fliehst du?'):
+        mint("Du fliehst aus der Höhle hinaus.")
+        mint("Doch kaum draußen angekommen fällst du in Ohnmacht. "
+             "Wieder aufgewacht, bist du an einem anderen Ort.")
+        # JTG
+        return jtg.t2
+    else:
+        mint("Du verbreiterst den Durchgang. "
+             "Hinter ihm findest du einen Hohlraum von der Größe eines Sarges. "
+             "Und tatsächlich: in ihm liegt eine moderige Leiche")
+        mint("Und da liegt", kursiv("noch"), "etwas!")
+        mint("Eine seltsame, blau schimmernde Stahlkugel!")
+        malp("Sie ist so etwa so groß wie ein Fußball, nur etwas kleiner.")
+        mint("Außerdem hast du einen ziemlich prallen Geldbeutel entdeckt.")
+        if ja_nein(mänx, "Sammelst du alles ein?"):
+            mänx.inventar["Stern des Vorvgir"] += 1
+            mänx.inventar["Gold"] += 13568
+            mänx.inventar["Eisen"] += 10
+            mänx.inventar["Stein"] += 1
+        else:
+            mint("Dann eben nicht. Tja... ")
+            mint("Ich denke du solltest",
+                 kursiv("woanders"), "hin...")
+        return None
+
+
+def schimmernde_mauer(mänx: Mänx) -> None:
+    malp("Du stößt auf eine seltsam schimmernde Mauer.")
+    if ja_nein(mänx, "Versuchst du sie zu durchbrechen?"):
+        malp(
+            "Als deine Spitzhacke die Mauer trifft, splittert sie mit einem hässlichen Kreischen.")
+        mint("Aaaaaaaaaaaaaaahhhhhh!!!")
+        malp("Ein gellender Schrei zerreißt die Stille.")
+        mint("Wer schreit denn da?!")
+        malp("Oh: ", kursiv("du"), "schreist da!")
+        malp("Die Schmerzen bringen dich um den Verstand.")
+        mint("Du bist tot")
+        mint("Oder etwa doch nicht?")
+        mänx.inventar["Stein"] += 30
+        mänx.inventar["Talisman der Schreie"] += 1
+        mänx.inventar["Spitzhacke"] -= 1
+
+    else:
+        malp("OK dann eben nicht.")
+        mint("Ich denke mal du solltest ",
+             kursiv("verschwinden!"), "")
+        mänx.inventar["Stein"] += 30
 
 
 def t1(_mänx: Mänx):
@@ -92,118 +178,6 @@ def osten_alt(mänx: Mänx):
              'Dann siehst du beinahe in Zeitlupe eine Klinge herannahen.')
 
         raise Spielende
-
-
-def bergbau(mänx: Mänx):
-    malp("Du nimmst dir eine Spitzhacke und fängst an, den Stein zu bearbeiten. Warte eine Minute.")
-    mänx.sleep(61)
-    malp("Du bekommst Zeug")
-    mänx.erhalte("Spitzhacke")
-    mänx.erhalte("Stein", 4)
-    if mänx.ja_nein("Arbeitest du weiter?"):
-        mänx.sleep(59)
-        a = random.randint(1, 120)
-        if 1 <= a <= 27:
-            mint("Du bekommst ein bisschen Stein")
-            mänx.inventar["Stein"] += 4
-
-        elif 27 <= a <= 54:
-            mint("Du bekommst ein wenig Stein")
-            mänx.inventar["Stein"] += 5
-
-        elif 54 <= a <= 81:
-            mint("Du bekommst 6 Steine")
-            mänx.inventar["Stein"] += 6
-
-        elif 81 <= a <= 90:
-            mint("Du bekommst ein bisschen Kohle")
-            mänx.inventar["Kohle"] += 3
-            mänx.inventar["Stein"] += 1
-
-        elif 90 <= a <= 99:
-            mint("Du bekommst ein wenig Kohle")
-            mänx.inventar["Kohle"] += 4
-            mänx.inventar["Stein"] += 1
-
-        elif 99 <= a <= 108:
-            mint("Du findest eine winzige Kohleader!")
-            mänx.inventar["Kohle"] += 5
-            mänx.inventar["Stein"] += 1
-
-        elif 108 <= a <= 111:
-            mint("Du findest zwei Eisenklumpen")
-            mänx.inventar["Eisen"] += 2
-            mänx.inventar["Stein"] += 1
-
-        elif 111 <= a <= 114:
-            mint("Du findest drei Eisenklumpen")
-            mänx.inventar["Eisen"] += 3
-            mänx.inventar["Stein"] += 1
-
-        elif 114 <= a <= 117:
-            mint("Du findest fünf Eisenklumpen")
-            mänx.inventar["Eisen"] += 5
-            mänx.inventar["Stein"] += 1
-
-        elif a == 118:
-            mint("Du arbeitest in der Mine und bautest gerade eine Kohlemine "
-                 "ab, da findest du etwas:")
-            mint("Du traust deinen Augen nicht: ",
-                 kursiv("ein Diamant!"), "")
-            mänx.inventar["Diamant"] += 1
-            mänx.inventar["Kohle"] += 20
-            mänx.inventar["Stein"] += 1
-
-        elif a == 119:
-            mint("Plötzlich stößt du auf einen Hohlraum.")
-            l = input(
-                'Verbreiterst du den Eingang oder fliehst du? (Schreibe "nein" für nein.) ')
-            if l == "nein":
-                mint("Du fliehst aus der Höhle hinaus.")
-                mint("Doch kaum draußen angekommen fällst du in Ohnmacht. "
-                     "Wieder aufgewacht, bist du an einem anderen Ort.")
-
-            else:
-                mint("Du verbreiterst den Durchgang. "
-                     "Hinter ihm findest du einen Hohlraum von der Größe eines Sarges. "
-                     "Und tatsächlich: in ihm liegt eine moderige Leiche")
-                mint("Und da liegt", kursiv("noch"), "etwas!")
-                mint("Eine seltsame, blau schimmernde Stahlkugel!")
-                malp("Sie ist so etwa so groß wie ein Fußball, nur etwas kleiner.")
-                mint("Außerdem hast du einen ziemlich prallen Geldbeutel entdeckt.")
-                if ja_nein(mänx, "Sammelst du alles ein?"):
-                    mänx.inventar["Stern des Vorvgir"] += 1
-                    mänx.inventar["Gold"] += 13568
-                    mänx.inventar["Eisen"] += 10
-                    mänx.inventar["Stein"] += 1
-                else:
-                    mint("Dann eben nicht. Tja... ")
-                    mint("Ich denke du solltest",
-                         kursiv("woanders"), "hin...")
-        else:
-            malp("Du stößt auf eine seltsam schimmernde Mauer.")
-            if ja_nein(mänx, "Versuchst du sie zu durchbrechen?"):
-                malp(
-                    "Als deine Spitzhacke die Mauer trifft, splittert sie mit einem hässlichen Kreischen.")
-                mint("Aaaaaaaaaaaaaaahhhhhh!!!")
-                malp("Ein gellender Schrei zerreißt die Stille.")
-                mint("Wer schreit denn da?!")
-                malp("Oh: ", kursiv("du"), "schreist da!")
-                malp("Die Schmerzen bringen dich um den Verstand.")
-                mint("Du bist tot")
-                mint("Oder etwa doch nicht?")
-                mänx.inventar["Stein"] += 30
-                mänx.inventar["Talisman der Schreie"] += 1
-                mänx.inventar["Spitzhacke"] -= 1
-
-            else:
-                malp("OK dann eben nicht.")
-                mint("Ich denke mal du solltest ",
-                     kursiv("verschwinden!"), "")
-                mänx.inventar["Stein"] += 30
-
-    else:
-        mint("OK")
 
 
 def monster(mänx: Mänx):
