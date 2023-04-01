@@ -150,7 +150,7 @@ class GeladeneGeschichte(karvapedo.main.Geschichte):
 
     def run_func(self, args: list[str]):
         # raise ValueError("Funktion unbekannt.")
-        pass # TODO
+        pass # TODO Karvapedo
 
 
 def lade_geschichte(datei: str, root: str = GESCHICHTEN) -> Marken:

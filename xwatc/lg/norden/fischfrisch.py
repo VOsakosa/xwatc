@@ -38,11 +38,10 @@ frau.dialog("wetter", '"Wie findest du das Wetter heute?"',
 
 
 @frau.dialog_deco("geht", '"Wie geht es dir?"')
-def reden_geht(nsc, _):
+def reden_geht(nsc, mänx: Mänx):
     nsc.sprich("Mir geht es gut. Wie geht es dir?")
-    k = input("")
-    if k == "gut" or "sehr gut" or "super gut" or "wirklich gut" or "wirklich sehr gut":
+    k = mänx.minput("")
+    if k in ("gut", "sehr gut", "super gut", "wirklich gut", "wirklich sehr gut"):
         nsc.sprich("Das ist aber schön.")
     else:
         nsc.sprich("oh")
-    # TODO: Hing, als hier Rückkehr.WEITER_REDEN stand

@@ -141,7 +141,7 @@ class Kiliwolf(HatMain):
             malp("Ein Pack Kiliwölfe greift dich an.")
             malp("Kiliwölfe sehen aus wie Wölfe, haben aber Scheren statt "
                  "Vorderpfoten.")
-            # TODO
+            # TODO Kiliwolf-Kampf
             return True
         return False
 
