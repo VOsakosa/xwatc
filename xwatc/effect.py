@@ -8,9 +8,13 @@ from attrs import define, field, Factory
 from bisect import bisect
 from collections.abc import Sequence, Mapping
 import random
-from xwatc.system import MänxPrädikat, Fortsetzung, MänxFkt, Mänx, malp
+from typing import Generic, TypeVar
+from typing_extensions import Self
+from xwatc.system import MänxPrädikat, MänxFkt, Mänx, malp
 __author__ = "jasper"
 
+
+F = TypeVar("F", covariant=True)
 
 @define
 class Warten:
@@ -18,8 +22,8 @@ class Warten:
     length: float
 
 
-def _to_geschichte(text: Sequence[str | Warten] | MänxFkt[Fortsetzung | None]
-                   ) -> MänxFkt[Fortsetzung | None]:
+def _to_geschichte(text: Sequence[str | Warten] | MänxFkt[F]) -> MänxFkt[F | None]:
+    """Converter, um Listen von Texten als MänxFkt aufzufassen."""
     match text:
         case str(txt):
             return TextGeschichte([txt])
@@ -50,14 +54,14 @@ class TextGeschichte:
 
 
 @define
-class NurWenn:
+class NurWenn(Generic[F]):
     """Diese Geschichte wird nur durchgeführt, wenn eine Variable gesetzt ist."""
     prädikat: MänxPrädikat
-    geschichte: MänxFkt[Fortsetzung | None] = field(converter=_to_geschichte)
-    sonst: MänxFkt[Fortsetzung | None] | None = field(
+    geschichte: MänxFkt[F | None] = field(converter=_to_geschichte)
+    sonst: MänxFkt[F | None] | None = field(
         converter=_to_geschichte, default=None)
 
-    def __call__(self, mänx: Mänx) -> Fortsetzung | None:
+    def __call__(self, mänx: Mänx) -> F | None:
         if self.prädikat(mänx):
             return self.geschichte(mänx)
         elif self.sonst:
@@ -90,13 +94,12 @@ class Cooldown:
 
 
 @define(frozen=True)
-class Zufällig:
-    wahlen: Sequence[MänxFkt]
+class Zufällig(Generic[F]):
+    wahlen: Sequence[MänxFkt[F | None]]
     wkeiten: Sequence[float]
 
     @classmethod
-    def gleichmäßig(cls, *fälle: str | Sequence[str] | MänxFkt[Fortsetzung | None]
-                    ) -> 'Zufällig':
+    def gleichmäßig(cls, *fälle: str | Sequence[str] | MänxFkt[F]) -> Self:
         """Erzeuge eine zufällige Geschichte, wo alle möglichen Geschichten mit gleicher 
         Wahrscheinlichkeit ausgeführt werden."""
         if not fälle:
@@ -107,7 +110,7 @@ class Zufällig:
         return cls(wahlen, wkeiten)
 
     @classmethod
-    def ungleichmäßig(cls, *fälle: tuple[float, str | Sequence[str] | MänxFkt[Fortsetzung | None]]):
+    def ungleichmäßig(cls, *fälle: tuple[float, str | Sequence[str] | MänxFkt[F]]) -> Self:
         """Erzeuge eine zufällige Geschichte, wo die möglichen Geschichten gemäß eines
         Gewichtes gewählt werden."""
         if not fälle:
@@ -121,24 +124,28 @@ class Zufällig:
         wkeiten = [(zsum := zsum + wkeit) / gesamt for wkeit, _f in fälle[:-1]]
         return cls(wahlen, wkeiten)
 
-    def __call__(self, mänx: Mänx) -> Fortsetzung | None:
+    def __call__(self, mänx: Mänx) -> F | None:
         return self.wahlen[bisect(self.wkeiten, random.random())](mänx)
 
+
+
 @define
-class Geschichtsfolge:
-    list_: Sequence[MänxFkt]
-    
-    def __call__(self, mänx: Mänx) -> Fortsetzung | None:
+class Geschichtsfolge(Generic[F]):
+    list_: Sequence[MänxFkt[F]]
+
+    def __call__(self, mänx: Mänx) -> F | None:
         for fn in self.list_:
             if (ans := fn(mänx)) is not None:
                 return ans
         return None
 
-def in_folge(*geschichten: Sequence[str | Warten] | MänxFkt[Fortsetzung | None]) -> Geschichtsfolge:
+
+def in_folge(*geschichten: Sequence[str | Warten] | MänxFkt[F]) -> Geschichtsfolge[F | None]:
     """Führt mehrere Geschichten hintereinander aus. Gibt eine Geschichte eine Fortsetzung zurück,
     wird diese zurückgegeben und die restlichen Funktionen verworfen.
     """
     return Geschichtsfolge([_to_geschichte(g) for g in geschichten])
+
 
 @define
 class Einmalig:
