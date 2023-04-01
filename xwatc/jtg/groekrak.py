@@ -3,12 +3,14 @@ Die große Feste von Grökrakchöl mitsamt umliegender Landschaft und See.
 Created on 15.10.2020
 """
 from xwatc import nsc
+from xwatc import jtg
 from xwatc.dorf import ort, Malp, Dorf, Rückkehr
 from xwatc.nsc import StoryChar, NSC, Person
 from xwatc.system import mint, Mänx, malp, HatMain, Welt, malpw, Fortsetzung
-from xwatc.weg import get_eintritt
-__author__ = "jasper"   
+from xwatc.weg import get_eintritt, gebiet, Gebiet, kreuzung, WegAdapter, Eintritt, Gebietsende
+__author__ = "jasper"
 
+# TODO: Genauer als Weg-Option
 GENAUER = [
     "Hinter der Festung fangen Felder an.",
     "In vier Richtungen führen Wege weg, nach Norden, Nordosten, Südosten "
@@ -19,49 +21,51 @@ GENAUER = [
     "Mauern sind wohl die Häuser der normalen Bevölkerung."
 ]
 
+zugang_ost = Eintritt(("jtg:grökrak", "ost"))
+zugang_südost = Eintritt(("jtg:grökrak", "südost"))
 
-def zugang_ost(mänx: Mänx):
-    """Zugang zu Grökrak aus dem Osten"""
-    mint("Der Weg führt nach Südwesten aus dem Wald heraus.")
-    if mänx.welt.ist("kennt:grökrakchöl"):
-        mint("Vor dir siehst du Grökrakchöl.")
-    else:
-        malp("Vor dir bietet sich ein erfurchterregender Anblick:")
-        mint("In der Mitte einer weiten Ebene ragt eine hohe quadratische "
-             "Festung hervor.")
-    mänx.genauer(GENAUER)
-    grökrak(mänx)
+# TODO: Weg-Option
+def pflücken(mänx: Mänx):
+    """Eine Option auf der Streuobstwiese."""
+    mänx.erhalte("Aprikose", 14)
+    mänx.erhalte("Apfel", 5)
+    mänx.erhalte("Zwetschge", 31)
+    malp("Niemand hat dich gesehen.")
 
 
-def zugang_südost(mänx: Mänx):
-    """Zugang aus Scherenfeld"""
-    malp("Du folgst dem Weg. Auf der linken Seite sind Felder.")
-    mint("Du kommst in eine Streuobstwiese.")
-    malp("Du siehst Äpfel, Zwetschgen und Aprikosen.")
-    if mänx.ja_nein("Willst du einige pflücken?"):
-        mänx.erhalte("Aprikose", 14)
-        mänx.erhalte("Apfel", 5)
-        mänx.erhalte("Zwetschge", 31)
-        malp("Niemand hat dich gesehen.")
-    malp("Der Weg überquert mit einer Brücke einen Bach. Am Bach stehen Bäume,"
-         " die "
-         "dir die Aussicht auf ", end="")
-    if mänx.welt.ist("kennt:grökrakchöl"):
-        mint("Grökrakhöl verbargen.")
-    else:
-        mint("eine große quadratische Festung verbargen.")
-    mänx.genauer(GENAUER)
-    grökrak(mänx)
+@gebiet("jtg:grökrak")
+def grökrak(mänx: Mänx, gebiet: Gebiet) -> None:
+    wiese = kreuzung("Streuobstwiese", immer_fragen=True).add_beschreibung(
+        "Du folgst dem Weg. Auf der linken Seite sind Felder.", nur="o").add_beschreibung((
+            "Du kommst in eine Streuobstwiese.",
+            "Du siehst Äpfel, Zwetschgen und Aprikosen.",
+            "Willst du einige pflücken?"
+        ))
+    wiese.verbinde(WegAdapter(None, jtg.süd_dorf, "südost", gebiet), "o")
+    vor_stadt = kreuzung("Vor dem Stadttor").add_beschreibung([
+        "Der Weg überquert mit einer Brücke einen Bach. Am Bach stehen Bäume,"
+        " die dir die Aussicht auf Grökrakhöl verbargen.",
+        "Grökrakhöl, eine große, quadratische Festung, ragt majestätisch vor dir auf."
+    ], nur="so").add_beschreibung(
+        "Du verlässt die Festung.", nur="Stadttor").add_beschreibung([
+            "Vor dir bietet sich ein erfurchterregender Anblick:",
+            "In der Mitte einer weiten Ebene ragt eine hohe quadratische "
+            "Festung hervor: Grökrakchöl."
+        ], nur="no", warten=True).add_beschreibung(
+            "Du stehst vor den Toren von Grökrakchöl.")
+    vor_stadt.verbinde_mit_weg(wiese, 1 / 24, "so")
+    vor_stadt - _grökrak(mänx.welt).get_ort("Stadttor")
+    biegung = kreuzung("Waldeingang", immer_fragen=False).add_beschreibung(
+        "Der Weg führt nach Südwesten aus dem Wald heraus.", nur="o"
+    ).add_beschreibung(
+        "Der Weg führt in einen Wald hinein.", nur="sw"
+    )
+    biegung.verbinde(Gebietsende(
+        None, gebiet, "ost", "jtg:mitte", "west"), "o")
+    vor_stadt.verbinde_mit_weg(biegung, 1 / 24, "no")
 
 
-def grökrak(mänx: Mänx):
-    if mänx.ja_nein("Willst du die Festung betreten?"):
-        gkrak = mänx.welt.get_or_else(
-            "jgt:dorf:grökrakchöl", erzeuge_grökrak, mänx.welt)
-        gkrak.main(mänx)  # TODO Rückgabewert (So kann man nicht von Canna teleportiert werden)
-
-
-def erzeuge_grökrak(welt: Welt) -> HatMain:
+def _grökrak(welt: Welt) -> Dorf:
     """"""
     tor = ort("Stadttor", None,
               "Am Stadttor von Grökrakchöl herrscht reger Betrieb.")
