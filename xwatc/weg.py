@@ -276,9 +276,10 @@ class Himmelsrichtung:
 
 
 NachbarKey = _StrAsHimmelsrichtung | Himmelsrichtung
+BeschreibungFn = MänxFkt[None | Wegpunkt | WegEnde]
 
 
-def _geschichte(geschichte: Sequence[str] | MänxFkt) -> Sequence[str] | MänxFkt:
+def _geschichte(geschichte: Sequence[str] | BeschreibungFn) -> Sequence[str] | BeschreibungFn:
     """Converter for `Beschreibung.geschichte`, um Strings als Liste aus einem String zu behandeln.
     """
     if isinstance(geschichte, str):
@@ -302,7 +303,7 @@ class Beschreibung:
     Wenn der Mänx den Wegpunkt aus einer der genannten Richtungen betritt, wird
     die Beschreibung abgespielt.
     """
-    geschichte: Sequence[str] | MänxFkt = field(converter=_geschichte)
+    geschichte: Sequence[str] | BeschreibungFn = field(converter=_geschichte)
     nur: Sequence[str | None] = field(converter=_nur, default=())
     außer: Sequence[str | None] = field(converter=_nur, default=())
     warten: bool = field(default=False)
@@ -402,22 +403,24 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         super().__init__()
 
     def add_beschreibung(self,
-                         geschichte: Sequence[str] | MänxFkt,
+                         geschichte: Sequence[str] | BeschreibungFn,
                          nur: Sequence[str | None] = (),
                          außer: Sequence[str | None] = (),
                          warten: bool = False):
         """Füge eine Beschreibung hinzu, die immer abgespielt wird, wenn
-        der Wegpunkt betreten wird."""
+        der Wegpunkt betreten wird. Beschreibungen sind nur Text,
+        für MänxFktn nutze :py:`add_effekt`."""
         self.beschreibungen.append(
             Beschreibung(geschichte, nur, außer, warten))
 
     def add_effekt(self,
-                   geschichte: Sequence[str] | MänxFkt,
+                   geschichte: Sequence[str] | BeschreibungFn,
                    nur: Sequence[str | None] = (),
                    außer: Sequence[str | None] = (),
-                   warten: bool = True):
+                   warten: bool = False):
         """Füge eine Geschichte hinzu, die passiert, wenn der Ort betreten
-        wird."""
+        wird. Die Funktion kann einen Wegpunkt oder ein WegEnde zurückgeben, um
+        das Wegsystem zu verlassen."""
         self.beschreibungen.append(
             Beschreibung(geschichte, nur, außer, warten))
 
@@ -430,7 +433,8 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         else:
             self._wenn_fn[richtung] = fn
 
-    def beschreibe(self, mänx: Mänx, ri_name: str | Himmelsrichtung | None):
+    def beschreibe(self, mänx: Mänx, ri_name: str | Himmelsrichtung | None
+                   ) -> WegEnde | Wegpunkt | None:
         """Beschreibe die Kreuzung von richtung kommend.
 
         Beschreibe muss idempotent sein, das heißt, mehrfache Aufrufe verändern
@@ -438,7 +442,14 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         die Beschreibung mehrfach durchgeführt.
         """
         for beschreibung in self.beschreibungen:
-            beschreibung.beschreibe(mänx, str(ri_name))
+            ans = beschreibung.beschreibe(mänx, str(ri_name))
+            if isinstance(ans, (Wegpunkt, WegEnde)):
+                getLogger("xwatc.weg").info(
+                    f"Springe aus Beschreibung von {self.name} nach {ans}.")
+                return ans
+            elif ans is not None:
+                getLogger("xwatc.weg").warning(
+                    f"Beschreibung von {self.name} hat {ans} zurückgegeben. Das wird ignoriert.")
         if ri_name and (self.kreuzung_beschreiben or not self.beschreibungen):
             if isinstance(ri_name, Himmelsrichtung):
                 self.beschreibe_kreuzung(ri_name.nr)
@@ -446,6 +457,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                 self.beschreibe_kreuzung(None)
         # for mensch in self.menschen:
         #    mensch.vorstellen(mänx)
+        return None
 
     @overload
     def __getitem__(
@@ -573,7 +585,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
     def get_nachbarn(self) -> list[Wegpunkt]:
         return [ri.ziel for ri in self.nachbarn.values() if ri]
 
-    def main(self, mänx: Mänx, von: Wegpunkt | None = None) -> Wegpunkt:
+    def main(self, mänx: Mänx, von: Wegpunkt | None = None) -> Wegpunkt | WegEnde:
         """Fragt nach allen Richtungen."""
         from xwatc.nsc import NSC
         von_key = None
@@ -583,7 +595,9 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                 if value.ziel is von:
                     von_key = key
                     break
-        self.beschreibe(mänx, von_key)
+        schnell_austritt = self.beschreibe(mänx, von_key)
+        if schnell_austritt is not None:
+            return schnell_austritt
         opts = list(self.optionen(mänx, von_key))
         if not self.immer_fragen and ((von is None) + len(opts)) <= 2:
             if isinstance(opts[0][2], Wegpunkt):
@@ -745,7 +759,7 @@ class WegAdapter(_Strecke):
             assert name not in gebiet.eintrittspunkte, f"Eintrittspunkt {name} schon in Gebiet"
             gebiet.eintrittspunkte[name] = self
 
-    def main(self, mänx: Mänx, von: Wegpunkt | None) -> Union[Wegpunkt, WegEnde]:
+    def main(self, mänx: Mänx, von: Wegpunkt | None) -> Wegpunkt | WegEnde:
         if von:
             return WegEnde(self.zurück)
         assert self.p1, "Loses Ende"
@@ -780,7 +794,7 @@ class WegSperre(_Strecke):
         self.hin = hin
         self.zurück = zurück
 
-    def main(self, mänx: Mänx, von: Wegpunkt | None) -> Union[Wegpunkt, WegEnde]:
+    def main(self, mänx: Mänx, von: Wegpunkt | None) -> Wegpunkt | WegEnde:
         assert self.p2
         assert self.p1
         if von is self.p1:
