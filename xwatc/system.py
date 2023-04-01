@@ -276,7 +276,7 @@ class Mänx(InventarBasis, Persönlichkeit):
                 self.ausgabe.malp("\n".join(text))
 
     def sleep(self, länge: float, pausenzeichen="."):
-        # TODO: noch eine Anzeigevariante
+        """Lasse den Spieler warten und zeige nur in regelmäßigen Abständen Pausenzeichen."""
         for _i in range(int(länge / 0.5)):
             if self.ausgabe.terminal:
                 print(pausenzeichen, end="", flush=True)
