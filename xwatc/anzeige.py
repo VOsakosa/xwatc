@@ -427,8 +427,7 @@ class XwatcFenster:
         self.main_grid.get_toplevel().destroy()
 
     def kursiv(self, text: str) -> Text:
-        # TODO Kursiv
-        return text
+        return f"*{text}*"
 
     def push_stack(self) -> None:
         """Legt ein neues Fenster auf den Stack."""

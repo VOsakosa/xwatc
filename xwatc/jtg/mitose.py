@@ -227,7 +227,7 @@ def helfen(self: NSC, mänx: Mänx):
         ("»nein«", '»Nein, aber ich kann dich trotzdem dahin bringen.«',
          "Ist das wirklich in Ordnung? Danke!")
     ]
-    antwort = mänx.menu(opts)  # TODO kaputt
+    antwort = mänx.menu(opts)
     self.sprich(antwort)
     self.variablen.add("gefährte")
     mänx.add_gefährte(self)

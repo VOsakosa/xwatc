@@ -30,8 +30,8 @@ class ausgerüstet:
             return bool(mänx.hat_klasse(self.klasse))
 
 
-def dorfbewohner_kampf(self: NSC, mänx: Mänx) -> Opt[Fortsetzung]:
-    # TODO: Wieder verwenden ?
+def dorfbewohner_kampf(self: NSC, mänx: Mänx) -> Fortsetzung | None:
+    # TODO: Dorfbewohner-Kampf Wieder verwenden ?
     from xwatc.lg.norden import gefängnis_von_gäfdah
     self.add_freundlich(-30, -200)
     geschlecht = getattr(self, "geschlecht", False)

@@ -364,9 +364,6 @@ tobi.dialog("wetter",
 tobi.dialog('wo', '"Wo bin ich?"',
             f"Du bist in {SÜD_DORF_NAME}, im Reich Jotungard.")
 
-# TODO: Tobi kann auch kämpfen (zusammengeschlagen werden)
-
-
 @tobi.kampf
 def tobi_kampf(self, mänx: Mänx) -> None:
     if mänx.hat_klasse("Waffe", "magische Waffe"):

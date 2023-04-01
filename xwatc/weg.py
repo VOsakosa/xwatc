@@ -15,11 +15,13 @@ from typing import (
     Any, ClassVar, Optional as Opt, Union, NewType, overload, TYPE_CHECKING, runtime_checkable,
     Protocol, TypeAlias)
 import typing
+from typing_extensions import Self
 
 from xwatc.system import (Fortsetzung, Mänx, MenuOption, MänxFkt, InventarBasis, malp, mint,
                           MänxPrädikat, Welt, MissingID)
 from xwatc.utils import uartikel, bartikel, adj_endung, UndPred
 from itertools import repeat
+
 
 if TYPE_CHECKING:
     from xwatc import nsc
@@ -406,23 +408,25 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                          geschichte: Sequence[str] | BeschreibungFn,
                          nur: Sequence[str | None] = (),
                          außer: Sequence[str | None] = (),
-                         warten: bool = False):
+                         warten: bool = False) -> Self:
         """Füge eine Beschreibung hinzu, die immer abgespielt wird, wenn
         der Wegpunkt betreten wird. Beschreibungen sind nur Text,
         für MänxFktn nutze :py:`add_effekt`."""
         self.beschreibungen.append(
             Beschreibung(geschichte, nur, außer, warten))
+        return self
 
     def add_effekt(self,
                    geschichte: Sequence[str] | BeschreibungFn,
                    nur: Sequence[str | None] = (),
                    außer: Sequence[str | None] = (),
-                   warten: bool = False):
+                   warten: bool = False) -> Self:
         """Füge eine Geschichte hinzu, die passiert, wenn der Ort betreten
         wird. Die Funktion kann einen Wegpunkt oder ein WegEnde zurückgeben, um
         das Wegsystem zu verlassen."""
         self.beschreibungen.append(
             Beschreibung(geschichte, nur, außer, warten))
+        return self
 
     def wenn(self, richtung: str, fn: MänxPrädikat) -> None:
         """Erlaube eine Richtung nur, wenn die folgende Funktion wahr ist.
@@ -628,6 +632,9 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                 if val is None:
                     self.nachbarn[key] = Richtung(anderer, ziel, typ)
                     break
+            # TODO Das gibt einen Fehler in Gebiet.verbind
+            # else:
+            #    raise ValueError("verbinde ohne Richtung braucht einen leeren Slot!")
 
     def verbinde_mit_weg(self,
                          nach: Wegkreuzung,
