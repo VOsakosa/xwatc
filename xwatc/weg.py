@@ -11,9 +11,8 @@ import enum
 from functools import wraps
 from logging import getLogger
 import random
-from typing import (
-    Any, ClassVar, Optional as Opt, Union, NewType, overload, TYPE_CHECKING, runtime_checkable,
-    Protocol, TypeAlias)
+from typing import (Any, ClassVar, NewType, TYPE_CHECKING, runtime_checkable,
+                    Protocol, TypeAlias)
 import typing
 from typing_extensions import Self
 
@@ -113,8 +112,8 @@ class Weg(_Strecke):
     def __init__(self, länge: float,
                  p1: Wegpunkt | None = None,
                  p2: Wegpunkt | None = None,
-                 monster_tag: Opt[list[MonsterChance]] = None,
-                 monster_nachts: Opt[list[MonsterChance]] = None):
+                 monster_tag: list[MonsterChance] | None = None,
+                 monster_nachts: list[MonsterChance] | None = None):
         """
         :param länge: Länge in Stunden
         :param p1: Startpunkt
@@ -462,7 +461,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                 beschreibe_kreuzung(self, None)
         # for mensch in self.menschen:
         #    mensch.vorstellen(mänx)
-        return None    
+        return None
 
     def optionen(self, mänx: Mänx,
                  von: NachbarKey | None) -> Iterable[MenuOption[Wegpunkt | 'nsc.NSC']]:
@@ -735,8 +734,8 @@ class WegSperre(_Strecke):
     """
 
     def __init__(self, start: Wegpunkt | None, ende: Wegpunkt | None,
-                 hin: Opt[MänxPrädikat] = None,
-                 zurück: Opt[MänxPrädikat] = None):
+                 hin: MänxPrädikat | None = None,
+                 zurück: MänxPrädikat | None = None):
         super().__init__(start, ende)
         self.hin = hin
         self.zurück = zurück
