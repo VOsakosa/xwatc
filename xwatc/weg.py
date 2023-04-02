@@ -144,6 +144,7 @@ class Weg(_Strecke):
         return False
 
     def main(self, mänx: Mänx, von: Wegpunkt | None) -> Wegpunkt:
+        """Verwendet Zeit und bringt den Spieler an die gegenüberliegende Seite."""
         tagrest = mänx.welt.tag % 1.0
         if tagrest < 0.5 and tagrest + self.länge >= 0.5:
             if von and mänx.ja_nein("Du wirst nicht vor Ende der Nacht ankommen. "
@@ -693,23 +694,45 @@ class Gebiet:
         return self.eintrittspunkte["start"]
 
 
-class WegAdapter(_Strecke):
+@define(init=False)
+class WegAdapter(Wegpunkt):
     """Ein Übergang von Wegesystem zum normalen System."""
+    zurück: MänxFkt
+    punkt: Wegpunkt | None = None
 
     def __init__(self, zurück: MänxFkt,
-                 name: str = "", gebiet: Gebiet | None = None):
-        super().__init__(None, None)
-        self.zurück = zurück
-        self.name = name
+                 name: str = "", gebiet: Gebiet | None = None) -> None:
+        self.__attrs_init__(zurück)
         if gebiet and name:
             assert name not in gebiet.eintrittspunkte, f"Eintrittspunkt {name} schon in Gebiet"
             gebiet.eintrittspunkte[name] = self
 
     def main(self, mänx: Mänx, von: Wegpunkt | None) -> Wegpunkt | WegEnde:
-        if von:
+        assert self.punkt, f"Looses Ende bei {self}"
+        if von is self.punkt:
             return WegEnde(self.zurück)
-        assert self.p1, "Loses Ende"
-        return self.p1
+        return self.punkt
+
+    def get_nachbarn(self) -> list[Wegpunkt]:
+        return [self.punkt] if self.punkt else []
+
+    def verbinde(self, anderer: Wegpunkt) -> None:
+        if not self.punkt:
+            self.punkt = anderer
+        else:
+            getLogger("xwatc.weg").warning(f"WegAdapter sollte mit {anderer} verbunden werden, "
+                                           f"ist aber schon mit {self.punkt} verbunden.")
+
+    def __repr__(self):
+        def name(pk: Wegpunkt | None):
+            match pk:
+                case None:  # @UnusedVariable
+                    return "Leeres Ende"
+                case object(name=str(ans)) if ans:  # type: ignore
+                    return ans
+                case _:
+                    return type(pk).__name__
+        return f"WegAdapter von {name(self.punkt)} nach {self.zurück}"
 
 
 class WegSperre(_Strecke):
@@ -894,7 +917,7 @@ def wegsystem(mänx: Mänx, start: Wegpunkt | str | tuple[str, str], return_fn: 
     wp: Wegpunkt | WegEnde = get_eintritt(mänx, start)
     last = None
     while not isinstance(wp, WegEnde):
-        getLogger("xwatc.weg").info(f"Move to {wp}")
+        getLogger("xwatc.weg").info(f"Betrete {wp}")
         try:
             mänx.context = wp
             last, wp = wp, wp.main(mänx, von=last)
