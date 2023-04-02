@@ -217,6 +217,7 @@ class Richtung:
     """Stellt eine wählbare Richtung an einem Wegpunkt dar."""
     ziel: Wegpunkt
     zielname: str = ""
+    name_kurz: str = ""
     typ: Wegtyp = Wegtyp.WEG
 
 
@@ -380,10 +381,9 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
     wenn es keine Abzweigung ist
     :param menschen: Menschen, die an der Wegkreuzung stehen und angesprochen werden können.
     """
-    OPTS: ClassVar[Sequence[int]] = [4, 3, 5, 2, 6, 1, 7]
+    OPTS: ClassVar[Sequence[int]] = [4, 3, 5, 2, 6, 1, 7]  # Reihenfolge des Fragens
     name: str
     nachbarn: dict[NachbarKey, Richtung | None] = field(repr=False)
-    ziel_text: dict[NachbarKey, tuple[str, str]] = field(factory=dict)
     menschen: list[nsc.NSC] = field(factory=list)
     immer_fragen: bool = False
     kreuzung_beschreiben: bool = False
@@ -428,10 +428,21 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
             self._wenn_fn[richtung] = UndPred(self._wenn_fn[richtung], fn)
         else:
             self._wenn_fn[richtung] = fn
+    
+    def setze_zielname(self, richtung: str, ziel_name: str, ziel_kurz: str=""):
+        """Setze den Zielnamen für eine Richtung. Dieser wird"""
+        ziel_kurz = ziel_kurz or ziel_name.lower()
+        if not ziel_kurz or " " in ziel_kurz:
+            raise ValueError("Aus dem Ziel lässt sich keine sinnvolle Option machen.")
+        richtung_obj = self.nachbarn.get(Himmelsrichtung.from_kurz(richtung))
+        if not richtung_obj:
+            raise ValueError(f"Die Richtung {richtung} ist nicht verbunden.") 
+        richtung_obj.zielname = ziel_name
+        richtung_obj.name_kurz = ziel_kurz
 
     def beschreibe(self, mänx: Mänx, ri_name: str | Himmelsrichtung | None
                    ) -> WegEnde | Wegpunkt | None:
-        """Beschreibe die Kreuzung von richtung kommend.
+        """Beschreibe die Kreuzung von `richtung` kommend.
 
         Beschreibe muss idempotent sein, das heißt, mehrfache Aufrufe verändern
         die Welt nicht anders als ein einfacher Aufruf. Denn beim Laden wird
@@ -470,13 +481,12 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                     yield ("Umkehren", "f", ri.ziel)
             else:
                 if ri.zielname:
-                    ziel = ri.zielname
+                    yield (ri.zielname, ri.name_kurz or ri.zielname.lower(), ri.ziel)
                 elif isinstance(himri, Himmelsrichtung):
-                    ziel = f"Nach {himri}"
+                    yield (f"Nach {himri}", format(himri).lower(), ri.ziel)
                     # ziel = cap(ri.typ.text(True, 4)) + f" nach {himri}"
                 else:
-                    ziel = himri
-                yield (ziel, format(himri).lower(), ri.ziel)
+                    yield (himri, himri.lower(), ri.ziel)
 
     def _richtungen(self, mänx: Mänx, von: NachbarKey | None
                     ) -> Iterator[tuple[Richtung, NachbarKey]]:
@@ -547,11 +557,11 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         if richtung:
             anderer.verbinde(self)
             hiri = Himmelsrichtung.from_kurz(richtung)
-            self.nachbarn[hiri] = Richtung(anderer, ziel, typ)
+            self.nachbarn[hiri] = Richtung(anderer, ziel, ziel, typ)
         else:
             for key, val in self.nachbarn.items():
                 if val is None:
-                    self.nachbarn[key] = Richtung(anderer, ziel, typ)
+                    self.nachbarn[key] = Richtung(anderer, ziel, ziel, typ)
                     break
             # TODO Das gibt einen Fehler in Gebiet.verbind
             # else:
