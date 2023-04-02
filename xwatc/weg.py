@@ -339,15 +339,6 @@ def cap(a: str) -> str:
 
 RiIn = Wegpunkt | Richtung | None
 
-
-class _NotSpecifiedT(enum.Enum):
-    SingleValue = 0
-
-
-_NSpec = _NotSpecifiedT.SingleValue
-OpRiIn = RiIn | _NotSpecifiedT
-
-
 def _to_richtung(richtung: RiIn) -> Richtung | None:
     if isinstance(richtung, Richtung) or richtung is None:
         return richtung
@@ -392,6 +383,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
     OPTS: ClassVar[Sequence[int]] = [4, 3, 5, 2, 6, 1, 7]
     name: str
     nachbarn: dict[NachbarKey, Richtung | None] = field(repr=False)
+    ziel_text: dict[NachbarKey, tuple[str, str]] = field(factory=dict)
     menschen: list[nsc.NSC] = field(factory=list)
     immer_fragen: bool = False
     kreuzung_beschreiben: bool = False
