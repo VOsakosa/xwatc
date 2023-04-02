@@ -455,93 +455,20 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                 getLogger("xwatc.weg").warning(
                     f"Beschreibung von {self.name} hat {ans} zurückgegeben. Das wird ignoriert.")
         if ri_name and (self.kreuzung_beschreiben or not self.beschreibungen):
+            from xwatc.vorlagen.kreuzung_beschreiben import beschreibe_kreuzung
             if isinstance(ri_name, Himmelsrichtung):
-                self.beschreibe_kreuzung(ri_name.nr)
+                beschreibe_kreuzung(self, ri_name.nr)
             else:
-                self.beschreibe_kreuzung(None)
+                beschreibe_kreuzung(self, None)
         # for mensch in self.menschen:
         #    mensch.vorstellen(mänx)
-        return None
-
-    @overload
-    def __getitem__(
-        self, i: slice) -> list[Richtung | None]: ...  # @UnusedVariable
-
-    @overload
-    def __getitem__(self, i: int) -> Richtung | None: ...  # @UnusedVariable
-
-    @overload
-    def __getitem__(self, i: str) -> Richtung: ...  # @UnusedVariable
-
-    def __getitem__(self, i):
-        match i:
-            case slice() as i:
-                return [self.nachbarn.get(Himmelsrichtung.from_nr(hri)) for hri in range(8)[i]]
-            case int(i):
-                return self.nachbarn.get(Himmelsrichtung.from_nr(i))
-            case str() | Himmelsrichtung():
-                if isinstance(i, str):
-                    i = _StrAsHimmelsrichtung(i)
-                ans = self.nachbarn[i]
-                if ans is None:
-                    raise KeyError(f"Loses Ende: {i} nicht besetzt")
-                return ans
-        raise TypeError(i, "must be str, int or slice.")
-
-    def _finde_texte(self, richtung: int) -> list[str]:
-        """Finde die Beschreibungstexte, die auf die Kreuzung passen."""
-        rs = self[richtung:] + self[:richtung]
-        ans: list[str] = []
-        min_arten = 8
-        for flt, txt in WEGPUNKTE_TEXTE:
-            typen: dict[int, Wegtyp] = {}
-            art_count = 0
-            for stp, tp in zip(rs, flt):
-                if tp == 0 and stp is None:
-                    continue
-                elif tp != 0 and stp is not None:
-                    if tp in typen:
-                        if typen[tp] != stp.typ:
-                            break
-                    else:
-                        art_count += 1
-                        typen[tp] = stp.typ
-                else:
-                    break
-            else:
-                if art_count < min_arten:
-                    ans.clear()
-                elif art_count > min_arten:
-                    continue
-                ans.append(txt.format(w=typen))
-        return ans
-
-    def beschreibe_kreuzung(self, richtung: int | None):  # pylint: disable=unused-argument
-        """Beschreibe die Kreuzung anhand ihrer Form."""
-        rs = self[:]
-        if richtung is not None:
-            texte = self._finde_texte(richtung)
-            if texte:
-                malp(random.choice(texte))
-            else:
-                malp("Du kommst an eine Kreuzung.")
-                for i, ri in enumerate(rs):
-                    if ri and i != richtung:
-                        malp(cap(ri.typ.text(False, 1)), "führt nach",
-                             HIMMELSRICHTUNGEN[i] + ".")
-
-        else:
-            malp("Du kommst auf eine Wegkreuzung.")
-            for i, ri in enumerate(rs):
-                if ri:
-                    malp(cap(ri.typ.text(False, 1)), " führt nach ",
-                         HIMMELSRICHTUNGEN[i] + ".")
+        return None    
 
     def optionen(self, mänx: Mänx,
                  von: NachbarKey | None) -> Iterable[MenuOption[Wegpunkt | 'nsc.NSC']]:
         """Sammelt Optionen, wie der Mensch sich verhalten kann."""
         for mensch in self.menschen:
-            yield ("Mit " + mensch.name + " reden", mensch.name.lower(),
+            yield (f"Mit {mensch.name} reden", mensch.name.lower(),
                    mensch)
         for ri, himri in self._richtungen(mänx, von):
             if himri == von:
@@ -982,31 +909,3 @@ def wegsystem(mänx: Mänx, start: Wegpunkt | str | tuple[str, str], return_fn: 
 
 
 GEBIETE: dict[str, MänxFkt[Gebiet]] = {}
-WEGPUNKTE_TEXTE: list[tuple[list[int], str]] = [
-
-    ([1, 0, 0, 0, 2, 0, 0, 0], "{w[1]:111} wird zu {w[2]:03}"),
-    # Kurven
-    ([1, 1, 0, 0, 0, 0, 0, 0],
-     "{w[1]:111} macht eine scharfe Biegung nach links."),
-    ([1, 0, 1, 0, 0, 0, 0, 0],
-     "{w[1]:111} biegt nach links ab."),
-    ([1, 0, 1, 0, 0, 0, 0, 0],
-     "Du biegst nach links ab."),
-    ([1, 0, 0, 1, 0, 0, 0, 0],
-     "{w[1]:111} macht eine leichte Biegung nach links."),
-    ([1, 0, 0, 0, 1, 0, 0, 0], "{w[1]:111} führt weiter geradeaus."),
-    ([1, 0, 0, 0, 0, 1, 0, 0],
-     "{w[1]:111} macht eine leichte Biegung nach rechts."),
-    ([1, 0, 0, 0, 0, 0, 1, 0],
-     "{w[1]:111} biegt nach rechts ab."),
-    ([1, 0, 0, 0, 0, 0, 0, 1],
-     "{w[1]:111} macht eine scharfe Biegung nach rechts."),
-    # T-Kreuzungen
-    ([1, 0, 2, 0, 0, 0, 2, 0], "{w[1]:111} endet orthogonal an {w[2]:03}."),
-    ([1, 2, 0, 0, 0, 2, 0, 0], "{w[1]:111} mündet in {w[2]:04}, {w[2]:g1} von "
-     "scharf links nach rechts führt."),
-    ([1, 2, 0, 0, 2, 0, 0, 0], "{w[1]:111} vereinigt sich mit {w[2]:03}, der geradeaus "
-     "weiterführt."),
-    ([1, 0, 2, 0, 1, 0, 2, 0], "{w[2]:011} kreuzt senkrecht."),
-    ([1, 0, 0, 0, 0, 0, 0, 0], "Eine Sackgasse.")
-]

@@ -4,7 +4,8 @@ from xwatc import scenario
 from xwatc import weg
 from xwatc import system
 from xwatc.system import (Mänx, minput, ja_nein, register,
-                          Spielende, mint, sprich, kursiv, malp, get_classes, Inventar)
+                          Spielende, mint, sprich, kursiv, malp, get_classes, Inventar, MänxFkt,
+    MenuOption)
 from xwatc import dorf
 from xwatc.dorf import Dorf, ort, NSCOptionen, Dialog, HalloDialoge, Malp, Zeitpunkt
 from random import randint
@@ -622,7 +623,7 @@ def erzeuge_süd_dorf(mänx) -> Dorf:
 def süd_dorf(mänx: Mänx):
     mänx.genauer(SÜD_DORF_GENAUER)
     mänx.welt.get_or_else("jtg:dorf:süd", erzeuge_süd_dorf, mänx).main(mänx)
-    ziele = [
+    ziele: list[MenuOption[MänxFkt]] = [
         ("Den Weg nach Süden zur Hauptstadt", "hauptstadt", hauptstadt_weg),
         ("Den Weg nach Norden nach Tauern", "tauern", tauern_ww_süd),
         ("Den Weg nach Westen nach Grökrakchöl", "grökrakchöl", zugang_südost),
