@@ -11,6 +11,7 @@ import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GLib, Gdk
 
+
 from contextlib import contextmanager
 from functools import wraps
 from pathlib import Path
@@ -155,6 +156,7 @@ class XwatcFenster:
                     else:
                         next_ = "h"
                 elif next_ == "l":  # Lademenü
+                    SPEICHER_VERZEICHNIS.mkdir(exist_ok=True, parents=True)
                     mgn2: list[MenuOption[Opt[Path]]] = [
                         (path.stem, path.name.lower(), path) for path in
                         SPEICHER_VERZEICHNIS.iterdir()  # @UndefinedVariable
