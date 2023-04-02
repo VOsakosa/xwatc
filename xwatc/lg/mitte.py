@@ -20,9 +20,9 @@ def himmelsrichtungen(mänx: Mänx, gb: Gebiet) -> Wegkreuzung:
         "Monster auf dich, im Westen liegt "
         "das Meer und der Osten ist unentdeckt."])
     mitte.verbinde(Gebietsende(None, gb, "norden", "lg:norden", "süden"), "n")
-    mitte.verbinde(WegAdapter(None, süden.süden, "süden", gb), "s")
+    mitte.verbinde(WegAdapter(süden.süden, "süden", gb), "s")
     mitte.verbinde(Gebietsende(None, gb, "osten", "lg:osten", "start"), "o")
-    mitte.verbinde(WegAdapter(None, westen.westen, "westen", gb), "w")
+    mitte.verbinde(WegAdapter(westen.westen, "westen", gb), "w")
     return mitte
 
 

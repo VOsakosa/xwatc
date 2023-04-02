@@ -3,9 +3,9 @@ from xwatc import haendler
 from xwatc import scenario
 from xwatc import weg
 from xwatc import system
-from xwatc.system import (Mänx, minput, ja_nein, register,
-                          Spielende, mint, sprich, kursiv, malp, get_classes, Inventar, MänxFkt,
-    MenuOption)
+from xwatc.system import (
+    Mänx, minput, ja_nein, register, MenuOption,
+    Spielende, mint, sprich, kursiv, malp, get_classes, Inventar, MänxFkt)
 from xwatc import dorf
 from xwatc.dorf import Dorf, ort, NSCOptionen, Dialog, HalloDialoge, Malp, Zeitpunkt
 from random import randint
@@ -47,8 +47,7 @@ def beeren() -> Wildpflanze:
 
 @weg.gebiet("jtg:mitte")
 def erzeuge_mitte(_mänx: Mänx, gebiet: weg.Gebiet) -> 'weg.Wegpunkt':
-    westw = weg.Weg(2, weg.WegAdapter(
-        None, groekrak.zugang_ost, "west", gebiet), None)
+    westw = weg.Weg(2, weg.WegAdapter(groekrak.zugang_ost, "west", gebiet), None)
     bogen = weg.kreuzung("bogen", w=weg.Richtung(westw))
     bogen.add_beschreibung("Der Weg macht nach einer Weile eine Biegung "
                            "nach rechts.", nur="n")
@@ -72,7 +71,7 @@ def erzeuge_mitte(_mänx: Mänx, gebiet: weg.Gebiet) -> 'weg.Wegpunkt':
          "Der Weg macht eine leichte Biegung nach Norden."), nur="sw")
     nordk.verbinde_mit_weg(west, 3, "sw", "n")
 
-    süd = weg.WegAdapter(None, t2_süd)
+    süd = weg.WegAdapter(t2_süd)
     osten = weg.kreuzung("osten", immer_fragen=True)
     osten.add_beschreibung(("Das Gestrüpp wird immer dichter.",
                             "Hohe Brombeerhecken verstellen dir den Weg."))
@@ -364,6 +363,7 @@ tobi.dialog("wetter",
              Malp("Wie lange war Tobiac wohl nicht mehr draußen?")])
 tobi.dialog('wo', '"Wo bin ich?"',
             f"Du bist in {SÜD_DORF_NAME}, im Reich Jotungard.")
+
 
 @tobi.kampf
 def tobi_kampf(self, mänx: Mänx) -> None:

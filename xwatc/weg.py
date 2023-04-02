@@ -696,9 +696,9 @@ class Gebiet:
 class WegAdapter(_Strecke):
     """Ein Übergang von Wegesystem zum normalen System."""
 
-    def __init__(self, nächster: Wegpunkt | None, zurück: MänxFkt,
+    def __init__(self, zurück: MänxFkt,
                  name: str = "", gebiet: Gebiet | None = None):
-        super().__init__(nächster, None)
+        super().__init__(None, None)
         self.zurück = zurück
         self.name = name
         if gebiet and name:

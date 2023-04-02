@@ -28,8 +28,8 @@ def osten(_mänx: Mänx, gb: Gebiet) -> None:
     ], [
         "Die beiden Türen sind noch da."
     ]))
-    oase.verbinde(WegAdapter(None, t1), "Linke Tür")
-    oase.verbinde(WegAdapter(None, t2), "Rechte Tür")
+    oase.verbinde(WegAdapter(t1), "Linke Tür")
+    oase.verbinde(WegAdapter(t2), "Rechte Tür")
 
     höhleneingang = gb.neuer_punkt((0, 2), "Höhleneingang")
     höhleneingang.add_beschreibung(
@@ -50,7 +50,7 @@ def osten(_mänx: Mänx, gb: Gebiet) -> None:
         "und über dem anderen steht \"monster\"."], nur="Höhleneingang")
     höhle.add_beschreibung(
         "Du bist zurück an der Abzweigung.", außer="Höhleneingang")
-    höhle.verbinde(WegAdapter(None, monster, "monster", gb), "Monster")
+    höhle.verbinde(WegAdapter(monster, "monster", gb), "Monster")
 
     bergbau = kreuzung("Bergbau", immer_fragen=True)
     erst: MänxFkt[None | WegEnde] = TextGeschichte([
