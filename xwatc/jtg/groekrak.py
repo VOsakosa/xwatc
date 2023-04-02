@@ -8,9 +8,9 @@ from xwatc.dorf import ort, Malp, Dorf, Rückkehr
 from xwatc.nsc import StoryChar, NSC, Person
 from xwatc.system import mint, Mänx, malp, HatMain, Welt, malpw, Fortsetzung
 from xwatc.weg import get_eintritt, gebiet, Gebiet, kreuzung, WegAdapter, Eintritt, Gebietsende
+from xwatc.effect import Cooldown, NurWenn
 __author__ = "jasper"
 
-# TODO: Genauer als Weg-Option
 GENAUER = [
     "Hinter der Festung fangen Felder an.",
     "In vier Richtungen führen Wege weg, nach Norden, Nordosten, Südosten "
@@ -24,8 +24,7 @@ GENAUER = [
 zugang_ost = Eintritt(("jtg:grökrak", "ost"))
 zugang_südost = Eintritt(("jtg:grökrak", "südost"))
 
-# TODO: Weg-Option
-def pflücken(mänx: Mänx):
+def pflücken(mänx: Mänx) -> None:
     """Eine Option auf der Streuobstwiese."""
     mänx.erhalte("Aprikose", 14)
     mänx.erhalte("Apfel", 5)
@@ -42,6 +41,8 @@ def grökrak(mänx: Mänx, gebiet: Gebiet) -> None:
             "Willst du einige pflücken?"
         ))
     wiese.verbinde(WegAdapter(None, jtg.süd_dorf, "südost", gebiet), "o")
+    wiese.add_option("Plücken", "pflücken", NurWenn(Cooldown("jtg:grk:pflücken", 1),
+                                                    pflücken))  # type: ignore
     vor_stadt = kreuzung("Vor dem Stadttor").add_beschreibung([
         "Der Weg überquert mit einer Brücke einen Bach. Am Bach stehen Bäume,"
         " die dir die Aussicht auf Grökrakhöl verbargen.",
@@ -54,6 +55,7 @@ def grökrak(mänx: Mänx, gebiet: Gebiet) -> None:
         ], nur="no", warten=True).add_beschreibung(
             "Du stehst vor den Toren von Grökrakchöl.")
     vor_stadt.verbinde_mit_weg(wiese, 1 / 24, "so")
+    vor_stadt.add_option("Genauer", "genauer", GENAUER)
     vor_stadt - _grökrak(mänx.welt).get_ort("Stadttor")
     biegung = kreuzung("Waldeingang", immer_fragen=False).add_beschreibung(
         "Der Weg führt nach Südwesten aus dem Wald heraus.", nur="o"
