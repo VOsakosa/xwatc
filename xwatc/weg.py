@@ -603,10 +603,12 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         if schnell_austritt is not None:
             return schnell_austritt
         opts = list(self.optionen(mänx, von_key))
+        if not opts:
+            raise ValueError(f"Keine Optionen, um aus {self} zu entkommen.")
         if not self.immer_fragen and ((von is None) + len(opts)) <= 2:
             if isinstance(opts[0][2], Wegpunkt):
                 return opts[0][2]
-        ans = mänx.menu(opts, frage="Welchem Weg nimmst du?", save=self)
+        ans = mänx.menu(opts, frage="Welchen Weg nimmst du?", save=self)
         if isinstance(ans, Wegpunkt):
             return ans
         elif isinstance(ans, NSC):
@@ -665,14 +667,25 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         self.nachbarn[ri1] = Richtung(weg, beschriftung_hin, typ=typ)
         nach.nachbarn[ri2] = Richtung(weg, beschriftung_zurück, typ=typ)
 
+    def add_option(self, name: str, name_kurz: str,
+                   effekt: Sequence[str] | BeschreibungFn) -> Self:
+        """Füge eine Option an dem Wegpunkt hinzu. Beim Wählen wird dann eine Geschichte
+        abgespielt."""
+        # Die Option wird durch eine Wegkreuzung mit immer_fragen=False abgewickelt.
+        effekt_punkt = Wegkreuzung(
+            name=self.name + ":" + name_kurz,
+            nachbarn={_StrAsHimmelsrichtung("zurück"): Richtung(self)},
+            immer_fragen=False,  # Nach der Beschreibung wird umgekehrt
+            gebiet=self._gebiet,
+            beschreibungen=[Beschreibung(effekt)]
+        )
+        self.nachbarn[Himmelsrichtung.from_kurz(
+            name_kurz)] = Richtung(effekt_punkt, name)
+        return self
+
     def add_nsc(self, welt: Welt, name: str, fkt: Callable[..., nsc.NSC],
                 *args, **kwargs):
         welt.get_or_else(name, fkt, *args, **kwargs).ort = self
-
-    def get_state(self):
-        """Wenn der Wegpunkt Daten hat, die über die Versionen behalten
-        werden sollen."""
-        return None
 
 
 @define
