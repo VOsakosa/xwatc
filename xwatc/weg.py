@@ -11,9 +11,8 @@ import enum
 from functools import wraps
 from logging import getLogger
 import random
-from typing import (
-    Any, ClassVar, Optional as Opt, Union, NewType, overload, TYPE_CHECKING, runtime_checkable,
-    Protocol, TypeAlias)
+from typing import (Any, ClassVar, NewType, TYPE_CHECKING, runtime_checkable,
+                    Protocol, TypeAlias)
 import typing
 from typing_extensions import Self
 
@@ -113,8 +112,8 @@ class Weg(_Strecke):
     def __init__(self, länge: float,
                  p1: Wegpunkt | None = None,
                  p2: Wegpunkt | None = None,
-                 monster_tag: Opt[list[MonsterChance]] = None,
-                 monster_nachts: Opt[list[MonsterChance]] = None):
+                 monster_tag: list[MonsterChance] | None = None,
+                 monster_nachts: list[MonsterChance] | None = None):
         """
         :param länge: Länge in Stunden
         :param p1: Startpunkt
@@ -145,6 +144,7 @@ class Weg(_Strecke):
         return False
 
     def main(self, mänx: Mänx, von: Wegpunkt | None) -> Wegpunkt:
+        """Verwendet Zeit und bringt den Spieler an die gegenüberliegende Seite."""
         tagrest = mänx.welt.tag % 1.0
         if tagrest < 0.5 and tagrest + self.länge >= 0.5:
             if von and mänx.ja_nein("Du wirst nicht vor Ende der Nacht ankommen. "
@@ -217,6 +217,7 @@ class Richtung:
     """Stellt eine wählbare Richtung an einem Wegpunkt dar."""
     ziel: Wegpunkt
     zielname: str = ""
+    name_kurz: str = ""
     typ: Wegtyp = Wegtyp.WEG
 
 
@@ -339,15 +340,6 @@ def cap(a: str) -> str:
 
 RiIn = Wegpunkt | Richtung | None
 
-
-class _NotSpecifiedT(enum.Enum):
-    SingleValue = 0
-
-
-_NSpec = _NotSpecifiedT.SingleValue
-OpRiIn = RiIn | _NotSpecifiedT
-
-
 def _to_richtung(richtung: RiIn) -> Richtung | None:
     if isinstance(richtung, Richtung) or richtung is None:
         return richtung
@@ -389,7 +381,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
     wenn es keine Abzweigung ist
     :param menschen: Menschen, die an der Wegkreuzung stehen und angesprochen werden können.
     """
-    OPTS: ClassVar[Sequence[int]] = [4, 3, 5, 2, 6, 1, 7]
+    OPTS: ClassVar[Sequence[int]] = [4, 3, 5, 2, 6, 1, 7]  # Reihenfolge des Fragens
     name: str
     nachbarn: dict[NachbarKey, Richtung | None] = field(repr=False)
     menschen: list[nsc.NSC] = field(factory=list)
@@ -436,10 +428,21 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
             self._wenn_fn[richtung] = UndPred(self._wenn_fn[richtung], fn)
         else:
             self._wenn_fn[richtung] = fn
+    
+    def setze_zielname(self, richtung: str, ziel_name: str, ziel_kurz: str=""):
+        """Setze den Zielnamen für eine Richtung. Dieser wird"""
+        ziel_kurz = ziel_kurz or ziel_name.lower()
+        if not ziel_kurz or " " in ziel_kurz:
+            raise ValueError("Aus dem Ziel lässt sich keine sinnvolle Option machen.")
+        richtung_obj = self.nachbarn.get(Himmelsrichtung.from_kurz(richtung))
+        if not richtung_obj:
+            raise ValueError(f"Die Richtung {richtung} ist nicht verbunden.") 
+        richtung_obj.zielname = ziel_name
+        richtung_obj.name_kurz = ziel_kurz
 
     def beschreibe(self, mänx: Mänx, ri_name: str | Himmelsrichtung | None
                    ) -> WegEnde | Wegpunkt | None:
-        """Beschreibe die Kreuzung von richtung kommend.
+        """Beschreibe die Kreuzung von `richtung` kommend.
 
         Beschreibe muss idempotent sein, das heißt, mehrfache Aufrufe verändern
         die Welt nicht anders als ein einfacher Aufruf. Denn beim Laden wird
@@ -455,93 +458,20 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                 getLogger("xwatc.weg").warning(
                     f"Beschreibung von {self.name} hat {ans} zurückgegeben. Das wird ignoriert.")
         if ri_name and (self.kreuzung_beschreiben or not self.beschreibungen):
+            from xwatc.vorlagen.kreuzung_beschreiben import beschreibe_kreuzung
             if isinstance(ri_name, Himmelsrichtung):
-                self.beschreibe_kreuzung(ri_name.nr)
+                beschreibe_kreuzung(self, ri_name.nr)
             else:
-                self.beschreibe_kreuzung(None)
+                beschreibe_kreuzung(self, None)
         # for mensch in self.menschen:
         #    mensch.vorstellen(mänx)
         return None
-
-    @overload
-    def __getitem__(
-        self, i: slice) -> list[Richtung | None]: ...  # @UnusedVariable
-
-    @overload
-    def __getitem__(self, i: int) -> Richtung | None: ...  # @UnusedVariable
-
-    @overload
-    def __getitem__(self, i: str) -> Richtung: ...  # @UnusedVariable
-
-    def __getitem__(self, i):
-        match i:
-            case slice() as i:
-                return [self.nachbarn.get(Himmelsrichtung.from_nr(hri)) for hri in range(8)[i]]
-            case int(i):
-                return self.nachbarn.get(Himmelsrichtung.from_nr(i))
-            case str() | Himmelsrichtung():
-                if isinstance(i, str):
-                    i = _StrAsHimmelsrichtung(i)
-                ans = self.nachbarn[i]
-                if ans is None:
-                    raise KeyError(f"Loses Ende: {i} nicht besetzt")
-                return ans
-        raise TypeError(i, "must be str, int or slice.")
-
-    def _finde_texte(self, richtung: int) -> list[str]:
-        """Finde die Beschreibungstexte, die auf die Kreuzung passen."""
-        rs = self[richtung:] + self[:richtung]
-        ans: list[str] = []
-        min_arten = 8
-        for flt, txt in WEGPUNKTE_TEXTE:
-            typen: dict[int, Wegtyp] = {}
-            art_count = 0
-            for stp, tp in zip(rs, flt):
-                if tp == 0 and stp is None:
-                    continue
-                elif tp != 0 and stp is not None:
-                    if tp in typen:
-                        if typen[tp] != stp.typ:
-                            break
-                    else:
-                        art_count += 1
-                        typen[tp] = stp.typ
-                else:
-                    break
-            else:
-                if art_count < min_arten:
-                    ans.clear()
-                elif art_count > min_arten:
-                    continue
-                ans.append(txt.format(w=typen))
-        return ans
-
-    def beschreibe_kreuzung(self, richtung: int | None):  # pylint: disable=unused-argument
-        """Beschreibe die Kreuzung anhand ihrer Form."""
-        rs = self[:]
-        if richtung is not None:
-            texte = self._finde_texte(richtung)
-            if texte:
-                malp(random.choice(texte))
-            else:
-                malp("Du kommst an eine Kreuzung.")
-                for i, ri in enumerate(rs):
-                    if ri and i != richtung:
-                        malp(cap(ri.typ.text(False, 1)), "führt nach",
-                             HIMMELSRICHTUNGEN[i] + ".")
-
-        else:
-            malp("Du kommst auf eine Wegkreuzung.")
-            for i, ri in enumerate(rs):
-                if ri:
-                    malp(cap(ri.typ.text(False, 1)), " führt nach ",
-                         HIMMELSRICHTUNGEN[i] + ".")
 
     def optionen(self, mänx: Mänx,
                  von: NachbarKey | None) -> Iterable[MenuOption[Wegpunkt | 'nsc.NSC']]:
         """Sammelt Optionen, wie der Mensch sich verhalten kann."""
         for mensch in self.menschen:
-            yield ("Mit " + mensch.name + " reden", mensch.name.lower(),
+            yield (f"Mit {mensch.name} reden", mensch.name.lower(),
                    mensch)
         for ri, himri in self._richtungen(mänx, von):
             if himri == von:
@@ -551,13 +481,12 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                     yield ("Umkehren", "f", ri.ziel)
             else:
                 if ri.zielname:
-                    ziel = ri.zielname
+                    yield (ri.zielname, ri.name_kurz or ri.zielname.lower(), ri.ziel)
                 elif isinstance(himri, Himmelsrichtung):
-                    ziel = f"Nach {himri}"
+                    yield (f"Nach {himri}", format(himri).lower(), ri.ziel)
                     # ziel = cap(ri.typ.text(True, 4)) + f" nach {himri}"
                 else:
-                    ziel = himri
-                yield (ziel, format(himri).lower(), ri.ziel)
+                    yield (himri, himri.lower(), ri.ziel)
 
     def _richtungen(self, mänx: Mänx, von: NachbarKey | None
                     ) -> Iterator[tuple[Richtung, NachbarKey]]:
@@ -628,11 +557,11 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         if richtung:
             anderer.verbinde(self)
             hiri = Himmelsrichtung.from_kurz(richtung)
-            self.nachbarn[hiri] = Richtung(anderer, ziel, typ)
+            self.nachbarn[hiri] = Richtung(anderer, ziel, ziel, typ)
         else:
             for key, val in self.nachbarn.items():
                 if val is None:
-                    self.nachbarn[key] = Richtung(anderer, ziel, typ)
+                    self.nachbarn[key] = Richtung(anderer, ziel, ziel, typ)
                     break
             # TODO Das gibt einen Fehler in Gebiet.verbind
             # else:
@@ -767,23 +696,45 @@ class Gebiet:
         return self.eintrittspunkte["start"]
 
 
-class WegAdapter(_Strecke):
+@define(init=False)
+class WegAdapter(Wegpunkt):
     """Ein Übergang von Wegesystem zum normalen System."""
+    zurück: MänxFkt
+    punkt: Wegpunkt | None = None
 
-    def __init__(self, nächster: Wegpunkt | None, zurück: MänxFkt,
-                 name: str = "", gebiet: Gebiet | None = None):
-        super().__init__(nächster, None)
-        self.zurück = zurück
-        self.name = name
+    def __init__(self, zurück: MänxFkt,
+                 name: str = "", gebiet: Gebiet | None = None) -> None:
+        self.__attrs_init__(zurück)
         if gebiet and name:
             assert name not in gebiet.eintrittspunkte, f"Eintrittspunkt {name} schon in Gebiet"
             gebiet.eintrittspunkte[name] = self
 
     def main(self, mänx: Mänx, von: Wegpunkt | None) -> Wegpunkt | WegEnde:
-        if von:
+        assert self.punkt, f"Looses Ende bei {self}"
+        if von is self.punkt:
             return WegEnde(self.zurück)
-        assert self.p1, "Loses Ende"
-        return self.p1
+        return self.punkt
+
+    def get_nachbarn(self) -> list[Wegpunkt]:
+        return [self.punkt] if self.punkt else []
+
+    def verbinde(self, anderer: Wegpunkt) -> None:
+        if not self.punkt:
+            self.punkt = anderer
+        else:
+            getLogger("xwatc.weg").warning(f"WegAdapter sollte mit {anderer} verbunden werden, "
+                                           f"ist aber schon mit {self.punkt} verbunden.")
+
+    def __repr__(self):
+        def name(pk: Wegpunkt | None):
+            match pk:
+                case None:  # @UnusedVariable
+                    return "Leeres Ende"
+                case object(name=str(ans)) if ans:  # type: ignore
+                    return ans
+                case _:
+                    return type(pk).__name__
+        return f"WegAdapter von {name(self.punkt)} nach {self.zurück}"
 
 
 class WegSperre(_Strecke):
@@ -808,8 +759,8 @@ class WegSperre(_Strecke):
     """
 
     def __init__(self, start: Wegpunkt | None, ende: Wegpunkt | None,
-                 hin: Opt[MänxPrädikat] = None,
-                 zurück: Opt[MänxPrädikat] = None):
+                 hin: MänxPrädikat | None = None,
+                 zurück: MänxPrädikat | None = None):
         super().__init__(start, ende)
         self.hin = hin
         self.zurück = zurück
@@ -968,7 +919,7 @@ def wegsystem(mänx: Mänx, start: Wegpunkt | str | tuple[str, str], return_fn: 
     wp: Wegpunkt | WegEnde = get_eintritt(mänx, start)
     last = None
     while not isinstance(wp, WegEnde):
-        getLogger("xwatc.weg").info(f"Move to {wp}")
+        getLogger("xwatc.weg").info(f"Betrete {wp}")
         try:
             mänx.context = wp
             last, wp = wp, wp.main(mänx, von=last)
@@ -982,31 +933,3 @@ def wegsystem(mänx: Mänx, start: Wegpunkt | str | tuple[str, str], return_fn: 
 
 
 GEBIETE: dict[str, MänxFkt[Gebiet]] = {}
-WEGPUNKTE_TEXTE: list[tuple[list[int], str]] = [
-
-    ([1, 0, 0, 0, 2, 0, 0, 0], "{w[1]:111} wird zu {w[2]:03}"),
-    # Kurven
-    ([1, 1, 0, 0, 0, 0, 0, 0],
-     "{w[1]:111} macht eine scharfe Biegung nach links."),
-    ([1, 0, 1, 0, 0, 0, 0, 0],
-     "{w[1]:111} biegt nach links ab."),
-    ([1, 0, 1, 0, 0, 0, 0, 0],
-     "Du biegst nach links ab."),
-    ([1, 0, 0, 1, 0, 0, 0, 0],
-     "{w[1]:111} macht eine leichte Biegung nach links."),
-    ([1, 0, 0, 0, 1, 0, 0, 0], "{w[1]:111} führt weiter geradeaus."),
-    ([1, 0, 0, 0, 0, 1, 0, 0],
-     "{w[1]:111} macht eine leichte Biegung nach rechts."),
-    ([1, 0, 0, 0, 0, 0, 1, 0],
-     "{w[1]:111} biegt nach rechts ab."),
-    ([1, 0, 0, 0, 0, 0, 0, 1],
-     "{w[1]:111} macht eine scharfe Biegung nach rechts."),
-    # T-Kreuzungen
-    ([1, 0, 2, 0, 0, 0, 2, 0], "{w[1]:111} endet orthogonal an {w[2]:03}."),
-    ([1, 2, 0, 0, 0, 2, 0, 0], "{w[1]:111} mündet in {w[2]:04}, {w[2]:g1} von "
-     "scharf links nach rechts führt."),
-    ([1, 2, 0, 0, 2, 0, 0, 0], "{w[1]:111} vereinigt sich mit {w[2]:03}, der geradeaus "
-     "weiterführt."),
-    ([1, 0, 2, 0, 1, 0, 2, 0], "{w[2]:011} kreuzt senkrecht."),
-    ([1, 0, 0, 0, 0, 0, 0, 0], "Eine Sackgasse.")
-]

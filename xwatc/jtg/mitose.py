@@ -92,7 +92,7 @@ def erzeuge_norddörfer(mänx: Mänx, gebiet: weg.Gebiet) -> weg.Wegpunkt:
 
     mitose_ort.verbinde(
         weg.Weg(
-            0.5, weg.WegAdapter(None, jtg.disnayenbum, "nord", gebiet)), "n")
+            0.5, weg.WegAdapter(jtg.disnayenbum, "nord", gebiet)), "n")
     ort("Hinterhof", mitose, "Ein unkrautbewucherter Hinterhof des Rathauses.")
 
     kraut = kreuzung("kraut", immer_fragen=True)
