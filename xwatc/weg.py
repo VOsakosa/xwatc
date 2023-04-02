@@ -687,11 +687,6 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                 *args, **kwargs):
         welt.get_or_else(name, fkt, *args, **kwargs).ort = self
 
-    def get_state(self):
-        """Wenn der Wegpunkt Daten hat, die über die Versionen behalten
-        werden sollen."""
-        return None
-
 
 @define
 class Gebiet:
