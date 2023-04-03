@@ -8,6 +8,7 @@ from xwatc import weg
 from pathlib import Path
 from typing import Optional as Opt
 from xwatc.lg import mitte
+from xwatc.untersystem.person import Rasse
 
 
 def hauptmenu() -> None:
@@ -40,7 +41,7 @@ def waffe_wählen(mänx: Mänx) -> Fortsetzung:
     else:
         mgn = ["Mensch"]
     rasse = mänx.minput("Was willst du sein?", mgn, save=waffe_wählen)
-    mänx.rasse = "Arak"
+    mänx.rasse = Rasse.Mensch
     if rasse.lower() not in ("mensch", "arak"):
         malp("Nun, eigentlich ist es egal was du sein willst.")
         malp("So oder so, du bist ein Mensch vom Volke der Arak.")
@@ -57,7 +58,7 @@ def waffe_wählen(mänx: Mänx) -> Fortsetzung:
                 malp("Na gut. "
                      "Dann bist du eben eine seltene Lavaschnecke. "
                      "Das hast du nun von deinem Gejammer!")
-                mänx.rasse = "Lavaschnecke"
+                mänx.rasse = Rasse.Lavaschnecke
     else:
         malp("Du wärst sowieso ein Mensch geworden.")
 

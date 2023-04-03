@@ -3,6 +3,7 @@ import random
 from xwatc import jtg
 from xwatc.weg import gebiet, Gebiet, Gebietsende, WegAdapter, kreuzung, WegEnde
 from xwatc.effect import Einmalig, NurWenn, Zufällig, Warten, TextGeschichte, in_folge
+from xwatc.untersystem.person import Rasse
 
 
 @gebiet("lg:osten")
@@ -234,4 +235,4 @@ def monster(mänx: Mänx):
         mint("Keine Haut mehr an deinem Fleisch, "
              "kein Fleisch mehr an deinen Knochen: "
              "Du bist ein Skelett!")
-        mänx.rasse = "Skelett"
+        mänx.rasse = Rasse.Skelett

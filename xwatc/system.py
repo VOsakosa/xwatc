@@ -17,6 +17,7 @@ from xwatc.terminal import Terminal
 from xwatc.untersystem import hilfe
 from xwatc.untersystem.itemverzeichnis import lade_itemverzeichnis, Item
 from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
+from xwatc.untersystem.person import Rasse
 
 if typing.TYPE_CHECKING:
     from xwatc import dorf  # @UnusedImport
@@ -181,7 +182,7 @@ class Mänx(InventarBasis, Persönlichkeit):
         self.welt = Welt("bliblablux")
         self.missionen: List[None] = list()
         self.verbrechen: defaultdict[Verbrechen, int] = defaultdict(int)
-        self.rasse = "Arak"
+        self.rasse = Rasse.Mensch
         self.context: Any = None
         self.speicherpunkt: Opt[Fortsetzung] = None
         self.speicherdatei_name: Opt[str] = None

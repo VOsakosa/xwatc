@@ -9,6 +9,7 @@ from typing import NoReturn
 
 from . import see
 from .. import jtg
+from xwatc.untersystem.person import Rasse
 __author__ = "Jasper Ischebeck"
 
 # gucken=
@@ -87,7 +88,7 @@ def eo_turm_kampf(_mänx: Mänx) -> NoReturn:
 def eo_umgehen(mänx: Mänx) -> None:
     malp("Du läufst vorsichtig in weitem Abstand um den Turm herum.")
     mint("Immer wieder blickst du dich in Richtung des Turms um.")
-    if mänx.rasse == "Lavaschnecke":
+    if mänx.rasse == Rasse.Lavaschnecke:
         mint("Eine Stimme spricht in deinem Kopf")
         sprich("Gott der Lavaschnecken", "Du bist in Gefahr, fliehe, meine "
                "kleine Lavaschnecke!")
