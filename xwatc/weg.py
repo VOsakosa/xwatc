@@ -675,8 +675,8 @@ class Gebiet:
         ri2 = ri1.gegenrichtung
 
         weg = Weg(länge * self.gitterlänge, pkt1, pkt2)
-        pkt1.nachbarn[ri1] = Richtung(weg, pkt2.name)
-        pkt2.nachbarn[ri2] = Richtung(weg, pkt1.name)
+        pkt1.nachbarn[ri1] = Richtung(weg)
+        pkt2.nachbarn[ri2] = Richtung(weg)
 
     @property
     def größe(self) -> tuple[int, int]:
