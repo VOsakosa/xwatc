@@ -98,8 +98,8 @@ def erzeuge_mitte(_mänx: Mänx, gebiet: weg.Gebiet) -> 'weg.Wegpunkt':
         "Im Westen und Süden ist nichts besonderes."
     ))
 
-    osten.verbinde(lichtung, "w", weg.Wegtyp.TRAMPELPFAD)
-    lichtung.verbinde(osten, "o", weg.Wegtyp.TRAMPELPFAD)
+    osten.verbinde(lichtung, "w", typ=weg.Wegtyp.TRAMPELPFAD)
+    lichtung.verbinde(osten, "o", typ=weg.Wegtyp.TRAMPELPFAD)
     return lichtung
 
 

@@ -3,72 +3,79 @@ Die Geschichte an der Grenze von EO (nicht passierbar).
 Created on 21.10.2020
 """
 from xwatc.nsc import StoryChar
-from xwatc.system import mint, Mänx, sprich, kursiv, Spielende, malp
-from xwatc.weg import gebiet, Gebiet
+from xwatc.system import mint, Mänx, sprich, kursiv, Spielende, malp, MenuOption
+from xwatc.weg import gebiet, Gebiet, WegAdapter
+from typing import NoReturn
 
 from . import see
 from .. import jtg
 __author__ = "Jasper Ischebeck"
 
+# gucken=
+#
+
 
 @gebiet("jtg:eo_nw")
 def eo_nw(mänx: Mänx, gb: Gebiet) -> None:
-    ww = 
+    ww = gb.neuer_punkt((2, 3), "kreuzung")
+    ww.verbinde(WegAdapter(jtg.disnayenbum, "eo_nw", gb), "so", "Disnayenbum")
+    ww.add_beschreibung([
+        "Der Weg ist gepflastert, aber er wurde lange nicht mehr gepflegt "
+        "und genutzt.",
+        "Immer wieder musst du umgefallenen Baumstämmen ausweichen.",
+        "Du kommst aus dem Wald in eine spärlich bewachsene Hügellandschaft."
+        "Ein schmaler Pfad biegt nach Süden ab."
+    ], nur="so")
+    ww.add_beschreibung([
+        "Ein schmaler Pfad biegt nach Süden ab, der Weg macht eine Biegung "
+        "nach Südosten."
+    ], nur="n")
+    ww.add_beschreibung(
+        "Dein Pfad stößt auf einen Weg von Norden nach Südosten."
+    )
+    ww.add_option("Gucken", "gucken", "Um dich erstreckt sich eine weite Hügellandschaft, "
+                  "im Norden meinst du einen Turm ausmachen zu können.")
+    schild = gb.neuer_punkt((2, 2), "warnschild")
+    schild.add_beschreibung([
+        "Der Weg führt geradewegs auf einen Turm zu.",
+        "Dieser hohe Turm steht auf einem Hügel und kann die ganze Landschaft überblicken."
+    ], nur="s")
+    schild.add_beschreibung(
+        "Am Wegesrand siehst du ein Schild: "
+        "\"Hier beginnt TERRITORIUM VON EO \\Betreten verboten\"")
+    schild.add_beschreibung(
+        "Es scheint einen Weg rechts am Turm vorbei zu geben.")
+    schild.add_beschreibung("Der Turm ragt bedrohlich vor dir auf.")
+    gb.neuer_punkt((3, 2), "Bogen", immer_fragen=False)
+    gb.neuer_punkt((3, 1), "Umgehung").add_beschreibung(eo_umgehen)
+    turm = gb.neuer_punkt((2, 1), "vor_turm")
+    turm.add_beschreibung(eo_turm)
 
-def eo_ww_o(mänx: Mänx):
-    malp("Der Weg ist gepflastert, aber er wurde lange nicht mehr gepflegt "
-         "und genutzt.")
-    mint("Immer wieder musst du umgefallenen Baumstämmen ausweichen.")
-    mint("Du kommst aus dem Wald in eine spärlich bewachsene Hügellandschaft.")
-    malp("Ein schmaler Pfad biegt nach Süden ab.")
-    opts = [
-        ("Folge dem Weg nach Norden", "norden", eo_turm),
-        ("Kehre um nach Disnayenbum", "umk", jtg.disnayenbum),
-        ("Biege auf den Pfad nach Süden ab", "süden", see.zugang_nord),
-    ]
-    mänx.menu(opts)(mänx)
-
-
-def eo_ww_n(mänx: Mänx):
-    malp("Ein schmaler Pfad biegt nach Süden ab, der Weg macht eine Biegung "
-         "nach Südosten.")
-    opts = [
-        ("Kehre um.", "umk", eo_turm),
-        ("Folge dem Weg", "südosten", jtg.disnayenbum),
-        ("Biege auf den Pfad nach Süden ab", "süden", see.zugang_nord),
-    ]
-    mänx.menu(opts)(mänx)
-
-
-def eo_turm(mänx: Mänx):
-    malp("Der Weg führt geradewegs auf einen Turm zu.")
-    mint("Dieser hohe Turm steht auf einem Hügel und kann die ganze Landschaft "
-         "überblicken.")
-    malp("Am Wegesrand siehst du ein Schild: "
-         "\"Hier beginnt TERRITORIUM VON EO \\Betreten verboten\"")
-    opts = [
-        ("Umgehe den Turm weiträumig in Richtung Norden", "umgehen", eo_umgehen),
-        ("Folge dem Weg auf den Turm zu", "turm", eo_turm2),
-        ("Gehe zurück", "umkehren", eo_ww_n),
-    ]
-    mänx.menu(opts)(mänx)
+    zu_see = gb.neuer_punkt((0, 3), "zu_see", immer_fragen=False)
+    zu_see.verbinde(WegAdapter(see.zugang_nord, "eo_nw", gb), "w")
+    zu_see.add_beschreibung("Der Pfad windet sich durch die Hügellandschaft.")
 
 
-def eo_turm2(mänx: Mänx):
+def eo_turm(mänx: Mänx) -> None:
     malp("Kaum kommst du in die Nähe des Turms, ruft eine laute Stimme "
          "unfreundlich herab:")
     sprich("Eo-Wache", "Kannst du nicht lesen, hier ist Territorium von Eo!")
     sprich("Eo-Wache", "Kehre um oder wir müssen Gewalt anwenden!")
-    opts = [
-        ('"Nein, werte Dame, ich kann nicht lesen! Tut mir leid, ich kehre'
-         ' um!"', "lesen", eo_ww_n),
-        ('"Das ist mir egal, ich will hier durch!"', "egal", eo_turm_kampf),
-        ('"Ich habe Papiere!"', "papiere", eo_turm_kampf),
-    ]
-    mänx.menu(opts)(mänx)
+    ans = 0
+    while not ans:
+        opts: list[MenuOption[int]] = [
+            ("Gucken", "gucken", 0)
+            ('"Nein, werte Dame, ich kann nicht lesen! Tut mir leid, ich kehre'
+             ' um!"', "lesen", 1),
+            ('"Das ist mir egal, ich will hier durch!"', "egal", 2),
+            ('"Ich habe Papiere!"', "papiere", 2),
+        ]
+        ans = mänx.menu(opts)
+    if ans == 2:
+        eo_turm_kampf(mänx)
 
 
-def eo_turm_kampf(mänx: Mänx):
+def eo_turm_kampf(_mänx: Mänx) -> NoReturn:
     mint("Das scheint die Wache nicht zu überzeugen.")
     malp("Sie brüllt laut:")
     sprich("Eo-Wache", "SCHIESSEN!")
@@ -77,7 +84,7 @@ def eo_turm_kampf(mänx: Mänx):
     raise Spielende
 
 
-def eo_umgehen(mänx: Mänx):
+def eo_umgehen(mänx: Mänx) -> None:
     malp("Du läufst vorsichtig in weitem Abstand um den Turm herum.")
     mint("Immer wieder blickst du dich in Richtung des Turms um.")
     if mänx.rasse == "Lavaschnecke":
@@ -85,8 +92,9 @@ def eo_umgehen(mänx: Mänx):
         sprich("Gott der Lavaschnecken", "Du bist in Gefahr, fliehe, meine "
                "kleine Lavaschnecke!")
         if mänx.ja_nein("Fliehst du, " + kursiv("kleine Lavaschnecke") + "(LOL)?"):
-            eo_flucht(mänx)
-            return
+            malp("Du drehst dich um, und genau vor dir taucht eine Magierin auf.")
+            mänx.welt.obj("jtg:eo:magierin").main(mänx)
+            return None
     mint("Plötzlich siehst du etwas hinter dir in den Augenwinkeln.")
     mint("Ein Messer steckt in deinem Rücken.")
     sprich("Eo-Magierin", "Du bist hiermit wegen illegalen Eindringens nach "
@@ -95,17 +103,11 @@ def eo_umgehen(mänx: Mänx):
     raise Spielende
 
 
-def eo_flucht(mänx: Mänx):
-    malp("Du drehst dich um, und genau vor dir taucht eine Magierin auf.")
-    mänx.welt.obj("jtg:eo:magierin").main(mänx)
-    eo_ww_n(mänx)
-
-
-magierin = StoryChar("jtg:eo:magierin", ("Lisc", "Śńeazrm", "Eo-Magierin"))
+magierin = StoryChar("jtg:eo:magierin", ("Liść", "Śńeazrm", "Eo-Magierin"))
 
 
 @magierin.kampf
-def mg_kampf(_nsc, _m):
+def mg_kampf(_nsc, _m) -> NoReturn:
     mint("Du stürmst auf sie los. Aber ihre Umrisse verzerren sich, und "
          "kaum versiehst du dich, steckt ein Messer von hinten in deiner "
          "Brust.")
@@ -115,7 +117,7 @@ def mg_kampf(_nsc, _m):
 magierin.dialog("hallo", '"Hallo!"', [
     "Nichts da 'Hallo'!", "Was suchst du hier?"])
 magierin.dialog("gehe", '"Ich gehe ja schon!"', [
-    "Ganz recht so. Komm nie wieder!"])
+    "Ganz recht so. Komm nie wieder!"], "hallo")
 magierin.dialog("heiße", '"Ich heiße %&"%, wie heißt du?"', [
-    "Ich heiße Lisc.", "Mach, dass du wegkommst."
+    "Ich heiße Liść.", "Mach, dass du wegkommst."
 ])
