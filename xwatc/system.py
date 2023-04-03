@@ -15,9 +15,8 @@ import typing
 
 from xwatc.terminal import Terminal
 from xwatc.untersystem import hilfe
-from xwatc.untersystem.itemverzeichnis import lade_itemverzeichnis
+from xwatc.untersystem.itemverzeichnis import lade_itemverzeichnis, Item
 from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
-
 
 if typing.TYPE_CHECKING:
     from xwatc import dorf  # @UnusedImport
@@ -25,9 +24,9 @@ if typing.TYPE_CHECKING:
     from xwatc import weg  # @UnusedImport
     from xwatc import nsc  # @UnusedImport
 
-
 SPEICHER_VERZEICHNIS = Path(__file__).parent.parent / "xwatc_saves"
 getLogger("xwatc").addHandler(logging.StreamHandler())
+
 
 class HatMain(typing.Protocol):
     """Eine Klasse für Objekte, die Geschichte haben und daher mit main()
@@ -54,24 +53,23 @@ class MissingID(KeyError):
 
 MänxPrädikat = MänxFkt[bool]
 Fortsetzung = Union[MänxFkt, HatMain, 'weg.Wegpunkt']
-ITEMVERZEICHNIS, UNTERKLASSEN, ALLGEMEINE_PREISE = lade_itemverzeichnis(
-    Path(__file__).parent / "itemverzeichnis.txt")
+ITEMVERZEICHNIS = lade_itemverzeichnis(Path(__file__).parent / "itemverzeichnis.txt",
+                                       Path(__file__).parent / "waffenverzeichnis.yaml")
 
 _OBJEKT_REGISTER: Dict[str, Callable[[], 'HatMain']] = {}
 ausgabe: Terminal | 'anzeige.XwatcFenster' = Terminal()
 
 
-def get_class(item: str) -> Optional[str]:
-    return ITEMVERZEICHNIS.get(item)
-
-
 def get_classes(item: str) -> Iterator[str]:
-    c = get_class(item)
-    if c:
-        yield c
-        while c in UNTERKLASSEN:
-            c = UNTERKLASSEN[c]
-            yield c
+    return ITEMVERZEICHNIS.get(item).yield_classes()
+
+
+def get_preise(item: str) -> int:
+    return ITEMVERZEICHNIS.get(item).get_preis()
+
+
+def get_item(item_name: str) -> Item:
+    return ITEMVERZEICHNIS.get(item_name)
 
 
 T = TypeVar("T")
@@ -119,15 +117,14 @@ class InventarBasis:
         return ", ".join(ans)
 
     def erweitertes_inventar(self):
-        import xwatc.haendler
         if not any(self.inventar.values()):
             return "Nichts da."
         ans = ["{} Gold".format(self.inventar["Gold"])]
         for item, anzahl in sorted(self.inventar.items()):
             if anzahl and item != "Gold":
-                klasse = get_class(item) or "?"
-                kosten = xwatc.haendler.ALLGEMEINE_PREISE.get(item, "?")
-                ans.append(f"{anzahl:>4}x {item:<20} ({kosten:>3}G) {klasse}")
+                item_obj = get_item(item)
+                kosten = get_preise(item)
+                ans.append(f"{anzahl:>4}x {item_obj:<20} ({kosten:>3}G)")
         return "\n".join(ans)
 
     @property
@@ -158,15 +155,14 @@ class Karawanenfracht(InventarBasis):
     """Die Fracht einer Karawane zeigt nicht direkt ihr Gold (, da sie keines hat)"""
 
     def karawanenfracht_anzeigen(self):
-        import xwatc.haendler
         ans = []
         if not any(self.inventar.values()):
             return "Nichts da."
         for item, anzahl in sorted(self.inventar.items()):
             if anzahl and item != "Gold":
-                klasse = get_class(item) or "?"
-                kosten = xwatc.haendler.ALLGEMEINE_PREISE.get(item, "?")
-                ans.append(f"{anzahl:>4}x {item:<20} ({kosten:>3}G) {klasse}")
+                item_obj = get_item(item)
+                kosten = get_preise(item)
+                ans.append(f"{anzahl:>4}x {item_obj:<20} ({kosten:>3}G)")
         return "\n".join(ans)
 
 
@@ -213,10 +209,11 @@ class Mänx(InventarBasis, Persönlichkeit):
         self.gebe_startinventar()
 
     def get_kampfkraft(self) -> int:
-        if any(get_class(it) == "magische Waffe" for it in self.items()):
-            return 2000
-        if any(get_class(it) == "Waffe" for it in self.items()):
-            return 1000
+        # TODO: add Fähigkeiten der Waffen
+        # if any(get_class(it) == "magische Waffe" for it in self.items()):
+        #     return 2000
+        # if any(get_class(it) == "Waffe" for it in self.items()):
+        #     return 1000
         return 20
 
     def erhalte(self, item: str, anzahl: int = 1,
@@ -521,11 +518,15 @@ def register(name: str) -> Callable[[Callable[[], HatMain]], Besuche]:
                     malp("Du rutscht auf der Banane aus.")
 
     """
+
     def wrapper(func: Callable[[], HatMain]) -> Besuche:
         # assert name not in _OBJEKT_REGISTER,("Doppelte Registrierung " + name)
         _OBJEKT_REGISTER[name] = func
         return Besuche(name)
+
     return wrapper
+
+
 # EIN- und AUSGABE
 
 

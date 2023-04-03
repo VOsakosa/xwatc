@@ -67,8 +67,7 @@ Kleidung:
   Turnschuh; 5
 
 legendäre Waffe: Waffe
-  mächtige Axt; 300
-  Schwert; 200
+  Höllenschwert; 200
 
 Metall:
   Bronze
@@ -93,10 +92,18 @@ normales Werkzeug:
   Tablett; 2
 
 normale Waffe: Waffe
-  Dolch
-  Messer
-  Normales Schwert
+  vergifteter Dolch; 30
+  Messer; 10
+  Schwert; 55
   Speer; 50
+
+Zauberstab: Waffe
+  Flammenstab; 150
+
+mächtige Waffe: Waffe
+  Morgenstern; 300
+  mächtige Axt; 300
+  Stahlhandschuh; 260
 
 Oberbekleidung: Kleidung
   Anzugjacke; 28
