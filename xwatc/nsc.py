@@ -17,6 +17,7 @@ from xwatc import weg
 from xwatc.dorf import Fortsetzung, Rückkehr
 from xwatc.system import Inventar, MenuOption, malp, mint, schiebe_inventar, MissingIDError
 from xwatc.serialize import converter
+from xwatc.untersystem.person import Rasse
 
 
 class Geschlecht(Enum):
@@ -36,12 +37,6 @@ def to_geschlecht(attr: Literal["m"] | Literal["w"] | Geschlecht) -> Geschlecht:
         case str(other):
             raise ValueError(f"Unbekanntes Geschlecht: {other}")
     raise TypeError(f"Falscher Typ für Geschlecht: {type(attr)} ({attr})")
-
-
-class Rasse(Enum):
-    """Die Rasse des intelligenten/humanoiden Wesens."""
-    Mensch = 0
-    Munin = 1
 
 
 @define

@@ -22,6 +22,7 @@ from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
 from xwatc.nsc import Person, StoryChar, NSC
 from collections import defaultdict
 from xwatc.weg import wegsystem
+from xwatc.untersystem.person import Fähigkeit
 
 
 def t2(mänx: Mänx) -> None:
@@ -412,7 +413,7 @@ def tobi_lernen(self, mänx: Mänx) -> None:
     mänx.welt.nächster_tag(11)
     mint("Je länger du übst, desto mehr siehst du, dass er so gut spielt "
          "wie kein anderer.")
-    mänx.fähigkeiten.add("Orgel")
+    mänx.fähigkeiten.add(Fähigkeit.Orgel)
 
 
 def ring_zeigen(self, mänx: Mänx) -> bool:

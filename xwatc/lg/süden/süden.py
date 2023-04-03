@@ -122,7 +122,7 @@ def duhastüberlebt(mänx) -> Fortsetzung:
                      "merkst du, dass es sich bei den 'Flecken' "
                      "um eine Schar pickender und gurrender Tauben handelt. "
                      "Es scheinen ganz normale Tauben zu sein. Also, abgesehen davon, dass sie etwa so groß wie Pferde sind.")
-                if "Mit Tieren reden" in mänx.fähigkeiten:
+                if mänx.hat_item("Mugel des Sprechens"):
                     malp(
                         "Dank deiner Fähigkeit mit Tieren zu reden, schnappst einige Worte auf.")
 

@@ -8,6 +8,7 @@ from xwatc import weg
 from pathlib import Path
 from typing import Optional as Opt
 from xwatc.lg import mitte
+from xwatc.untersystem.person import Rasse
 
 
 def hauptmenu() -> None:
@@ -35,31 +36,16 @@ def hauptmenu() -> None:
 
 def waffe_wählen(mänx: Mänx) -> Fortsetzung:
     mint("Du wirst nun einem kleinen Persönlichkeitstest unterzogen.")
-    if mänx.ausgabe.terminal:
-        mgn = None
-    else:
-        mgn = ["Mensch"]
-    rasse = mänx.minput("Was willst du sein?", mgn, save=waffe_wählen)
-    mänx.rasse = "Arak"
-    if rasse.lower() not in ("mensch", "arak"):
-        malp("Nun, eigentlich ist es egal was du sein willst.")
-        malp("So oder so, du bist ein Mensch vom Volke der Arak.")
-        mint("Im Laufe des Spieles kannst du allerdings weitere Spezies "
-             "und Völker freischalten!")
-
-        if mänx.ja_nein("Naja, willst du eigentlich ein Mensch sein?"):
-            malp("Na, dann ist ja alles gut.")
-        else:
-            a = random.randint(1, 11)
-            if a != 11:
-                malp("Tja, Pech gehabt. Du bist trotzdem einer.")
-            else:
-                malp("Na gut. "
-                     "Dann bist du eben eine seltene Lavaschnecke. "
-                     "Das hast du nun von deinem Gejammer!")
-                mänx.rasse = "Lavaschnecke"
-    else:
-        malp("Du wärst sowieso ein Mensch geworden.")
+    rasse = mänx.menu([
+        ("Mensch", "mensch", Rasse.Mensch),
+        ("Munin", "munin", Rasse.Munin)
+    ], "Was willst du sein?", versteckt={"lavaschnecke": Rasse.Lavaschnecke},
+        save=waffe_wählen)
+    mänx.rasse = rasse
+    if rasse == Rasse.Lavaschnecke:
+        malp("Na gut. "
+             "Dann bist du eben eine seltene Lavaschnecke. "
+             "Das hast du nun von deinem Gejammer!")
 
     waffe = mänx.minput("Wähle zwischen Schwert, Schild und Speer: ",
                         ["Schwert", "Speer", "Schild"])

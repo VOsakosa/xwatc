@@ -4,6 +4,7 @@ Created on 15.10.2020
 """
 from xwatc import weg
 from xwatc.dorf import NSC
+from xwatc.untersystem.person import Fähigkeit
 __author__ = "jasper"
 from xwatc.system import Mänx, register, malp, Spielende, Fortsetzung
 from xwatc.weg import gebiet, WegAdapter, kreuzung, Wegtyp
@@ -153,7 +154,7 @@ class Zollwärter(NSC):
         self.sprich("Halt!")
         malp(f"{self.name} geht aus dem Zollhäuschen, die Axt erhoben.")
         if mänx.ja_nein("Machst du weiter?"):
-            if mänx.hat_fähigkeit("Ausweichen"):
+            if mänx.hat_fähigkeit(Fähigkeit.Ausweichen):
                 malp("Du weichst seinem ersten Hieb aus.", warte=True)
                 if waffe:
                     malp("Dann streckst du ihn nieder.")

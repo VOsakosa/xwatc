@@ -9,6 +9,7 @@ from xwatc.nsc import StoryChar, NSC, Person
 from xwatc.system import mint, Mänx, malp, HatMain, Welt, malpw, Fortsetzung
 from xwatc.weg import get_eintritt, gebiet, Gebiet, kreuzung, WegAdapter, Eintritt, Gebietsende
 from xwatc.effect import Cooldown, NurWenn
+from xwatc.untersystem.person import Fähigkeit
 __author__ = "jasper"
 
 GENAUER = [
@@ -238,7 +239,7 @@ def klavier_kampf(klavier: NSC, mänx: Mänx) -> None:
 
 
 def kann_spielen(n, m):
-    return m.hat_fähigkeit("Orgel")
+    return m.hat_fähigkeit(Fähigkeit.Orgel)
 
 
 klavier.dialog("ein fröhliches Lied spielen", "froh", [
