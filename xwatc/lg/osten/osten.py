@@ -30,6 +30,12 @@ def osten(_mänx: Mänx, gb: Gebiet) -> None:
     ]))
     oase.verbinde(WegAdapter(t1), "Linke Tür")
     oase.verbinde(WegAdapter(t2), "Rechte Tür")
+    oase.add_option("Osten", "osten", TextGeschichte([
+        "Du wanderst weiter und weiter.",
+        Warten(3),
+        "Die Wüste nimmt gar kein Ende.",
+        Warten(2),
+        "Du musst wohl umkehren."]))
 
     höhleneingang = gb.neuer_punkt((0, 2), "Höhleneingang")
     höhleneingang.add_beschreibung(
