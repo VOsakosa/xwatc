@@ -245,7 +245,7 @@ class Mänx(InventarBasis, Persönlichkeit):
     def menu(self,
              optionen: List[MenuOption[T]],
              frage: str = "",
-             versteckt: Optional[Mapping[str, T]] = None,
+             versteckt: Mapping[str, T] | None = None,
              save: Opt[HatMain | MänxFkt] = None) -> T:
         """Lasse den Spieler aus verschiedenen Optionen wählen.
 

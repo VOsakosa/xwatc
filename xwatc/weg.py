@@ -560,7 +560,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                  anderer: Wegpunkt,
                  richtung: str = "",
                  ziel: str = "",
-                 kurz: str = ""
+                 kurz: str = "",
                  typ: Wegtyp = Wegtyp.WEG,
                  ):
         if richtung:
