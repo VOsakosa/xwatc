@@ -12,7 +12,7 @@ import re
 from xwatc.dorf import Rückkehr, Zeitpunkt, Dialog, DialogFn
 from xwatc.nsc import StoryChar, NSC
 from xwatc.system import (Mänx, get_classes, malp, Fortsetzung,
-                          ALLGEMEINE_PREISE, Speicherpunkt, MenuOption)
+                          ITEMVERZEICHNIS, get_preise, Speicherpunkt, MenuOption)
 
 
 Preis = int
@@ -98,8 +98,8 @@ class HandelsFn:
         """Berechne den Ankaufpreis für das Objekt name.
         :return: Preis in Gold, oder None, wenn nicht gekauft wird.
         """
-        if name in ALLGEMEINE_PREISE:
-            return (ALLGEMEINE_PREISE[name] * self.aufpreis).__ceil__()
+        if name in ITEMVERZEICHNIS:
+            return (get_preise(name) * self.aufpreis).__ceil__()
         return None
 
     def _verkaufen(self, nsc: NSC, mänx: Mänx, gegenstand: Item, menge: int) -> None:
