@@ -349,18 +349,25 @@ def _to_richtung(richtung: RiIn) -> Richtung | None:
 
 def kreuzung(
     name: str,
-    gucken: MänxFkt | None = None,
+    gucken: BeschreibungFn | Sequence[str] = (),
     kreuzung_beschreiben: bool = False,
     immer_fragen: bool = False,
     menschen: Sequence[dorf.NSC | nsc.NSC] = (),
     **kwargs: RiIn
 ) -> 'Wegkreuzung':
     """Konstruktor für Wegkreuzungen ursprünglichen Typs, die nicht auf einem Gitter liegen,
-    aber hauptsächlich Himmelsrichtungen für Richtungen verwenden."""
+    aber hauptsächlich Himmelsrichtungen für Richtungen verwenden.
+    :param gucken: Füge eine Option gucken hinzu.
+    :param nachbarn: Nachbarn der Kreuzung, nach Richtung oder Ziel
+    :param immer_fragen: Wenn False, läuft der Mensch automatisch weiter, wenn es nur eine
+        Fortsetzung gibt.
+    """
     nb = {Himmelsrichtung.from_kurz(key): _to_richtung(value)
           for key, value in kwargs.items()}
-    ans = Wegkreuzung(name, nb, gucken=gucken, kreuzung_beschreiben=kreuzung_beschreiben,
+    ans = Wegkreuzung(name, nb, kreuzung_beschreiben=kreuzung_beschreiben,
                       immer_fragen=immer_fragen, menschen=[*menschen])
+    if gucken:
+        ans.add_option("Umschauen", "gucken", gucken)
     for ri in nb.values():
         if ri:
             ri.ziel.verbinde(ans)
@@ -374,7 +381,6 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
     2) NSCs herumstehen, mit denen interagiert werden kann.
 
     :param nachbarn: Nachbarn der Kreuzung, nach Richtung oder Ziel
-    :param gucken: das passiert beim gucken
     :param kreuzung_beschreiben: Ob die Kreuzung sich anhand ihrer
     angrenzenden Wege beschreiben soll.
     :param immer_fragen: immer fragen, wie weitergegangen werden soll, auch
@@ -385,9 +391,8 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
     name: str
     nachbarn: dict[NachbarKey, Richtung | None] = field(repr=False)
     menschen: list[nsc.NSC] = field(factory=list)
-    immer_fragen: bool = False
+    immer_fragen: bool = True
     kreuzung_beschreiben: bool = False
-    gucken: MänxFkt | None = None
     _gebiet: 'Gebiet | None' = None
     dorf: 'dorf.Dorf | None' = None
     beschreibungen: list[Beschreibung] = field(factory=list)

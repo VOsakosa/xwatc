@@ -257,7 +257,6 @@ class XwatcFenster:
              _mänx,
              optionen: list[system.MenuOption[T]],
              frage: str = "",
-             gucken: Opt[Sequence[str]] = None,
              versteckt: Opt[Mapping[str, T]] = None,
              save: Opt[system.Speicherpunkt] = None) -> T:
         self.auswahl([(name, value, shorthand)

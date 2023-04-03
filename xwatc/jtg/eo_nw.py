@@ -3,12 +3,17 @@ Die Geschichte an der Grenze von EO (nicht passierbar).
 Created on 21.10.2020
 """
 from xwatc.nsc import StoryChar
-__author__ = "jasper"
 from xwatc.system import mint, Mänx, sprich, kursiv, Spielende, malp
-from xwatc.dorf import Dialog
+from xwatc.weg import gebiet, Gebiet
+
 from . import see
 from .. import jtg
+__author__ = "Jasper Ischebeck"
 
+
+@gebiet("jtg:eo_nw")
+def eo_nw(mänx: Mänx, gb: Gebiet) -> None:
+    ww = 
 
 def eo_ww_o(mänx: Mänx):
     malp("Der Weg ist gepflastert, aber er wurde lange nicht mehr gepflegt "
@@ -21,8 +26,7 @@ def eo_ww_o(mänx: Mänx):
         ("Kehre um nach Disnayenbum", "umk", jtg.disnayenbum),
         ("Biege auf den Pfad nach Süden ab", "süden", see.zugang_nord),
     ]
-    mänx.menu(opts, gucken="Um dich erstreckt sich eine weite Hügellandschaft,"
-              " im Norden meinst du einen Turm ausmachen zu können.")(mänx)
+    mänx.menu(opts)(mänx)
 
 
 def eo_ww_n(mänx: Mänx):
@@ -33,8 +37,7 @@ def eo_ww_n(mänx: Mänx):
         ("Folge dem Weg", "südosten", jtg.disnayenbum),
         ("Biege auf den Pfad nach Süden ab", "süden", see.zugang_nord),
     ]
-    mänx.menu(opts, gucken="Um dich erstreckt sich eine weite Hügellandschaft,"
-              " im Norden meinst du einen Turm ausmachen zu können.")(mänx)
+    mänx.menu(opts)(mänx)
 
 
 def eo_turm(mänx: Mänx):
@@ -48,7 +51,7 @@ def eo_turm(mänx: Mänx):
         ("Folge dem Weg auf den Turm zu", "turm", eo_turm2),
         ("Gehe zurück", "umkehren", eo_ww_n),
     ]
-    mänx.menu(opts, gucken="Der Turm ragt bedrohlich vor dir auf.")(mänx)
+    mänx.menu(opts)(mänx)
 
 
 def eo_turm2(mänx: Mänx):
@@ -62,11 +65,7 @@ def eo_turm2(mänx: Mänx):
         ('"Das ist mir egal, ich will hier durch!"', "egal", eo_turm_kampf),
         ('"Ich habe Papiere!"', "papiere", eo_turm_kampf),
     ]
-    mänx.menu(opts, gucken=[
-        "Wenn du genau hinsiehst, kannst du Schießscharten "
-        "am Turm ausmachen",
-        "Und wenn du noch genauer hinsiehst, scheint sich "
-        "dahinter etwas zu bewegen."])(mänx)
+    mänx.menu(opts)(mänx)
 
 
 def eo_turm_kampf(mänx: Mänx):

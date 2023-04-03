@@ -23,7 +23,6 @@ class Terminal:
     def menu(mänx: Opt[Mänx],
              optionen: list[MenuOption[T]],
              frage: str = "",
-             gucken: Optional[Sequence[str]] = None,
              versteckt: Optional[Mapping[str, T]] = None,
              save: Opt[Speicherpunkt] = None) -> T:
         """Ähnlich wie Minput, nur werden jetzt Optionen als Liste gegeben.
@@ -53,16 +52,7 @@ class Terminal:
                     return v
                 elif o.startswith(eingabe):
                     kandidaten.append((o, v))
-            if eingabe == "g" or eingabe == "gucken":
-                if isinstance(gucken, str):
-                    print(gucken)
-                elif gucken:
-                    for zeile in gucken:
-                        print(zeile)
-                else:
-                    print("Hier gibt es nichts zu sehen")
-
-            elif not (mänx and Terminal.spezial_taste(mänx, eingabe, save)) and eingabe:
+            if not (mänx and Terminal.spezial_taste(mänx, eingabe, save)) and eingabe:
                 try:
                     return optionen[int(eingabe) - 1][2]
                 except (IndexError, ValueError):

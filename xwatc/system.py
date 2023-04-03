@@ -248,7 +248,6 @@ class Mänx(InventarBasis, Persönlichkeit):
     def menu(self,
              optionen: List[MenuOption[T]],
              frage: str = "",
-             gucken: Optional[Sequence[str]] = None,
              versteckt: Optional[Mapping[str, T]] = None,
              save: Opt[HatMain | MänxFkt] = None) -> T:
         """Lasse den Spieler aus verschiedenen Optionen wählen.
@@ -261,7 +260,7 @@ class Mänx(InventarBasis, Persönlichkeit):
 
         """
         self.speicherpunkt = None
-        return ausgabe.menu(self, optionen, frage, gucken, versteckt, save)
+        return ausgabe.menu(self, optionen, frage, versteckt, save)
 
     def genauer(self, text: Sequence[str]) -> None:
         """Frage nach, ob der Spieler etwas genauer erfahren will.

@@ -50,7 +50,6 @@ class MockSystem:
              mänx: Mänx | None,
              optionen: list[MenuOption[T]],
              frage: str = "",
-             gucken: Sequence[str] | None = None,
              versteckt: Mapping[str, T] | None = None,
              save: Speicherpunkt | None = None) -> T:
         """Bei Menu wird nur genau geantwortet.
