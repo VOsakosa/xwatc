@@ -17,7 +17,7 @@ from xwatc.terminal import Terminal
 from xwatc.untersystem import hilfe
 from xwatc.untersystem.itemverzeichnis import lade_itemverzeichnis, Item
 from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
-from xwatc.untersystem.person import Rasse
+from xwatc.untersystem.person import Rasse, Fähigkeit
 
 if typing.TYPE_CHECKING:
     from xwatc import dorf  # @UnusedImport
@@ -175,19 +175,19 @@ class Mänx(InventarBasis, Persönlichkeit):
         super().__init__()
         self.ausgabe: Terminal | 'anzeige.XwatcFenster' = ausgabe
         self.gebe_startinventar()
-        self.gefährten: List['nsc.NSC'] = []
-        self.titel: Set[str] = set()
+        self.gefährten: list['nsc.NSC'] = []
+        self.titel: set[str] = set()
         self.lebenspunkte = 100
-        self.fähigkeiten: Set[str] = set()
+        self.fähigkeiten: set[Fähigkeit] = set()
         self.welt = Welt("bliblablux")
-        self.missionen: List[None] = list()
+        # self.missionen: list[None] = list()
         self.verbrechen: defaultdict[Verbrechen, int] = defaultdict(int)
         self.rasse = Rasse.Mensch
         self.context: Any = None
-        self.speicherpunkt: Opt[Fortsetzung] = None
-        self.speicherdatei_name: Opt[str] = None
+        self.speicherpunkt: Fortsetzung | None = None
+        self.speicherdatei_name: str | None = None
 
-    def hat_fähigkeit(self, name: str) -> bool:
+    def hat_fähigkeit(self, name: Fähigkeit) -> bool:
         return name in self.fähigkeiten
 
     def gebe_startinventar(self):

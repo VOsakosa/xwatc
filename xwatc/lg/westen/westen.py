@@ -53,7 +53,6 @@ def westen(mänx: Mänx) -> Fortsetzung:
 
 
 def reden(mänx: Mänx):
-    mänx.fähigkeiten.add("Mit Tieren reden")
     malp("Erstaunlicherweise kann das Huhn sprechen.")
     malp('"Hallo", sagt das Huhn. Sie dir mein schönes Eierchen an!')
     sleep(1)

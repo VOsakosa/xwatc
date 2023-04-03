@@ -7,6 +7,7 @@ import xwatc_Hauptgeschichte
 from time import sleep
 from xwatc.lg import mitte
 from xwatc.weg import get_eintritt
+from xwatc.untersystem.person import Fähigkeit
 
 
 class RuboicHätxrik(NSC):
@@ -82,7 +83,7 @@ class RuboicHätxrik(NSC):
             mänx.erhalte("Salami", 3)
             mänx.erhalte("Zähe Bohne", 2)
             mänx.erhalte("Äntorenmedaille", 1)
-            if mänx.hat_fähigkeit("Schnellplündern"):
+            if mänx.hat_fähigkeit(Fähigkeit.Schnellplündern):
                 mint(
                     'Junger Mann: "Oh, Verdammt". Zwei junge Männer stehen eilig von ihren Stühlen auf.')
                 sprich("Junger Mann", 'Ruboic hat schon wieder einen Anfall! Der Arzt hat ihm zwar gesagt, '
