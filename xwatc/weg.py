@@ -66,7 +66,7 @@ class _Strecke(Wegpunkt):
 
     def _verbinde(self, anderer: Wegpunkt | None) -> Wegpunkt | None:
         """Ruft anderer.verbinde(self) auf."""
-        if anderer:
+        if anderer and not isinstance(anderer, Wegkreuzung):
             anderer.verbinde(self)
         return anderer
 
@@ -338,10 +338,8 @@ def cap(a: str) -> str:
     return a[:1].upper() + a[1:]
 
 
-RiIn = Wegpunkt | Richtung | None
-
-def _to_richtung(richtung: RiIn) -> Richtung | None:
-    if isinstance(richtung, Richtung) or richtung is None:
+def _to_richtung(richtung: Wegpunkt | Richtung) -> Richtung:
+    if isinstance(richtung, Richtung):
         return richtung
     else:
         return Richtung(ziel=richtung)
@@ -353,7 +351,7 @@ def kreuzung(
     kreuzung_beschreiben: bool = False,
     immer_fragen: bool = False,
     menschen: Sequence[dorf.NSC | nsc.NSC] = (),
-    **kwargs: RiIn
+    **kwargs: Wegpunkt | Richtung
 ) -> 'Wegkreuzung':
     """Konstruktor für Wegkreuzungen ursprünglichen Typs, die nicht auf einem Gitter liegen,
     aber hauptsächlich Himmelsrichtungen für Richtungen verwenden.
@@ -389,7 +387,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
     """
     OPTS: ClassVar[Sequence[int]] = [4, 3, 5, 2, 6, 1, 7]  # Reihenfolge des Fragens
     name: str
-    nachbarn: dict[NachbarKey, Richtung | None] = field(repr=False)
+    nachbarn: dict[NachbarKey, Richtung] = field(repr=False)
     menschen: list[nsc.NSC] = field(factory=list)
     immer_fragen: bool = True
     kreuzung_beschreiben: bool = False
@@ -500,7 +498,7 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         Zuerst kommen die Himmelsrichtungen, je gerader desto besser.
         Dann kommen die speziellen Orte.
         """
-        def inner() -> Iterator[tuple[NachbarKey, Richtung | None]]:
+        def inner() -> Iterator[tuple[NachbarKey, Richtung]]:
             if isinstance(von, Himmelsrichtung):
                 for rirel in self.OPTS:
                     riabs = von + rirel
@@ -515,13 +513,12 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
                     yield name, richtung
 
         for himri_oder_name, richtung in inner():
-            assert richtung, f"Loses Ende: {richtung}"
             name = str(himri_oder_name)
             if name not in self._wenn_fn or self._wenn_fn[name](mänx):
                 yield richtung, himri_oder_name
 
     def get_nachbarn(self) -> list[Wegpunkt]:
-        return [ri.ziel for ri in self.nachbarn.values() if ri]
+        return [ri.ziel for ri in self.nachbarn.values()]
 
     def main(self, mänx: Mänx, von: Wegpunkt | None = None) -> Wegpunkt | WegEnde:
         """Fragt nach allen Richtungen."""
@@ -529,7 +526,6 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         von_key = None
         if von is not self:
             for key, value in self.nachbarn.items():
-                assert value, f"Loses Ende: {key}"
                 if value.ziel is von:
                     von_key = key
                     break
@@ -568,13 +564,8 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
             hiri = Himmelsrichtung.from_kurz(richtung)
             self.nachbarn[hiri] = Richtung(anderer, ziel, ziel or kurz, typ)
         else:
-            for key, val in self.nachbarn.items():
-                if val is None:
-                    self.nachbarn[key] = Richtung(anderer, ziel, ziel, typ)
-                    break
-            # TODO Das gibt einen Fehler in Gebiet.verbind
-            # else:
-            #    raise ValueError("verbinde ohne Richtung braucht einen leeren Slot!")
+            getLogger("xwatc.weg").warning("Verbinde ohne Richtung ist bei einer "
+                                         "Wegkreuzung nicht möglich.")
 
     def verbinde_mit_weg(self,
                          nach: Wegkreuzung,
@@ -788,6 +779,8 @@ class WegSperre(_Strecke):
             return self.p2
         else:
             # Strecke einfach so betreten?
+            getLogger("xwatc.weg").warning(
+                f"{self} von unverbundenem Punkt betreten, gehe zu Punkt 1")
             return self.p1
 
 
@@ -893,7 +886,7 @@ class Eintritt:
     """
     name_or_gebiet: Wegpunkt | str | tuple[str, str]
 
-    def __call__(self, mänx: Mänx) -> Fortsetzung:
+    def __call__(self, mänx: Mänx) -> Wegpunkt:
         return get_eintritt(mänx, self.name_or_gebiet)
 
 
