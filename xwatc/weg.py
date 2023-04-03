@@ -557,12 +557,16 @@ class Wegkreuzung(Wegpunkt, InventarBasis):
         return anderer
 
     def verbinde(self,  # pylint: disable=arguments-differ
-                 anderer: Wegpunkt, richtung: str = "",
-                 typ: Wegtyp = Wegtyp.WEG, ziel: str = ""):
+                 anderer: Wegpunkt,
+                 richtung: str = "",
+                 ziel: str = "",
+                 kurz: str = ""
+                 typ: Wegtyp = Wegtyp.WEG,
+                 ):
         if richtung:
             anderer.verbinde(self)
             hiri = Himmelsrichtung.from_kurz(richtung)
-            self.nachbarn[hiri] = Richtung(anderer, ziel, ziel, typ)
+            self.nachbarn[hiri] = Richtung(anderer, ziel, ziel or kurz, typ)
         else:
             for key, val in self.nachbarn.items():
                 if val is None:
@@ -631,10 +635,11 @@ class Gebiet:
     _punkte: list[list[Wegkreuzung | None]] = Factory(list)
     eintrittspunkte: dict[str, Wegpunkt] = Factory(dict)
 
-    def neuer_punkt(self, koordinate: tuple[int, int], name: str) -> Wegkreuzung:
+    def neuer_punkt(self, koordinate: tuple[int, int], name: str, immer_fragen: bool = True
+                    ) -> Wegkreuzung:
         """Erzeuge einen neuen Gitterpunkt und verbinde ihn entsprechend seiner Position."""
-        return self.setze_punkt(koordinate, Wegkreuzung(name=name, nachbarn={}, gebiet=self,
-                                                        immer_fragen=True))
+        return self.setze_punkt(koordinate, Wegkreuzung(
+            name=name, nachbarn={}, gebiet=self, immer_fragen=immer_fragen))
 
     def setze_punkt(self, koordinate: tuple[int, int], pkt: Wegkreuzung) -> Wegkreuzung:
         x, y = koordinate
