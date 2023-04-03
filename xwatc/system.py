@@ -61,15 +61,22 @@ ausgabe: Terminal | 'anzeige.XwatcFenster' = Terminal()
 
 
 def get_classes(item: str) -> Iterator[str]:
-    return ITEMVERZEICHNIS.get(item).yield_classes()
+    """Hole die Klassen, zu dem ein Item gehört, also z.B. "magisch", "Waffe"."""
+    return ITEMVERZEICHNIS[item].yield_classes()
 
 
 def get_preise(item: str) -> int:
-    return ITEMVERZEICHNIS.get(item).get_preis()
+    """Hole den Standard-Marktpreis für ein Item. Das ist generell der Verkaufspreis,
+    nicht der Ankaufpreis."""
+    return ITEMVERZEICHNIS[item].get_preis()
 
 
 def get_item(item_name: str) -> Item:
-    return ITEMVERZEICHNIS.get(item_name)
+    """Hole die Item-Klasse von dem Namen des Items."""
+    try:
+        return ITEMVERZEICHNIS[item_name]
+    except KeyError:
+        raise KeyError(f"Unbekanntes Item {item_name}") from None
 
 
 T = TypeVar("T")
