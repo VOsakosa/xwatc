@@ -112,7 +112,7 @@ def disnayenbum(mänx: Mänx):
         t2_no(mänx)
     elif nex == "westen":
         mint("Du verlässt das Dorf Richtung Nordwesten.")
-        eo_nw.eo_ww_o(mänx)
+        weg.wegsystem(mänx, eo_nw.eo_nw_ost(mänx))
     else:  # süden
         mint("Du verlässt das Dorf Richtung Süden.")
         weg.wegsystem(mänx, "jtg:mitte:nord")
@@ -723,6 +723,5 @@ def tauern_ww_no(mänx: Mänx):
 
 
 if __name__ == '__main__':
-    m = Mänx()
-    m.inventar["Speer"] += 1
-    t2(m)
+    from xwatc.anzeige import main
+    main(t2)

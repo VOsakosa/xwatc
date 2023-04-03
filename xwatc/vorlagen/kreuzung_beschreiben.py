@@ -11,7 +11,7 @@ __author__ = "Jasper Ischebeck"
 
 def slice_richtung(kreuzung: Wegkreuzung, richtung: int = 0) -> list[Richtung | None]:
     """Gebe die Richtungen der Kreuzung, von richtung betrachtet, aus."""
-    return [kreuzung.nachbarn.get(Himmelsrichtung.from_nr(hri)) for hri in
+    return [kreuzung.nachbarn.get(Himmelsrichtung.from_nr(hri % 8)) for hri in
             range(richtung, richtung + 8)]
 
 
