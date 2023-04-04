@@ -17,11 +17,11 @@ from xwatc.jtg.groekrak import zugang_südost
 from xwatc.jtg import eo_nw
 from xwatc.untersystem.acker import Wildpflanze
 from xwatc.jtg import mitose
-from typing import List, Tuple
+from typing import List, Tuple, cast
 from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
 from xwatc.nsc import Person, StoryChar, NSC
 from collections import defaultdict
-from xwatc.weg import wegsystem
+from xwatc.weg import wegsystem, Wegkreuzung
 from xwatc.untersystem.person import Fähigkeit
 
 
@@ -47,8 +47,9 @@ def beeren() -> Wildpflanze:
 
 
 @weg.gebiet("jtg:mitte")
-def erzeuge_mitte(_mänx: Mänx, gebiet: weg.Gebiet) -> 'weg.Wegpunkt':
-    westw = weg.Weg(2, weg.WegAdapter(groekrak.zugang_ost, "west", gebiet), None)
+def erzeuge_mitte(mänx: Mänx, gebiet: weg.Gebiet) -> 'weg.Wegpunkt':
+    westw = weg.Weg(2, weg.WegAdapter(
+        groekrak.zugang_ost, "west", gebiet), None)
     bogen = weg.kreuzung("bogen", w=weg.Richtung(westw))
     bogen.add_beschreibung("Der Weg macht nach einer Weile eine Biegung "
                            "nach rechts.", nur="n")
@@ -72,7 +73,7 @@ def erzeuge_mitte(_mänx: Mänx, gebiet: weg.Gebiet) -> 'weg.Wegpunkt':
          "Der Weg macht eine leichte Biegung nach Norden."), nur="sw")
     nordk.verbinde_mit_weg(west, 3, "sw", "n")
 
-    süd = weg.WegAdapter(t2_süd)
+    süd = erzeuge_teil_süd(mänx, gebiet)
     osten = weg.kreuzung("osten", immer_fragen=True)
     osten.add_beschreibung(("Das Gestrüpp wird immer dichter.",
                             "Hohe Brombeerhecken verstellen dir den Weg."))
@@ -81,8 +82,8 @@ def erzeuge_mitte(_mänx: Mänx, gebiet: weg.Gebiet) -> 'weg.Wegpunkt':
 
     lichtung = weg.kreuzung(
         "lichtung",
-        s=weg.Richtung(süd, typ=weg.Wegtyp.PFAD),
         gucken=lichtung_gucken)
+    lichtung.verbinde_mit_weg(süd, 3, "s", typ=weg.Wegtyp.PFAD)
     lichtung.verbinde_mit_weg(nordk, 3, "n", typ=weg.Wegtyp.PFAD)
     lichtung.verbinde_mit_weg(west, 4, "w", typ=weg.Wegtyp.TRAMPELPFAD)
     lichtung.add_beschreibung(
@@ -103,6 +104,8 @@ def erzeuge_mitte(_mänx: Mänx, gebiet: weg.Gebiet) -> 'weg.Wegpunkt':
     lichtung.verbinde(osten, "o", typ=weg.Wegtyp.TRAMPELPFAD)
     return lichtung
 
+# TODO: Verschiebe disnayenbum nach Norden.
+
 
 def disnayenbum(mänx: Mänx):
     mint("Du kommst im Dorf Disnayenbun an.")
@@ -118,7 +121,32 @@ def disnayenbum(mänx: Mänx):
         weg.wegsystem(mänx, "jtg:mitte:nord")
 
 
-def t2_süd(mänx: Mänx) -> None:
+def erzeuge_teil_süd(mänx: Mänx, gb: weg.Gebiet) -> Wegkreuzung:
+    """Erzeuge den südlichen Teil der Mitte, mit dem Hexer und dem Süddorf."""
+    nebelwald = weg.kreuzung("Nebelwald")
+    nebelwald.add_beschreibung((
+        "Der Wald wird immer dunkler.",
+        "Ein kalter Wind weht. Das Vogelgezwitscher der Lichtung kommt dir nun "
+        "wie ein kurzer Traum vor.",
+        "Es wird immer dunkler."), warten=True, nur=("n", "s"))
+    nebelwald.add_beschreibung((
+        "Plötzlich siehst du ein Licht in der Ferne."
+    ), nur=("n", "s"))
+
+    süddorf = erzeuge_süd_dorf(mänx).draußen
+    nebelwald.verbinde_mit_weg(süddorf, 3, "s")
+    süddorf.add_beschreibung([
+        "Der Wald wird schnell viel weniger unheimlich.",
+        "Im Süden siehst du ein Dorf."], nur="n")
+
+    # ("Den Weg nach Süden zur Hauptstadt", "hauptstadt", hauptstadt_weg),
+    # ("Den Weg nach Norden nach Tauern", "tauern", tauern_ww_süd)
+    süddorf.verbinde(weg.WegAdapter(zugang_südost), "grökrakchöl",
+                     "Den Weg nach Westen nach Grökrakchöl", "grökrakchöl")
+    return nebelwald
+
+
+def richtung_hexer(mänx: Mänx) -> None:
     malp("Der Wald wird immer dunkler.")
     mint("Ein kalter Wind weht. Das Vogelgezwitscher der Lichtung kommt dir nun "
          "wie ein kurzer Traum vor.")
@@ -594,16 +622,6 @@ SÜD_DORF_DIALOGE = [
 ]
 
 
-def ende_des_waldes(mänx, morgen=False):
-    mänx.welt.nächster_tag()
-    malp("Der Wald wird schnell viel weniger unheimlich.")
-    if not morgen:
-        malp("Erschöpft legst du dich auf den Waldboden schlafen.")
-        sleep(2)
-    malp("Im Süden siehst du ein Dorf.")
-    süd_dorf(mänx)
-
-
 def erzeuge_süd_dorf(mänx) -> Dorf:
     do = Dorf.mit_draußen(SÜD_DORF_NAME)
     kirche = ort("Kirche", do, [
@@ -619,18 +637,6 @@ def erzeuge_süd_dorf(mänx) -> Dorf:
         w.ort = do.orte[0]
     # TODO weitere Objekte
     return do
-
-
-def süd_dorf(mänx: Mänx):
-    mänx.genauer(SÜD_DORF_GENAUER)
-    mänx.welt.get_or_else("jtg:dorf:süd", erzeuge_süd_dorf, mänx).main(mänx)
-    ziele: list[MenuOption[MänxFkt]] = [
-        ("Den Weg nach Süden zur Hauptstadt", "hauptstadt", hauptstadt_weg),
-        ("Den Weg nach Norden nach Tauern", "tauern", tauern_ww_süd),
-        ("Den Weg nach Westen nach Grökrakchöl", "grökrakchöl", zugang_südost),
-        #("Den Pfad in den Wald", "wald", wald)
-    ]
-    mänx.menu(ziele, frage="Wohin gehst du?")(mänx)
 
 
 def hauptstadt_weg(mänx: Mänx):
@@ -677,8 +683,6 @@ def hauptstadt_weg(mänx: Mänx):
             mint("Du läufst mitten in einen Hinterhalt der Kobolde.")
             malp("Später wird dein Kopf als Schmuck gefunden.")
             raise Spielende
-    else:
-        süd_dorf(mänx)
 
 
 def t2_no(mänx):
