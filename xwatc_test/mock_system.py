@@ -6,8 +6,9 @@ Created on 25.03.2023
 from attrs import define
 from collections.abc import Sequence, Mapping
 from typing import TypeVar
+import unittest
 from xwatc import system
-from xwatc.system import MenuOption, Mänx, Speicherpunkt
+from xwatc.system import MenuOption, Mänx, Speicherpunkt, MänxFkt
 from attr import Factory
 __author__ = "jasper"
 
@@ -45,6 +46,13 @@ class MockSystem:
         ans = list(self.ausgaben)
         self.ausgaben.clear()
         return ans
+
+    def test_mänx_fn(self, case_: unittest.TestCase, mänx_fn: MänxFkt,
+                     eingaben: Sequence[str], ausgaben: Sequence[str]) -> None:
+        """Teste eine MänxFkt gegen eine Reihe von eingaben."""
+        self.eingaben.extend(eingaben)
+        mänx_fn(self.install())
+        case_.assertListEqual(self.pop_ausgaben(), [*ausgaben])
 
     def menu(self,
              mänx: Mänx | None,

@@ -16,8 +16,8 @@ class TestLG(unittest.TestCase):
 
     def test_reach_jtg(self):
         self.system.ein("osten")
-        self.system.ein("oase")
-        self.system.ein("t2")
+        self.system.ein("norden")
+        self.system.ein("rechte")
         with self.assertRaises(ScriptEnde):
             wegsystem(self.mänx, MITTE)
         self.assertIn("Es erwartet dich Vogelgezwitscher.",
