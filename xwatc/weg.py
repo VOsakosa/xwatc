@@ -373,7 +373,7 @@ def kreuzung(
 
 
 @define
-class Wegkreuzung(Wegpunkt, InventarBasis):
+class Wegkreuzung(Wegpunkt):
     """Eine Wegkreuzung enthält ist ein Punkt, wo
     1) mehrere Wege fortführen
     2) NSCs herumstehen, mit denen interagiert werden kann.
