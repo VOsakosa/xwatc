@@ -406,23 +406,15 @@ class Wegkreuzung(Wegpunkt):
                          außer: Sequence[str | None] = (),
                          warten: bool = False) -> Self:
         """Füge eine Beschreibung hinzu, die immer abgespielt wird, wenn
-        der Wegpunkt betreten wird. Beschreibungen sind nur Text,
-        für MänxFktn nutze :py:`add_effekt`."""
-        self.beschreibungen.append(
-            Beschreibung(geschichte, nur, außer, warten))
-        return self
-
-    def add_effekt(self,
-                   geschichte: Sequence[str] | BeschreibungFn,
-                   nur: Sequence[str | None] = (),
-                   außer: Sequence[str | None] = (),
-                   warten: bool = False) -> Self:
-        """Füge eine Geschichte hinzu, die passiert, wenn der Ort betreten
-        wird. Die Funktion kann einen Wegpunkt oder ein WegEnde zurückgeben, um
+        der Wegpunkt betreten wird. Das kann ein Text sein, aber auch eine MänxFkt.
+        Die Funktion kann einen Wegpunkt oder ein WegEnde zurückgeben, um
         das Wegsystem zu verlassen."""
         self.beschreibungen.append(
             Beschreibung(geschichte, nur, außer, warten))
         return self
+
+    add_effekt = add_beschreibung
+    bschr = add_beschreibung
 
     def wenn(self, richtung: str, fn: MänxPrädikat) -> None:
         """Erlaube eine Richtung nur, wenn die folgende Funktion wahr ist.

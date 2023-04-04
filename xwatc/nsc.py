@@ -236,10 +236,14 @@ class NSC(system.InventarBasis):
 
     def optionen(self, mänx: system.Mänx) -> Iterator[MenuOption[dorf.RunType]]:
         """Gibt die zusätzlichen Optionen außer Reden zurück."""
+        fliehen_da = False
         for dialog in self.template.dialoge:
             if dialog.zeitpunkt == dorf.Zeitpunkt.Option and dialog.verfügbar(self, mänx):
                 yield dialog.zu_option()
-        yield ("fliehen" if self.freundlich < 0 else "zurück", "f", self.fliehen)
+                if dialog.name in ("fliehen", "zurück"):
+                    fliehen_da = True
+        if not fliehen_da:
+            yield ("fliehen" if self.freundlich < 0 else "zurück", "f", self.fliehen)
 
     def fliehen(self, __) -> None:
         """Vor NSCs kann man immer bedenkenlos fliehen"""
