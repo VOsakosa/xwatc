@@ -141,9 +141,12 @@ def erzeuge_teil_süd(mänx: Mänx, gb: weg.Gebiet) -> Wegkreuzung:
 
     # ("Den Weg nach Süden zur Hauptstadt", "hauptstadt", hauptstadt_weg),
     # ("Den Weg nach Norden nach Tauern", "tauern", tauern_ww_süd)
-    süddorf.verbinde(weg.WegAdapter(zugang_südost), "grökrakchöl",
+    süddorf.verbinde(gb.ende(süd_dorf_west, groekrak.zugang_südost), "grökrakchöl",
                      "Den Weg nach Westen nach Grökrakchöl", "grökrakchöl")
     return nebelwald
+
+
+süd_dorf_west = weg.Eintritt(("jtg:mitte", "grökrak"))
 
 
 def richtung_hexer(mänx: Mänx) -> None:

@@ -25,6 +25,7 @@ GENAUER = [
 zugang_ost = Eintritt(("jtg:grökrak", "ost"))
 zugang_südost = Eintritt(("jtg:grökrak", "südost"))
 
+
 def pflücken(mänx: Mänx) -> None:
     """Eine Option auf der Streuobstwiese."""
     mänx.erhalte("Aprikose", 14)
@@ -41,7 +42,7 @@ def grökrak(mänx: Mänx, gebiet: Gebiet) -> None:
             "Du siehst Äpfel, Zwetschgen und Aprikosen.",
             "Willst du einige pflücken?"
         ))
-    wiese.verbinde(WegAdapter(jtg.süd_dorf, "südost", gebiet), "o")
+    wiese.verbinde(gebiet.ende(zugang_südost, jtg.süd_dorf_west), "o")
     wiese.add_option("Plücken", "pflücken", NurWenn(Cooldown("jtg:grk:pflücken", 1),
                                                     pflücken))  # type: ignore
     vor_stadt = kreuzung("Vor dem Stadttor").add_beschreibung([
