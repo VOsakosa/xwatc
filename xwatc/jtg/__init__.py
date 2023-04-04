@@ -5,9 +5,9 @@ from xwatc import weg
 from xwatc import system
 from xwatc.system import (
     Mänx, minput, ja_nein, register, MenuOption,
-    Spielende, mint, sprich, kursiv, malp, get_classes, Inventar, MänxFkt)
+    Spielende, mint, sprich, kursiv, malp, get_classes, Inventar, MänxFkt, Fortsetzung)
 from xwatc import dorf
-from xwatc.dorf import Dorf, ort, NSCOptionen, Dialog, HalloDialoge, Malp, Zeitpunkt
+from xwatc.dorf import Dorf, ort, NSCOptionen, Dialog, HalloDialoge, Malp, Zeitpunkt, Rückkehr
 from random import randint
 import random
 from xwatc.jtg.ressourcen import zufälliger_name
@@ -21,8 +21,8 @@ from typing import List, Tuple, cast
 from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
 from xwatc.nsc import Person, StoryChar, NSC
 from collections import defaultdict
-from xwatc.weg import wegsystem, Wegkreuzung
-from xwatc.untersystem.person import Fähigkeit
+from xwatc.weg import wegsystem, Wegkreuzung, Eintritt
+from xwatc.untersystem.person import Fähigkeit, Rasse
 
 
 def t2(mänx: Mänx) -> None:
@@ -130,205 +130,213 @@ def erzeuge_teil_süd(mänx: Mänx, gb: weg.Gebiet) -> Wegkreuzung:
         "wie ein kurzer Traum vor.",
         "Es wird immer dunkler."), warten=True, nur=("n", "s"))
     nebelwald.add_beschreibung((
-        "Plötzlich siehst du ein Licht in der Ferne."
+        "Plötzlich siehst du ein Licht im Westen in der Ferne."
     ), nur=("n", "s"))
 
     süddorf = erzeuge_süd_dorf(mänx).draußen
     nebelwald.verbinde_mit_weg(süddorf, 3, "s")
     süddorf.add_beschreibung([
         "Der Wald wird schnell viel weniger unheimlich.",
-        "Im Süden siehst du ein Dorf."], nur="n")
+        "Im Süden siehst du ein Dorf."], nur=("n", None))
+
+    vor_hütte = weg.kreuzung("vor_hütte", immer_fragen=True)
+    vor_hütte.verbinde_mit_weg(nebelwald, 0.25, "o")
+    hütte_des_hexers = weg.kreuzung("hütte_des_hexers", immer_fragen=True)
+    hütte_des_hexers.verbinde_mit_weg(vor_hütte, 0, "o")
+    hütte_des_hexers.setze_zielname("o", "Hütte verlassen", "zurück")
+    mänx.welt.obj("jtg:mitte:leo").ort = hütte_des_hexers
+    vor_hütte.setze_zielname("w", "An die Tür klopfen", "klopfen")
+
+    vor_hütte.add_beschreibung(
+        "Es ist eine einsame, einstöckige Hütte, aus der das Licht kam. "
+        "Vor dir ist die Rückseite des Hauses, "
+        "an der sich Feuerholz stapelt.", nur="o")
+    hütte_des_hexers.bschr(
+        "Ein junger Mann begrüßt dich an der Tür.", nur="o"
+    )
+    # Rückweg, die Höhle zu verlassen bringt einen direkt zurück.
+    vor_hütte.add_beschreibung(lambda __: nebelwald, nur="w")
+    nebelwald.bschr(
+        "Dem, der auch immer hinter dem Licht steckt, sollte man nicht "
+        "trauen, befindest du und machst "
+        "dich weiter "
+        "auf den Weg durch den Wald.", nur="w")
 
     # ("Den Weg nach Süden zur Hauptstadt", "hauptstadt", hauptstadt_weg),
     # ("Den Weg nach Norden nach Tauern", "tauern", tauern_ww_süd)
     süddorf.verbinde(gb.ende(süd_dorf_west, groekrak.zugang_südost), "grökrakchöl",
                      "Den Weg nach Westen nach Grökrakchöl", "grökrakchöl")
+    gb.eintrittspunkte["wald"] = süddorf
     return nebelwald
 
 
 süd_dorf_west = weg.Eintritt(("jtg:mitte", "grökrak"))
+ende_des_waldes = weg.Eintritt(("jtg:mitte", "wald"))
+
+leo = StoryChar("jtg:mitte:leo", ("Leo", "Berndoc"), Person("m", Rasse.Mensch))
+
+leo.dialog("gruß", "Gruß", ["Ein Wanderer? Komm herein, du siehst ganz durchgefroren aus."],
+           zeitpunkt=Zeitpunkt.Vorstellen)
+
+leo.dialog("fliehen", "Fliehen", [
+    Malp("Du rennst weg, als hätte der bloße Anblick des jungen Manns dich verschreckt."),
+    Malp('Jetzt denkt der Arme sich bestimmt: "Bin ich so hässlich '
+         'oder schrecklich, dass Leute auf den ersten Blick abhauen?"'),
+    Malp("Aber dir ist das egal, die unbekannte Gefahr ist abgewehrt.")
+],
+    zeitpunkt=Zeitpunkt.Option)
 
 
-def richtung_hexer(mänx: Mänx) -> None:
-    malp("Der Wald wird immer dunkler.")
-    mint("Ein kalter Wind weht. Das Vogelgezwitscher der Lichtung kommt dir nun "
-         "wie ein kurzer Traum vor.")
-    mint("Es wird immer dunkler.")
-    if mänx.welt.ist("kennt:hexer"):
-        malp("Diesmal siehst du das Licht nicht.")
-        ende_des_waldes(mänx)
-        return
-
-    malp("Plötzlich siehst du ein Licht in der Ferne.")
-    haus = ja_nein(mänx, "Gehst du zum Licht?")
-    if haus:
-        malp("Es ist eine einsame, einstöckige Hütte, aus der das Licht kam. "
-             "Vor dir ist die Rückseite des Hauses, "
-             "an der sich Feuerholz stapelt.")
-        haus = ja_nein(mänx, "Klopfst du an die Tür?")
-    if haus:
-        malp("Ein junger Mann begrüßt dich an der Tür.")
-        if mänx.rasse == "Skelett":
-            hexer_skelett(mänx)
-        else:
-            aktion = mänx.minput(
-                '?: "Ein Wanderer? Komm herein, du siehst ganz durchgefroren aus."[k/r/f]',
-                list("krf"))
-            if aktion == "f":
-                malp("Du rennst weg, als hätte der bloße Anblick "
-                     "des jungen Manns dich verschreckt.")
-                malp('Jetzt denkt der Arme sich bestimmt: "Bin ich so hässlich '
-                     'oder schrecklich, dass Leute auf den '
-                     'ersten Blick abhauen?"')
-                malp("Aber dir ist das egal, die unbekannte Gefahr ist abgewehrt.")
-                ende_des_waldes(mänx)
-            elif aktion == "k":
-                malp('?: "Ein/e Inquisitor/in? Dafür musst du früher aufstehen!"')
-                hexer_kampf(mänx)
-            else:  # "r"
-                haus_des_hexers(mänx)
-    else:
-        malp("Dem, der auch immer hinter dem Licht steckt, sollte man nicht "
-             "trauen, befindest du und machst "
-             "dich weiter "
-             "auf den Weg durch den Wald.")
-        ende_des_waldes(mänx)
-
-
-def hexer_skelett(mänx: Mänx):
+@leo.dialog_deco("skelett", "Skelett", zeitpunkt=Zeitpunkt.Vorstellen)
+def hexer_skelett(leo: NSC, mänx: Mänx) -> Fortsetzung:
     mänx.welt.setze("kennt:hexer")
-    sprich("?", "Ach hallo, ein Skelett! Fühl dich hier wie zu Hause.")
-    leo = "Leo Berndoc"
-    sprich(leo, "Ich habe ganz vergessen, mich vorzustellen!")
-    sprich(leo, "Ich bin Leo Berndoc.", warte=True)
-    sprich(leo, "Willst du hier übernachten?")
-    sprich(leo, "Oder brauchst du das gar nicht, so als Skelett?")
+    leo.sprich("Ach hallo, ein Skelett! Fühl dich hier wie zu Hause.")
+    leo.sprich("Ich habe ganz vergessen, mich vorzustellen!")
+    leo.sprich("Ich bin Leo Berndoc.", warte=True)
+    leo.sprich("Willst du hier übernachten?")
+    leo.sprich("Oder brauchst du das gar nicht, so als Skelett?")
     if mänx.ja_nein("Nimmst du sein Angebot an?"):
         mänx.welt.nächster_tag()
         malp("Du schläfst gut, zumindest für ein Skelett.")
         malp("Am nächsten Morgen begrüßt dich Leo.")
-    sprich(leo, "Meine bescheidene Hütte ist hier mitten im Wald."
-           "Im Norden sind die Dörfer Mitose und Disnajenbun."
-           f"Im Süden ist {SÜD_DORF_NAME}.")
-    sprich(leo, "Ich kann dich bringen.")
-    sprich(leo, "Aber nicht begleiten.")
+    leo.sprich("Meine bescheidene Hütte ist hier mitten im Wald."
+               "Im Norden sind die Dörfer Mitose und Disnajenbun."
+               f"Im Süden ist {SÜD_DORF_NAME}.")
+    leo.sprich("Ich kann dich bringen.")
+    leo.sprich("Aber nicht begleiten.")
     mgn = [(a, a.lower(), a.lower())
            for a in ("Mitose", "Disnajenbun", SÜD_DORF_NAME)]
     ans = mänx.menu(mgn, "Wohin lässt du dich bringen?")
     if ans == "mitose":
-        weg.wegsystem(mänx, "jtg:mitose")
+        return Eintritt("jtg:mitose")
     elif ans == "disnajenbun":
-        disnayenbum(mänx)
+        return disnayenbum
     else:
-        süd_dorf(mänx)
+        return ende_des_waldes
 
 
-def haus_des_hexers(mänx: Mänx) -> None:
-    malp("Er bittet dich an den Tisch und gibt dir einen warmen Punsch.")
-    mänx.welt.setze("kennt:hexer")
-    leo = 'Leo Berndoc'
-    sprich(leo, "Ich bin Leo Berndoc.")
-    sprich(leo, "Was suchst du in diesem Wald?")
-    opts = [
-        (o, v, v) for (o, v) in zip((
-            "Halloli! Was mach ich wohl in deinem Haus? ",
-            "Ich habe mich hier verirrt.",
-            "Ich bin nur auf der Durchreise.",
-            "Die große Liebe!",
-            "Das gehst dich doch nichts an!",
-        ),
-            ["halloli", "verirrt", "durchreise", "liebe", "an"])
-    ]
-    if mänx.welt.ist("jtg:t2"):
-        opts.append(("Ich bin einfach in den Osten ­– weil da keine Menschen sind – gegangen, "
-                     "und dann war da diese Oase. Da waren zwei Türen. "
-                     "Ich habe mir ein Herz gefasst, bin durch die Tür gegangen und hier "
-                     "bin ich. Plötzlich.", "oase", "oase"))
-    antwort = mänx.menu(opts)
-    if antwort == "halloli":
-        malp("Er sagt mit einem verschwörerischen Tonfall: \"Ich verstehe.\"")
-        sprich(leo, "Bleibe ruhig noch die Nacht. Hier werden sie dich nicht finden.")
-        malp("Du entschließt dich, mitzumachen. Am nächsten Tag verlässt du "
-             "schnell das Haus, bevor der Schwindel "
-             "auffliegt")
-        ende_des_waldes(mänx, True)
-    elif antwort == "verirrt" or antwort == "an":
-        sprich(leo, "Soso.")
-        sleep(1)
-        sprich(leo, "...")
-        sleep(1)
-        sprich(leo, "Ich habe ein Gästebett. Da kannst du schlafen.")
-        malp("Dein erstes Bett in dieser Welt ist schön weich.")
-        sleep(3)
-        malp("Als du am nächsten Morgen aufwachst, fühlst du dich schwach und kalt.")
-        malp("Leo steht vor dir.")
-        sprich(leo, "Du bist jetzt eine wandelnde Leiche und gehorchst meinem Willen")
-        raise Spielende()
-    elif antwort == "durchreise":
-        sprich(leo, "Schade. Trotzdem–Schön, dich getroffen zu haben. Im Süden ist ein Dorf, "
+leo.dialog("anreden", "Ansprechen", (
+    Malp("Er bittet dich an den Tisch und gibt dir einen warmen Punsch."),
+    "Ich bin Leo Berndoc.",
+    "Was suchst du in diesem Wald?"),
+    effekt=lambda _n, mänx: mänx.welt.setze("kennt:hexer"), zeitpunkt=Zeitpunkt.Ansprechen)
+
+
+@leo.dialog_deco("oase", "Ich bin einfach in den Osten ­– weil da keine Menschen sind – gegangen, "
+                 "und dann war da diese Oase. Da waren zwei Türen. "
+                 "Ich habe mir ein Herz gefasst, bin durch die Tür gegangen und hier "
+                 "bin ich. Plötzlich.", gruppe="grund")
+def hexer_dlg_oase(leo: NSC, mänx: Mänx) -> Fortsetzung:
+    leo.sprich("Interessant.")
+    malp("Er wirkt sichtlich überfordert.")
+    leo.sprich(
+        "Das muss eine Tür der Qual sein..., oder war es Wal der Qual...")
+    sleep(0.3)
+    leo.sprich("Aber was hat ein Wal hier zu suchen?")
+    malp("Du hast ihn sichtlich verwirrt.")
+    mint("Er zeigt noch auf ein Gästezimmer, dann geht er vor "
+         "sich hin brabbelnd in sein Zimmer")
+    mint("Im Bett denkst du über deinen heutigen Tag nach. Du sinkst "
+         "in einen unruhigen Schlaf.")
+    sleep(5)
+    malp("Früh am Morgen verlässt du eilig das Haus.")
+    mint("Aber du siehst noch einen Ring auf dem Tisch.")
+    if ja_nein(mänx, "Steckst du ihn ein?"):
+        mänx.erhalte("Ring des Berndoc")
+    leo.sprich("Ich hab's! Es ist ein Wahlqualportal!!!")
+    return ende_des_waldes
+
+
+hexer_dlg_oase.wenn(lambda _n, m: m.welt.ist("jtg:t2"))
+
+
+@leo.dialog_deco("halloli", "Halloli! Was mach ich wohl in deinem Haus?", gruppe="grund")
+def hexer_dlg_halloli(leo: NSC, mänx: Mänx) -> Fortsetzung:
+    malp("Er sagt mit einem verschwörerischen Tonfall: \"Ich verstehe.\"")
+    leo.sprich(
+        "Bleibe ruhig noch die Nacht. Hier werden sie dich nicht finden.")
+    malp("Du entschließt dich, mitzumachen. Am nächsten Tag verlässt du "
+         "schnell das Haus, bevor der Schwindel "
+         "auffliegt")
+    return ende_des_waldes
+
+
+def hexer_gut(leo: NSC, mänx: Mänx) -> Rückkehr:
+    """Das sind die zwei Antwortmöglichkeiten, wo man weiter mit Leo reden kann."""
+    leo.sprich("Soso.")
+    mänx.sleep(1)
+    leo.sprich("...")
+    mänx.sleep(1)
+    leo.sprich("Ich habe ein Gästebett. Da kannst du schlafen.")
+    malp("Dein erstes Bett in dieser Welt ist schön weich.")
+    mänx.sleep(3)
+    malp("Als du am nächsten Morgen aufwachst, fühlst du dich schwach und kalt.")
+    malp("Leo steht vor dir.")
+    leo.sprich(
+        "Du bist jetzt eine wandelnde Leiche und gehorchst meinem Willen")
+    raise Spielende()
+
+
+leo.dialog("verirrt", "Ich habe mich hier verirrt.", hexer_gut, gruppe="grund")
+leo.dialog("an", "Das gehst dich doch nichts an!", hexer_gut, gruppe="grund")
+
+
+@leo.dialog_deco("durchreise", "Ich bin nur auf der Durchreise.", gruppe="grund")
+def hexer_dlg_durchreise(leo: NSC, _m) -> Fortsetzung:
+    leo.sprich("Schade. Trotzdem–Schön, dich getroffen zu haben. Im Süden ist ein Dorf, "
                "da kannst du als nächstes hin.")
-        sprich(leo, "Du musst einfach immer geradeaus dem schmalen Pfad folgen.")
-        ende_des_waldes(mänx)
-    elif antwort == "liebe":
-        sprich(
-            leo, "Glaubst du denn an die wahre Liebe, die, die alle Widrigkeiten überwindet?")
-        if ja_nein(mänx, "Ja/Nein"):
-            sprich(leo, "Du bist also eine/r von denen!")
-            sprich(leo, "Ich schwöre auf meinen Namen, ich werde dich hier auslöschen!")
-            sleep(1)
-            sprich(leo + "(flüstert)", "Ich werde Lena rächen.")
-            hexer_kampf(mänx)
-        else:
-            sprich(leo, "Und warum nicht?")
-            ant = mänx.minput(
-                "Weil Liebe Ordnung haben muss. Auch die Liebe kann sich nicht über "
-                "alles hinwegsetzen.[1]/\n"
-                "Dass sie alles Widrigkeiten überwindet, das ist zu optimistisch. Aber "
-                "ich werde nie aufgeben.[2]/\n"
-                "Diese Liebe meine ich nicht. Ich meine die Nächstenliebe, das Gute im "
-                "Menschen und die Güte Gottes. Die habe ich in deiner Gastfreundschaft "
-                "gefunden.[3]")
-            if ant == "2":
-                sprich(leo, "Du bist also eine/r von denen!")
-                sprich(leo, "Du denkst, nur weil du liebst, kann du "
+    leo.sprich("Du musst einfach immer geradeaus dem schmalen Pfad folgen.")
+    return ende_des_waldes
+
+
+@leo.dialog_deco("liebe", "Die große Liebe!", gruppe="grund")
+def hexer_dlg_liebe(leo: NSC, mänx: Mänx) -> Fortsetzung | Rückkehr:
+    leo.sprich(
+        "Glaubst du denn an die wahre Liebe, die, die alle Widrigkeiten überwindet?")
+    if ja_nein(mänx, "Ja/Nein"):
+        leo.sprich("Du bist also eine/r von denen!")
+        leo.sprich(
+            "Ich schwöre auf meinen Namen, ich werde dich hier auslöschen!")
+        sleep(1)
+        leo.sprich("Ich werde Lena rächen.", wie="flüstert")
+        return leo._run(hexer_kampf, mänx)
+    else:
+        leo.sprich("Und warum nicht?")
+        ant = mänx.minput(
+            "Weil Liebe Ordnung haben muss. Auch die Liebe kann sich nicht über "
+            "alles hinwegsetzen.[1]/\n"
+            "Dass sie alles Widrigkeiten überwindet, das ist zu optimistisch. Aber "
+            "ich werde nie aufgeben.[2]/\n"
+            "Diese Liebe meine ich nicht. Ich meine die Nächstenliebe, das Gute im "
+            "Menschen und die Güte Gottes. Die habe ich in deiner Gastfreundschaft "
+            "gefunden.[3]")
+        if ant == "2":
+            leo.sprich("Du bist also eine/r von denen!")
+            leo.sprich("Du denkst, nur weil du liebst, kann du "
                        "die Ehre der Berndoc ignorieren und "
-                            "mit ihr zusammenkommen!")
-                sleep(0.5)
-                sprich(
-                    leo, "Ich schwöre auf meinen Namen, ich werde dich hier auslöschen!")
-                hexer_kampf(mänx)
-            else:
-                sprich(leo, "Interessant.")
-                sprich(leo, "Ich habe ein Gästebett. Da kannst du schlafen.")
-                sprich(leo, "Im Süden ist ein Dorf, lauf einfach weiter geradeaus.")
-                malp("Dein erstes Bett in dieser Welt ist schön weich.")
-                sleep(5)
-                ende_des_waldes(mänx, True)
-    else:  # oase
-        sprich(leo, "Interessant.")
-        malp("Er wirkt sichtlich überfordert.")
-        sprich(leo, "Das muss eine Tür der Qual sein..., oder war es Wal der Qual...")
-        sleep(0.3)
-        sprich(leo, "Aber was hat ein Wal hier zu suchen?")
-        malp("Du hast ihn sichtlich verwirrt.")
-        mint("Er zeigt noch auf ein Gästezimmer, dann geht er vor "
-             "sich hin brabbelnd in sein Zimmer")
-        mint("Im Bett denkst du über deinen heutigen Tag nach. Du sinkst "
-             "in einen unruhigen Schlaf.")
-        sleep(5)
-        malp("Früh am Morgen verlässt du eilig das Haus.")
-        mint("Aber du siehst noch einen Ring auf dem Tisch.")
-        if ja_nein(mänx, "Steckst du ihn ein?"):
-            mänx.erhalte("Ring des Berndoc")
-        sprich(leo, "Ich hab's! Es ist ein Wahlqualportal!!!")
-        ende_des_waldes(mänx, True)
+                       "mit ihr zusammenkommen!")
+            sleep(0.5)
+            leo.sprich(
+                "Ich schwöre auf meinen Namen, ich werde dich hier auslöschen!")
+            return leo._run(hexer_kampf, mänx)
+        else:
+            leo.sprich("Interessant.")
+            leo.sprich("Ich habe ein Gästebett. Da kannst du schlafen.")
+            leo.sprich(
+                "Im Süden ist ein Dorf, lauf einfach weiter geradeaus.")
+            malp("Dein erstes Bett in dieser Welt ist schön weich.")
+            sleep(5)
+            return ende_des_waldes
 
 
-def hexer_kampf(mänx):
+@leo.kampf
+def hexer_kampf(hexer: NSC, mänx: Mänx) -> Fortsetzung:
+    hexer.sprich("Ein/e Inquisitor/in? Dafür musst du früher aufstehen!")
     malp("Der Mann spricht einen schnellen Zauberspruch. Dir wird unglaublich kalt.")
     if mänx.get_kampfkraft() > 2000:
         malp("Aber du bist stärker.")
         malp("Du besiegst den Mann und plünderst sein Haus.")
+        hexer.tot = True
         mänx.erhalte("Gold", 120)
         mänx.erhalte("Mantel", 3)
         mänx.erhalte("Unterhose", 7)
@@ -355,7 +363,7 @@ def hexer_kampf(mänx):
         malp(" und wirft dich im Süden des Waldes auf den Boden")
         mänx.inventar.clear()
         mänx.inventar["Unterhose"] = hose
-    ende_des_waldes(mänx)
+    return ende_des_waldes
 
 
 SÜD_DORF_GENAUER = [
