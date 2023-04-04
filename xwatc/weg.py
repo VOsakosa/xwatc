@@ -385,7 +385,8 @@ class Wegkreuzung(Wegpunkt):
     wenn es keine Abzweigung ist
     :param menschen: Menschen, die an der Wegkreuzung stehen und angesprochen werden können.
     """
-    OPTS: ClassVar[Sequence[int]] = [4, 3, 5, 2, 6, 1, 7]  # Reihenfolge des Fragens
+    OPTS: ClassVar[Sequence[int]] = [
+        4, 3, 5, 2, 6, 1, 7]  # Reihenfolge des Fragens
     name: str
     nachbarn: dict[NachbarKey, Richtung] = field(repr=False)
     menschen: list[nsc.NSC] = field(factory=list)
@@ -431,15 +432,16 @@ class Wegkreuzung(Wegpunkt):
             self._wenn_fn[richtung] = UndPred(self._wenn_fn[richtung], fn)
         else:
             self._wenn_fn[richtung] = fn
-    
-    def setze_zielname(self, richtung: str, ziel_name: str, ziel_kurz: str=""):
+
+    def setze_zielname(self, richtung: str, ziel_name: str, ziel_kurz: str = ""):
         """Setze den Zielnamen für eine Richtung. Dieser wird"""
         ziel_kurz = ziel_kurz or ziel_name.lower()
         if not ziel_kurz or " " in ziel_kurz:
-            raise ValueError("Aus dem Ziel lässt sich keine sinnvolle Option machen.")
+            raise ValueError(
+                "Aus dem Ziel lässt sich keine sinnvolle Option machen.")
         richtung_obj = self.nachbarn.get(Himmelsrichtung.from_kurz(richtung))
         if not richtung_obj:
-            raise ValueError(f"Die Richtung {richtung} ist nicht verbunden.") 
+            raise ValueError(f"Die Richtung {richtung} ist nicht verbunden.")
         richtung_obj.zielname = ziel_name
         richtung_obj.name_kurz = ziel_kurz
 
@@ -565,7 +567,7 @@ class Wegkreuzung(Wegpunkt):
             self.nachbarn[hiri] = Richtung(anderer, ziel, ziel or kurz, typ)
         else:
             getLogger("xwatc.weg").warning("Verbinde ohne Richtung ist bei einer "
-                                         "Wegkreuzung nicht möglich.")
+                                           "Wegkreuzung nicht möglich.")
 
     def verbinde_mit_weg(self,
                          nach: Wegkreuzung,
@@ -680,6 +682,7 @@ class Gebiet:
 
     @property
     def größe(self) -> tuple[int, int]:
+        """Die Größe des Gebiets als Tuple Breite, Länge."""
         if self._punkte:
             return len(self._punkte), len(self._punkte[0])
         return 0, 0
@@ -694,7 +697,33 @@ class Gebiet:
         return None
 
     def main(self, _mänx: Mänx) -> Wegpunkt:
+        """Das Gebiet als HatMain gibt einfach den Punkt namens "start" zurück."""
         return self.eintrittspunkte["start"]
+
+    def ende(self, name: Eintritt, ziel: Eintritt | MänxFkt[Fortsetzung]
+             ) -> Gebietsende | WegAdapter:
+        """Erzeugt ein Ende von diesem Gebiet, dass unter dem Namen `name` von außen betreten
+        werden kann.
+        :param name: Ein Eintritt von **diesem** Gebiet mit einem Namen. Das soll dafür sorgen,
+        dass alle Eintritte im Modul definiert werden.
+        :param ziel: Ein Eintritt von einem anderen Gebiet oder aber eine MänxFkt.
+        """
+        match name:
+            case Eintritt(name_or_gebiet=[self.name, str(port)]):
+                pass
+            case _:
+                raise ValueError(
+                    "Das erste Argument muss ein Eintritt zu diesem Gebiet sein.")
+        match ziel:
+            case Eintritt(name_or_gebiet=[str(nach), str(nach_port)]):
+                return Gebietsende(None, self, port, nach, nach_port)
+            case Eintritt(name_or_gebiet=str(nach)):
+                return Gebietsende(None, self, port, nach, "start")
+            case Eintritt():
+                raise ValueError(
+                    "Der zweite Eintritt darf kein Wegpunkt-Eintritt sein.")
+            case zurück:
+                return WegAdapter(zurück, port, self)
 
 
 @define(init=False)
