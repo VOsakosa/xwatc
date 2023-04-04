@@ -25,10 +25,10 @@ from xwatc.weg import wegsystem, Wegkreuzung, Eintritt
 from xwatc.untersystem.person import Fähigkeit, Rasse
 
 
-def t2(mänx: Mänx) -> None:
+def t2(mänx: Mänx) -> Fortsetzung:
     """Jaspers Teilgeschichte"""
     malp("Es erwartet dich Vogelgezwitscher.")
-    weg.wegsystem(mänx, "jtg:mitte")
+    return weg.wegsystem(mänx, "jtg:mitte", return_fn=True)
 
 
 def lichtung_gucken(mänx: Mänx):

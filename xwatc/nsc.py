@@ -4,6 +4,7 @@ gespeicherten Teil trennt. Bei Erstellung soll alles einen eindeutigen Namen hab
 from collections import defaultdict
 from collections.abc import Mapping, Iterator, Sequence, Callable
 from enum import Enum
+from logging import getLogger
 import pickle
 from typing import Any, Literal
 
@@ -343,6 +344,7 @@ class NSC(system.InventarBasis):
              mänx: system.Mänx) -> Rückkehr | Fortsetzung:
         """Führe eine Option aus."""
         if isinstance(option, dorf.Dialog):
+            getLogger("xwatc.nsc").info(f"Starte Dialog {option.name} von {self.name}")
             dlg = option
             dlg_anzahl = self.dialog_anzahl
             ans = self._call_geschichte(mänx, dlg.geschichte, dlg.effekt)
@@ -369,6 +371,7 @@ class NSC(system.InventarBasis):
                          geschichte: dorf.DialogGeschichte,
                          effekt: dorf.DialogFn | None = None,
                          erzähler: bool = False) -> Rückkehr | Fortsetzung:
+        """Führe den Geschichtsteil eines Dialoges aus."""
         ans: Rückkehr | Fortsetzung = Rückkehr.WEITER_REDEN
         if callable(geschichte):
             ans2 = geschichte(self, mänx)
@@ -389,6 +392,7 @@ class NSC(system.InventarBasis):
 
     def _call_inner(self, text: Sequence[str | dorf.Malp], erzähler: bool,
                     warte: bool = True):
+        """Führe einen Text des Dialoges aus."""
         if isinstance(text, str):
             if erzähler:
                 malp(text)

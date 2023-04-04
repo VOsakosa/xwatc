@@ -17,7 +17,7 @@ import typing
 from typing_extensions import Self
 
 from xwatc.system import (Fortsetzung, Mänx, MenuOption, MänxFkt, InventarBasis, malp, mint,
-                          MänxPrädikat, Welt, MissingID)
+                          MänxPrädikat, Welt, MissingID, HatMain)
 from xwatc.utils import uartikel, bartikel, adj_endung, UndPred
 from itertools import repeat
 
@@ -536,7 +536,17 @@ class Wegkreuzung(Wegpunkt):
         if isinstance(ans, Wegpunkt):
             return ans
         elif isinstance(ans, NSC):
-            ans.main(mänx)
+            mänx_ans = ans.main(mänx)
+            match mänx_ans:
+                case None:
+                    pass
+                case Wegpunkt():
+                    return mänx_ans
+                case _ if callable(mänx_ans):
+                    return WegEnde(mänx_ans)
+                case _:
+                    return WegEnde(mänx_ans.main)
+
         return self
 
     def __sub__(self, anderer: 'Wegkreuzung') -> 'Wegkreuzung':
