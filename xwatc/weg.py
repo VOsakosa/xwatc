@@ -465,7 +465,7 @@ class Wegkreuzung(Wegpunkt):
             elif ans is not None:
                 getLogger("xwatc.weg").warning(
                     f"Beschreibung von {self.name} hat {ans} zurückgegeben. Das wird ignoriert.")
-        if ri_name and (self.kreuzung_beschreiben or not self.beschreibungen):
+        if ri_name and (self.kreuzung_beschreiben or not self.beschreibungen and self.immer_fragen):
             from xwatc.vorlagen.kreuzung_beschreiben import beschreibe_kreuzung
             if isinstance(ri_name, Himmelsrichtung):
                 beschreibe_kreuzung(self, ri_name.nr)
