@@ -729,22 +729,14 @@ class Gebiet:
         dass alle Eintritte im Modul definiert werden.
         :param ziel: Ein Eintritt von einem anderen Gebiet oder aber eine MänxFkt.
         """
-        match name:
-            case Eintritt(name_or_gebiet=[self.name, str(port)]):
-                pass
-            case _:
-                raise ValueError(
-                    "Das erste Argument muss ein Eintritt zu diesem Gebiet sein.")
+        if name.gebiet != self.name:
+            raise ValueError(
+                "Das erste Argument muss ein Eintritt zu diesem Gebiet sein.")
         match ziel:
-            case Eintritt(name_or_gebiet=[str(nach), str(nach_port)]):
-                return Gebietsende(None, self, port, nach, nach_port)
-            case Eintritt(name_or_gebiet=str(nach)):
-                return Gebietsende(None, self, port, nach, "start")
-            case Eintritt():
-                raise ValueError(
-                    "Der zweite Eintritt darf kein Wegpunkt-Eintritt sein.")
+            case Eintritt(gebiet=str(nach), port=str(nach_port)):
+                return Gebietsende(None, self, name.port, nach, nach_port)
             case zurück:
-                return WegAdapter(zurück, port, self)
+                return WegAdapter(zurück, name.port, self)
 
 
 @define(init=False)
@@ -934,10 +926,11 @@ class Eintritt:
     schreiben, um eine Fortsetzung in MITTE zu erwirken.
 
     """
-    name_or_gebiet: Wegpunkt | str | tuple[str, str]
+    gebiet: str
+    port: str = "start"
 
     def __call__(self, mänx: Mänx) -> Wegpunkt:
-        return get_eintritt(mänx, self.name_or_gebiet)
+        return get_eintritt(mänx, (self.gebiet, self.port))
 
 
 GebietsFn: TypeAlias = Callable[[Mänx, Gebiet], Wegpunkt | None]

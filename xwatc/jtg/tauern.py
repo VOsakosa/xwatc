@@ -27,7 +27,7 @@ KRIEGER_INVENTAR = {
 }
 
 
-land_der_kühe = Eintritt(("jtg:tauern", "start"))
+land_der_kühe = Eintritt("jtg:tauern", "start")
 
 
 @gebiet("jtg:tauern")

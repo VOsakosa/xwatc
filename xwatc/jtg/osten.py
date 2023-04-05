@@ -13,9 +13,9 @@ from xwatc.jtg import nord
 __author__ = "jasper"
 
 GEBIET = "jtg:osten"
-no_tauern = Eintritt((GEBIET, "tauern"))
-no_dis = Eintritt((GEBIET, "disnayenbum"))
-no_süd = Eintritt((GEBIET, "süd"))
+no_tauern = Eintritt(GEBIET, "tauern")
+no_dis = Eintritt(GEBIET, "disnayenbum")
+no_süd = Eintritt(GEBIET, "süd")
 
 
 @weg.gebiet(GEBIET)

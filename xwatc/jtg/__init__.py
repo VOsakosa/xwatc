@@ -153,9 +153,9 @@ def erzeuge_teil_süd(mänx: Mänx, gb: weg.Gebiet) -> Wegkreuzung:
     return nebelwald
 
 
-süd_dorf_west = weg.Eintritt(("jtg:mitte", "grökrak"))
-ende_des_waldes = weg.Eintritt(("jtg:mitte", "wald"))
-süd_dorf_ost = weg.Eintritt(("jtg:mitte", "so"))
+süd_dorf_west = weg.Eintritt("jtg:mitte", "grökrak")
+ende_des_waldes = weg.Eintritt("jtg:mitte", "wald")
+süd_dorf_ost = weg.Eintritt("jtg:mitte", "so")
 
 leo = StoryChar("jtg:mitte:leo", ("Leo", "Berndoc"), Person("m", Rasse.Mensch))
 

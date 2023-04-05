@@ -20,9 +20,9 @@ from xwatc.effect import Cooldown
 
 __author__ = "jasper"
 
-eintritt_süd = Eintritt(("jtg:disnayenbum", "süd"))
-eintritt_ost = Eintritt(("jtg:disnayenbum", "ost"))
-eintritt_west = Eintritt(("jtg:disnayenbum", "west"))
+eintritt_süd = Eintritt("jtg:disnayenbum", "süd")
+eintritt_ost = Eintritt("jtg:disnayenbum", "ost")
+eintritt_west = Eintritt("jtg:disnayenbum", "west")
 
 
 @weg.gebiet("jtg:disnayenbum")

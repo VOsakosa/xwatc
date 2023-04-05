@@ -26,7 +26,7 @@ __author__ = "jasper"
 GEFUNDEN = "quest:saxaring:gefunden"
 ABGEGEBEN = "quest:saxaring:abgegeben"
 
-eingang_nord = weg.Eintritt(("jtg:mitose", "nord"))
+eingang_nord = weg.Eintritt("jtg:mitose", "nord")
 
 
 saxa = StoryChar("jtg:saxa", ("Saxa", "Kautohoa", "Holzfällerin"), Person("w"),

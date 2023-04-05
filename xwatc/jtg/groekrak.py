@@ -22,8 +22,8 @@ GENAUER = [
     "Mauern sind wohl die Häuser der normalen Bevölkerung."
 ]
 
-zugang_ost = Eintritt(("jtg:grökrak", "ost"))
-zugang_südost = Eintritt(("jtg:grökrak", "südost"))
+zugang_ost = Eintritt("jtg:grökrak", "ost")
+zugang_südost = Eintritt("jtg:grökrak", "südost")
 
 
 def pflücken(mänx: Mänx) -> None:

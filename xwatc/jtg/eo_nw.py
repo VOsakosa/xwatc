@@ -14,7 +14,7 @@ from typing import NoReturn
 
 __author__ = "Jasper Ischebeck"
 
-eo_nw_ost = Eintritt(("jtg:eo_nw", "eo_nw"))
+eo_nw_ost = Eintritt("jtg:eo_nw", "eo_nw")
 
 @gebiet("jtg:eo_nw")
 def eo_nw(mänx: Mänx, gb: Gebiet) -> None:

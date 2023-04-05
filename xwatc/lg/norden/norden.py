@@ -4,7 +4,7 @@ from xwatc.weg import Eintritt, Gebiet, gebiet, Gebietsende
 from xwatc.lg import mitte
 
 
-norden = Eintritt(("lg:norden", "süden"))
+norden = Eintritt("lg:norden", "süden")
 
 
 @gebiet("lg:norden")
@@ -38,7 +38,7 @@ def norden_alt(mänx: Mänx) -> Fortsetzung | None:
         weg = minput(mänx, "Gehst du in die Richtung aus der du gekommen bist, in eine völlig"
                      " andere oder weiter in Richtung Norden?", ["z", "w", "a"])
         if weg == "z":
-            return Eintritt((mitte.MITTE, "norden"))
+            return Eintritt(mitte.MITTE, "norden")
 
         if weg == "a":
             k = minput(
