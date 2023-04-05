@@ -8,7 +8,7 @@ from logging import getLogger
 import pickle
 from typing import Any, Literal
 
-from attrs import define, Factory
+from attrs import define, field, Factory
 import attrs
 import cattrs
 
@@ -92,6 +92,7 @@ class StoryChar:
     """Ob bei dem NSC-Menu die Rede-Optionen direkt angezeigt werden."""
     vorstellen_fn: dorf.DialogGeschichte | None = None
     dialoge: list[dorf.Dialog] = Factory(list)
+    randomize_fn: Callable[['NSC'], Any] | None = field(default=None)
 
     def __attrs_post_init__(self):
         """Registriere das NSC-Template mit ID und Ort, wenn verfügbar."""
@@ -103,7 +104,10 @@ class StoryChar:
     def zu_nsc(self) -> 'NSC':
         """Erzeuge den zugehörigen NSC aus dem Template."""
         # Der Ort ist zunächst immer None. Der Ort wird erst zugeordnet
-        return NSC(self, self.bezeichnung, self.startinventar)
+        ans =  NSC(self, self.bezeichnung, self.startinventar)
+        if self.randomize_fn:
+            self.randomize_fn(ans)
+        return ans
 
     def dialog(self,
                name: str,

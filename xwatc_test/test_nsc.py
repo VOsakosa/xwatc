@@ -3,6 +3,7 @@ from collections.abc import Iterator
 from typing import cast
 import unittest
 from unittest.mock import patch
+from unittest.mock import MagicMock
 
 from xwatc import nsc, dorf
 from xwatc import system
@@ -58,14 +59,19 @@ class TestNSC(unittest.TestCase):
         self.assertEqual(jonas.person.rasse, Rasse.Mensch)
         self.assertDictEqual(jonas.startinventar, {"Unterhose": 3})
         # With registration
+        rd = MagicMock()
         toro = StoryChar("jtg:toro", ("Toro Berncod", "Pianist"),
-                         Person("m"), {"Klavier": 1})
+                         Person("m"), {"Klavier": 1}, randomize_fn=rd)
         self.assertEqual(toro.id_, "jtg:toro")
 
         welt = Welt("Winkel")
         toro_nsc = welt.obj("jtg:toro")
+        rd.assert_called_once_with(toro_nsc)
+        rd.reset_mock()
         self.assertIs(toro_nsc.template, toro)
+        
         toro_nsc2 = welt.obj("jtg:toro")
+        rd.assert_not_called()
         self.assertIs(toro_nsc, toro_nsc2)
         self.assertEqual(toro_nsc.name, "Toro Berncod")
         self.assertEqual(toro_nsc.art, "Pianist")
