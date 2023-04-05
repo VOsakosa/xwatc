@@ -16,8 +16,8 @@ from typing import (Any, ClassVar, NewType, TYPE_CHECKING, runtime_checkable,
 import typing
 from typing_extensions import Self
 
-from xwatc.system import (Fortsetzung, Mänx, MenuOption, MänxFkt, InventarBasis, malp, mint,
-                          MänxPrädikat, Welt, MissingID, HatMain)
+from xwatc.system import (Fortsetzung, Mänx, MenuOption, MänxFkt, malp, mint,
+                          MänxPrädikat, Welt, MissingID)
 from xwatc.utils import uartikel, bartikel, adj_endung, UndPred
 from itertools import repeat
 
@@ -51,33 +51,51 @@ class Wegpunkt(Protocol):
     def main(self, __mänx: Mänx, von: Wegpunkt | None) -> Wegpunkt | WegEnde:
         """Betrete den Wegpunkt mit mänx aus von."""
 
+
+@runtime_checkable
+class Ausgang(Protocol):
+    """Ein Wegpunkt mit festen losen Enden."""
+
     def verbinde(self, __anderer: Wegpunkt):
-        """Verbinde den Wegpunkt mit anderen. Nur für Wegpunkte mit nur einer
-        Seite."""
+        """Verbinde diesen Wegpunkt mit anderen."""
+
+    @property
+    def wegpunkt(self) -> Wegpunkt:
+        """Der Wegpunkt, der zu einem Ausgang gehört."""
 
 
-class _Strecke(Wegpunkt):
+class WegpunktAusgang(Wegpunkt, Ausgang):
+    """Mixin für Wegpunkte, die selbst Ausgänge sind."""
+    @property
+    def wegpunkt(self) -> Self:
+        return self
+
+
+class _Strecke(WegpunktAusgang):
     """Abstrakte Basisklasse für Wegpunkte, die zwei Orte verbinden."""
 
-    def __init__(self, p1: Wegpunkt | None, p2: Wegpunkt | None = None):
+    def __init__(self, p1: Ausgang | None,
+                 p2: Ausgang | None = None):
         super().__init__()
         self.p1 = self._verbinde(p1)
         self.p2 = self._verbinde(p2)
 
-    def _verbinde(self, anderer: Wegpunkt | None) -> Wegpunkt | None:
+    def _verbinde(self, anderer: Ausgang | None) -> Wegpunkt | None:
         """Ruft anderer.verbinde(self) auf."""
-        if anderer and not isinstance(anderer, Wegkreuzung):
-            anderer.verbinde(self)
-        return anderer
+        if anderer is None:
+            return anderer
+        else:
+            return anderer.verbinde(self)
 
     def get_nachbarn(self) -> list[Wegpunkt]:
         return [a for a in (self.p1, self.p2) if a]
 
-    def verbinde(self, anderer: Wegpunkt) -> None:
+    def verbinde(self, anderer: Wegpunkt) -> Wegpunkt:
         if not self.p1:
             self.p1 = anderer
         elif self.p1 != anderer and not self.p2:
             self.p2 = anderer
+        return self
 
     def __repr__(self):
         def name(pk: Wegpunkt | None):
@@ -109,9 +127,10 @@ class Weg(_Strecke):
     """Ein Weg hat zwei Enden und dient dazu, die Länge der Reise darzustellen.
     Zwei Menschen auf dem Weg zählen als nicht benachbart."""
 
+    # TODO: Wegkrezung als Argument verbieten
     def __init__(self, länge: float,
-                 p1: Wegpunkt | None = None,
-                 p2: Wegpunkt | None = None,
+                 p1: Ausgang | None = None,
+                 p2: Ausgang | None = None,
                  monster_tag: list[MonsterChance] | None = None,
                  monster_nachts: list[MonsterChance] | None = None):
         """
@@ -338,11 +357,8 @@ def cap(a: str) -> str:
     return a[:1].upper() + a[1:]
 
 
-def _to_richtung(richtung: Wegpunkt | Richtung) -> Richtung:
-    if isinstance(richtung, Richtung):
-        return richtung
-    else:
-        return Richtung(ziel=richtung)
+def _to_richtung(richtung: Ausgang) -> Richtung:
+    return Richtung(ziel=richtung.wegpunkt)
 
 
 def kreuzung(
@@ -351,7 +367,7 @@ def kreuzung(
     kreuzung_beschreiben: bool = False,
     immer_fragen: bool = False,
     menschen: Sequence[dorf.NSC | nsc.NSC] = (),
-    **kwargs: Wegpunkt | Richtung
+    **kwargs: Ausgang
 ) -> 'Wegkreuzung':
     """Konstruktor für Wegkreuzungen ursprünglichen Typs, die nicht auf einem Gitter liegen,
     aber hauptsächlich Himmelsrichtungen für Richtungen verwenden.
@@ -366,9 +382,8 @@ def kreuzung(
                       immer_fragen=immer_fragen, menschen=[*menschen])
     if gucken:
         ans.add_option("Umschauen", "gucken", gucken)
-    for ri in nb.values():
-        if ri:
-            ri.ziel.verbinde(ans)
+    for ausgang in kwargs.values():
+        ausgang.verbinde(ans)
     return ans
 
 
@@ -538,7 +553,7 @@ class Wegkreuzung(Wegpunkt):
         elif isinstance(ans, NSC):
             mänx_ans = ans.main(mänx)
             match mänx_ans:
-                case None:
+                case None:  # @UnusedVariable
                     pass
                 case Wegpunkt():
                     return mänx_ans
@@ -556,20 +571,19 @@ class Wegkreuzung(Wegpunkt):
             anderer.name)] = Richtung(anderer)
         return anderer
 
-    def verbinde(self,  # pylint: disable=arguments-differ
-                 anderer: Wegpunkt,
-                 richtung: str = "",
+    def verbinde(self,
+                 anderer: Ausgang,
+                 richtung: str,
                  ziel: str = "",
                  kurz: str = "",
                  typ: Wegtyp = Wegtyp.WEG,
                  ):
-        if richtung:
-            anderer.verbinde(self)
-            hiri = Himmelsrichtung.from_kurz(richtung)
-            self.nachbarn[hiri] = Richtung(anderer, ziel, ziel or kurz, typ)
-        else:
-            getLogger("xwatc.weg").warning("Verbinde ohne Richtung ist bei einer "
-                                           f"Wegkreuzung ({self}) nicht möglich.")
+        if not richtung:
+            raise ValueError("Die Richtung kann nicht leer sein.")
+        anderer.verbinde(self)
+        hiri = Himmelsrichtung.from_kurz(richtung)
+        self.nachbarn[hiri] = Richtung(
+            anderer.wegpunkt, ziel, ziel or kurz, typ)
 
     def verbinde_mit_weg(self,
                          nach: Wegkreuzung,
@@ -594,11 +608,13 @@ class Wegkreuzung(Wegpunkt):
             raise ValueError("richtung2 muss angegeben werden, wenn "
                              "richtung keine Himmelsrichtung ist.")
 
-        weg = Weg(länge, self, nach, **kwargs)
+        weg = Weg(länge, None, None, **kwargs)
         assert not (self.nachbarn.get(ri1) or nach.nachbarn.get(ri2)
                     ), "Überschreibt bisherigen Weg."
         self.nachbarn[ri1] = Richtung(weg, beschriftung_hin, typ=typ)
         nach.nachbarn[ri2] = Richtung(weg, beschriftung_zurück, typ=typ)
+        weg.p1 = self
+        weg.p2 = nach
 
     def add_option(self, name: str, name_kurz: str,
                    effekt: Sequence[str] | BeschreibungFn) -> Self:
@@ -613,7 +629,7 @@ class Wegkreuzung(Wegpunkt):
             beschreibungen=[Beschreibung(effekt)]
         )
         self.nachbarn[Himmelsrichtung.from_kurz(
-            name_kurz)] = Richtung(effekt_punkt, name)
+            name_kurz)] = Richtung(effekt_punkt, name, name_kurz)
         return self
 
     def add_nsc(self, welt: Welt, name: str, fkt: Callable[..., nsc.NSC],
@@ -678,9 +694,11 @@ class Gebiet:
         assert isinstance(ri1, Himmelsrichtung)
         ri2 = ri1.gegenrichtung
 
-        weg = Weg(länge * self.gitterlänge, pkt1, pkt2)
+        weg = Weg(länge * self.gitterlänge)
         pkt1.nachbarn[ri1] = Richtung(weg)
         pkt2.nachbarn[ri2] = Richtung(weg)
+        weg.p1 = pkt1
+        weg.p2 = pkt2
 
     @property
     def größe(self) -> tuple[int, int]:
@@ -729,7 +747,7 @@ class Gebiet:
 
 
 @define(init=False)
-class WegAdapter(Wegpunkt):
+class WegAdapter(WegpunktAusgang):
     """Ein Übergang von Wegesystem zum normalen System."""
     zurück: MänxFkt
     punkt: Wegpunkt | None = None
@@ -790,7 +808,7 @@ class WegSperre(_Strecke):
     ```
     """
 
-    def __init__(self, start: Wegpunkt | None, ende: Wegpunkt | None,
+    def __init__(self, start: Ausgang | None, ende: Ausgang | None,
                  hin: MänxPrädikat | None = None,
                  zurück: MänxPrädikat | None = None):
         super().__init__(start, ende)
@@ -818,7 +836,7 @@ class WegSperre(_Strecke):
 class Gebietsende(_Strecke):
     """Das Ende eines Gebietes ist der Anfang eines anderen."""
 
-    def __init__(self, von: Wegpunkt | None,
+    def __init__(self, von: Ausgang | None,
                  gebiet: Gebiet,  # pylint: disable=redefined-outer-name
                  port: str,
                  nach: str,

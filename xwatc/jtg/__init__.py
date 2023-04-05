@@ -1,28 +1,27 @@
+from random import randint
+import random
 from time import sleep
+from xwatc import dorf
 from xwatc import haendler
 from xwatc import scenario
-from xwatc import weg
 from xwatc import system
+from xwatc import weg
+from xwatc.dorf import Dorf, ort, NSCOptionen, Dialog, HalloDialoge, Malp, Zeitpunkt, Rückkehr
+from xwatc.jtg import groekrak, see, nord, osten, mitose, eo_nw
+from xwatc.jtg.groekrak import zugang_südost
+from xwatc.jtg.ressourcen import zufälliger_name
+from xwatc.jtg.tauern import land_der_kühe
+from xwatc.nsc import Person, StoryChar, NSC
 from xwatc.system import (
     Mänx, minput, ja_nein, register, MenuOption,
     Spielende, mint, sprich, kursiv, malp, get_classes, Inventar, MänxFkt, Fortsetzung)
-from xwatc import dorf
-from xwatc.dorf import Dorf, ort, NSCOptionen, Dialog, HalloDialoge, Malp, Zeitpunkt, Rückkehr
-from random import randint
-import random
-from xwatc.jtg.ressourcen import zufälliger_name
-from xwatc.jtg.tauern import land_der_kühe
-from xwatc.jtg import groekrak, see, nord, osten
-from xwatc.jtg.groekrak import zugang_südost
-from xwatc.jtg import eo_nw
 from xwatc.untersystem.acker import Wildpflanze
-from xwatc.jtg import mitose
-from typing import List, Tuple, cast
-from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
-from xwatc.nsc import Person, StoryChar, NSC
-from collections import defaultdict
-from xwatc.weg import wegsystem, Wegkreuzung, Eintritt
 from xwatc.untersystem.person import Fähigkeit, Rasse
+from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
+from xwatc.weg import wegsystem, Wegkreuzung, Eintritt
+
+from collections import defaultdict
+from typing import List, Tuple, cast
 
 
 def t2(mänx: Mänx) -> Fortsetzung:
@@ -50,7 +49,7 @@ def beeren() -> Wildpflanze:
 def erzeuge_mitte(mänx: Mänx, gebiet: weg.Gebiet) -> 'weg.Wegpunkt':
     westw = weg.Weg(2, weg.WegAdapter(
         groekrak.zugang_ost, "west", gebiet), None)
-    bogen = weg.kreuzung("bogen", w=weg.Richtung(westw))
+    bogen = weg.kreuzung("bogen", w=westw)
     bogen.add_beschreibung("Der Weg macht nach einer Weile eine Biegung "
                            "nach rechts.", nur="n")
     bogen.add_beschreibung("Der Weg macht einen Bogen nach links, nach Norden.",
@@ -60,7 +59,7 @@ def erzeuge_mitte(mänx: Mänx, gebiet: weg.Gebiet) -> 'weg.Wegpunkt':
 
     nordw = weg.Weg(
         5, weg.Gebietsende(None, gebiet, "mitose-mitte", "jtg:mitose"))
-    nordk = weg.kreuzung("nordk", n=weg.Richtung(nordw))
+    nordk = weg.kreuzung("nordk", n=nordw)
     nordk.add_beschreibung(
         ("Der kleine Pfad stößt spitz auf einen Weg von links.",),
         nur="s")
@@ -100,8 +99,7 @@ def erzeuge_mitte(mänx: Mänx, gebiet: weg.Gebiet) -> 'weg.Wegpunkt':
         "Im Westen und Süden ist nichts besonderes."
     ))
 
-    osten.verbinde(lichtung, "w", typ=weg.Wegtyp.TRAMPELPFAD)
-    lichtung.verbinde(osten, "o", typ=weg.Wegtyp.TRAMPELPFAD)
+    osten.verbinde_mit_weg(lichtung, 0, "w", typ=weg.Wegtyp.TRAMPELPFAD)
     return lichtung
 
 

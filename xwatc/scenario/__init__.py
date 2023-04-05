@@ -355,17 +355,14 @@ class ScenarioWegpunkt(weg.Wegpunkt):
     """Macht ein Scenario zu einem Wegpunkt."""
     name: str
     scenario: Scenario = field(converter=_lade_scenario)
-    ziele: Mapping[str, weg.Wegpunkt]
+    ziele: Mapping[str, weg.Ausgang]
 
     def __attrs_post_init__(self):
         for ziel in self.ziele.values():
             ziel.verbinde(self)
 
     def get_nachbarn(self) -> list[weg.Wegpunkt]:
-        return list(self.ziele.values())
-    
-    def verbinde(self, __anderer: weg.Wegpunkt):
-        raise NotImplementedError
+        return [a.wegpunkt for a in self.ziele.values()]
 
     def main(self, mänx: Mänx, von: weg.Wegpunkt | None = None) -> weg.Wegpunkt:
         # TODO von könnte für verschiedene Spawnpunkte genutzt werden
@@ -374,7 +371,7 @@ class ScenarioWegpunkt(weg.Wegpunkt):
         if ans.tot:
             raise system.Spielende()
         elif ans.ergebnis:
-            return self.ziele[ans.ergebnis]
+            return self.ziele[ans.ergebnis].wegpunkt
         else:
             raise RuntimeError("Scenario endete ohne Ergebnis!")
 
@@ -382,5 +379,5 @@ class ScenarioWegpunkt(weg.Wegpunkt):
 if __name__ == '__main__':
     from xwatc.anzeige import main
     from xwatc.jtg import nord
-    main(nord.eintritt_süd)
+    main(nord.eintritt_süd)  # type: ignore
 
