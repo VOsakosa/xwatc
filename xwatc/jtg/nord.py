@@ -4,20 +4,20 @@ Created on 18.10.2020
 """
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Iterable
 import random
 import re
 from xwatc import jtg, weg
 from xwatc import nsc
-from xwatc.dorf import NSC, Rückkehr, Malp, Dialog
-from xwatc.nsc import StoryChar, bezeichnung
+from xwatc.dorf import Rückkehr, Malp, Dialog, Zeitpunkt
+from xwatc.jtg import eo_nw
+from xwatc.jtg import osten, mitose
+from xwatc.nsc import StoryChar, bezeichnung, OldNSC, NSC
 from xwatc.scenario import Scenario, ScenarioWegpunkt
 from xwatc.system import Mänx, mint, Spielende, InventarBasis, sprich, malp, register
 from xwatc.weg import Eintritt
+from xwatc.effect import Cooldown
 
-from typing import Optional, Iterable
-from xwatc.jtg import osten, mitose
-from xwatc.jtg import eo_nw
 __author__ = "jasper"
 
 eintritt_süd = Eintritt(("jtg:disnayenbum", "süd"))
@@ -32,15 +32,6 @@ def disnayenbum(_mänx: Mänx, gb: weg.Gebiet):
         "westen": gb.ende(eintritt_west, eo_nw.eo_nw_ost),
         "süden": gb.ende(eintritt_süd, mitose.eingang_nord)
     })
-
-
-def frage_melken(nsc: NSC, _mänx: Mänx):
-    if nsc.freundlich >= 0:
-        nsc.sprich("Aber nur weil du es bist.")
-        malp(f"{nsc.name} wirkt leicht beschämt.")
-    else:
-        nsc.sprich("Nein! Natürlich nicht!")
-        malp("Sie ist echt wütend!")
 
 
 def kampf_in_disnayenbum(nsc: nsc.NSC, mänx: Mänx):
@@ -62,97 +53,105 @@ def kampf_in_disnayenbum(nsc: nsc.NSC, mänx: Mänx):
     nsc.plündern(mänx)
 
 
-@register("jtg:nomuh")
-class NoMuh(NSC):
-    def __init__(self):
-        super().__init__("No Muh", "Kuh", freundlich=-10,
-                         kampfdialog=kampf_in_disnayenbum, dlg=self.dlg)
-        self.inventar["Glocke"] += 1
-        self.verstanden = False
-        self.letztes_melken: Optional[int] = None
+nomuh = StoryChar("jtg:nomuh", ("No Muh", "Kuh"),
+                  person=None, startinventar={"Glocke": 1})
 
-    @staticmethod
-    def dlg():
-        return [
-            Dialog("hallo", '"Hallo"', ("Hallo.",)),
-            Dialog("futter", '"Was hättest du gerne zu essen?"',
-                   ("Erbsen natürlich.", )),
-            Dialog("melken", '"Darf ich dich melken?"', frage_melken),  # type: ignore
-        ]
 
-    def vorstellen(self, mänx: Mänx):
-        malp("Eine große Kuh frisst Gras.")
-        self.sprich("Pfui, so jemand starrt mich an.")
-        self.sprich("No nie so eine Schönheit gesehen, was?")
+def nm_sprich(nsc: NSC, txt: str) -> None:
+    if "verstanden" not in nsc.variablen:
+        txt = re.sub(r"\w+", "Muh", txt)
+    nsc.sprich(txt)
 
-    def fliehen(self, mänx: Mänx):
-        if self.freundlich < 0:
-            if random.random() < 0.3:
-                malp("Beim Fliehen streift dich eines von NoMuhs Hörnern.")
-                mint("Es tut verdammt weh.")
-            else:
-                mint("Du entkommst der wütenden NoMuh")
 
-    def main(self, mänx: Mänx):
-        self.verstanden = (mänx.hat_item("Mugel des Verstehens") or
-                           mänx.hat_item("Talisman des Verstehens"))
-        return super().main(mänx)
+nomuh.kampf(kampf_in_disnayenbum)
 
-    def sprich(self, text: str | Sequence[str | Malp], *args, **kwargs) -> None:
-        if self.verstanden:
-            NSC.sprich(self, text, *args, **kwargs)  # type: ignore
+
+@nomuh.dialog_deco("hallo", '"Hallo"')
+def hallo(nsc: NSC, _m) -> None:
+    nm_sprich(nsc, "Hallo")
+
+
+@nomuh.dialog_deco("futter", '"Was hättest du gerne zu essen?"', "hallo")
+def futter(nsc: NSC, _m) -> None:
+    nm_sprich(nsc, "Erbsen natürlich.")
+
+
+@nomuh.dialog_deco("melken", '"Darf ich dich melken?"', "hallo")
+def frage_melken(nsc: NSC, _mänx: Mänx) -> None:
+    if nsc.freundlich >= 10:
+        nm_sprich(nsc, "Aber nur weil du es bist.")
+        malp(f"{nsc.name} wirkt leicht beschämt.")
+    else:
+        nm_sprich(nsc, "Nein! Natürlich nicht!")
+        malp("Sie ist echt wütend!")
+
+
+@nomuh.vorstellen
+def nomuh_vorstellen(nsc: NSC, mänx: Mänx) -> None:
+    malp("Eine große Kuh frisst Gras.")
+    if mänx.hat_item("Mugel des Verstehens") or mänx.hat_item("Talisman des Verstehens"):
+        nsc.variablen.add("verstanden")
+    else:
+        try:
+            nsc.variablen.remove("verstanden")
+        except KeyError:
+            pass
+    nm_sprich(nsc, "Pfui, so jemand starrt mich an.")
+    nm_sprich(nsc, "No nie so eine Schönheit gesehen, was?")
+
+
+@nomuh.dialog_deco("fliehen", "Fliehen", zeitpunkt=Zeitpunkt.Option)
+def nomuh_fliehen(self, mänx: Mänx):
+    if self.freundlich < 0:
+        if random.random() < 0.3:
+            malp("Beim Fliehen streift dich eines von NoMuhs Hörnern.")
+            mint("Es tut verdammt weh.")
         else:
-            if isinstance(text, str):
-                text = re.sub(r"\w+", "Muh", text)
-            else:
-                text = [re.sub(r"\w+", "Muh", str(t)) for t in text]
-            NSC.sprich(self, text, *args, **kwargs)
+            mint("Du entkommst der wütenden NoMuh")
+    return Rückkehr.VERLASSEN
 
-    def optionen(self, mänx: Mänx):
-        yield from super().optionen(mänx)
-        yield ("versuchen, NoMuh zu melken", "melken", self.melken)
-        yield ("NoMuh füttern", "füttern", self.füttern)
+@nomuh.dialog_deco("NoMuh füttern", "füttern", zeitpunkt=Zeitpunkt.Option)
+def füttern(self, mänx: Mänx):
+    opts = [("Gras ausreißen", "gras", "gras")]
+    for item in ("Gänseblümchen", "Erbse", "Mantel", "Karotte", "Banane"):
+        if mänx.hat_item(item):
+            opts.append((item, item.lower(), item.lower()))
+    ans = mänx.menu(opts, frage="Was fütterst du sie?")
+    if ans == "gras":
+        malp("NoMuh frisst das Gras aus deiner Hand")
+        mint("und kaut gelangweilt darauf herum.")
+    elif ans == "erbse":
+        malp("NoMuh leckt dir die Erbsen schnell aus der Hand.")
+        mänx.erhalte("Erbse", -1)
+        nm_sprich(self, "Endlich jemand, der mich versteht. Danke!")
+        self.freundlich += 10
+    elif ans == "mantel":
+        malp("NoMuh beißt in deinen Mantel, dann reißt sie ihn an.")
+        mint("Der Mantel ist jetzt unbenutzbar.")
+        mänx.erhalte("Mantel", -1)
+    elif ans == "karotte":
+        nm_sprich(self, "Bin ich ein Kaninchen oder was?")
+        mint("NoMuh will keine Karotten.")
+    elif ans == "banane":
+        mint("NoMuh würdigt dich keinen Blickes.")
+    else:
+        assert ans == "gänseblümchen"
+        mänx.erhalte("Gänseblümchen", -1)
+        nm_sprich(self, "Frauen überzeugt man mit Blumen, was?")
+        self.freundlich += 1
 
-    def füttern(self, mänx: Mänx):
-        opts = [("Gras ausreißen", "gras", "gras")]
-        for item in ("Gänseblümchen", "Erbse", "Mantel", "Karotte", "Banane"):
-            if mänx.hat_item(item):
-                opts.append((item, item.lower(), item.lower()))
-        ans = mänx.menu(opts, frage="Was fütterst du sie?")
-        if ans == "gras":
-            malp("NoMuh frisst das Gras aus deiner Hand")
-            mint("und kaut gelangweilt darauf herum.")
-        elif ans == "erbse":
-            malp("NoMuh leckt dir die Erbsen schnell aus der Hand.")
-            mänx.inventar["Erbse"] -= 1
-            self.sprich("Endlich jemand, der mich versteht. Danke!")
-            self.freundlich += 10
-        elif ans == "mantel":
-            malp("NoMuh beißt in deinen Mantel, dann reißt sie ihn an.")
-            mint("Der Mantel ist jetzt unbenutzbar.")
-            mänx.inventar["Mantel"] -= 1
-        elif ans == "karotte":
-            self.sprich("Bin ich ein Kaninchen oder was?")
-            mint("NoMuh will keine Karotten.")
-        elif ans == "banane":
-            mint("NoMuh würdigt dich keinen Blickes.")
+
+@nomuh.dialog_deco("versuchen, NoMuh zu melken", "melken", zeitpunkt=Zeitpunkt.Option)
+def melken(self: NSC, mänx: Mänx) -> None:
+    if self.freundlich >= 10:
+        mänx.titel.add("Kuhflüsterer")
+        if Cooldown("jtg:nord:nomuh:gemolken", 1)(mänx):
+            mänx.erhalte("magische Milch", 1)
         else:
-            assert ans == "gänseblümchen"
-            mänx.inventar["Gänseblümchen"] -= 1
-            self.sprich("Frauen überzeugt man mit Blumen, was?")
-            self.freundlich += 1
-
-    def melken(self, mänx: Mänx):
-        if self.freundlich >= 0:
-            mänx.titel.add("Kuhflüsterer")
-            if self.letztes_melken is None or self.letztes_melken < mänx.welt.get_tag():
-                self.letztes_melken = mänx.welt.get_tag()
-                mänx.erhalte("magische Milch", 1)
-            else:
-                mint("No Muh wurde heute schon gemolken.")
-        else:
-            self.sprich("Untersteh dich, mich da anzufassen!")
-            mint("NoMuh tritt dich ins Gesicht.")
+            mint("No Muh wurde heute schon gemolken.")
+    else:
+        self.sprich("Untersteh dich, mich da anzufassen!")
+        mint("NoMuh tritt dich ins Gesicht.")
 
 
 def kampf_axtmann(nsc: nsc.NSC, mänx: Mänx):
@@ -177,8 +176,8 @@ def kampf_axtmann(nsc: nsc.NSC, mänx: Mänx):
 
 
 @register("jtg:axtmann")
-def axtmann() -> NSC:
-    return NSC("?", "Axtmann", kampf_axtmann, startinventar={
+def axtmann() -> OldNSC:
+    return OldNSC("?", "Axtmann", kampf_axtmann, startinventar={
         "mächtige Axt": 1,
         "Kettenpanzer": 1,
         "T-Shirt": 1,
@@ -209,21 +208,21 @@ def brian_dlg() -> Iterable[Dialog]:
 
 
 @register("jtg:fred")
-def fred() -> NSC:
-    return NSC("Fréd Fórmayr", "Dorfvorsteher", kampf_in_disnayenbum,
-               startinventar={
-                   "Messer": 1,
-                   "Anzug": 1,
-                   "Anzugjacke": 1,
-                   "Lederschuh": 2,
-                   "Ledergürtel": 1,
-                   "Kräutersud gegen Achselgeruch": 2,
-                   "Armbanduhr": 1,
-                   "Unterhose": 1,
-                   "Ehering": 1,
-                   "Gold": 51
-               }, vorstellen=["Ein Mann in Anzug lächelt dich unverbindlich an."],
-               dlg=fred_dlg)
+def fred() -> OldNSC:
+    return OldNSC("Fréd Fórmayr", "Dorfvorsteher", kampf_in_disnayenbum,
+                  startinventar={
+                      "Messer": 1,
+                      "Anzug": 1,
+                      "Anzugjacke": 1,
+                      "Lederschuh": 2,
+                      "Ledergürtel": 1,
+                      "Kräutersud gegen Achselgeruch": 2,
+                      "Armbanduhr": 1,
+                      "Unterhose": 1,
+                      "Ehering": 1,
+                      "Gold": 51
+                  }, vorstellen=["Ein Mann in Anzug lächelt dich unverbindlich an."],
+                  dlg=fred_dlg)
 
 
 def fred_dlg():
@@ -245,23 +244,23 @@ def fred_dlg():
 
 
 @register("jtg:mieko")
-def mieko() -> NSC:
-    return NSC("Mìeko Rimàn", "Dorfbewohner", kampfdialog=kampf_in_disnayenbum,
-               vorstellen=[
-                   "Ein Handwerker bastelt gerade an seiner Werkbank."],
-               dlg=mieko_dlg, startinventar=dict(
-                   Banane=1,
-                   Hering=4,
-                   Karabiner=11,
-                   Dübel=13,
-                   Schraubenzieher=2,
-                   Nagel=500,
-                   Schraube=12,
-                   Werkzeugkasten=1,
-                   Latzhose=1,
-                   Unterhose=1,
-                   Gold=14
-               ))
+def mieko() -> OldNSC:
+    return OldNSC("Mìeko Rimàn", "Dorfbewohner", kampfdialog=kampf_in_disnayenbum,
+                  vorstellen=[
+                      "Ein Handwerker bastelt gerade an seiner Werkbank."],
+                  dlg=mieko_dlg, startinventar=dict(
+                      Banane=1,
+                      Hering=4,
+                      Karabiner=11,
+                      Dübel=13,
+                      Schraubenzieher=2,
+                      Nagel=500,
+                      Schraube=12,
+                      Werkzeugkasten=1,
+                      Latzhose=1,
+                      Unterhose=1,
+                      Gold=14
+                  ))
 
 
 def mieko_dlg():
@@ -288,19 +287,19 @@ def mieko_dlg():
 
 
 @register("jtg:kirie")
-def kirie() -> NSC:
-    n = NSC("Kirie Fórmayr", "Kind", kampfdialog=kampf_in_disnayenbum,
-            startinventar=dict(
-                Matschhose=1,
-                Teddybär=1,
-                Unterhose=1,
-                BH=1,
-                Mütze=1,
-                Haarband=1,
-                Nagel=4,
+def kirie() -> OldNSC:
+    n = OldNSC("Kirie Fórmayr", "Kind", kampfdialog=kampf_in_disnayenbum,
+               startinventar=dict(
+                   Matschhose=1,
+                   Teddybär=1,
+                   Unterhose=1,
+                   BH=1,
+                   Mütze=1,
+                   Haarband=1,
+                   Nagel=4,
 
-            ), direkt_reden=True,
-            vorstellen=["Ein junges Mädchen spielt im Feld."], dlg=kirie_dlg)
+               ), direkt_reden=True,
+               vorstellen=["Ein junges Mädchen spielt im Feld."], dlg=kirie_dlg)
     n.inventar["Talisman des Verstehens"] += 1
     return n
 
