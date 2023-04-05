@@ -64,8 +64,8 @@ class TestWeg(unittest.TestCase):
         self.assertEqual(gebiet.größe, (4, 2))
         richtung = p1.nachbarn[Himmelsrichtung.from_kurz("o")]
         assert richtung
-        self.assertIsInstance(richtung.ziel, Weg)
-        self.assertIn(p2, richtung.ziel.get_nachbarn())
+        self.assertIsInstance(richtung, Weg)
+        self.assertIn(p2, richtung.get_nachbarn())
 
         def get_nachbarn2(pt) -> set:
             ans = set()

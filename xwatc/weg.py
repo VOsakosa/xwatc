@@ -231,15 +231,6 @@ class Wegtyp(enum.Enum):
             return super().__format__(format_spec)
 
 
-@dataclass
-class Richtung:
-    """Stellt eine wählbare Richtung an einem Wegpunkt dar."""
-    ziel: Wegpunkt
-    zielname: str = ""
-    name_kurz: str = ""
-    typ: Wegtyp = Wegtyp.WEG
-
-
 HIMMELSRICHTUNGEN = [a + "en" for a in (
     "Nord",
     "Nordost",
@@ -297,6 +288,14 @@ class Himmelsrichtung:
         return self.kurz
 
 
+@define
+class Richtungsoption:
+    """Stellt eine wählbare Richtung an einem Wegpunkt dar."""
+    zielname: str = ""
+    name_kurz: str = ""
+    typ: Wegtyp = Wegtyp.WEG
+
+
 NachbarKey = _StrAsHimmelsrichtung | Himmelsrichtung
 BeschreibungFn = MänxFkt[None | Wegpunkt | WegEnde]
 
@@ -336,7 +335,7 @@ class Beschreibung:
             raise ValueError(
                 "nur und außer können nicht beide gesetzt werden.")
 
-    def beschreibe(self, mänx: Mänx, von: str | None) -> Any | None:
+    def beschreibe(self, mänx: Mänx, von: str | None) -> Wegpunkt | WegEnde | None:
         """Führe die Beschreibung aus."""
         if (not self.nur or von in self.nur) and (
                 not self.außer or von not in self.außer):
@@ -357,10 +356,6 @@ def cap(a: str) -> str:
     return a[:1].upper() + a[1:]
 
 
-def _to_richtung(richtung: Ausgang) -> Richtung:
-    return Richtung(ziel=richtung.wegpunkt)
-
-
 def kreuzung(
     name: str,
     gucken: BeschreibungFn | Sequence[str] = (),
@@ -376,8 +371,8 @@ def kreuzung(
     :param immer_fragen: Wenn False, läuft der Mensch automatisch weiter, wenn es nur eine
         Fortsetzung gibt.
     """
-    nb = {Himmelsrichtung.from_kurz(key): _to_richtung(value)
-          for key, value in kwargs.items()}
+    nb = {Himmelsrichtung.from_kurz(
+        key): value.wegpunkt for key, value in kwargs.items()}
     ans = Wegkreuzung(name, nb, kreuzung_beschreiben=kreuzung_beschreiben,
                       immer_fragen=immer_fragen, menschen=[*menschen])
     if gucken:
@@ -403,8 +398,10 @@ class Wegkreuzung(Wegpunkt):
     OPTS: ClassVar[Sequence[int]] = [
         4, 3, 5, 2, 6, 1, 7]  # Reihenfolge des Fragens
     name: str
-    nachbarn: dict[NachbarKey, Richtung] = field(repr=False)
-    menschen: list[nsc.NSC] = field(factory=list)
+    nachbarn: dict[NachbarKey, Wegpunkt] = field(repr=False)
+    _optionen: dict[NachbarKey, Richtungsoption] = field(
+        repr=False, factory=dict)
+    menschen: list[nsc.NSC] = field(factory=list, repr=False)
     immer_fragen: bool = True
     kreuzung_beschreiben: bool = False
     _gebiet: 'Gebiet | None' = None
@@ -440,17 +437,16 @@ class Wegkreuzung(Wegpunkt):
         else:
             self._wenn_fn[richtung] = fn
 
-    def setze_zielname(self, richtung: str, ziel_name: str, ziel_kurz: str = ""):
+    def setze_zielname(self, richtung: str, ziel_name: str, ziel_kurz: str = "",
+                       typ=Wegtyp.WEG):
         """Setze den Zielnamen für eine Richtung. Dieser wird"""
         ziel_kurz = ziel_kurz or ziel_name.lower()
         if not ziel_kurz or " " in ziel_kurz:
             raise ValueError(
                 "Aus dem Ziel lässt sich keine sinnvolle Option machen.")
-        richtung_obj = self.nachbarn.get(Himmelsrichtung.from_kurz(richtung))
-        if not richtung_obj:
-            raise ValueError(f"Die Richtung {richtung} ist nicht verbunden.")
-        richtung_obj.zielname = ziel_name
-        richtung_obj.name_kurz = ziel_kurz
+        self._optionen[Himmelsrichtung.from_kurz(richtung)] = (
+            Richtungsoption(ziel_name, ziel_kurz, typ)
+        )
 
     def beschreibe(self, mänx: Mänx, ri_name: str | Himmelsrichtung | None
                    ) -> WegEnde | Wegpunkt | None:
@@ -485,29 +481,30 @@ class Wegkreuzung(Wegpunkt):
         for mensch in self.menschen:
             yield (f"Mit {mensch.name} reden", mensch.name.lower(),
                    mensch)
-        for ri, himri in self._richtungen(mänx, von):
+        for pt, himri in self._richtungen(mänx, von):
+            ri = self._optionen.setdefault(himri, Richtungsoption())
             if himri == von:
                 if ri.zielname:
-                    yield (f"Zurück ({ri.zielname})", "f", ri.ziel)
+                    yield (f"Zurück ({ri.zielname})", "f", pt)
                 else:
-                    yield ("Umkehren", "f", ri.ziel)
+                    yield ("Umkehren", "f", pt)
             else:
                 if ri.zielname:
-                    yield (ri.zielname, ri.name_kurz or ri.zielname.lower(), ri.ziel)
+                    yield (ri.zielname, ri.name_kurz or ri.zielname.lower(), pt)
                 elif isinstance(himri, Himmelsrichtung):
-                    yield (f"Nach {himri}", format(himri).lower(), ri.ziel)
+                    yield (f"Nach {himri}", format(himri).lower(), pt)
                     # ziel = cap(ri.typ.text(True, 4)) + f" nach {himri}"
                 else:
-                    yield (himri, himri.lower(), ri.ziel)
+                    yield (himri, himri.lower(), pt)
 
     def _richtungen(self, mänx: Mänx, von: NachbarKey | None
-                    ) -> Iterator[tuple[Richtung, NachbarKey]]:
+                    ) -> Iterator[tuple[Wegpunkt, NachbarKey]]:
         """Liste alle möglichen Richtungen in der richtigen Reihenfolge auf.
 
         Zuerst kommen die Himmelsrichtungen, je gerader desto besser.
         Dann kommen die speziellen Orte.
         """
-        def inner() -> Iterator[tuple[NachbarKey, Richtung]]:
+        def inner() -> Iterator[tuple[NachbarKey, Wegpunkt]]:
             if isinstance(von, Himmelsrichtung):
                 for rirel in self.OPTS:
                     riabs = von + rirel
@@ -527,7 +524,7 @@ class Wegkreuzung(Wegpunkt):
                 yield richtung, himri_oder_name
 
     def get_nachbarn(self) -> list[Wegpunkt]:
-        return [ri.ziel for ri in self.nachbarn.values()]
+        return [pt for pt in self.nachbarn.values()]
 
     def main(self, mänx: Mänx, von: Wegpunkt | None = None) -> Wegpunkt | WegEnde:
         """Fragt nach allen Richtungen."""
@@ -535,7 +532,7 @@ class Wegkreuzung(Wegpunkt):
         von_key = None
         if von is not self:
             for key, value in self.nachbarn.items():
-                if value.ziel is von:
+                if value is von:
                     von_key = key
                     break
         schnell_austritt = self.beschreibe(mänx, von_key)
@@ -566,9 +563,9 @@ class Wegkreuzung(Wegpunkt):
 
     def __sub__(self, anderer: 'Wegkreuzung') -> 'Wegkreuzung':
         anderer.nachbarn[Himmelsrichtung.from_kurz(
-            self.name)] = Richtung(self)
+            self.name)] = self
         self.nachbarn[Himmelsrichtung.from_kurz(
-            anderer.name)] = Richtung(anderer)
+            anderer.name)] = anderer
         return anderer
 
     def verbinde(self,
@@ -582,8 +579,8 @@ class Wegkreuzung(Wegpunkt):
             raise ValueError("Die Richtung kann nicht leer sein.")
         anderer.verbinde(self)
         hiri = Himmelsrichtung.from_kurz(richtung)
-        self.nachbarn[hiri] = Richtung(
-            anderer.wegpunkt, ziel, ziel or kurz, typ)
+        self.nachbarn[hiri] = anderer.wegpunkt
+        self._optionen[hiri] = Richtungsoption(ziel, ziel or kurz, typ)
 
     def verbinde_mit_weg(self,
                          nach: Wegkreuzung,
@@ -611,8 +608,10 @@ class Wegkreuzung(Wegpunkt):
         weg = Weg(länge, None, None, **kwargs)
         assert not (self.nachbarn.get(ri1) or nach.nachbarn.get(ri2)
                     ), "Überschreibt bisherigen Weg."
-        self.nachbarn[ri1] = Richtung(weg, beschriftung_hin, typ=typ)
-        nach.nachbarn[ri2] = Richtung(weg, beschriftung_zurück, typ=typ)
+        self.nachbarn[ri1] = weg
+        self._optionen[ri1] = Richtungsoption(beschriftung_hin, typ=typ)
+        nach.nachbarn[ri2] = weg
+        self._optionen[ri2] = Richtungsoption(beschriftung_zurück, typ=typ)
         weg.p1 = self
         weg.p2 = nach
 
@@ -623,13 +622,14 @@ class Wegkreuzung(Wegpunkt):
         # Die Option wird durch eine Wegkreuzung mit immer_fragen=False abgewickelt.
         effekt_punkt = Wegkreuzung(
             name=self.name + ":" + name_kurz,
-            nachbarn={_StrAsHimmelsrichtung("zurück"): Richtung(self)},
+            nachbarn={_StrAsHimmelsrichtung("zurück"): self},
             immer_fragen=False,  # Nach der Beschreibung wird umgekehrt
             gebiet=self._gebiet,
             beschreibungen=[Beschreibung(effekt)]
         )
-        self.nachbarn[Himmelsrichtung.from_kurz(
-            name_kurz)] = Richtung(effekt_punkt, name, name_kurz)
+        himri = Himmelsrichtung.from_kurz(name_kurz)
+        self.nachbarn[himri] = effekt_punkt
+        self._optionen[himri] = Richtungsoption(name, name_kurz)
         return self
 
     def add_nsc(self, welt: Welt, name: str, fkt: Callable[..., nsc.NSC],
@@ -643,8 +643,8 @@ class Gebiet:
     erzeugt werden und werden dann automatisch mit ihren Nachbarn verbunden."""
     name: str
     gitterlänge: float = 5 / 64
-    _punkte: list[list[Wegkreuzung | None]] = Factory(list)
-    eintrittspunkte: dict[str, Wegpunkt] = Factory(dict)
+    _punkte: list[list[Wegkreuzung | None]] = field(factory=list, repr=False)
+    eintrittspunkte: dict[str, Wegpunkt] = field(factory=dict, repr=False)
 
     def neuer_punkt(self, koordinate: tuple[int, int], name: str, immer_fragen: bool = True
                     ) -> Wegkreuzung:
@@ -653,6 +653,7 @@ class Gebiet:
             name=name, nachbarn={}, gebiet=self, immer_fragen=immer_fragen))
 
     def setze_punkt(self, koordinate: tuple[int, int], pkt: Wegkreuzung) -> Wegkreuzung:
+        """Setze einen Punkt auf das Gitter und verbinde ihn mit seinen Nachbarn."""
         x, y = koordinate
         if alter_pkt := self.get_punkt_at(x, y):
             raise ValueError(f"Kann keinen neuen Punkt {pkt.name} bei {x},{y} erstellen, da durch "
@@ -695,8 +696,8 @@ class Gebiet:
         ri2 = ri1.gegenrichtung
 
         weg = Weg(länge * self.gitterlänge)
-        pkt1.nachbarn[ri1] = Richtung(weg)
-        pkt2.nachbarn[ri2] = Richtung(weg)
+        pkt1.nachbarn[ri1] = weg
+        pkt2.nachbarn[ri2] = weg
         weg.p1 = pkt1
         weg.p2 = pkt2
 
