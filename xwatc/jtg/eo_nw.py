@@ -3,7 +3,7 @@ Die Geschichte an der Grenze von EO (nicht passierbar).
 Created on 21.10.2020
 """
 from xwatc import jtg
-from xwatc.jtg import see
+from xwatc.jtg import see, nord
 from xwatc.nsc import StoryChar
 from xwatc.system import mint, Mänx, sprich, kursiv, Spielende, malp, MenuOption
 from xwatc.untersystem.person import Rasse
@@ -19,7 +19,7 @@ eo_nw_ost = Eintritt(("jtg:eo_nw", "eo_nw"))
 @gebiet("jtg:eo_nw")
 def eo_nw(mänx: Mänx, gb: Gebiet) -> None:
     ww = gb.neuer_punkt((2, 3), "kreuzung")
-    ww.verbinde(WegAdapter(jtg.disnayenbum, "eo_nw", gb), "so", "Disnayenbum")
+    ww.verbinde(gb.ende(eo_nw_ost, nord.eintritt_west), "so", "Disnayenbum")
     ww.add_beschreibung([
         "Der Weg ist gepflastert, aber er wurde lange nicht mehr gepflegt "
         "und genutzt.",

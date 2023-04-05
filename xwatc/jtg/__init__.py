@@ -104,22 +104,6 @@ def erzeuge_mitte(mänx: Mänx, gebiet: weg.Gebiet) -> 'weg.Wegpunkt':
     lichtung.verbinde(osten, "o", typ=weg.Wegtyp.TRAMPELPFAD)
     return lichtung
 
-# TODO: Verschiebe disnayenbum nach Norden.
-
-
-def disnayenbum(mänx: Mänx):
-    mint("Du kommst im Dorf Disnayenbun an.")
-    nex = scenario.lade_scenario(mänx, "disnajenbun")
-    if "osten" == nex:
-        mint("Du verlässt das Dorf Richtung Osten.")
-        # t2_no(mänx)
-    elif nex == "westen":
-        mint("Du verlässt das Dorf Richtung Nordwesten.")
-        weg.wegsystem(mänx, eo_nw.eo_nw_ost(mänx))
-    else:  # süden
-        mint("Du verlässt das Dorf Richtung Süden.")
-        weg.wegsystem(mänx, "jtg:mitte:nord")
-
 
 def erzeuge_teil_süd(mänx: Mänx, gb: weg.Gebiet) -> Wegkreuzung:
     """Erzeuge den südlichen Teil der Mitte, mit dem Hexer und dem Süddorf."""
@@ -212,7 +196,7 @@ def hexer_skelett(leo: NSC, mänx: Mänx) -> Fortsetzung:
     if ans == "mitose":
         return Eintritt("jtg:mitose")
     elif ans == "disnajenbun":
-        return disnayenbum
+        return nord.eintritt_süd
     else:
         return ende_des_waldes
 

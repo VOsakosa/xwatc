@@ -9,6 +9,7 @@ from xwatc import weg
 from xwatc import jtg
 from xwatc.system import Mänx
 from xwatc.jtg import tauern
+from xwatc.jtg import nord
 __author__ = "jasper"
 
 GEBIET = "jtg:osten"
@@ -21,7 +22,7 @@ no_süd = Eintritt((GEBIET, "süd"))
 def erzeuge_osten(mänx: Mänx, gb: weg.Gebiet) -> None:
     ng = gb.neuer_punkt((0, 1), "nach_disnayenbum", immer_fragen=False)
     # TODO: Dieser Punkt darf nicht nach Norden verbunden werden.
-    # ng.verbinde(gb.ende(no_dis, norden.eingang_ost), "w")
+    ng.verbinde(gb.ende(no_dis, nord.eintritt_ost), "w")
     ng.bschr("Der Weg windet sich aus dem Wald heraus, an den Rand einer windigen Hügelebene.",
              nur="w")
 

@@ -3,7 +3,7 @@ Tauern, das Land der aufrechten Kühe.
 Created on 15.10.2020
 """
 from xwatc import weg
-from xwatc.dorf import NSC
+from xwatc.dorf import NSC, Rückkehr
 from xwatc.jtg import osten
 from xwatc.system import Mänx, register, malp, Spielende, Fortsetzung
 from xwatc.untersystem.person import Fähigkeit
@@ -137,9 +137,9 @@ class Zollwärter(NSC):
             "Dafür gibt es aber keinen guten Grund.",
         ], "kosten")
 
-    def kampf(self, mänx: Mänx) -> None:
+    def kampf(self, mänx: Mänx) -> Rückkehr:
         if self.gewarnt:
-            return self.kampf_gewarnt(mänx)
+            self.kampf_gewarnt(mänx)
         malp("Du stürmst auf das Zollhäuschen zu, ", end="")
         waffe = mänx.hat_klasse("Waffe")
         if waffe:
@@ -165,6 +165,7 @@ class Zollwärter(NSC):
             malp("Du erklärst, dass es alles nur ein Scherz war.")
             self.sprich("Ein weiteres Mal wird es nicht geben!")
             self.gewarnt = True
+        return Rückkehr.VERLASSEN
 
     def kampf_gewarnt(self, mänx: Mänx) -> None:
         """Der Zöllner ist bereits gewarnt und kennt keine Gnade."""

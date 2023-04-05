@@ -24,12 +24,14 @@ und Objekt-Definitionen:
 Die Farben sind unter *FARBEN*.
 """
 from __future__ import annotations
+from collections.abc import Mapping
 from typing import List, Optional as Op, Union, NewType, Dict, Any,\
     TYPE_CHECKING
 import os.path
 from xwatc.system import Mänx, malp
 import sys
 from functools import lru_cache
+from attrs import define, field
 
 if __name__ == "__main__":
     sys.path.append("..")
@@ -40,7 +42,8 @@ if TYPE_CHECKING:
     from gi.repository import Gtk
     from xwatc.anzeige import XwatcFenster
 
-SCENARIO_ORT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../scenarios"))
+SCENARIO_ORT = os.path.abspath(os.path.join(
+    os.path.dirname(__file__), "../../scenarios"))
 
 
 def supports_color():
@@ -66,11 +69,11 @@ FARBEN = {
     "bn": "33",
 }
 FARBEN_RGB = {
-    "gn": (50,255,30),
-    "gu": (180,180,180),
-    "bu": (0,40,255),
-    "gb": (255,255,0),
-    "bn": (200,160, 80),
+    "gn": (50, 255, 30),
+    "gu": (180, 180, 180),
+    "bu": (0, 40, 255),
+    "gb": (255, 255, 0),
+    "bn": (200, 160, 80),
 }
 _SpielerTyp = NewType("_SpielerTyp", object)
 Spieler = _SpielerTyp(object())
@@ -79,12 +82,14 @@ Spieler = _SpielerTyp(object())
 class ScenarioEnde:
     """Der Rückgabewert eines Scenarios, ein Ergebnis, ein nächstes Scenario
     oder der Tod des Spielers."""
+
     def __init__(self, tot=False, nächstes=None, ergebnis=None):
         self.tot = tot
         # Nächstes Scenario
         self.nächstes = nächstes
         # Scenario-Ergebnis
         self.ergebnis = ergebnis
+
 
 @lru_cache
 def _calc_zeichen(zeichen, farbe, ausweich) -> str:
@@ -176,7 +181,7 @@ def parse_feld(obj, ch):
     if len(n) > 3 and n[3] in obj:
         return Feld(*_auf_drei(*obj[n[3]]), *ns)
     else:
-        return Feld("", "", "","", *ns)
+        return Feld("", "", "", "", *ns)
 
 
 def _strip_nl(line: str) -> str:
@@ -187,9 +192,10 @@ def _strip_nl(line: str) -> str:
 
 class Scenario:
     """Ein Scenario, auf dem der Mänx herumlaufen kann.
-    
+
     Scenario.einleiten startet das Spiel.
     """
+
     def __init__(self, name: str, feld: List[List[Feld]]) -> None:
         self.name = name
         self.anzeigename = name
@@ -239,7 +245,7 @@ class Scenario:
                 feld.append(feldl)
         return cls(sc_name, feld)
 
-    def print_feld(self, clear: bool=True):
+    def print_feld(self, clear: bool = True):
         if ERLAUBT_FARBEN:
             if clear:
                 print("\x1b7\x1b[0;0H", end="")
@@ -298,7 +304,7 @@ class Scenario:
             if mänx.ausgabe.terminal:
                 arg = mänx.minput(">")
             else:
-                arg = mänx.menu([], versteckt={a:a for a in "wasd"})
+                arg = mänx.menu([], versteckt={a: a for a in "wasd"})
             if arg == "w":
                 ans = self.bewege_spieler(mänx, -1, 0)
             elif arg == "d":
@@ -316,7 +322,7 @@ class Scenario:
 
 def lade_scenario(mänx: Mänx, path: str) -> Op[Any]:
     """ Lädt ein Scenario mit Namen und führt es aus.
-    
+
     Beispiel lade_scenario(mänx, "s1.txt")"""
     ans = ScenarioEnde(nächstes=path)
     while ans:
@@ -331,30 +337,50 @@ def lade_scenario(mänx: Mänx, path: str) -> Op[Any]:
             return ans.ergebnis
     return None
 
-# class ScenarioWegpunkt(weg.Wegkreuzung):
-#     """Macht ein Scenario zu einem Wegpunkt"""
-#     def __init__(self, name: str, scenario: Union[str, Scenario], *args, **kwargs):
-#         super().__init__(name, *args, **kwargs)
-#         if isinstance(scenario, str):
-#             path = scenario
-#             if not path.endswith(".txt"):
-#                 path += ".txt"
-#             path = os.path.join(SCENARIO_ORT, path)
-#             self.scenario = Scenario.laden(path)
-#         else:
-#             self.scenario = scenario
-#
-#     def main(self, mänx: Mänx, von: Op[weg.Wegpunkt] = None) -> weg.Wegpunkt:
-#         # TODO von könnte für verschiedene Spawnpunkte genutzt werden
-#         ans = self.scenario.einleiten(mänx)
-#         if ans.tot:
-#             raise system.Spielende()
-#         elif ans.ergebnis:
-#             return self[ans.ergebnis].ziel
-#         else:
-#             raise RuntimeError("Scenario endete ohne Ergebnis!")
-        
+
+def _lade_scenario(scenario: Scenario | str) -> Scenario:
+    """Konverter, der ein Scenario lädt."""
+    if isinstance(scenario, str):
+        path = scenario
+        if not path.endswith(".txt"):
+            path += ".txt"
+        path = os.path.join(SCENARIO_ORT, path)
+        return Scenario.laden(path)
+    else:
+        return scenario
+
+
+@define
+class ScenarioWegpunkt(weg.Wegpunkt):
+    """Macht ein Scenario zu einem Wegpunkt."""
+    name: str
+    scenario: Scenario = field(converter=_lade_scenario)
+    ziele: Mapping[str, weg.Wegpunkt]
+
+    def __attrs_post_init__(self):
+        for ziel in self.ziele.values():
+            ziel.verbinde(self)
+
+    def get_nachbarn(self) -> list[weg.Wegpunkt]:
+        return list(self.ziele.values())
+    
+    def verbinde(self, __anderer: weg.Wegpunkt):
+        raise NotImplementedError
+
+    def main(self, mänx: Mänx, von: weg.Wegpunkt | None = None) -> weg.Wegpunkt:
+        # TODO von könnte für verschiedene Spawnpunkte genutzt werden
+        von
+        ans = self.scenario.einleiten(mänx)
+        if ans.tot:
+            raise system.Spielende()
+        elif ans.ergebnis:
+            return self.ziele[ans.ergebnis]
+        else:
+            raise RuntimeError("Scenario endete ohne Ergebnis!")
+
+
 if __name__ == '__main__':
     from xwatc.anzeige import main
-    from xwatc.jtg import disnayenbum
-    main(disnayenbum)
+    from xwatc.jtg import nord
+    main(nord.eintritt_süd)
+

@@ -20,10 +20,13 @@ from xwatc.haendler import Preis, mache_händler, HandelsFn
 from xwatc.weg import kreuzung
 from typing import List, Tuple, Sequence
 from xwatc.nsc import Person, StoryChar, bezeichnung, NSC
+from xwatc.jtg import nord
 __author__ = "jasper"
 
 GEFUNDEN = "quest:saxaring:gefunden"
 ABGEGEBEN = "quest:saxaring:abgegeben"
+
+eingang_nord = weg.Eintritt(("jtg:mitose", "nord"))
 
 
 saxa = StoryChar("jtg:saxa", ("Saxa", "Kautohoa", "Holzfällerin"), Person("w"),
@@ -92,7 +95,7 @@ def erzeuge_norddörfer(mänx: Mänx, gebiet: weg.Gebiet) -> weg.Wegpunkt:
 
     mitose_ort.verbinde(
         weg.Weg(
-            0.5, weg.WegAdapter(jtg.disnayenbum, "nord", gebiet)), "n")
+            0.5, gebiet.ende(eingang_nord, nord.eintritt_süd)), "n")
     ort("Hinterhof", mitose, "Ein unkrautbewucherter Hinterhof des Rathauses.")
 
     kraut = kreuzung("kraut", immer_fragen=True)

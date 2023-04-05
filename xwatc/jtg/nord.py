@@ -3,16 +3,35 @@ NSCs für Disnajenbun
 Created on 18.10.2020
 """
 from __future__ import annotations
-from xwatc.system import Mänx, mint, Spielende, InventarBasis, sprich, malp, register
-from xwatc.dorf import NSC, Rückkehr, Malp, Dialog
+
+from collections.abc import Sequence
 import random
 import re
-from typing import Optional, Iterable
-from xwatc.scenario import Scenario
-from xwatc import jtg
+from xwatc import jtg, weg
 from xwatc import nsc
-from xwatc.nsc import StoryChar
+from xwatc.dorf import NSC, Rückkehr, Malp, Dialog
+from xwatc.nsc import StoryChar, bezeichnung
+from xwatc.scenario import Scenario, ScenarioWegpunkt
+from xwatc.system import Mänx, mint, Spielende, InventarBasis, sprich, malp, register
+from xwatc.weg import Eintritt
+
+from typing import Optional, Iterable
+from xwatc.jtg import osten, mitose
+from xwatc.jtg import eo_nw
 __author__ = "jasper"
+
+eintritt_süd = Eintritt(("jtg:disnayenbum", "süd"))
+eintritt_ost = Eintritt(("jtg:disnayenbum", "ost"))
+eintritt_west = Eintritt(("jtg:disnayenbum", "west"))
+
+
+@weg.gebiet("jtg:disnayenbum")
+def disnayenbum(_mänx: Mänx, gb: weg.Gebiet):
+    ScenarioWegpunkt("disnajenbun", "disnajenbun", {
+        "osten": gb.ende(eintritt_ost, osten.no_dis),
+        "westen": gb.ende(eintritt_west, eo_nw.eo_nw_ost),
+        "süden": gb.ende(eintritt_süd, mitose.eingang_nord)
+    })
 
 
 def frage_melken(nsc: NSC, _mänx: Mänx):
@@ -58,7 +77,7 @@ class NoMuh(NSC):
             Dialog("hallo", '"Hallo"', ("Hallo.",)),
             Dialog("futter", '"Was hättest du gerne zu essen?"',
                    ("Erbsen natürlich.", )),
-            Dialog("melken", '"Darf ich dich melken?"', frage_melken),
+            Dialog("melken", '"Darf ich dich melken?"', frage_melken),  # type: ignore
         ]
 
     def vorstellen(self, mänx: Mänx):
@@ -79,9 +98,9 @@ class NoMuh(NSC):
                            mänx.hat_item("Talisman des Verstehens"))
         return super().main(mänx)
 
-    def sprich(self, text: str | Iterable[str | Malp], *args, **kwargs) -> None:
+    def sprich(self, text: str | Sequence[str | Malp], *args, **kwargs) -> None:
         if self.verstanden:
-            NSC.sprich(self, text, *args, **kwargs)
+            NSC.sprich(self, text, *args, **kwargs)  # type: ignore
         else:
             if isinstance(text, str):
                 text = re.sub(r"\w+", "Muh", text)
@@ -182,7 +201,7 @@ def brian_dlg() -> Iterable[Dialog]:
     yield Dialog("heißt", '"Wie heißt du?"', [".."], "hallo")
 
     def dlg_brian(nsc, _m):
-        nsc.name = "Brían"
+        nsc.bezeichnung = bezeichnung(("Brían", "Axtmann"))
         malp("Brían nickt leicht.")
         nsc.sprich("..", warte=True)
     yield Dialog("brian", '"Du heißt Brían, oder?"', dlg_brian
