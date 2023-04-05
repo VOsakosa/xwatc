@@ -569,7 +569,7 @@ class Wegkreuzung(Wegpunkt):
             self.nachbarn[hiri] = Richtung(anderer, ziel, ziel or kurz, typ)
         else:
             getLogger("xwatc.weg").warning("Verbinde ohne Richtung ist bei einer "
-                                           "Wegkreuzung nicht möglich.")
+                                           f"Wegkreuzung ({self}) nicht möglich.")
 
     def verbinde_mit_weg(self,
                          nach: Wegkreuzung,

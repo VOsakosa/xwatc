@@ -4,11 +4,13 @@ Created on 15.10.2020
 """
 from xwatc import weg
 from xwatc.dorf import NSC
-from xwatc.untersystem.person import Fähigkeit
-__author__ = "jasper"
+from xwatc.jtg import osten
 from xwatc.system import Mänx, register, malp, Spielende, Fortsetzung
-from xwatc.weg import gebiet, WegAdapter, kreuzung, Wegtyp
+from xwatc.untersystem.person import Fähigkeit
+from xwatc.weg import gebiet, kreuzung, Wegtyp, Eintritt
 
+
+__author__ = "jasper"
 ZOLL_PREIS = 10
 
 KRIEGER_INVENTAR = {
@@ -25,20 +27,13 @@ KRIEGER_INVENTAR = {
 }
 
 
-def land_der_kühe(mänx: Mänx) -> Fortsetzung:
-    return weg.wegsystem(mänx, "jtg:tauern", return_fn=True)
-
-
-def rückweg(mänx: Mänx):
-    """Gehe aus Tauern wieder zurück."""
-    import xwatc.jtg
-    xwatc.jtg.tauern_ww_no(mänx)
+land_der_kühe = Eintritt(("jtg:tauern", "start"))
 
 
 @gebiet("jtg:tauern")
 def erzeuge_tauern(mänx: Mänx, gebiet: weg.Gebiet) -> None:
     import xwatc.jtg.gibon as __  # @UnusedImport
-    ein_adap = WegAdapter(rückweg, "start", gebiet)
+    ein_adap = gebiet.ende(land_der_kühe, osten.no_tauern)
     eintritt = kreuzung("eintritt", sw=ein_adap)
     eintritt.add_beschreibung([
         "Der Weg führt weiter am Fluss entlang, das Land wird hügeliger.",
@@ -170,7 +165,7 @@ class Zollwärter(NSC):
             malp("Du erklärst, dass es alles nur ein Scherz war.")
             self.sprich("Ein weiteres Mal wird es nicht geben!")
             self.gewarnt = True
-    
+
     def kampf_gewarnt(self, mänx: Mänx) -> None:
         """Der Zöllner ist bereits gewarnt und kennt keine Gnade."""
         malp("Du schickst dich gerade an, die Waffe herauszuholen...")
@@ -178,6 +173,7 @@ class Zollwärter(NSC):
         malp("da steckte dir schon eine Axt im Schädel...")
         malp("Muminen sind nicht zu unterschätzen...")
         raise Spielende
+
 
 if __name__ == '__main__':
     import xwatc.anzeige
