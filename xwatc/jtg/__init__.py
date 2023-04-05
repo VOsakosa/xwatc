@@ -11,7 +11,7 @@ from xwatc.jtg import groekrak, see, nord, osten, mitose, eo_nw
 from xwatc.jtg.groekrak import zugang_südost
 from xwatc.jtg.ressourcen import zufälliger_name
 from xwatc.jtg.tauern import land_der_kühe
-from xwatc.nsc import Person, StoryChar, NSC
+from xwatc.nsc import Person, StoryChar, NSC, bezeichnung
 from xwatc.system import (
     Mänx, minput, ja_nein, register, MenuOption,
     Spielende, mint, sprich, kursiv, malp, get_classes, Inventar, MänxFkt, Fortsetzung)
@@ -148,7 +148,8 @@ def erzeuge_teil_süd(mänx: Mänx, gb: weg.Gebiet) -> Wegkreuzung:
     # ("Den Weg nach Norden nach Tauern", "tauern", tauern_ww_süd)
     süddorf.verbinde(gb.ende(süd_dorf_west, groekrak.zugang_südost), "grökrakchöl",
                      "Den Weg nach Westen nach Grökrakchöl", "grökrakchöl")
-    süddorf.verbinde(gb.ende(süd_dorf_ost, osten.no_süd), "Osten nach Tauern", "osten")
+    süddorf.verbinde(gb.ende(süd_dorf_ost, osten.no_süd),
+                     "Osten nach Tauern", "osten")
     gb.eintrittspunkte["wald"] = süddorf
     return nebelwald
 
@@ -194,7 +195,7 @@ def hexer_skelett(leo: NSC, mänx: Mänx) -> Fortsetzung:
     if ans == "mitose":
         return Eintritt("jtg:mitose")
     elif ans == "disnajenbun":
-        return nord.eintritt_süd
+        return nord.eintritt_süd  # @MissingImport
     else:
         return ende_des_waldes
 
@@ -452,33 +453,31 @@ tobi.dialog('ring', "Den Ring vorzeigen", ring_zeigen).wenn(
     lambda _n, m: m.hat_item("Ring des Berndoc"))
 
 
-def zufällige_frau():
-    name = zufälliger_name()
-    person = Person("w")
-    inventar: Inventar = defaultdict(int)
+def erzeuge_frau(nsc: NSC):
+    """Passe eine zufällig erzeugte Hausfrau an."""
+    nsc.bezeichnung = bezeichnung((zufälliger_name(), "Hausfrau"))
     verheiratet = random.random() > 0.4
     if verheiratet:
-        inventar["Schnöder Ehering"] += 1
+        nsc.erhalte("Schnöder Ehering")
     elif random.random() > 0.5:
-        inventar["Gänseblümchen"] += 5
-    inventar["Einfaches Kleid"] += 1
-    inventar["Unterhose"] += 1
-    inventar["BH" if random.random() < 0.6 else "Großer BH"] += 1
+        nsc.erhalte("Gänseblümchen", 5)
+    nsc.erhalte("BH" if random.random() < 0.6 else "Großer BH")
     if random.random() > 0.8:
-        inventar["Haarband"] += 1
-        inventar["Armband"] += 2
+        nsc.erhalte("Haarband")
+        nsc.erhalte("Armband", 2)
     if random.random() > 0.8:
-        inventar["Dolch"] += 1
-    inventar["Socke"] += 2
-    inventar["Gold"] += max(0, random.randint(-4, 10))
-    char = StoryChar(None, (name, "Hausfrau"), person,
-                     inventar, direkt_reden=True)
-    char.dialoge.extend(HalloDialoge)
-
-    nsc = char.zu_nsc()
+        nsc.erhalte("Dolch")
+    nsc.gold += max(0, random.randint(-4, 10))
     if not verheiratet:
         nsc.variablen.add("ledig")
     return nsc
+
+
+frau = StoryChar("jtg:süd:hausfrau", "-", Person("w"), {
+    "Einfaches Kleid": 1, "Unterhose": 1, "Socke": 2
+}, direkt_reden=True, randomize_fn=erzeuge_frau)
+
+frau.dialoge.extend(HalloDialoge)
 
 
 def gar_kampf(nsc, mänx: Mänx) -> None:
@@ -616,6 +615,8 @@ SÜD_DORF_DIALOGE = [
     Dialog("norden", '"Was ist mit dem Norden?"', süd_dorf_norden, "wo"),
 ]
 
+frau.dialoge.extend(SÜD_DORF_DIALOGE)
+
 
 def erzeuge_süd_dorf(mänx) -> Dorf:
     do = Dorf.mit_draußen(SÜD_DORF_NAME)
@@ -627,9 +628,7 @@ def erzeuge_süd_dorf(mänx) -> Dorf:
     mänx.welt.obj("jtg:m:tobiac").ort = kirche
     mänx.welt.obj("jtg:süd:garnichts").ort = kirche
     for _i in range(randint(2, 5)):
-        w = zufällige_frau()
-        w.template.dialoge.extend(SÜD_DORF_DIALOGE)
-        w.ort = do.orte[0]
+        frau.zu_nsc().ort = do.draußen
     # TODO weitere Objekte
     return do
 
@@ -678,7 +677,6 @@ def hauptstadt_weg(mänx: Mänx):
             mint("Du läufst mitten in einen Hinterhalt der Kobolde.")
             malp("Später wird dein Kopf als Schmuck gefunden.")
             raise Spielende
-
 
 
 if __name__ == '__main__':

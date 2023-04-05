@@ -2,7 +2,7 @@
 from xwatc.system import Mänx, Inventar
 from xwatc.dorf import Dorf, ort, Malp
 from random import randint
-from xwatc.jtg import zufällige_frau
+from xwatc.jtg import frau
 from xwatc.lg.nsc.Wachen_von_Gäfdah import (
     SakcaBrauc, OrfGrouundt, ThomarcAizenfjäld)
 from xwatc.lg.nsc.Bürger_von_Gäfdah import MartinPortulakk
@@ -61,7 +61,7 @@ def erzeuge_Gäfdah(mänx: Mänx) -> Dorf:
     d.draußen.add_nsc(
         mänx.welt, "nsc:Wachen_von_Gäfdah:OrfGrouundt", OrfGrouundt)
     for _i in range(randint(2, 5)):
-        w = zufällige_frau()
+        w = frau.zu_nsc()
         d.draußen.menschen.append(w)
     return d
 
