@@ -4,6 +4,7 @@ gespeicherten Teil trennt. Bei Erstellung soll alles einen eindeutigen Namen hab
 from collections import defaultdict
 from collections.abc import Mapping, Iterator, Sequence, Callable
 from enum import Enum
+from logging import getLogger
 import pickle
 from typing import Any, Literal
 
@@ -225,33 +226,42 @@ class NSC(system.InventarBasis):
             if self not in ort.menschen:
                 ort.menschen.append(self)
 
-    def vorstellen(self, mänx: system.Mänx) -> None:
+    def vorstellen(self, mänx: system.Mänx) -> None | Fortsetzung | Rückkehr:
         """So wird der NSC vorgestellt"""
         if self.template.vorstellen_fn:
-            self._call_geschichte(
+            ans = self._call_geschichte(
                 mänx, self.template.vorstellen_fn, erzähler=True)
+            if ans != Rückkehr.WEITER_REDEN:
+                return ans
         for dialog in self.template.dialoge:
             if dialog.zeitpunkt == dorf.Zeitpunkt.Vorstellen and dialog.verfügbar(self, mänx):
-                self._run(dialog, mänx)
+                ans = self._run(dialog, mänx)
+                if ans != Rückkehr.WEITER_REDEN:
+                    return ans
+        return None
 
     def optionen(self, mänx: system.Mänx) -> Iterator[MenuOption[dorf.RunType]]:
         """Gibt die zusätzlichen Optionen außer Reden zurück."""
+        fliehen_da = False
         for dialog in self.template.dialoge:
             if dialog.zeitpunkt == dorf.Zeitpunkt.Option and dialog.verfügbar(self, mänx):
                 yield dialog.zu_option()
-        yield ("fliehen" if self.freundlich < 0 else "zurück", "f", self.fliehen)
+                if dialog.name in ("fliehen", "zurück"):
+                    fliehen_da = True
+        if not fliehen_da:
+            yield ("fliehen" if self.freundlich < 0 else "zurück", "f", self.fliehen)
 
     def fliehen(self, __) -> None:
         """Vor NSCs kann man immer bedenkenlos fliehen"""
         return None
 
-    def kampf(self, mänx: system.Mänx) -> None:
+    def kampf(self, mänx: system.Mänx) -> Rückkehr | Fortsetzung:
         """Startet den Standard-Kampf, falls verfügbar."""
         for dia in self.template.dialoge:
             if dia.name == "k" and dia.verfügbar(self, mänx):
-                self._run(dia, mänx)
-                return
+                return self._run(dia, mänx)
         malp(f"Dir ist nicht danach, {self.name} anzugreifen.")
+        return Rückkehr.VERLASSEN
 
     def dialog_optionen(self, mänx: system.Mänx) -> Iterator[MenuOption[dorf.Dialog]]:
         """Hole die Dialoge, die der Mänx einleitet."""
@@ -270,7 +280,16 @@ class NSC(system.InventarBasis):
         if self.tot:
             mint(f"{self.name}s Leiche liegt still auf dem Boden.")
             return None
-        self.vorstellen(mänx)
+        vorstellung = self.vorstellen(mänx)
+        # intermediäre variable wegen
+        # https://github.com/python/mypy/issues/12998
+        match vorstellung:
+            case None:  # @UnusedVariable
+                pass
+            case Rückkehr():
+                return None
+            case fortsetzung:
+                return fortsetzung
         return self._main(mänx)
 
     def _main(self, mänx: system.Mänx) -> Fortsetzung | None:
@@ -325,6 +344,7 @@ class NSC(system.InventarBasis):
              mänx: system.Mänx) -> Rückkehr | Fortsetzung:
         """Führe eine Option aus."""
         if isinstance(option, dorf.Dialog):
+            getLogger("xwatc.nsc").info(f"Starte Dialog {option.name} von {self.name}")
             dlg = option
             dlg_anzahl = self.dialog_anzahl
             ans = self._call_geschichte(mänx, dlg.geschichte, dlg.effekt)
@@ -351,6 +371,7 @@ class NSC(system.InventarBasis):
                          geschichte: dorf.DialogGeschichte,
                          effekt: dorf.DialogFn | None = None,
                          erzähler: bool = False) -> Rückkehr | Fortsetzung:
+        """Führe den Geschichtsteil eines Dialoges aus."""
         ans: Rückkehr | Fortsetzung = Rückkehr.WEITER_REDEN
         if callable(geschichte):
             ans2 = geschichte(self, mänx)
@@ -371,6 +392,7 @@ class NSC(system.InventarBasis):
 
     def _call_inner(self, text: Sequence[str | dorf.Malp], erzähler: bool,
                     warte: bool = True):
+        """Führe einen Text des Dialoges aus."""
         if isinstance(text, str):
             if erzähler:
                 malp(text)

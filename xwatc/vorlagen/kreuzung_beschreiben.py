@@ -3,16 +3,20 @@ Texte, um Kreuzungen anhand ihrer Struktur automatisch zu beschreiben. Wir ohneh
 genutzt und wird deshalb ausgelagert.
 Created on 02.04.2023
 """
-from xwatc.weg import Wegkreuzung, Richtung, Himmelsrichtung, Wegtyp, HIMMELSRICHTUNGEN, cap
+from collections.abc import Iterable
+from xwatc.weg import Wegkreuzung, Himmelsrichtung, Wegtyp, HIMMELSRICHTUNGEN, cap
 from xwatc.system import malp
 import random
 __author__ = "Jasper Ischebeck"
 
 
-def slice_richtung(kreuzung: Wegkreuzung, richtung: int = 0) -> list[Richtung | None]:
+def slice_richtung(kreuzung: Wegkreuzung, richtung: int = 0) -> Iterable[Wegtyp | None]:
     """Gebe die Richtungen der Kreuzung, von richtung betrachtet, aus."""
-    return [kreuzung.nachbarn.get(Himmelsrichtung.from_nr(hri)) for hri in
-            range(richtung, richtung + 8)]
+    for nr in range(richtung, richtung + 8):
+        hri = Himmelsrichtung.from_nr(nr % 8)
+        if hri in kreuzung.nachbarn:
+            yield kreuzung._optionen[hri].typ
+        yield None
 
 
 def _finde_texte(kreuzung: Wegkreuzung, richtung: int) -> list[str]:
@@ -28,11 +32,11 @@ def _finde_texte(kreuzung: Wegkreuzung, richtung: int) -> list[str]:
                 continue
             elif tp != 0 and stp is not None:
                 if tp in typen:
-                    if typen[tp] != stp.typ:
+                    if typen[tp] != stp:
                         break
                 else:
                     art_count += 1
-                    typen[tp] = stp.typ
+                    typen[tp] = stp
             else:
                 break
         else:
@@ -55,14 +59,14 @@ def beschreibe_kreuzung(kreuzung: Wegkreuzung, richtung: int | None):  # pylint:
             malp("Du kommst an eine Kreuzung.")
             for i, ri in enumerate(rs):
                 if ri and i != richtung:
-                    malp(cap(ri.typ.text(False, 1)), "führt nach",
+                    malp(cap(ri.text(False, 1)), "führt nach",
                          HIMMELSRICHTUNGEN[i] + ".")
 
     else:
         malp("Du kommst auf eine Wegkreuzung.")
         for i, ri in enumerate(rs):
             if ri:
-                malp(cap(ri.typ.text(False, 1)), " führt nach ",
+                malp(cap(ri.text(False, 1)), " führt nach ",
                      HIMMELSRICHTUNGEN[i] + ".")
 
 

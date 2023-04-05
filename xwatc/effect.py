@@ -87,7 +87,7 @@ class Cooldown:
         if self.id_ in mänx.welt.objekte:
             ans = mänx.welt.objekte[self.id_] <= mänx.welt.tag - self.zeit
         else:
-            ans = False
+            ans = True
         if ans:
             mänx.welt.objekte[self.id_] = mänx.welt.tag
         return ans

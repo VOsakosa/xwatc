@@ -82,10 +82,10 @@ class TestNSC(unittest.TestCase):
             "hallo", "Hallo", "Hallo dir auch")))
         self.assertEqual(slots_var(jon.dialoge[1]), slots_var(Dialog(
             "und", "Und was ist?", und_dlg, "hallo")))
-        
+
         jon.vorstellen("Jon ist dumm")
         self.assertEqual(jon.vorstellen_fn, "Jon ist dumm")
-        
+
         jon.kampf(und_dlg)
         self.assertEqual(slots_var(jon.dialoge[2]), slots_var(Dialog(
             "k", "Angreifen", und_dlg, zeitpunkt=Zeitpunkt.Option)))
@@ -140,7 +140,7 @@ class TestNSC(unittest.TestCase):
         juicy.ort = ort
         self.assertIs(ort, juicy.ort)
         self.assertIn(juicy, ort.menschen)
-    
+
     def test_vorstellen(self):
         """Test the vorstellen function."""
 
@@ -166,34 +166,35 @@ class TestHändler(unittest.TestCase):
             raise
         self.assertTrue(hdl_min.inventar["Mantel"])
         self.assertFalse(mx.inventar["Mantel"])
-        gold_mantel = system.ALLGEMEINE_PREISE["Mantel"] * 2
+        gold_mantel = system.get_preise("Mantel") * 2
         self.assertEqual(hdl_min.gold, 100 - gold_mantel)
         self.assertEqual(mx.gold - gold_start, gold_mantel)
 
+
 class TestEffect(unittest.TestCase):
-    
+
     def test_zufällig_sanity_checks(self):
         with self.assertRaises(ValueError):
-            Zufällig.ungleichmäßig(("Hallo", -1), ("Tschüss", 2))
+            Zufällig.ungleichmäßig((-1, "Hallo"), (2, "Tschüss"))
         with self.assertRaises(ValueError):
-            Zufällig.ungleichmäßig(("Hallo", 0), ("Tschüss", 2))
+            Zufällig.ungleichmäßig((0, "Hallo"), (2, "Tschüss"))
         with self.assertRaises(TypeError):
             Zufällig.gleichmäßig()
         with self.assertRaises(TypeError):
             Zufällig.ungleichmäßig()
-    
+
     @patch("random.random")
     def test_zufällig(self, rd):
-        zuf = Zufällig.gleichmäßig(*map(str, range(10)))
-        mx = MockSystem().install()
+        zuf: Zufällig[None] = Zufällig.gleichmäßig(*map(str, range(10)))
+        sys = MockSystem()
         rd.return_value = 0
-        self.assertEqual(cast(TextGeschichte, zuf(mx)).texte[0], "0")
+        sys.test_mänx_fn(self, zuf, [], ["0"])
         rd.return_value = 0.999
-        self.assertEqual(cast(TextGeschichte, zuf(mx)).texte[0], "9")
+        sys.test_mänx_fn(self, zuf, [], ["9"])
         rd.return_value = 0.5
-        self.assertEqual(cast(TextGeschichte, zuf(mx)).texte[0], "5")
+        sys.test_mänx_fn(self, zuf, [], ["5"])
         rd.return_value = 0.322
-        self.assertEqual(cast(TextGeschichte, zuf(mx)).texte[0], "3")
+        sys.test_mänx_fn(self, zuf, [], ["3"])
 
 
 if __name__ == "__main__":
