@@ -9,8 +9,7 @@ from pathlib import Path
 import pickle
 from time import sleep
 from typing import TypeVar, Any, Protocol
-from typing import (Dict, List, Tuple, Union, Optional,
-                    Set, Optional as Opt, TypeAlias)
+from typing import (Dict, List, Union, Optional, Optional as Opt, TypeAlias)
 import typing
 
 from xwatc.terminal import Terminal

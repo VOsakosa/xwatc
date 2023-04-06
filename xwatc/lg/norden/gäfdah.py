@@ -6,7 +6,7 @@ from xwatc.jtg import frau
 from xwatc.lg.nsc.Wachen_von_Gäfdah import (
     SakcaBrauc, OrfGrouundt, ThomarcAizenfjäld)
 from xwatc.lg.nsc.Bürger_von_Gäfdah import MartinPortulakk
-from xwatc.lg.nsc.Freiwild import RuboicHätxrik
+from xwatc.lg.nsc import Freiwild  #@UnusedImport
 from xwatc.nsc import StoryChar, Person
 
 
@@ -53,7 +53,7 @@ def erzeuge_Gäfdah(mänx: Mänx) -> Dorf:
     # d.orte.append(schmiede)
     mänx.welt.obj("nsc:Wachen_von_Gäfdah:MarioWittenpfäld").ort = rathaus
     rathaus.add_nsc(mänx.welt, "nsc:Wachen_von_Gäfdah:SakcaBrauc", SakcaBrauc)
-    schenke.add_nsc(mänx.welt, "nsc:Freiwild:RuboicHätxrik", RuboicHätxrik)
+    mänx.welt.obj("nsc:freiwild:ruboic").ort = schenke
     rathaus.add_nsc(mänx.welt,
                     "nsc:Wachen_von_Gäfdah:ThomarcAizenfjäld", ThomarcAizenfjäld)
     haus1.add_nsc(mänx.welt,

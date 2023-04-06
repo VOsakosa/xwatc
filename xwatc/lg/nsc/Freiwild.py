@@ -5,247 +5,248 @@ from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
 from time import sleep
 from xwatc.lg import mitte
 from xwatc.untersystem.person import Fähigkeit
-from xwatc.nsc import OldNSC
+from xwatc.nsc import OldNSC, StoryChar, NSC, Person
+from xwatc.dorf import Rückkehr
+from xwatc.weg import WegEnde, Wegpunkt
 
 
-class RuboicHätxrik(OldNSC):
-    def __init__(self) -> None:
-        super().__init__("Ruboic Hätxrik", "Äntor")
-        cls = type(self)
+ruboic = StoryChar("nsc:freiwild:ruboic", ("Ruboic", "Hätxrik", "Äntor"),
+                   Person("m"), startinventar={
+    "Äntorenmantel": 1,
+    "Äntorenstiefel": 2,
+    "Socken": 4,
+    "Gold": 89,
+    "Saphir": 1,
+    "Äntorenhelm": 1,
+    "Lederbeutel": 1,
+    "Dolch": 1,
+    "Messer": 5,
+    "Bozear": 8,
+    "Dicke Unterhose": 1,
+    "Äntorenhose": 1,
+    "Ring der Medusa": 1,
+    "Äntorenklinge": 1,
+    "Äntorenlangbogen": 1,
+    "Äntorenkurzbogen": 1,
+    "Pfeile": 198,
+    "Brot": 3,
+    "Salzhering": 5,
+    "Salzlachs": 3,
+    "Salami": 3,
+    "Zähe Bohne": 2,
+    "Äntorenmedaille": 1,
+})
 
-        self.dialog("hallo1",
-                    '"Hallo Ich heiße Tom"',
-                    ["Tja mi kans egal sän"], gruppe="bluu")
 
-        self.dialog("hallo2",
-                    '"Hallo Ich heiße Makc"',
-                    cls.reden_makc, gruppe="bluu")
-
-        self.dialog("hallo3",
-                    '"Hallo Ich heiße Thierca"',
-                    cls.reden_thierca, gruppe="bluu")
-
-        self.dialog("hallo4",
-                    '"Hallo Ich heiße Ares"',
-                    cls.reden_ares, gruppe="bluu")
-
-        self.dialog("hallo5",
-                    '"Hallo, wie heißt du?"',
-                    cls.reden_hallo, wiederhole=1)
-
-        self.dialog("geht", '"Wie geht es dir?"', cls.reden_geht)
-        self.dialog("wetter",
-                    '"Wie findest du das Wetter heute?"',
-                    cls.reden_wetter)
-        self.dialog("agaga",
-                    "Aggagagaggagrrrrrrrr!!!!  Ähäsifowipppfff Ich binne v'ückt bööö...",
-                    cls.reden_agaga)
-        self.dialog("suche",
-                    "Hallo Ich such so 'nen sabbernden Verrückten. "
-                    "Haste'n geseh'n?",
-                    cls.reden_suche1)
-        self.dialog("suche2",
-                    "Tag. "
-                    "Ich hätte eine Frage. "
-                    "Hier soll es einen Verrückten geben, "
-                    "so einen sabbernden. Haben sie zufälligerweise einen gesehen? "
-                    "Wenn ja wäre es sehr nett, "
-                    "wenn sie mich davon unterrichten würden. "
-                    "Ich danke ihnen schon einmal im vorraus.",
-                    cls.reden_suche2)
-
-    @staticmethod
-    def sgh(mänx):
-        # gäfdah = mänx.welt.obj("Gäfdah")
-        if ja_nein(mänx, "Durchsuchst du den Mann?"):
-            mänx.erhalte("Äntorenmantel", 1)
-            mänx.erhalte("Äntorenstiefel", 2)
-            mänx.erhalte("Socken", 4)
-            mänx.erhalte("Gold", 89)
-            mänx.erhalte("Saphir", 1)
-            mänx.erhalte("Äntorenhelm", 1)
-            mänx.erhalte("Lederbeutel", 1)
-            mänx.erhalte("Dolch", 1)
-            mänx.erhalte("Messer", 5)
-            mänx.erhalte("Bozear", 8)
-            mänx.erhalte("Dicke Unterhose", 1)
-            mänx.erhalte("Äntorenhose", 1)
-            mänx.erhalte("Ring der Medusa", 1)
-            mänx.erhalte("Äntorenklinge", 1)
-            mänx.erhalte("Äntorenlangbogen", 1)
-            mänx.erhalte("Äntorenkurzbogen", 1)
-            mänx.erhalte("Pfeile", 198)
-            mänx.erhalte("Brot", 3)
-            mänx.erhalte("Salzhering", 5)
-            mänx.erhalte("Salzlachs", 3)
-            mänx.erhalte("Salami", 3)
-            mänx.erhalte("Zähe Bohne", 2)
-            mänx.erhalte("Äntorenmedaille", 1)
-            if mänx.hat_fähigkeit(Fähigkeit.Schnellplündern):
-                mint(
-                    'Junger Mann: "Oh, Verdammt". Zwei junge Männer stehen eilig von ihren Stühlen auf.')
-                sprich("Junger Mann", 'Ruboic hat schon wieder einen Anfall! Der Arzt hat ihm zwar gesagt, '
-                                      'er soll mit dem Trinken aufhören, doch was hat er gemacht? Ach Verdammt, '
-                                      'dieses Mal scheints wirklich richtig übel zu sein...', warte=True)
-                mint("Die beiden Männer tragen Hätxrik vorsichtig aus der Taverne.")
-                if ja_nein(mänx, "Folgst du ihnen"):
-                    mint("Du versuchst ihnen zu folgen, doch als du auf die Straße "
-                         "trittst, sind sie bereits nicht mehr zu sehen.")
-                    if ja_nein(mänx, "Gehst du zürück in die Taverne?"):
-                        mint("Du gehst zurück in die Taverne")
-                    else:
-                        mint("Du bleibst draußen")
-                        return mänx.context.get_ort("draußen")
+def sgh(nsc: NSC, mänx: Mänx) -> Rückkehr:
+    # gäfdah = mänx.welt.obj("Gäfdah")
+    if ja_nein(mänx, "Durchsuchst du den Mann?"):
+        nsc.plündern(mänx)
+        if mänx.hat_fähigkeit(Fähigkeit.Schnellplündern):
+            mint(
+                'Junger Mann: "Oh, Verdammt". Zwei junge Männer stehen eilig von ihren Stühlen auf.')
+            sprich("Junger Mann", 'Ruboic hat schon wieder einen Anfall! Der Arzt hat ihm zwar gesagt, '
+                                  'er soll mit dem Trinken aufhören, doch was hat er gemacht? Ach Verdammt, '
+                                  'dieses Mal scheints wirklich richtig übel zu sein...', warte=True)
+            mint("Die beiden Männer tragen Hätxrik vorsichtig aus der Taverne.")
+            if ja_nein(mänx, "Folgst du ihnen"):
+                mint("Du versuchst ihnen zu folgen, doch als du auf die Straße "
+                     "trittst, sind sie bereits nicht mehr zu sehen.")
+                if ja_nein(mänx, "Gehst du zürück in die Taverne?"):
+                    mint("Du gehst zurück in die Taverne")
                 else:
-                    pass
+                    mint("Du bleibst draußen")
+                    return mänx.context.get_ort("draußen")
             else:
                 pass
         else:
-            mint("OK, dann nicht.")
+            pass
+    else:
+        mint("OK, dann nicht.")
 
-        return False
+    return Rückkehr.VERLASSEN
 
-    def kampf(self, mänx: Mänx):
-        a = random.randint(1, 500)
-        if a == 1:
-            ("Bevor du ihn angreifen konntest, fiel der Mann einfach tot um")
-            self.tot = True
-            return self.sgh(mänx)
-        else:
-            if ja_nein(mänx, "Der Mann richtet seine Armbrust auf dich. "
-                             "Willst du immer noch kämpfen?"):
-                mint("Er drückt ab.")
-                raise Spielende
 
-            else:
-                mint("Gut...")
-
-    def vorstellen(self, mänx: Mänx) -> None:
-        a = random.randint(1, 500)
-        if a == 1:
-            malp("Bevor du mit ihm reden konntest, fiel der Mann einfach tot um")
-            self.tot = True
-        mint('"Tag. Äch ben Hätrik"')
-
-    def reden_makc(self, mänx: Mänx):
-        mint('"makc ja?, ich hatte mall so nen soon." '
-             'Der Mann drückt dir etwas in die Hand. '
-             'Dann, '
-             'ganz plötzlich fällt er um und beginnt röchelnd zu verenden.  ')
+@ruboic.kampf
+def ruboic_kampf(self: NSC, mänx: Mänx):
+    a = random.randint(1, 500)
+    if a == 1:
+        ("Bevor du ihn angreifen konntest, fiel der Mann einfach tot um")
         self.tot = True
-        mänx.erhalte("Aphrodiikensamen", 5)
-        return self.sgh(mänx)
+        return sgh(self, mänx)
+    else:
+        if ja_nein(mänx, "Der Mann richtet seine Armbrust auf dich. "
+                         "Willst du immer noch kämpfen?"):
+            mint("Er drückt ab.")
+            raise Spielende
 
-    def reden_thierca(self, mänx: Mänx):
-        mint('"thiersca ja?, du erinnnest mich an men Tochterle. Wisst de?!" '
-             'Der Mann drückt dir etwas in die Hand. '
-             'Dann, '
-             'ganz plötzlich fängt er an zu röcheln und fällt tot um.  ')
-        self.tot = True
-        mänx.erhalte("Bantoriitensamen", 5)
-        return self.sgh(mänx)
-
-    def reden_ares(self, mänx: Mänx) -> Fortsetzung | None:
-        mint("Ares?", kursiv("Du?!"), "bist es?")
-        a = random.randint(1, 500)
-        if a == 1:
-            malp("Plötzlich fiel der Mann einfach tot um")
         else:
-            a = random.randint(1, 40)
-            if a == 1:
-                malp("Plötzlich sprach der Mann mit einer monotonen, hölzernen Stimme.")
-                mint('"HALLO;ENTITÄT §===(§"/F LANGE '
-                     '', kursiv("ggrrrpfft"), 'NICHT MEHR GESE'
-                                              '', kursiv("bbpfftgr"), 'HEN'
-                                                                      '', kursiv("ährrkrtg"), '"')
-                mänx.erhalte("Leere", 5)
-                mänx.erhalte("NOEL@þ", 1)
-                mänx.erhalte("Lichtschwert", 1)
-                mänx.erhalte("Honigpastete", 5)
-                malp("NOEL hinterlässt dir eine Nachricht:")
-                mint("", kursiv(r"Komm zu mir, komm/komm/komm/komm/"
-                                r"komm/komm/komm\komm\komm\komm\komm\/"
-                                r"komm\komm\komm\komm\komm\komm\komm/\/"
-                                r"komm\komm/komm\komm/komm zu mir"), "")
-                if ja_nein(mänx, "Willst du mitkommen?"):
-                    malp('Irgendwo schien jemand sich zu freuen.')
-                    kursiv('"Du wirst es sicherlich nicht bereuen."')
-                    b = random.randint(1, 4)
-                    if b == 1:
-                        gefängnis_von_gäfdah
-                    elif b == 2:
-                        return mitte.MITTE_EINTRITT
-                    else:
-                        t2(mänx)
+            mint("Gut...")
+
+
+@ruboic.vorstellen
+def ruboic_vorstellen(self: NSC, mänx: Mänx) -> None:
+    malp('Der Mensch, welchen du ansprachest, ist in einen dicken '
+         'Bärenpelzmantel gekleidet.')
+    mint("Er ist wohl ein Äntor, ein Jäger.")
+    a = random.randint(1, 500)
+    if a == 1:
+        malp("Bevor du mit ihm reden konntest, fiel der Mann einfach tot um")
+        self.tot = True
+    self.sprich('Tag. Äch ben Hätrik')
+
+
+def ruboic_reden_makc(self: NSC, mänx: Mänx):
+    mint('"makc ja?, ich hatte mall so nen soon." '
+         'Der Mann drückt dir etwas in die Hand. '
+         'Dann, '
+         'ganz plötzlich fällt er um und beginnt röchelnd zu verenden.  ')
+    self.tot = True
+    mänx.erhalte("Aphrodiikensamen", 5)
+    return sgh(self, mänx)
+
+
+def ruboic_reden_thierca(self: NSC, mänx: Mänx):
+    mint('"thiersca ja?, du erinnnest mich an men Tochterle. Wisst de?!" '
+         'Der Mann drückt dir etwas in die Hand. '
+         'Dann, '
+         'ganz plötzlich fängt er an zu röcheln und fällt tot um.  ')
+    self.tot = True
+    mänx.erhalte("Bantoriitensamen", 5)
+    return sgh(self, mänx)
+
+
+def ruboic_reden_ares(self: NSC, mänx: Mänx) -> Rückkehr | Fortsetzung:
+    mint("Ares?", kursiv("Du?!"), "bist es?")
+    a = random.randint(1, 500)
+    if a == 1:
+        malp("Plötzlich fiel der Mann einfach tot um")
+    else:
+        a = random.randint(1, 40)
+        if a == 1:
+            malp("Plötzlich sprach der Mann mit einer monotonen, hölzernen Stimme.")
+            mint('"HALLO;ENTITÄT §===(§"/F LANGE '
+                 '', kursiv("ggrrrpfft"), 'NICHT MEHR GESE'
+                                          '', kursiv("bbpfftgr"), 'HEN'
+                                                                  '', kursiv("ährrkrtg"), '"')
+            mänx.erhalte("Leere", 5)
+            mänx.erhalte("NOEL@þ", 1)
+            mänx.erhalte("Lichtschwert", 1)
+            mänx.erhalte("Honigpastete", 5)
+            malp("NOEL hinterlässt dir eine Nachricht:")
+            mint("", kursiv(r"Komm zu mir, komm/komm/komm/komm/"
+                            r"komm/komm/komm\komm\komm\komm\komm\/"
+                            r"komm\komm\komm\komm\komm\komm\komm/\/"
+                            r"komm\komm/komm\komm/komm zu mir"), "")
+            if ja_nein(mänx, "Willst du mitkommen?"):
+                malp('Irgendwo schien jemand sich zu freuen.')
+                kursiv('"Du wirst es sicherlich nicht bereuen."')
+                b = random.randint(1, 4)
+                if b == 1:
+                    return gefängnis_von_gäfdah
+                elif b == 2:
+                    return mitte.MITTE_EINTRITT
                 else:
-                    mint("", kursiv("Das"), "wirst du bereuen.")
-                    raise Spielende
-            elif a == 2:
-                mänx.erhalte("Apfel", 5)
-                mänx.erhalte("Kometenstein", 1)
-                mänx.erhalte("Speer", 1)
-                mänx.erhalte("Honigpastete", 5)
-
-            elif a == 3:
-                mänx.erhalte("Leere", 5)
-                mänx.erhalte("Spielzeugauto", 1)
-                mänx.erhalte("Holzente", 1)
-                mänx.erhalte("Hering", 5)
-
-            elif a == 4:
-                mänx.erhalte("Gänseblümchen", 5)
-                mänx.erhalte("Rose", 1)
-                mänx.erhalte("Löwenzahn", 1)
-                mänx.erhalte("Distelblüte", 5)
-
-            elif a == 5:
-                mänx.erhalte("Mächtige Axt", 1)
-                mänx.erhalte("Schwert", 1)
-                mänx.erhalte("Lichtschwert", 1)
-                mänx.erhalte("Speer", 1)
-
+                    return t2
             else:
-                mänx.erhalte("Mantel", 5)
-                mänx.erhalte("Hose", 1)
-                mänx.erhalte("Unterhose", 1)
-                mänx.erhalte("Honigpastete", 5)
+                mint("", kursiv("Das"), "wirst du bereuen.")
+                raise Spielende
+        elif a == 2:
+            mänx.erhalte("Apfel", 5)
+            mänx.erhalte("Kometenstein", 1)
+            mänx.erhalte("Speer", 1)
+            mänx.erhalte("Honigpastete", 5)
 
-            mint("Der Mann stirbt")
-        self.tot = True
-        return self.sgh
+        elif a == 3:
+            mänx.erhalte("Leere", 5)
+            mänx.erhalte("Spielzeugauto", 1)
+            mänx.erhalte("Holzente", 1)
+            mänx.erhalte("Hering", 5)
 
-    def reden_hallo(self, mänx: Mänx) -> None:
-        mint('"Äch ben Hätrik"')
+        elif a == 4:
+            mänx.erhalte("Gänseblümchen", 5)
+            mänx.erhalte("Rose", 1)
+            mänx.erhalte("Löwenzahn", 1)
+            mänx.erhalte("Distelblüte", 5)
 
-    def reden_geht(self, mänx: Mänx) -> None:
-        mint("Mi gätc gout.")
+        elif a == 5:
+            mänx.erhalte("Mächtige Axt", 1)
+            mänx.erhalte("Schwert", 1)
+            mänx.erhalte("Lichtschwert", 1)
+            mänx.erhalte("Speer", 1)
 
-    def reden_agaga(self, mänx: Mänx) -> None:
-        malp("Der Mann runzelt die Stirn.")
-        mint('"Was willst du?"')
-        malp("Dann weiten sich seine Augen und er rennt davon.")
-        self.tot = True
+        else:
+            mänx.erhalte("Mantel", 5)
+            mänx.erhalte("Hose", 1)
+            mänx.erhalte("Unterhose", 1)
+            mänx.erhalte("Honigpastete", 5)
 
-    def reden_suche1(self, mänx: Mänx) -> None:
-        mint("...")
-        malp("Der Mann scheint Angst zu haben.")
-        malp("Du kannst seine Angst förmlich",
-             kursiv(" riechen"), ".")
-        malp("Schließlich rennt er weg")
-        self.tot = True
+        mint("Der Mann stirbt")
+    self.tot = True
+    return sgh(self, mänx)
 
-    def reden_suche2(self, mänx: Mänx) -> None:
-        malp("Der Mann blickt zu dir hoch")
-        malp("Angst steht in seinen Augen geschrieben.")
-        sleep(4)
-        mint("Von der einen Sekunde auf die andere ist er verschwunden.")
-        self.tot = True
 
-    def reden_wetter(self, mänx: Mänx) -> None:
-        mint("Gut, ne und?")
+def ruboic_reden_agaga(self: NSC, mänx: Mänx) -> None:
+    malp("Der Mann runzelt die Stirn.")
+    mint('"Was willst du?"')
+    malp("Dann weiten sich seine Augen und er rennt davon.")
+    self.tot = True
 
-    def main(self, mänx: Mänx) -> None:
-        malp('"Der Mensch, welchen du ansprachest, ist in einen dicken '
-             'Bärenpelzmantel gekleidet."')
-        mint("Er ist wohl ein Äntor, ein Jäger.")
-        super().main(mänx)
+
+def ruboic_reden_suche1(self: NSC, mänx: Mänx) -> None:
+    mint("...")
+    malp("Der Mann scheint Angst zu haben.")
+    malp("Du kannst seine Angst förmlich",
+         kursiv(" riechen"), ".")
+    malp("Schließlich rennt er weg")
+    self.tot = True
+
+
+def ruboic_reden_suche2(self: NSC, mänx: Mänx) -> None:
+    malp("Der Mann blickt zu dir hoch")
+    malp("Angst steht in seinen Augen geschrieben.")
+    mänx.sleep(4)
+    mint("Von der einen Sekunde auf die andere ist er verschwunden.")
+    self.tot = True
+
+
+ruboic.dialog("hallo1",
+              '"Hallo Ich heiße Tom"',
+              ["Tja mi kans egal sän"], gruppe="bluu")
+
+ruboic.dialog("hallo2",
+              '"Hallo Ich heiße Makc"',
+              ruboic_reden_makc, gruppe="bluu")
+
+ruboic.dialog("hallo3",
+              '"Hallo Ich heiße Thierca"',
+              ruboic_reden_thierca, gruppe="bluu")
+
+ruboic.dialog("hallo4",
+              '"Hallo Ich heiße Ares"',
+              ruboic_reden_ares, gruppe="bluu")
+
+ruboic.dialog("hallo5",
+              '"Hallo, wie heißt du?"',
+              "Äch ben Hätrik", wiederhole=1)
+
+ruboic.dialog("geht", '"Wie geht es dir?"', "Mi gätc gout.")
+ruboic.dialog("wetter",
+              '"Wie findest du das Wetter heute?"',
+              "Gut, ne und?")
+ruboic.dialog("agaga",
+              "Aggagagaggagrrrrrrrr!!!!  Ähäsifowipppfff Ich binne v'ückt bööö...",
+              ruboic_reden_agaga)
+ruboic.dialog("suche",
+              "Hallo Ich such so 'nen sabbernden Verrückten. "
+              "Haste'n geseh'n?",
+              ruboic_reden_suche1)
+ruboic.dialog("suche2",
+              "Tag. "
+              "Ich hätte eine Frage. "
+              "Hier soll es einen Verrückten geben, "
+              "so einen sabbernden. Haben sie zufälligerweise einen gesehen? "
+              "Wenn ja wäre es sehr nett, "
+              "wenn sie mich davon unterrichten würden. "
+              "Ich danke ihnen schon einmal im vorraus.",
+              ruboic_reden_suche2)
