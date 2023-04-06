@@ -19,7 +19,7 @@ F = TypeVar("F", covariant=True)
 
 @define
 class Warten:
-    """Signalisiert statt Text Warten."""
+    """Signalisiert statt Text Warten für *length* Sekunden."""
     length: float
 
 
@@ -41,6 +41,7 @@ class TextGeschichte:
     texte: Sequence[str | Warten]
     schatz: Mapping[str, int] = Factory(dict)
     titel: Sequence[str] = ()
+    variablen: Sequence[str] = ()
 
     def __call__(self, mänx: Mänx) -> None:
         for text in self.texte:
@@ -55,6 +56,8 @@ class TextGeschichte:
             mänx.erhalte(schatz, anzahl)
         for titel in self.titel:
             mänx.titel.add(titel)
+        for var in self.variablen:
+            mänx.welt.setze(var)
 
 
 @define
@@ -74,16 +77,13 @@ class NurWenn(Generic[F]):
 
 
 @define
-class SetzeVariable:
-    """Effekt, der eine Variable setzt."""
-    variablen_name: str
-
-    def __call__(self, mänx: Mänx) -> None:
-        mänx.welt.setze(self.variablen_name)
-
-
-@define
 class Cooldown:
+    """Ein Prädikat, das wahr ist, wenn es nicht in der letzten Zeit schon aktiviert wurde.
+    Unter id_ wird dafür eine Variable angelegt.
+
+    >>> NurWenn(Cooldown("id", 1), "Du holst dir deine tägliche Belohnung", "Du hast deine tägliche
+    ... Belohnung bereits abgeholt.")
+    """
     id_: str
     zeit: int  # Die Zeit in Tagen
 
@@ -99,6 +99,9 @@ class Cooldown:
 
 @define(frozen=True)
 class Zufällig(Generic[F]):
+    """Wählt eine zufällige Geschichte und führt diese aus. Verwende eine der Konstruktoren
+    :py:`Zufällig.gleichmäßig`, :py:`Zufällig.ungleichmäßig` und :py:`Zufällig.mit_wkeit`.
+    """
     wahlen: Sequence[MänxFkt[F | None]]
     wkeiten: Sequence[float]
 
@@ -141,6 +144,8 @@ class Zufällig(Generic[F]):
 
 @define
 class Geschichtsfolge(Generic[F]):
+    """Führt nacheinander verschiedene Geschichten aus, bis eine einen Wert außer None zurückgibt.
+    """
     list_: Sequence[MänxFkt[F]]
 
     def __call__(self, mänx: Mänx) -> F | None:
@@ -159,6 +164,7 @@ def in_folge(*geschichten: Sequence[str | Warten] | MänxFkt[F]) -> Geschichtsfo
 
 @define
 class Einmalig:
+    """Prädikat, das nur beim ersten Mal wahr, und dann immer falsch ist."""
     id_: str
 
     def __call__(self, mänx: Mänx) -> bool:
