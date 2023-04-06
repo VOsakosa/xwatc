@@ -635,6 +635,14 @@ class Wegkreuzung(Wegpunkt):
     def add_nsc(self, welt: Welt, name: str, fkt: Callable[..., nsc.NSC],
                 *args, **kwargs):
         welt.get_or_else(name, fkt, *args, **kwargs).ort = self
+    
+    def add_char(self, welt: Welt, char: nsc.StoryChar) -> nsc.NSC:
+        """Füge einen Story-Charakter zu diesem Ort hinzu."""
+        if not char.id_:
+            raise ValueError("Der Charakter für add_char muss eine ID besitzen.")
+        nsc = welt.obj(char.id_)
+        nsc.ort = self
+        return nsc
 
 
 @define

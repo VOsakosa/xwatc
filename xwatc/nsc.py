@@ -85,9 +85,9 @@ class StoryChar:
     person: Person | None = None
     startinventar: Mapping[str, int] = Factory(lambda: defaultdict(int))
     """Das Inventar, mit dem der Charakter erzeugt wird."""
-    ort: str = ""
-    """Der Ort, an dem ein NSC startet. Wenn er leer ist, muss er manuell per Events in
-    Orte geholt werden."""
+    # ort: str = ""
+    #"""Der Ort, an dem ein NSC startet. Wenn er leer ist, muss er manuell per Events in
+    #Orte geholt werden."""
     direkt_reden: bool = True
     """Ob bei dem NSC-Menu die Rede-Optionen direkt angezeigt werden."""
     vorstellen_fn: dorf.DialogGeschichte | None = None
@@ -98,8 +98,8 @@ class StoryChar:
         """Registriere das NSC-Template mit ID und Ort, wenn verfügbar."""
         if self.id_:
             CHAR_REGISTER[self.id_] = self
-        if self.ort:
-            ORTS_CHARE[self.ort].append(self)
+        # if self.ort:
+        #    ORTS_CHARE[self.ort].append(self)
 
     def zu_nsc(self) -> 'NSC':
         """Erzeuge den zugehörigen NSC aus dem Template."""
