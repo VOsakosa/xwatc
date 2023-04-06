@@ -12,15 +12,16 @@ Glück gebracht hat und sorgt sich. Der Ehering ist bei den Kräutern.
 Links abbiegen führt zu Kiri-Wölfen=> Kampf
 
 """
-from xwatc.system import Mänx, register, malp, HatMain, mint
+from xwatc.system import Mänx, register, malp, HatMain, mint, Spielende
 from xwatc.dorf import Dorf, Malp, ort, Zeitpunkt
-from xwatc import weg
+from xwatc import weg, kampf
 from xwatc import jtg
 from xwatc.haendler import Preis, mache_händler, HandelsFn
 from xwatc.weg import kreuzung
 from typing import List, Tuple, Sequence
-from xwatc.nsc import Person, StoryChar, bezeichnung, NSC
+from xwatc.nsc import Person, StoryChar, bezeichnung, NSC, mache_monster
 from xwatc.jtg import nord
+from xwatc.effect import Cooldown, NurWenn, Zufällig
 __author__ = "jasper"
 
 GEFUNDEN = "quest:saxaring:gefunden"
@@ -101,7 +102,8 @@ def erzeuge_norddörfer(mänx: Mänx, gebiet: weg.Gebiet) -> weg.Wegpunkt:
     kraut = kreuzung("kraut", immer_fragen=True)
     kraut.add_effekt(kräutergebiet)
     kili = kreuzung("kili", immer_fragen=True)
-    kili.add_effekt(kiliwolf.main)
+    kili.add_effekt(NurWenn(Cooldown("jtg:kiliwolf:cd", 4),
+                            kiliwolf.zu_nsc().main))  # type: ignore
     waldkreuz = kreuzung("waldkreuz")
     waldkreuz.add_beschreibung("Der Pfad gabelt sich.", nur="o")
     waldkreuz.add_beschreibung("Du kommst zurück an die Gabelung",
@@ -112,7 +114,7 @@ def erzeuge_norddörfer(mänx: Mänx, gebiet: weg.Gebiet) -> weg.Wegpunkt:
     return mitose_ort
 
 
-def kräutergebiet(mänx: Mänx):
+def kräutergebiet(mänx: Mänx) -> None:
     """Der Ort, wo Kräuter und der Ring zu finden sind."""
     malp("Der Weg endet an einer Lichtung, die mit Kräutern bewachsen ist.")
     ring = (
@@ -127,28 +129,23 @@ def kräutergebiet(mänx: Mänx):
             mänx.erhalte("Saxas Ehering")
     if mänx.ja_nein("Pflückst du einige Kräuter?"):
         mänx.welt.tick(1 / 96)
-        treffen = False
-        if mänx.welt.is_nacht():
-            treffen = kiliwolf.main(mänx)
-        if not treffen:
+        if mänx.welt.is_nacht() and Zufällig.mit_wkeit(0.7, Cooldown("jtg:kiliwolf:cd", 4))(mänx):
+            kiliwolf.zu_nsc().main(mänx)
+        else:
             mänx.erhalte("Xaozja", 14)
 
-class Kiliwolf(HatMain):
-    def __init__(self):
-        super().__init__()
-        self.auftauchen = 0.0
 
-    def main(self, mänx: Mänx) -> bool:
-        if mänx.welt.tag >= self.auftauchen:
-            self.auftauchen = mänx.welt.tag + 4
-            malp("Ein Pack Kiliwölfe greift dich an.")
-            malp("Kiliwölfe sehen aus wie Wölfe, haben aber Scheren statt "
-                 "Vorderpfoten.")
-            # TODO Kiliwolf-Kampf
-            return True
-        return False
-
-kiliwolf = register("jtg:kiliwolf")(Kiliwolf)
+@mache_monster("jtg:kiliwolf", "Kiliwolf")
+def kiliwolf(wolf: NSC, mänx: Mänx):
+    malp("Ein Pack Kiliwölfe greift dich an.")
+    malp("Kiliwölfe sehen aus wie Wölfe, haben aber Scheren statt "
+         "Vorderpfoten.")
+    if kampf.start_einzel_kampf(mänx, wolf):
+        malp("Du weidest den Kiliwolf aus.")
+        mänx.erhalte("Wolffleisch", 3)
+    else:
+        malp("Die Kiliwölfe zerfleischen dich.")
+        raise Spielende()
 
 
 def in_disnayenbum(nsc: NSC, _mänx: Mänx) -> bool:

@@ -104,7 +104,7 @@ class StoryChar:
     def zu_nsc(self) -> 'NSC':
         """Erzeuge den zugehörigen NSC aus dem Template."""
         # Der Ort ist zunächst immer None. Der Ort wird erst zugeordnet
-        ans =  NSC(self, self.bezeichnung, self.startinventar)
+        ans = NSC(self, self.bezeichnung, self.startinventar)
         if self.randomize_fn:
             self.randomize_fn(ans)
         return ans
@@ -348,7 +348,8 @@ class NSC(system.InventarBasis):
              mänx: system.Mänx) -> Rückkehr | Fortsetzung:
         """Führe eine Option aus."""
         if isinstance(option, dorf.Dialog):
-            getLogger("xwatc.nsc").info(f"Starte Dialog {option.name} von {self.name}")
+            getLogger("xwatc.nsc").info(
+                f"Starte Dialog {option.name} von {self.name}")
             dlg = option
             dlg_anzahl = self.dialog_anzahl
             ans = self._call_geschichte(mänx, dlg.geschichte, dlg.effekt)
@@ -444,6 +445,23 @@ class NSC(system.InventarBasis):
     def plündern(self, mänx: system.Mänx) -> Any:
         """Schiebe das ganze Inventar von NSC zum Mänxen."""
         schiebe_inventar(self.inventar, mänx.inventar)
+
+
+def mache_monster(
+        id_: str,
+        name: str | tuple[str, str] | tuple[str, str, str] | Bezeichnung,
+        beute: Mapping[str, int] | None = None
+) -> Callable[[dorf.DialogFn], StoryChar]:
+    """Decorator, um ein Monster zu machen, mit der Kampffunktion gegeben.
+    ```
+    
+    ```
+    """
+    def wrapper(geschichte: dorf.DialogFn) -> StoryChar:
+        ans = StoryChar(id_, name, startinventar=beute or {})
+        ans.kampf(geschichte)
+        return ans
+    return wrapper
 
 
 class OldNSC(NSC):

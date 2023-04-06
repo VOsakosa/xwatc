@@ -147,6 +147,7 @@ def start_einzel_kampf(
     :return: Ob der Kampf gewonnen wurde.
     """
     # Platzhalter, bitte durch echten Kampf ersetzen.
+    xwatc.system.mint("Du kämpfst.")
     if random.random() < 0.3:
         malp("Du verlierst den Kampf.")
         return False
