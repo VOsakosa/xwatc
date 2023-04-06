@@ -40,6 +40,7 @@ class TextGeschichte:
     diesem Typ umgewandelt. Am Ende kann der Mänx eine Belohnung erhalten."""
     texte: Sequence[str | Warten]
     schatz: Mapping[str, int] = Factory(dict)
+    titel: Sequence[str] = ()
 
     def __call__(self, mänx: Mänx) -> None:
         for text in self.texte:
@@ -52,6 +53,8 @@ class TextGeschichte:
                     raise TypeError("Wrong type in TextGeschichte", text)
         for schatz, anzahl in self.schatz.items():
             mänx.erhalte(schatz, anzahl)
+        for titel in self.titel:
+            mänx.titel.add(titel)
 
 
 @define
