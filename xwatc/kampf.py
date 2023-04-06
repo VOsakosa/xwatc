@@ -2,6 +2,7 @@
 Beim Kampfsystem schlagen zwei Leute aufeinander ein.
 """
 from __future__ import annotations
+import random
 from typing import Union, Sequence, List, Tuple
 import xwatc
 from xwatc.system import Mänx, Spielende, malp
@@ -55,7 +56,7 @@ class MänxAlsKämpfer:
 
 
 class NSCKämpfer:
-    def __init__(self, basis: xwatc.dorf.NSC, seite: int) -> None:
+    def __init__(self, basis: xwatc.nsc.NSC, seite: int) -> None:
         self.basis = basis
         self.lebenspunkte = basis.max_lp
         self.max_lp = basis.max_lp
@@ -133,3 +134,22 @@ class Kampf:
         for ziel in ziele:
             ziel.schade(attacke.schaden)
         malp(attacke.text(angreifer, ziele))
+
+
+def start_einzel_kampf(
+        mänx: Mänx,
+        gegner: xwatc.nsc.NSC  # NSC durch KampfEigenschaft oder so ersetzen
+) -> bool:
+    """Führt einen Kampf gegen einen einzigen Gegner aus.
+    Die Konsequenzen des Kampfes werden vom Aufrufenden festgelegt, diese Funktion gibt
+    also lediglich zurück, wie der Kampf ausgegangen ist.
+
+    :return: Ob der Kampf gewonnen wurde.
+    """
+    # Platzhalter, bitte durch echten Kampf ersetzen.
+    if random.random() < 0.3:
+        malp("Du verlierst den Kampf.")
+        return False
+    else:
+        malp("Du gewinnst")
+        return True
