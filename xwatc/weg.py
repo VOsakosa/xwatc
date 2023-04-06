@@ -361,7 +361,7 @@ def kreuzung(
     gucken: BeschreibungFn | Sequence[str] = (),
     kreuzung_beschreiben: bool = False,
     immer_fragen: bool = False,
-    menschen: Sequence[dorf.NSC | nsc.NSC] = (),
+    menschen: Sequence[nsc.NSC] = (),
     **kwargs: Ausgang
 ) -> 'Wegkreuzung':
     """Konstruktor für Wegkreuzungen ursprünglichen Typs, die nicht auf einem Gitter liegen,
@@ -483,7 +483,7 @@ class Wegkreuzung(Wegpunkt):
                    mensch)
         for pt, himri in self._richtungen(mänx, von):
             ri = self._optionen.setdefault(himri, Richtungsoption())
-            if himri == von:
+            if himri == von and isinstance(himri, Himmelsrichtung):
                 if ri.zielname:
                     yield (f"Zurück ({ri.zielname})", "f", pt)
                 else:
