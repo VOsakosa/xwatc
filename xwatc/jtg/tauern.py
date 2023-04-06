@@ -4,11 +4,11 @@ Created on 15.10.2020
 """
 from xwatc import weg
 from xwatc.dorf import Rückkehr
-from xwatc.jtg import osten
-from xwatc.system import Mänx, register, malp, Spielende, Fortsetzung
+from xwatc.jtg import osten, gibon
+from xwatc.system import Mänx, malp, Spielende
 from xwatc.untersystem.person import Fähigkeit
 from xwatc.weg import gebiet, kreuzung, Wegtyp, Eintritt
-from xwatc.nsc import OldNSC
+from xwatc.nsc import StoryChar, Person, Rasse, NSC
 
 
 __author__ = "jasper"
@@ -78,14 +78,15 @@ def erzeuge_tauern(mänx: Mänx, gebiet: weg.Gebiet) -> None:
         return inner
     vorbrück.add_effekt(bewege(vorbrück))
     hinterbrück.add_effekt(bewege(hinterbrück))
+    osttor = gibon.erzeuge_gibon(mänx).get_ort("Osttor")
     hinterbrück.verbinde_mit_weg(
-        mänx.welt.obj("jtg:tau:gibon").get_ort("Osttor"),
-        1.5,
-        richtung="o",
-        beschriftung_zurück="Jotungard")
+        osttor, 1.5, richtung="o", beschriftung_zurück="Jotungard")
+    osttor.bschr("Du erreichst nach Gibon, ein große Stadt direkt an der Grenze zu Jotungard.",
+                 nur="w")
 
 
 def zoll_fn(mänx: Mänx):
+    """Die Schranke, die prüft, ob der Mensch durch kann."""
     wächter = mänx.welt.obj("jtg:tau:wächter")
     if wächter.tot:
         mänx.ausgabe.malp("Das Zollhaus ist leer.")
@@ -99,82 +100,79 @@ def zoll_fn(mänx: Mänx):
         return False
 
 
-@register("jtg:tau:wächter")
-class Zollwärter(OldNSC):
-    """Der Zollwärter bewacht die Brücke."""
+wärter = StoryChar("jtg:tau:wächter", ("Federico", "Pestalozzi", "Zollbeamter"),
+                   Person("m", Rasse.Munin), startinventar=KRIEGER_INVENTAR | {"Uniform": 1})
 
-    def __init__(self):
-        super().__init__("Federico Pestalozzi", "Zollbeamter",
-                         startinventar=KRIEGER_INVENTAR)
-        self.gewarnt = False
-        self.inventar["Uniform"] += 1
-        self.rasse = "Mumin"
-        self.dialog("hallo", "Hallo", "Muin.")
-        self.dialog("wer", "Wer sind Sie?",
-                    ["Ich bin Pestalozzi, Zollbeamter, und bewache diese Brücke.",
-                     "Wenn Sie zahlen, lasse ich Sie gerne 'rüber."])
-        self.dialog("kosten", "Wie viel kostet der Übergang",
-                    f"Es kostet {ZOLL_PREIS} pro Person.")
-        self.dialog("teuer", "Das ist aber teuer!", [
-            "Tut mir leid, das sind die Regeln.",
-            "Sie mögen das teuer finden, aber es ist schön einfach.",
-            f"Sie wollen nach Tauern, dann zahlen Sie {ZOLL_PREIS} Gold.",
-            "Es gibt keine Tageskarte, Jahreskarte, Kinderkarte oder Jubmumin-Premium-Karte.",
-            "Dafür brauchen Sie keinen Ausweis, Reisepass, Impfpass, "
-            "Magierlizenz, Asylverfahren "
-            "oder Flohlosigkeitsnachweis.",
-            "Wir machen keine Fieberkontrolle und durchsuchen nicht Ihr Gepäck.",
-            "Und das alles sparen Sie sich und wir fordern nur etwas Gold."
-        ], "kosten")
 
-        self.dialog("jubmumin", "Eine Jubmumin-Premium-Karte?", [
-            "Nie davon gehört?", "Eine Sonderkarte für junge Mumin.",
-            "Sie sind allerdings wohl weder jung noch ein Mumin.",
-            "Außerdem sind diese Karten nicht übertragbar."
-        ], "teuer")
+wärter.dialog("hallo", "Hallo", "Muin.")
+wärter.dialog("wer", "Wer sind Sie?",
+              ["Ich bin Pestalozzi, Zollbeamter, und bewache diese Brücke.",
+               "Wenn Sie zahlen, lasse ich Sie gerne 'rüber."])
+wärter.dialog("kosten", "Wie viel kostet der Übergang",
+              f"Es kostet {ZOLL_PREIS} pro Person.")
+wärter.dialog("teuer", "Das ist aber teuer!", [
+    "Tut mir leid, das sind die Regeln.",
+    "Sie mögen das teuer finden, aber es ist schön einfach.",
+    f"Sie wollen nach Tauern, dann zahlen Sie {ZOLL_PREIS} Gold.",
+    "Es gibt keine Tageskarte, Jahreskarte, Kinderkarte oder Jubmumin-Premium-Karte.",
+    "Dafür brauchen Sie keinen Ausweis, Reisepass, Impfpass, "
+    "Magierlizenz, Asylverfahren "
+    "oder Flohlosigkeitsnachweis.",
+    "Wir machen keine Fieberkontrolle und durchsuchen nicht Ihr Gepäck.",
+    "Und das alles sparen Sie sich und wir fordern nur etwas Gold."
+], "kosten")
 
-        self.dialog("ausreise", "Und die Ausreise?", [
-            f"Auch {ZOLL_PREIS} Gold.",
-            "Dafür gibt es aber keinen guten Grund.",
-        ], "kosten")
+wärter.dialog("jubmumin", "Eine Jubmumin-Premium-Karte?", [
+    "Nie davon gehört?", "Eine Sonderkarte für junge Mumin.",
+    "Sie sind allerdings wohl weder jung noch ein Mumin.",
+    "Außerdem sind diese Karten nicht übertragbar."
+], "teuer")
 
-    def kampf(self, mänx: Mänx) -> Rückkehr:
-        if self.gewarnt:
-            self.kampf_gewarnt(mänx)
-        malp("Du stürmst auf das Zollhäuschen zu, ", end="")
-        waffe = mänx.hat_klasse("Waffe")
-        if waffe:
-            malp(f"mit dem {waffe} in der Hand.")
-        else:
-            malp(f"die Fäuste geballt.")
-        self.sprich("Halt!")
-        malp(f"{self.name} geht aus dem Zollhäuschen, die Axt erhoben.")
-        if mänx.ja_nein("Machst du weiter?"):
-            if mänx.hat_fähigkeit(Fähigkeit.Ausweichen):
-                malp("Du weichst seinem ersten Hieb aus.", warte=True)
-                if waffe:
-                    malp("Dann streckst du ihn nieder.")
-                    self.tot = True
-                else:
-                    malp("Aber ewig kannst du ihm nicht ausweichen.")
-                    raise Spielende
+wärter.dialog("ausreise", "Und die Ausreise?", [
+    f"Auch {ZOLL_PREIS} Gold.",
+    "Dafür gibt es aber keinen guten Grund.",
+], "kosten")
+
+
+@wärter.kampf
+def zoll_kampf(self: NSC, mänx: Mänx) -> Rückkehr:
+    if "gewarnt" in self.variablen:
+        kampf_gewarnt(self, mänx)
+    malp("Du stürmst auf das Zollhäuschen zu, ", end="")
+    waffe = mänx.hat_klasse("Waffe")
+    if waffe:
+        malp(f"mit dem {waffe} in der Hand.")
+    else:
+        malp(f"die Fäuste geballt.")
+    self.sprich("Halt!")
+    malp(f"{self.name} geht aus dem Zollhäuschen, die Axt erhoben.")
+    if mänx.ja_nein("Machst du weiter?"):
+        if mänx.hat_fähigkeit(Fähigkeit.Ausweichen):
+            malp("Du weichst seinem ersten Hieb aus.", warte=True)
+            if waffe:
+                malp("Dann streckst du ihn nieder.")
+                self.tot = True
             else:
-                malp(f"Mit seiner enormen Größe hat {self.name} kein Problem "
-                     "deinen Schädel zu spalten, bevor du ihn erreichst.")
+                malp("Aber ewig kannst du ihm nicht ausweichen.")
                 raise Spielende
         else:
-            malp("Du erklärst, dass es alles nur ein Scherz war.")
-            self.sprich("Ein weiteres Mal wird es nicht geben!")
-            self.gewarnt = True
-        return Rückkehr.VERLASSEN
+            malp(f"Mit seiner enormen Größe hat {self.name} kein Problem "
+                 "deinen Schädel zu spalten, bevor du ihn erreichst.")
+            raise Spielende
+    else:
+        malp("Du erklärst, dass es alles nur ein Scherz war.")
+        self.sprich("Ein weiteres Mal wird es nicht geben!")
+        self.variablen.add("gewarnt")
+    return Rückkehr.VERLASSEN
 
-    def kampf_gewarnt(self, mänx: Mänx) -> None:
-        """Der Zöllner ist bereits gewarnt und kennt keine Gnade."""
-        malp("Du schickst dich gerade an, die Waffe herauszuholen...")
-        self.sprich("He!")
-        malp("da steckte dir schon eine Axt im Schädel...")
-        malp("Muminen sind nicht zu unterschätzen...")
-        raise Spielende
+
+def kampf_gewarnt(self, _mänx: Mänx) -> None:
+    """Der Zöllner ist bereits gewarnt und kennt keine Gnade."""
+    malp("Du schickst dich gerade an, die Waffe herauszuholen...")
+    self.sprich("He!")
+    malp("da steckte dir schon eine Axt im Schädel...")
+    malp("Muminen sind nicht zu unterschätzen...")
+    raise Spielende
 
 
 if __name__ == '__main__':
