@@ -62,7 +62,7 @@ ausgabe: Terminal | 'anzeige.XwatcFenster' = Terminal()
 
 def get_classes(item: str) -> Iterator[str]:
     """Hole die Klassen, zu dem ein Item gehört, also z.B. "magisch", "Waffe"."""
-    return ITEMVERZEICHNIS[item].yield_classes()
+    return map(str, ITEMVERZEICHNIS[item].yield_classes())
 
 
 def get_preise(item: str) -> int:

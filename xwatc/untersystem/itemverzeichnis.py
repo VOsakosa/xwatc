@@ -34,9 +34,10 @@ def get_items(name: str) -> list[str]:
         for doc in docs:
             if doc["doc_name"] == name:
                 return doc["Enums"]
+    raise RuntimeError(f"enums.yaml did not contain Enum {name}")
 
 
-ItemKlasse: EnumMeta = Enum("ItemKlasse", get_items("ItemKlasse"))
+ItemKlasse: EnumMeta = Enum("ItemKlasse", get_items("ItemKlasse"))  # type: ignore
 
 
 class Effekt(Enum):
