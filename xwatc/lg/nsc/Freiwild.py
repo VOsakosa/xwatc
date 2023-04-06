@@ -1,4 +1,4 @@
-from xwatc.system import mint, kursiv, Mänx, ja_nein, minput, Spielende, malp, sprich, Fortsetzung
+from xwatc.system import mint, kursiv, Mänx, ja_nein, Spielende, malp, sprich, Fortsetzung
 import random
 from xwatc.jtg import t2
 from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
