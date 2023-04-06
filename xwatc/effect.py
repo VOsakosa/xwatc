@@ -16,6 +16,7 @@ __author__ = "jasper"
 
 F = TypeVar("F", covariant=True)
 
+
 @define
 class Warten:
     """Signalisiert statt Text Warten."""
@@ -124,9 +125,15 @@ class Zufällig(Generic[F]):
         wkeiten = [(zsum := zsum + wkeit) / gesamt for wkeit, _f in fälle[:-1]]
         return cls(wahlen, wkeiten)
 
+    @classmethod
+    def mit_wkeit(cls, wkeit: float, dann: Sequence[str] | MänxFkt[F]) -> Self:
+        """Erzeuge eine Geschichte, wo nur manchmal etwas passiert."""
+        wahlen = [_to_geschichte(dann), TextGeschichte([])]
+        wkeiten = [wkeit]
+        return cls(wahlen, wkeiten)
+
     def __call__(self, mänx: Mänx) -> F | None:
         return self.wahlen[bisect(self.wkeiten, random.random())](mänx)
-
 
 
 @define

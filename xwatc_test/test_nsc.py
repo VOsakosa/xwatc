@@ -167,9 +167,8 @@ class TestHändler(unittest.TestCase):
         sys.ein("f")
         try:
             hdl_min.main(mx)
-        except:
+        finally:
             print(*sys.ausgaben, sep="\n")
-            raise
         self.assertTrue(hdl_min.inventar["Mantel"])
         self.assertFalse(mx.inventar["Mantel"])
         gold_mantel = system.get_preise("Mantel") * 2
@@ -201,7 +200,19 @@ class TestEffect(unittest.TestCase):
         sys.test_mänx_fn(self, zuf, [], ["5"])
         rd.return_value = 0.322
         sys.test_mänx_fn(self, zuf, [], ["3"])
-
+    
+    @patch("random.random")
+    def test_mit_wkeit(self, rd):
+        zuf: Zufällig[None] = Zufällig.mit_wkeit(0.8, "Test")
+        sys = MockSystem()
+        rd.return_value = 1
+        sys.test_mänx_fn(self, zuf, [], [])
+        rd.return_value = 0.8
+        sys.test_mänx_fn(self, zuf, [], [])
+        rd.return_value = 0.5
+        sys.test_mänx_fn(self, zuf, [], ["Test"])
+        rd.return_value = 0
+        sys.test_mänx_fn(self, zuf, [], ["Test"])
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
