@@ -1,9 +1,10 @@
-from xwatc.dorf import Rückkehr, NSC
+from xwatc.dorf import Rückkehr
 from xwatc.system import mint, kursiv, Mänx, ja_nein, minput, malp
 from xwatc.jtg import t2
+from xwatc.nsc import OldNSC
 
 
-class MartinPortulakk(NSC):
+class MartinPortulakk(OldNSC):
     def __init__(self) -> None:
         super().__init__("Martin Portulakk", "Bürger")
         self.position="Haus"

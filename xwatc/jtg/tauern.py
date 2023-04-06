@@ -3,11 +3,12 @@ Tauern, das Land der aufrechten Kühe.
 Created on 15.10.2020
 """
 from xwatc import weg
-from xwatc.dorf import NSC, Rückkehr
+from xwatc.dorf import Rückkehr
 from xwatc.jtg import osten
 from xwatc.system import Mänx, register, malp, Spielende, Fortsetzung
 from xwatc.untersystem.person import Fähigkeit
 from xwatc.weg import gebiet, kreuzung, Wegtyp, Eintritt
+from xwatc.nsc import OldNSC
 
 
 __author__ = "jasper"
@@ -99,7 +100,7 @@ def zoll_fn(mänx: Mänx):
 
 
 @register("jtg:tau:wächter")
-class Zollwärter(NSC):
+class Zollwärter(OldNSC):
     """Der Zollwärter bewacht die Brücke."""
 
     def __init__(self):

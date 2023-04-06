@@ -247,6 +247,3 @@ class Dorf:
             if ort.name.casefold() == name.casefold():
                 return ort
         raise KeyError(f"In {self.name} unbekannter Ort {name}")
-
-from xwatc import nsc  # @Reimport
-NSC = nsc.OldNSC

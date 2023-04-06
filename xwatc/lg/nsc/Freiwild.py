@@ -1,16 +1,14 @@
-from xwatc.dorf import NSC
 from xwatc.system import mint, kursiv, Mänx, ja_nein, minput, Spielende, malp, sprich, Fortsetzung
 import random
 from xwatc.jtg import t2
 from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
-import xwatc_Hauptgeschichte
 from time import sleep
 from xwatc.lg import mitte
-from xwatc.weg import get_eintritt
 from xwatc.untersystem.person import Fähigkeit
+from xwatc.nsc import OldNSC
 
 
-class RuboicHätxrik(NSC):
+class RuboicHätxrik(OldNSC):
     def __init__(self) -> None:
         super().__init__("Ruboic Hätxrik", "Äntor")
         cls = type(self)

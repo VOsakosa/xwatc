@@ -1,14 +1,14 @@
-from xwatc.dorf import NSC, NSCOptionen, Rückkehr, Malp
+from xwatc.dorf import NSCOptionen, Rückkehr, Malp
 from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
 from xwatc.system import mint, kursiv, Mänx, ja_nein, malp
-from xwatc.nsc import Person, StoryChar
+from xwatc.nsc import Person, StoryChar, OldNSC
 
 WACHEN_INVENTAR = {
     "Schild": 1
 }
 
 
-class SakcaBrauc(NSC):
+class SakcaBrauc(OldNSC):
     def __init__(self):
         super().__init__("Sakca Brauc", "Wache")
 
@@ -50,7 +50,7 @@ class SakcaBrauc(NSC):
         super().main(mänx)
 
 
-class ThomarcAizenfjäld(NSC):
+class ThomarcAizenfjäld(OldNSC):
 
     def __init__(self):
         super().__init__("Thomarc Aizenfjäld", "Wache")
@@ -81,7 +81,7 @@ class ThomarcAizenfjäld(NSC):
         return Rückkehr.VERLASSEN
 
     def optionen(self, mänx: Mänx) -> NSCOptionen:
-        yield from NSC.optionen(self, mänx)
+        yield from OldNSC.optionen(self, mänx)
         yield ("handeln", "handeln", self.handeln)
 
     def main(self, mänx: Mänx) -> None:
@@ -89,7 +89,7 @@ class ThomarcAizenfjäld(NSC):
         super().main(mänx)
 
 
-class OrfGrouundt(NSC):
+class OrfGrouundt(OldNSC):
     def __init__(self):
         super().__init__("Orf Grouundt", "Wache")
 
