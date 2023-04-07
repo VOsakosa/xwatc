@@ -4,7 +4,7 @@ from pathlib import Path
 import gettext as gettext_module
 
 try:
-    translations = gettext_module.translation(
+    translations: gettext_module.NullTranslations = gettext_module.translation(
         "xwatc", Path(__file__).parent / "locales",
         # languages=["dari"],
     )

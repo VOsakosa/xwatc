@@ -256,6 +256,8 @@ class XwatcFenster:
     @_idle_wrapper
     def eingabe(self, prompt: Opt[str],
                 action: Opt[Callable[[str], Any]] = None) -> None:
+        if prompt:
+            self.malp(prompt)
         self._remove_choices()
         self.choice_action = action
         entry = Gtk.Entry(visible=True)
@@ -269,6 +271,8 @@ class XwatcFenster:
              frage: str = "",
              versteckt: Opt[Mapping[str, T]] = None,
              save: Opt[system.Speicherpunkt] = None) -> T:
+        if frage:
+            self.malp(frage)
         self.auswahl([(name, value, shorthand)
                       for name, shorthand, value in optionen], versteckt, save=save)
         ans = self.get_minput_return()
