@@ -12,7 +12,7 @@ from functools import wraps
 from logging import getLogger
 import random
 from typing import (Any, ClassVar, NewType, TYPE_CHECKING, runtime_checkable,
-                    Protocol, TypeAlias)
+                    Protocol, TypeAlias, TypeVar)
 import typing
 from typing_extensions import Self
 
@@ -52,16 +52,26 @@ class Wegpunkt(Protocol):
         """Betrete den Wegpunkt mit mänx aus von."""
 
 
+AndererAusgang = TypeVar("AndererAusgang", bound="Ausgang")
+
+
 @runtime_checkable
 class Ausgang(Protocol):
     """Ein Wegpunkt mit festen losen Enden."""
 
     def verbinde(self, __anderer: Wegpunkt):
-        """Verbinde diesen Wegpunkt mit anderen."""
+        """Verbinde diesen Wegpunkt mit anderen. Diese Methode wird vom anderen Wegpunkt
+        aufgerufen, um sicherzugehen, dass der andere Wegpunkt verbunden ist."""
 
     @property
     def wegpunkt(self) -> Wegpunkt:
         """Der Wegpunkt, der zu einem Ausgang gehört."""
+
+    def __sub__(self, anderer: AndererAusgang, /) -> AndererAusgang:
+        """Verbindet zwei Ausgänge miteinander."""
+        self.verbinde(anderer.wegpunkt)
+        anderer.verbinde(self.wegpunkt)
+        return anderer
 
 
 class WegpunktAusgang(Wegpunkt, Ausgang):
@@ -300,6 +310,29 @@ NachbarKey = _StrAsHimmelsrichtung | Himmelsrichtung
 BeschreibungFn = MänxFkt[None | Wegpunkt | WegEnde]
 
 
+@define(frozen=True)
+class _KreuzungsAusgang(Ausgang):
+    """Ein Ausgang für Kreuzungen."""
+    kreuzung: Wegkreuzung
+    richtung: NachbarKey
+    option: Richtungsoption
+
+    def verbinde(self, anderer: Wegpunkt, /):
+        self.kreuzung.nachbarn[self.richtung] = anderer
+        self.kreuzung._optionen[self.richtung] = self.option
+
+    def __lt__(self, anderer: Ausgang):
+        """Verbindet in eine Richtung mit dem anderen, aber als Sackgasse."""
+        self.kreuzung.nachbarn[self.richtung] = anderer.wegpunkt
+        self.kreuzung._optionen[self.richtung] = self.option
+        self.kreuzung._wenn_fn[str(self.richtung)] = lambda *__: False
+        anderer.verbinde(self.kreuzung)
+
+    @property
+    def wegpunkt(self) -> Wegpunkt:
+        return self.kreuzung
+
+
 def _geschichte(geschichte: Sequence[str] | BeschreibungFn) -> Sequence[str] | BeschreibungFn:
     """Converter for `Beschreibung.geschichte`, um Strings als Liste aus einem String zu behandeln.
     """
@@ -448,6 +481,21 @@ class Wegkreuzung(Wegpunkt):
             Richtungsoption(ziel_name, ziel_kurz, typ)
         )
 
+    def ausgang(self, richtung: str, ziel_name: str, ziel_kurz: str = "",
+                typ=Wegtyp.WEG) -> _KreuzungsAusgang:
+        """Erzeuge ein Ausgangs-Objekt, um diesen Wegpunkt verbinden zu können.
+
+        >>> a = kreuzung("a")
+        >>> a.ausgang("nachb") - kreuzung("b").ausgang("nacha");
+        >>> len(a.get_nachbarn())
+        1
+        """
+        return _KreuzungsAusgang(
+            self,
+            Himmelsrichtung.from_kurz(richtung),
+            Richtungsoption(ziel_name, ziel_kurz, typ)
+        )
+
     def beschreibe(self, mänx: Mänx, ri_name: str | Himmelsrichtung | None
                    ) -> WegEnde | Wegpunkt | None:
         """Beschreibe die Kreuzung von `richtung` kommend.
@@ -541,6 +589,7 @@ class Wegkreuzung(Wegpunkt):
         opts = list(self.optionen(mänx, von_key))
         if not opts:
             raise ValueError(f"Keine Optionen, um aus {self} zu entkommen.")
+        # Direkt wählen, wenn nicht immer_fragen an.
         if not self.immer_fragen and ((von is None) + len(opts)) <= 2:
             if isinstance(opts[0][2], Wegpunkt):
                 return opts[0][2]
@@ -562,19 +611,19 @@ class Wegkreuzung(Wegpunkt):
         return self
 
     def __sub__(self, anderer: 'Wegkreuzung') -> 'Wegkreuzung':
-        anderer.nachbarn[Himmelsrichtung.from_kurz(
-            self.name)] = self
-        self.nachbarn[Himmelsrichtung.from_kurz(
-            anderer.name)] = anderer
+        """Verbinde Wegkreuzungen anhand ihres Namens."""
+        anderer.nachbarn[Himmelsrichtung.from_kurz(self.name)] = self
+        self.nachbarn[Himmelsrichtung.from_kurz(anderer.name)] = anderer
         return anderer
 
-    def verbinde(self,
-                 anderer: Ausgang,
-                 richtung: str,
-                 ziel: str = "",
-                 kurz: str = "",
-                 typ: Wegtyp = Wegtyp.WEG,
-                 ):
+    def verbinde(
+        self, anderer: Ausgang, richtung: str, ziel: str = "",
+        kurz: str = "", typ: Wegtyp = Wegtyp.WEG,
+    ):
+        """Verbinde einen Ausgang.
+
+        `kreuzung.verbinde(ausgang, *args)` ist äquivalent zu `kreuzung.ausgang(*args) - ausgang`.
+        """
         if not richtung:
             raise ValueError("Die Richtung kann nicht leer sein.")
         anderer.verbinde(self)
@@ -635,11 +684,12 @@ class Wegkreuzung(Wegpunkt):
     def add_nsc(self, welt: Welt, name: str, fkt: Callable[..., nsc.NSC],
                 *args, **kwargs):
         welt.get_or_else(name, fkt, *args, **kwargs).ort = self
-    
+
     def add_char(self, welt: Welt, char: nsc.StoryChar) -> nsc.NSC:
         """Füge einen Story-Charakter zu diesem Ort hinzu."""
         if not char.id_:
-            raise ValueError("Der Charakter für add_char muss eine ID besitzen.")
+            raise ValueError(
+                "Der Charakter für add_char muss eine ID besitzen.")
         nsc = welt.obj(char.id_)
         nsc.ort = self
         return nsc

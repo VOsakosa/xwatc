@@ -37,7 +37,7 @@ class MockSystem:
 
     def install(self) -> system.Mänx:
         system.ausgabe = self  # type: ignore
-        return system.Mänx(self)
+        return system.Mänx(self)  # type: ignore
 
     def ein(self, txt: str):
         self.eingaben.append(txt)
@@ -48,11 +48,18 @@ class MockSystem:
         return ans
 
     def test_mänx_fn(self, case_: unittest.TestCase, mänx_fn: MänxFkt,
-                     eingaben: Sequence[str], ausgaben: Sequence[str]) -> None:
+                     eingaben: Sequence[str], ausgaben: Sequence[str],
+                     allow_script_ende: bool = False) -> object:
         """Teste eine MänxFkt gegen eine Reihe von eingaben."""
         self.eingaben.extend(eingaben)
-        mänx_fn(self.install())
+        ans = None
+        try:
+            ans = mänx_fn(self.install())
+        except ScriptEnde:
+            if not allow_script_ende:
+                raise
         case_.assertListEqual(self.pop_ausgaben(), [*ausgaben])
+        return ans
 
     def menu(self,
              mänx: Mänx | None,
