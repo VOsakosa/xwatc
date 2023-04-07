@@ -457,7 +457,7 @@ class Kiste:
 
     def main(self, mänx: Mänx):
         if isinstance(mänx.context, Scenario) and mänx.welt.am_leben("jtg:lina"):
-            self.lina = mänx.welt.objekte["jtg:lina"]
+            self.lina = mänx.welt.obj("jtg:lina")
         else:
             self.lina = None
         opts = [

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from attrs import define
+from attrs import define, field
 from collections import defaultdict
 from collections.abc import Sequence, Callable, Iterator, Mapping
 from logging import getLogger
@@ -10,6 +10,7 @@ import pickle
 from time import sleep
 from typing import TypeVar, Any, Protocol
 from typing import (Dict, List, Union, Optional, Optional as Opt, TypeAlias)
+from typing_extensions import Self
 import typing
 
 from xwatc.terminal import Terminal
@@ -86,23 +87,26 @@ Inventar: TypeAlias = dict[str, int]
 _null_func = int
 
 
+# @define
+# class Persönlichkeit:
+#     """ Deine Persönlichkeit innerhalb des Spieles """
+#     ehrlichkeit: int = 0
+#     stolz: int = 0
+#     arroganz: int = 0
+#     vertrauenswürdigkeit: int = 0
+#     hilfsbereischaft: int = 0
+#     mut: int = 0
+
+def _inventar_converter(eingabe: Mapping[str, int]) -> Inventar:
+    """Konvertiert eine Eingabe in den konkreten Inventartyp."""
+    return defaultdict(int, eingabe)
+
+
 @define
-class Persönlichkeit:
-    """ Deine Persönlichkeit innerhalb des Spieles """
-    ehrlichkeit: int = 0
-    stolz: int = 0
-    arroganz: int = 0
-    vertrauenswürdigkeit: int = 0
-    hilfsbereischaft: int = 0
-    mut: int = 0
-
-
 class InventarBasis:
     """Ein Ding mit Inventar"""
-    inventar: Inventar
-
-    def __init__(self):
-        self.inventar = defaultdict(int)
+    inventar: Inventar = field(factory=lambda: defaultdict(int), kw_only=True,
+                               converter=_inventar_converter)
 
     def erhalte(self, item: str, anzahl: int = 1,
                 von: Optional[InventarBasis] = None):
@@ -173,25 +177,111 @@ class Karawanenfracht(InventarBasis):
         return "\n".join(ans)
 
 
-class Mänx(InventarBasis, Persönlichkeit):
+@define
+class Welt:
+    """Speichert den Zustand der Welt, in der sich der Hauptcharakter befindet."""
+    name: str
+    tag: float = 0.
+    _objekte: dict[str, Any] = field(factory=dict, repr=False)
+    _flaggen: set[str] = field(factory=set, repr=False)
+
+    @classmethod
+    def default(cls) -> Self:
+        return cls(name="Bliblablux")
+
+    def setze(self, name: str) -> None:
+        """Setze eine Welt-Variable"""
+        self._flaggen.add(name)
+
+    def ist(self, name: str) -> bool:
+        """Testet eine Welt-Variable."""
+        return name in self._flaggen
+
+    def get_or_else(self, name: str, fkt: Callable[..., T], *args,
+                    **kwargs) -> T:
+        """Hole ein Objekt aus dem Speicher oder erzeuge ist mit *fkt*"""
+        if name in self._objekte:
+            ans = self._objekte[name]
+            if isinstance(fkt, type):
+                assert isinstance(ans, fkt)
+            return ans
+        else:
+            ans = fkt(*args, **kwargs)
+            self._objekte[name] = ans
+            return ans
+
+    def am_leben(self, name: str) -> bool:
+        """Prüfe, ob das Objekt *name* da und noch am Leben ist."""
+        try:
+            obj = self.obj(name)
+        except KeyError:
+            return False
+        else:
+            return not getattr(obj, 'tot', False)
+
+    def obj(self, name: str | Besuche) -> Any:
+        """Hole ein registriertes oder existentes Objekt."""
+        if isinstance(name, Besuche):
+            name = name.objekt_name
+        if name in self._objekte:
+            return self._objekte[name]
+        from xwatc import nsc  # @Reimport
+        obj: HatMain
+        if name in nsc.CHAR_REGISTER:
+            obj = nsc.CHAR_REGISTER[name].zu_nsc()
+        elif name in _OBJEKT_REGISTER:
+            obj = _OBJEKT_REGISTER[name]()
+        else:
+            raise MissingID(f"Das Objekt {name} existiert nicht.")
+        self._objekte[name] = obj
+        return obj
+
+    def setze_objekt(self, name: str, objekt: object) -> None:
+        """Setze ein Objekt in der Welt."""
+        self._objekte[name] = objekt
+
+    def nächster_tag(self, tage: int = 1):
+        """Springe zum nächsten Tag"""
+        self.tag = int(self.tag + tage)
+
+    def get_tag(self) -> int:
+        """Gebe den Tag seit Anfang des Spiels aus. Der erste Tag ist 0."""
+        return int(self.tag)
+
+    def is_nacht(self) -> bool:
+        return self.tag % 1.0 >= 0.5
+
+    def tick(self, uhr: float):
+        """Lasse etwas Zeit vergehen."""
+        self.tag += uhr
+
+    def uhrzeit(self) -> tuple[int, int]:
+        """Gebe die momentane Uhrzeit als Tupel (Stunde, Minute) aus."""
+        stunde, rest = divmod(30 + (self.tag % 1.) * 24, 1.)
+        minute = (rest * 60) % 1.
+        return int(stunde) % 24, int(minute)
+
+@define
+class Mänx(InventarBasis):
     """Der Hauptcharakter des Spiels, alles dreht sich um ihn, er hält alle
     Information."""
+    ausgabe: Terminal | 'anzeige.XwatcFenster' = ausgabe
+    welt: Welt = field(factory=Welt.default)
+    rasse = Rasse.Mensch
+    titel: set[str] = field(factory=set, repr=False)
+    fähigkeiten: set[Fähigkeit] = field(factory=set, repr=False)
+    verbrechen: defaultdict[Verbrechen, int] = field(
+        factory=lambda: defaultdict(int))
+    gefährten: list[nsc.NSC] = field(factory=list, repr=False)
+    context: Any | None = None
+    speicherpunkt: Fortsetzung | None = None
+    speicherdatei_name: str | None = None
 
-    def __init__(self, ausgabe=ausgabe) -> None:
+    def __attrs_pre_init__(self) -> None:
         super().__init__()
-        self.ausgabe: Terminal | 'anzeige.XwatcFenster' = ausgabe
+
+    def __attrs_post_init__(self) -> None:
         self.gebe_startinventar()
-        self.gefährten: list['nsc.NSC'] = []
-        self.titel: set[str] = set()
-        self.lebenspunkte = 100
-        self.fähigkeiten: set[Fähigkeit] = set()
-        self.welt = Welt("bliblablux")
-        # self.missionen: list[None] = list()
-        self.verbrechen: defaultdict[Verbrechen, int] = defaultdict(int)
-        self.rasse = Rasse.Mensch
-        self.context: Any = None
-        self.speicherpunkt: Fortsetzung | None = None
-        self.speicherdatei_name: str | None = None
 
     def hat_fähigkeit(self, name: Fähigkeit) -> bool:
         return name in self.fähigkeiten
@@ -289,6 +379,7 @@ class Mänx(InventarBasis, Persönlichkeit):
         malp()
 
     def tutorial(self, art: str) -> None:
+        """Spielt das Tutorial für ein Spielsystem ab. Diese sind unter hilfe.HILFEN."""
         if not self.welt.ist("tutorial:" + art):
             for zeile in hilfe.HILFEN[art]:
                 malp(zeile)
@@ -405,84 +496,6 @@ class Mänx(InventarBasis, Persönlichkeit):
         with open(SPEICHER_VERZEICHNIS / filename, "wb") as write:
             pickle.dump(self, write)
         self.speicherpunkt = None
-
-
-class Welt:
-    """Speichert den Zustand der Welt, in der sich der Hauptcharakter befindet."""
-
-    def __init__(self, name: str) -> None:
-        self.inventar: Dict[str, int] = {}
-        self.name = name
-        self.objekte: Dict[str, Any] = {}
-        self.tag = 0.0
-
-    def setze(self, name: str) -> None:
-        """Setze eine Welt-Variable"""
-        self.inventar[name] = 1
-
-    def ist(self, name: str) -> bool:
-        """Testet eine Welt-Variable."""
-        return name in self.inventar and bool(self.inventar[name])
-
-    def get_or_else(self, name: str, fkt: Callable[..., T], *args,
-                    **kwargs) -> T:
-        """Hole ein Objekt aus dem Speicher oder erzeuge ist mit *fkt*"""
-        if name in self.objekte:
-            ans = self.objekte[name]
-            if isinstance(fkt, type):
-                assert isinstance(ans, fkt)
-            return ans
-        else:
-            ans = fkt(*args, **kwargs)
-            self.objekte[name] = ans
-            return ans
-
-    def am_leben(self, name: str) -> bool:
-        """Prüfe, ob das Objekt *name* da und noch am Leben ist."""
-        try:
-            obj = self.obj(name)
-        except KeyError:
-            return False
-        else:
-            return not getattr(obj, 'tot', False)
-
-    def obj(self, name: str | Besuche) -> Any:
-        """Hole ein registriertes oder existentes Objekt."""
-        if isinstance(name, Besuche):
-            name = name.objekt_name
-        if name in self.objekte:
-            return self.objekte[name]
-        from xwatc import nsc  # @Reimport
-        obj: HatMain
-        if name in nsc.CHAR_REGISTER:
-            obj = nsc.CHAR_REGISTER[name].zu_nsc()
-        elif name in _OBJEKT_REGISTER:
-            obj = _OBJEKT_REGISTER[name]()
-        else:
-            raise MissingID(f"Das Objekt {name} existiert nicht.")
-        self.objekte[name] = obj
-        return obj
-
-    def nächster_tag(self, tage: int = 1):
-        """Springe zum nächsten Tag"""
-        self.tag = int(self.tag + tage)
-
-    def get_tag(self) -> int:
-        """Gebe den Tag seit Anfang des Spiels aus. Der erste Tag ist 0."""
-        return int(self.tag)
-
-    def is_nacht(self) -> bool:
-        return self.tag % 1.0 >= 0.5
-
-    def tick(self, uhr: float):
-        """Lasse etwas Zeit vergehen."""
-        self.tag += uhr
-
-    def uhrzeit(self) -> tuple[int, int]:
-        """Gebe die momentane Uhrzeit als Tupel (Stunde, Minute) aus."""
-        stunde, rest = divmod(30 + (self.tag % 1.) * 24, 1.)
-        minute = (rest * 60) % 1.
-        return int(stunde) % 24, int(minute)
 
 
 def schiebe_inventar(start: Inventar, ziel: Inventar):

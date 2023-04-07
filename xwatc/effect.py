@@ -10,7 +10,7 @@ from collections.abc import Sequence, Mapping
 import random
 from typing import Generic, TypeVar
 from typing_extensions import Self
-from xwatc.system import MänxPrädikat, MänxFkt, Mänx, malp
+from xwatc.system import MänxPrädikat, MänxFkt, Mänx, malp, MissingID
 __author__ = "jasper"
 
 
@@ -88,12 +88,14 @@ class Cooldown:
     zeit: int  # Die Zeit in Tagen
 
     def __call__(self, mänx: Mänx) -> bool:
-        if self.id_ in mänx.welt.objekte:
-            ans = mänx.welt.objekte[self.id_] <= mänx.welt.tag - self.zeit
+        try:
+            letztes_mal = mänx.welt.obj(self.id_)
+        except MissingID:
+            mänx.welt.setze_objekt(self.id_, mänx.welt.tag)
+            return True
         else:
-            ans = True
-        if ans:
-            mänx.welt.objekte[self.id_] = mänx.welt.tag
+            ans = letztes_mal <= mänx.welt.tag - self.zeit
+            mänx.welt.setze_objekt(self.id_, mänx.welt.tag)
         return ans
 
 
