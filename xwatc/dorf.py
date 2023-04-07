@@ -5,19 +5,18 @@ Seit 10.10.2020
 """
 from __future__ import annotations
 import attrs
-from attrs import define, field, Factory
+from attrs import define, field
 from enum import Enum
 from collections.abc import Sequence, Callable, Iterable
 from typing import List, Tuple, Optional as Opt, Union, TypeAlias
 from typing import TYPE_CHECKING
 from dataclasses import dataclass
-from xwatc.system import (malp, MenuOption, sprich, MänxFkt, Welt, Fortsetzung)
+from xwatc.system import (malp, MenuOption, sprich, MänxFkt, Fortsetzung)
 from xwatc import system
 from xwatc import weg
 if TYPE_CHECKING:
     from xwatc import nsc
 from xwatc.utils import UndPred
-from xwatc.weg import Himmelsrichtung
 __author__ = "jasper"
 
 
@@ -46,6 +45,16 @@ class Malp:
 
     def __str__(self) -> str:
         return self.text
+
+@define
+class Sprich:
+    """Wird in DialogFunktionen gebraucht. Schon Strings werden standardmäßig gesprochen, 
+    aber die Verwendung von Sprich erlaubt es, die Art zu setzen.
+    `Sprich("Hallo?", "unsicher")` ergibt dann eine Ausgabe wie
+    "Martin(unsicher): »Hallo?«.
+    """
+    text: str
+    wie: str = ""
 
 
 class Zeitpunkt(Enum):
@@ -160,7 +169,7 @@ class Dialog:
         return (self.text, self.name, self)
 
 
-DialogGeschichte = Union[Sequence[Malp | str], DialogFn]
+DialogGeschichte = Union[Sequence[Malp | Sprich | str], DialogFn]
 DialogErzeugerFn = Callable[[], Iterable[Dialog]]
 RunType = MänxFkt | Rückkehr | Dialog
 _MainOpts = List[MenuOption[RunType]]

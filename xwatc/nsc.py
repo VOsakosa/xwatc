@@ -395,7 +395,7 @@ class NSC(system.InventarBasis):
                 ans = ans3
         return ans
 
-    def _call_inner(self, text: Sequence[str | dorf.Malp], erzähler: bool,
+    def _call_inner(self, text: Sequence[str | dorf.Malp | dorf.Sprich], erzähler: bool,
                     warte: bool = True):
         """Führe einen Text des Dialoges aus."""
         if isinstance(text, str):
@@ -410,6 +410,8 @@ class NSC(system.InventarBasis):
             for g in text:
                 if isinstance(g, dorf.Malp):
                     g()
+                elif isinstance(g, dorf.Sprich):
+                    self.sprich(g.text, art=g.art)
                 else:
                     self.sprich(g)
             if warte:
