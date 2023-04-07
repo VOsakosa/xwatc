@@ -109,7 +109,7 @@ class InventarBasis:
                                converter=_inventar_converter)
 
     def erhalte(self, item: str, anzahl: int = 1,
-                von: Optional[InventarBasis] = None):
+                von: Optional[InventarBasis] = None) -> None:
         """Transferiert Items in das Inventar des Mänxen und gibt das aus."""
         if von:
             anzahl = min(anzahl, von.inventar[item])
@@ -120,14 +120,16 @@ class InventarBasis:
         if von:
             von.inventar[item] -= anzahl
 
-    def inventar_zeigen(self):
+    def inventar_zeigen(self) -> str:
+        """Repräsentation des Inventars als Strings."""
         ans = []
         for item, anzahl in self.inventar.items():
             if anzahl:
                 ans.append(f"{anzahl}x {item}")
         return ", ".join(ans)
 
-    def erweitertes_inventar(self):
+    def erweitertes_inventar(self) -> str:
+        """Repräsentation des Inventars als String, mit Preisen."""
         if not any(self.inventar.values()):
             return "Nichts da."
         ans = ["{} Gold".format(self.inventar["Gold"])]
@@ -153,12 +155,14 @@ class InventarBasis:
                 return item
         return None
 
-    def items(self):
+    def items(self) -> Iterator[str]:
+        """Iteriert über alle besessenen Items."""
         for item, anzahl in self.inventar.items():
             if anzahl:
                 yield item
 
-    def hat_item(self, item, anzahl=1):
+    def hat_item(self, item: str, anzahl=1) -> bool:
+        """Prüft, ob ein Item mit einen bestimmten Anzahl vorhanden ist."""
         return item in self.inventar and self.inventar[item] >= anzahl
 
 
@@ -187,6 +191,7 @@ class Welt:
 
     @classmethod
     def default(cls) -> Self:
+        """Erzeuge eine leere Standardwelt, die aus historischen Gründen bliblablux heißt."""
         return cls(name="Bliblablux")
 
     def setze(self, name: str) -> None:
@@ -220,7 +225,10 @@ class Welt:
             return not getattr(obj, 'tot', False)
 
     def obj(self, name: str | Besuche) -> Any:
-        """Hole ein registriertes oder existentes Objekt."""
+        """Hole ein registriertes oder existentes Objekt.
+        
+        :raise MissingID: Wenn das Objekt nicht existiert und nicht registriert ist.
+        """
         if isinstance(name, Besuche):
             name = name.objekt_name
         if name in self._objekte:
@@ -249,10 +257,12 @@ class Welt:
         return int(self.tag)
 
     def is_nacht(self) -> bool:
+        """Prüfe, ob Nacht ist. Die Welt startet standardmäßig am Morgen und die Hälfte des Tages
+        ist Nacht."""
         return self.tag % 1.0 >= 0.5
 
     def tick(self, uhr: float):
-        """Lasse etwas Zeit vergehen."""
+        """Lasse etwas Zeit in der Welt vergehen."""
         self.tag += uhr
 
     def uhrzeit(self) -> tuple[int, int]:
@@ -261,13 +271,14 @@ class Welt:
         minute = (rest * 60) % 1.
         return int(stunde) % 24, int(minute)
 
+
 @define
 class Mänx(InventarBasis):
     """Der Hauptcharakter des Spiels, alles dreht sich um ihn, er hält alle
     Information."""
     ausgabe: Terminal | 'anzeige.XwatcFenster' = ausgabe
     welt: Welt = field(factory=Welt.default)
-    rasse = Rasse.Mensch
+    rasse: Rasse = Rasse.Mensch
     titel: set[str] = field(factory=set, repr=False)
     fähigkeiten: set[Fähigkeit] = field(factory=set, repr=False)
     verbrechen: defaultdict[Verbrechen, int] = field(
