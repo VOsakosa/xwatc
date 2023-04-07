@@ -22,6 +22,7 @@ import threading
 from typing import (Tuple, Optional as Opt, Mapping,
                     Protocol, Sequence, Any, TypeVar, Callable,
                     ClassVar, NamedTuple)
+from typing_extensions import Self
 from xwatc import system
 from xwatc.system import (Fortsetzung, Speicherpunkt, SPEICHER_VERZEICHNIS,
                           MenuOption, Mänx)
@@ -98,9 +99,11 @@ class XwatcFenster:
         self.sichtbare_anzeigen: set[type] = set()
         self.choice_action: Opt[Callable[[Any], Any]] = None
 
+        self.info_widget: InfoWidget = InfoWidget.create()
         self._stack: list[_StackItem] = []
         self.main_grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
         self.show_grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
+        self.main_grid.add(self.info_widget.widget)
         self.main_grid.add(self.show_grid)
         self.show_grid.add(textview)
         self.grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
@@ -398,6 +401,8 @@ class XwatcFenster:
         for typ, anzeige in self.anzeigen.items():
             if typ not in self.sichtbare_anzeigen:
                 anzeige.set_visible(False)
+        if self.mänx:
+            self.info_widget.update(self.mänx)
 
     def _deactivate_choices(self):
         self.mgn.clear()
@@ -494,6 +499,26 @@ class AnzeigeDaten(Protocol):
     def update_widget(self, widget: Gtk.Widget, _fenster: XwatcFenster) -> Any:
         """Aktualisiert das Anzeige-Widget mit den Daten."""
 
+@define
+class InfoWidget:
+    """Zeigt ständig irgendwelche Infos über den Mänxen."""
+    widget: Gtk.Box
+    tag_label: Gtk.Label
+    zeit_label: Gtk.Label
+    
+    @classmethod
+    def create(cls) -> Self:
+        grid = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, hexpand=True, halign=Gtk.Align.END)
+        tag_label = Gtk.Label(margin_end=12)
+        zeit_label = Gtk.Label()
+        grid.add(tag_label)
+        grid.add(zeit_label)
+        return cls(grid, tag_label, zeit_label)
+    
+    def update(self, mänx: Mänx) -> None:
+        self.tag_label.set_text(f"Tag {mänx.welt.get_tag()}")
+        self.zeit_label.set_text("{:02}:{:02}".format(*mänx.welt.uhrzeit()))
+        
 
 def main(startpunkt: Fortsetzung | str | None = None):
     global _main_thread
