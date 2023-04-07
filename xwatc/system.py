@@ -13,6 +13,7 @@ from typing import (Dict, List, Union, Optional, Optional as Opt, TypeAlias)
 from typing_extensions import Self
 import typing
 
+from xwatc import _
 from xwatc.terminal import Terminal
 from xwatc.untersystem import hilfe
 from xwatc.untersystem.itemverzeichnis import lade_itemverzeichnis, Item
@@ -226,7 +227,7 @@ class Welt:
 
     def obj(self, name: str | Besuche) -> Any:
         """Hole ein registriertes oder existentes Objekt.
-        
+
         :raise MissingID: Wenn das Objekt nicht existiert und nicht registriert ist.
         """
         if isinstance(name, Besuche):
@@ -264,7 +265,8 @@ class Welt:
     def tick(self, uhr: float):
         """Lasse etwas Zeit in der Welt vergehen."""
         if uhr < 0:
-            raise ValueError("Mit tick kann die Uhr nicht zurückbewegt werden.")
+            raise ValueError(
+                "Mit tick kann die Uhr nicht zurückbewegt werden.")
         self.tag += uhr
 
     def uhrzeit(self) -> tuple[int, int]:
@@ -569,6 +571,8 @@ def minput(mänx: Mänx, frage: str, möglichkeiten=None, lower=True, save=None)
 
 def mint(*text) -> None:
     """Printe und warte auf ein Enter."""
+    if len(text) == 1:
+        text = _(text[0]),
     ausgabe.mint(*text)
 
 
@@ -578,6 +582,8 @@ def sprich(sprecher: str, text: str, warte: bool = False, wie: str = "") -> None
 
 def malp(*text, sep=" ", end='\n', warte=False) -> None:
     """Angenehm zu lesender, langsamer Print."""
+    if len(text) == 1:
+        text = _(text[0]),
     ausgabe.malp(*text, sep=sep, end=end, warte=warte)
 
 

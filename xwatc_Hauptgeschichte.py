@@ -2,7 +2,7 @@ import pickle
 from logging import getLogger
 from xwatc.system import (Mänx, Spielende, mint, malp, SPEICHER_VERZEICHNIS,
                           Fortsetzung, MenuOption)
-import random
+from xwatc import _
 from xwatc import system
 from xwatc import weg
 from pathlib import Path
@@ -15,8 +15,8 @@ def hauptmenu() -> None:
     """Das Hauptmenu von Xwatc, erlaubt Laden und neues Spiel starten.
     (Nur Terminal-Modus)"""
     while True:
-        mgn1 = [("Lade Spielstand", "lade", False),
-                ("Neuer Spielstand", "neu", True)]
+        mgn1 = [(_("Lade Spielstand"), "lade", False),
+                (_("Neuer Spielstand"), "neu", True)]
         if system.ausgabe.menu(None, mgn1):
             main(Mänx())
             return
@@ -35,19 +35,19 @@ def hauptmenu() -> None:
 
 
 def waffe_wählen(mänx: Mänx) -> Fortsetzung:
-    mint("Du wirst nun einem kleinen Persönlichkeitstest unterzogen.")
+    mint(_("Du wirst nun einem kleinen Persönlichkeitstest unterzogen."))
     rasse = mänx.menu([
-        ("Mensch", "mensch", Rasse.Mensch),
-        ("Munin", "munin", Rasse.Munin)
-    ], "Was willst du sein?", versteckt={"lavaschnecke": Rasse.Lavaschnecke},
+        (_("Mensch"), "mensch", Rasse.Mensch),
+        (_("Munin"), "munin", Rasse.Munin)
+    ], _("Was willst du sein?"), versteckt={_("lavaschnecke"): Rasse.Lavaschnecke},
         save=waffe_wählen)
     mänx.rasse = rasse
     if rasse == Rasse.Lavaschnecke:
-        malp("Na gut. "
+        malp(_("Na gut. "
              "Dann bist du eben eine seltene Lavaschnecke. "
-             "Das hast du nun von deinem Gejammer!")
+             "Das hast du nun von deinem Gejammer!"))
 
-    waffe = mänx.minput("Wähle zwischen Schwert, Schild und Speer: ",
+    waffe = mänx.minput(_("Wähle zwischen Schwert, Schild und Speer: "),
                         ["Schwert", "Speer", "Schild"])
     if waffe == "speer":
         malp("Du hast den Speer aufgenommen.")
@@ -73,7 +73,7 @@ def waffe_wählen(mänx: Mänx) -> Fortsetzung:
 def main(mänx: Mänx):
     """Die Hauptschleife von Xwatc."""
     if not mänx.speicherpunkt:
-        malp("Willkommen bei Xwatc")
+        malp(_("Willkommen bei Xwatc"))
     ende = False
     punkt: Fortsetzung | None = mänx.speicherpunkt
     while not ende:
@@ -89,7 +89,7 @@ def main(mänx: Mänx):
                 else:
                     punkt = punkt.main(mänx)
         except Spielende:
-            malp("Du bist tot")
+            malp(_("Du bist tot"))
             punkt = None
         except EOFError:
             ende = True
