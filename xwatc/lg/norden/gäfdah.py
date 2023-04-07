@@ -8,6 +8,7 @@ from xwatc.lg.nsc.Wachen_von_Gäfdah import (
 from xwatc.lg.nsc.Bürger_von_Gäfdah import martin
 from xwatc.lg.nsc import Freiwild  #@UnusedImport
 from xwatc.nsc import StoryChar, Person
+import random
 
 
 GÄFDAH_NAME = "Gäfdah"
@@ -60,7 +61,7 @@ def erzeuge_Gäfdah(mänx: Mänx) -> Dorf:
         mänx.welt, "nsc:Wachen_von_Gäfdah:OrfGrouundt", OrfGrouundt)
     for _i in range(randint(2, 5)):
         w = frau.zu_nsc()
-        d.draußen.menschen.append(w)
+        random.choice((schmiede, schenke, rathaus)).menschen.append(w)
     return d
 
 

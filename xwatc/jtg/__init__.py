@@ -609,7 +609,8 @@ def süd_dorf_norden(nsc: NSC, _mänx: Mänx):
 
 
 SÜD_DORF_DIALOGE = [
-    Dialog("wo", '"Wo bin ich hier?"', süd_dorf_wo),
+    Dialog("wo", '"Wo bin ich hier?"', süd_dorf_wo).wenn(
+        lambda n,m: n.ort and n.ort.dorf and n.ort.dorf.name==SÜD_DORF_NAME),
     Dialog("grenzen", '"Welche Grenzen?"', süd_dorf_grenzen, "wo"),
     Dialog("norden", '"Was ist mit dem Norden?"', süd_dorf_norden, "wo"),
 ]
