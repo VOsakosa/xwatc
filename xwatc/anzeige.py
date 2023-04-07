@@ -85,9 +85,16 @@ class XwatcFenster:
     terminal: ClassVar[bool] = False
 
     def __init__(self, app: Gtk.Application, startpunkt: Opt[Fortsetzung] = None):
+        style_provider = Gtk.CssProvider()
+        style_provider.load_from_path(str(Path(__file__).parent / 'style.css'))
+        Gtk.StyleContext.add_provider_for_screen(
+            Gdk.Screen.get_default(),
+            style_provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
         win = Gtk.ApplicationWindow()
         app.add_window(win)
         textview = Gtk.TextView(hexpand=True, vexpand=True, editable=False)
+        textview.get_style_context().add_class("main_text_view")
         textview.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
         self.buffer = textview.get_buffer()
 
@@ -111,7 +118,7 @@ class XwatcFenster:
         win.connect("destroy", self.fenster_schließt)
         win.connect("key-press-event", self.key_pressed)
         win.add(self.main_grid)
-        win.set_default_size(300, 300)
+        win.set_default_size(400, 500)
         win.set_title("Xwatc")
         # Spiel beginnen
         self.speicherpunkt: Opt[Speicherpunkt] = None

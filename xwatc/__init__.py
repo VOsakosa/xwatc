@@ -3,10 +3,13 @@
 from pathlib import Path
 import gettext as gettext_module
 
-translations = gettext_module.translation(
-    "xwatc", Path(__file__).parent / "locales",
-    # languages=["dari"],
-)
+try:
+    translations = gettext_module.translation(
+        "xwatc", Path(__file__).parent / "locales",
+        # languages=["dari"],
+    )
+except FileNotFoundError:
+    translations = gettext_module.NullTranslations()
 _ = translations.gettext
 
 from . import system
