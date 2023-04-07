@@ -263,6 +263,8 @@ class Welt:
 
     def tick(self, uhr: float):
         """Lasse etwas Zeit in der Welt vergehen."""
+        if uhr < 0:
+            raise ValueError("Mit tick kann die Uhr nicht zurückbewegt werden.")
         self.tag += uhr
 
     def uhrzeit(self) -> tuple[int, int]:

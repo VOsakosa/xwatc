@@ -42,6 +42,7 @@ class TextGeschichte:
     schatz: Mapping[str, int] = Factory(dict)
     titel: Sequence[str] = ()
     variablen: Sequence[str] = ()
+    zeit: float = 0.
 
     def __call__(self, mänx: Mänx) -> None:
         for text in self.texte:
@@ -58,6 +59,7 @@ class TextGeschichte:
             mänx.titel.add(titel)
         for var in self.variablen:
             mänx.welt.setze(var)
+        mänx.welt.tick(self.zeit)
 
 
 @define
