@@ -474,7 +474,7 @@ def erzeuge_frau(nsc: NSC):
 
 
 frau = StoryChar("jtg:süd:hausfrau", "-", Person("w"), {
-    "Einfaches Kleid": 1, "Unterhose": 1, "Socke": 2
+    "Einfaches Kleid": 1, "Unterhose": 1
 }, direkt_reden=True, randomize_fn=erzeuge_frau)
 
 frau.dialoge.extend(HalloDialoge)
@@ -563,7 +563,6 @@ def rechtfertigen(mänx: Mänx, nsc):
 StoryChar("jtg:süd:garnichts", ("Gaa", "Nix", "Junge"), Person("m"), direkt_reden=True,
           startinventar=dict(
     Schuh=1,
-    Socke=2,
     Tomate=4,
     Banane=2,
     Ring=1,

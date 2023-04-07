@@ -34,8 +34,6 @@ saxa = StoryChar("jtg:saxa", ("Saxa", "Kautohoa", "Holzfällerin"), Person("w"),
                  startinventar={
     "Unterhose": 1,
     "Hemd": 1,
-    "Strumpfhose": 1,
-    "Socke": 1,
     "BH": 1,
     "Kappe": 1,
     "Hose": 1,
@@ -159,7 +157,6 @@ def als_gefährte(nsc: NSC, _mänx: Mänx) -> bool:
 älen = StoryChar("jtg:mädchen", "Mädchen", Person("w"), {
     "BH": 1,
     "Unterhose": 1,
-    "Socke": 2,
     "Schuh": 2,
     "Lumpen": 1,
 })

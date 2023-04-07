@@ -13,7 +13,6 @@ from xwatc.nsc import StoryChar, Person
 GÄFDAH_NAME = "Gäfdah"
 STANDARDKLEIDUNG: Inventar = {
     "Schuh": 2,
-    "Socke": 2,
     "Hose": 1,
     "Gürtel": 1,
     "Unterhose": 1,

@@ -81,10 +81,8 @@ def martin_reden(self: NSC, mänx: Mänx) -> Rückkehr:
         if a == 'd':
             mint("Du findest Kleidung, Fisch, Gemüse und Zeug.")
             # so ist es schöner
-            # d = {"Socke": 8, "Hose":2}
             # for name, anzahl in d.items():
             #    mänx.inventar[name] += anzahl
-            mänx.inventar["Socke"] += 8
             mänx.inventar["Hose"] += 2
             mänx.inventar["Hemd"] += 3
             mänx.inventar["Seil"] += 1

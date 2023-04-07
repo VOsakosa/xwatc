@@ -130,7 +130,6 @@ kloos = StoryChar("jtg:gr:kloos", ("Miřam", "Kloos", "Wirtin"), vorstellen_fn=[
     "Gold": 124,
     "Schürze": 1,
     "Einfaches Kleid": 2,
-    "Socke": 2,
     "Ring": 4,
     "Mugel des Geschmacks": 1,
 })

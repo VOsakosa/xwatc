@@ -14,7 +14,6 @@ ruboic = StoryChar("nsc:freiwild:ruboic", ("Ruboic", "Hätxrik", "Äntor"),
                    Person("m"), startinventar={
     "Äntorenmantel": 1,
     "Äntorenstiefel": 2,
-    "Socken": 4,
     "Gold": 89,
     "Saphir": 1,
     "Äntorenhelm": 1,
