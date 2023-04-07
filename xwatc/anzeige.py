@@ -5,7 +5,6 @@ from __future__ import annotations
 
 from attrs import define
 from itertools import islice
-import os
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -23,6 +22,7 @@ from typing import (Tuple, Optional as Opt, Mapping,
                     Protocol, Sequence, Any, TypeVar, Callable,
                     ClassVar, NamedTuple)
 from typing_extensions import Self
+from xwatc import _
 from xwatc import system
 from xwatc.system import (Fortsetzung, Speicherpunkt, SPEICHER_VERZEICHNIS,
                           MenuOption, Mänx)
@@ -137,8 +137,8 @@ class XwatcFenster:
             while next_ is not None:
                 if next_ == "h":  # hauptmenu
                     self.malp("Xwatc-Hauptmenü")
-                    mgn1 = [("Lade Spielstand", "lade", False),
-                            ("Neuer Spielstand", "neu", True)]
+                    mgn1 = [(_("Lade Spielstand"), "lade", False),
+                            (_("Neuer Spielstand"), "neu", True)]
                     if system.ausgabe.menu(None, mgn1):
                         self.mänx = system.Mänx(self)
                         next_ = "m"
@@ -153,7 +153,7 @@ class XwatcFenster:
                         continue
                     except Exception:
                         import traceback
-                        self.mint("Xwatc ist abgestürzt:\n"
+                        self.mint(_("Xwatc ist abgestürzt:\n")
                                   + traceback.format_exc())
                         next_ = "h"
                     else:
@@ -210,13 +210,13 @@ class XwatcFenster:
         """Zeigt *text* zusätzlich an."""
         self.add_text(sep.join(map(str, text)) + end)
         if warte:
-            self.auswahl([("weiter", None)])
+            self.auswahl([(_("Weiter"), None)])
             self.get_minput_return()
 
     def mint(self, *text):
         """Printe und warte auf ein Enter."""
         self.add_text(" ".join(str(t) for t in text) + "\n")
-        self.auswahl([("weiter", None)])
+        self.auswahl([(_("Weiter"), None)])
         self.get_minput_return()
 
     def sprich(self, sprecher: str, text: str, warte: bool = False, wie: str = ""):
@@ -270,7 +270,7 @@ class XwatcFenster:
     def ja_nein(self, mänx: system.Mänx, frage: str,
                 save: Opt[system.Speicherpunkt] = None) -> bool:
         self.malp(frage)
-        self.auswahl([("Ja", True), ("Nein", False)], save=save)
+        self.auswahl([(_("Ja"), True), (_("Nein"), False)], save=save)
         ans = self.get_minput_return()
         return ans
 
@@ -319,11 +319,11 @@ class XwatcFenster:
                     if self.speicherpunkt:
                         if self.mänx.speicherdatei_name and taste == 's':
                             self.mänx.save(self.speicherpunkt)
-                            self.malp_stack("Spielstand gespeichert.")
+                            self.malp_stack(_("Spielstand gespeichert."))
                         else:
                             self.speichern_als()
                     else:
-                        self.malp_stack("Du kannst hier nicht speichern.")
+                        self.malp_stack(_("Du kannst hier nicht speichern."))
                 elif taste == "g":
                     _minput_return.put(Unterbrechung(
                         system.Mänx.rede_mit_gefährten))
@@ -361,7 +361,7 @@ class XwatcFenster:
         """Lege eine Nachricht auf den Stack -- Zeige diese und mache dann weiter."""
         self.push_stack()
         self.malp(nachricht)
-        self.auswahl([("weiter", None)],
+        self.auswahl([(_("weiter"), None)],
                      action=lambda _arg: self.pop_stack())
 
     def speichern_als(self):
@@ -381,7 +381,7 @@ class XwatcFenster:
         if (SPEICHER_VERZEICHNIS / (name + ".pickle")).exists():
             self.malp(
                 "Dieser Name ist bereits vergeben. Willst du überschreiben?")
-            self.auswahl([("Ja", name), ("Nein", "")],
+            self.auswahl([(_("Ja"), name), (_("Nein"), "")],
                          action=self._speichern_als_name2)
         else:
             self._speichern_als_name2(name)
@@ -392,7 +392,7 @@ class XwatcFenster:
             self.mänx.save(self.speicherpunkt, name)
         self.pop_stack()
         if name:
-            self.malp_stack("Gespeichert.")
+            self.malp_stack(_("Gespeichert."))
 
     def _remove_choices(self):
         # entferne buttons
@@ -516,8 +516,8 @@ class InfoWidget:
         return cls(grid, tag_label, zeit_label)
     
     def update(self, mänx: Mänx) -> None:
-        self.tag_label.set_text(f"Tag {mänx.welt.get_tag()}")
-        self.zeit_label.set_text("{:02}:{:02}".format(*mänx.welt.uhrzeit()))
+        self.tag_label.set_text(_("Tag {}").format(mänx.welt.get_tag()))
+        self.zeit_label.set_text(_("{:02}:{:02}").format(*mänx.welt.uhrzeit()))
         
 
 def main(startpunkt: Fortsetzung | str | None = None):

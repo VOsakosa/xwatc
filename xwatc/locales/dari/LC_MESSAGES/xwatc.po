@@ -1,0 +1,63 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2023-04-07 11:57+0200\n"
+"PO-Revision-Date: 2023-04-07 12:00+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: dari\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 3.1.1\n"
+"X-Poedit-Basepath: ../../..\n"
+"X-Poedit-SearchPath-0: .\n"
+
+#: anzeige.py:141
+msgid "Lade Spielstand"
+msgstr "Pyelethano yu lade"
+
+#: anzeige.py:142
+msgid "Neuer Spielstand"
+msgstr "Pyelethano yu Xoa"
+
+#: anzeige.py:157
+msgid "Xwatc ist abgestürzt:\n"
+msgstr "Xwatc é bathúrowo:\n"
+
+#: anzeige.py:214 anzeige.py:220
+msgid "Weiter"
+msgstr "Vayoa"
+
+#: anzeige.py:274 anzeige.py:385
+msgid "Ja"
+msgstr "Ja"
+
+#: anzeige.py:274 anzeige.py:385
+msgid "Nein"
+msgstr "Nayn"
+
+#: anzeige.py:323
+msgid "Spielstand gespeichert."
+msgstr "Pyacyado."
+
+#: anzeige.py:327
+msgid "Du kannst hier nicht speichern."
+msgstr "Da in pyacya bu kan."
+
+#: anzeige.py:365
+msgid "weiter"
+msgstr "vayoa"
+
+#: anzeige.py:396
+msgid "Gespeichert."
+msgstr "Pyacyado."
+
+#: anzeige.py:520
+msgid "Tag {}"
+msgstr "{}te Tage"
+
+#: anzeige.py:521
+msgid "{:02}:{:02}"
+msgstr "{:02}:{:02}"
