@@ -53,6 +53,7 @@ class MissingID(KeyError):
     """Zeigt an, dass ein Objekt per ID gesucht wurde, aber nicht existiert."""
 
 
+Speicherpunkt = HatMain | MänxFkt
 MänxPrädikat = MänxFkt[bool]
 Fortsetzung = Union[MänxFkt, HatMain, 'weg.Wegpunkt']
 ITEMVERZEICHNIS = lade_itemverzeichnis(Path(__file__).parent / "itemverzeichnis.txt",
@@ -331,13 +332,18 @@ class Mänx(InventarBasis):
         if von:
             von.inventar[item] -= anzahl
 
-    def minput(self, *args, **kwargs):
+    def minput(self, frage: str, möglichkeiten: Sequence[str] | None = None, lower: bool = True,
+               save: Speicherpunkt | None = None) -> str:
+        """Fragt den Benutzer nach einer Eingabe."""
         self.speicherpunkt = None
-        return self.ausgabe.minput(self, *args, **kwargs)
+        return self.ausgabe.minput(
+            self, frage=frage, möglichkeiten=möglichkeiten,
+            lower=lower, save=save)
 
-    def ja_nein(self, *args, **kwargs):
+    def ja_nein(self, frage: str, save: Speicherpunkt | None = None) -> bool:
+        """Fragt den Benutzer eine Ja-Nein-Frage."""
         self.speicherpunkt = None
-        return self.ausgabe.ja_nein(self, *args, **kwargs)
+        return self.ausgabe.ja_nein(self, frage=frage, save=save)
 
     def menu(self,
              optionen: List[MenuOption[T]],
@@ -472,13 +478,13 @@ class Mänx(InventarBasis):
                             "des Verbrechens sein.")
         self.verbrechen[verbrechen] += 1
 
-    def __getstate__(self): # TODO: Speichern entfernen
+    def __getstate__(self):  # TODO: Speichern entfernen
         dct = self.__dict__.copy()
         del dct["ausgabe"]
         assert dct["speicherpunkt"]
         return dct
 
-    def __setstate__(self, dct: dict): # TODO: Speichern entfernen
+    def __setstate__(self, dct: dict):  # TODO: Speichern entfernen
         bsp = type(self)()
         self.__dict__.update(bsp.__dict__)
         self.__dict__.update(dct)
@@ -508,9 +514,6 @@ def schiebe_inventar(start: Inventar, ziel: Inventar):
 @define
 class MissingIDError(Exception):
     id_: str
-
-
-Speicherpunkt = Union[HatMain, MänxFkt]
 
 
 class Besuche:
@@ -548,10 +551,8 @@ def register(name: str) -> Callable[[Callable[[], HatMain]], Besuche]:
 
 # EIN- und AUSGABE
 
-
-def minput(mänx: Mänx, frage: str, möglichkeiten=None, lower=True, save=None) -> str:
-    """Ruft die Methode auf Mänx auf."""
-    return mänx.minput(frage, möglichkeiten, lower, save)
+minput = Mänx.minput
+ja_nein = Mänx.ja_nein
 
 
 def mint(*text) -> None:
@@ -574,11 +575,6 @@ def malp(*text, sep=" ", end='\n', warte=False) -> None:
 
 def malpw(*text, sep=" ", end='\n') -> None:
     ausgabe.malp(*text, sep=sep, end=end, warte=True)
-
-
-def ja_nein(mänx: Mänx, frage, save=None) -> bool:
-    """Ja-Nein-Frage"""
-    return mänx.ja_nein(frage, save)
 
 
 def kursiv(text: str) -> str:
