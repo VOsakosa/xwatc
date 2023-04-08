@@ -7,7 +7,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 import random
 import re
-from xwatc import jtg, weg
+from xwatc import _, weg
 from xwatc import nsc
 from xwatc.dorf import Rückkehr, Malp, Dialog, Zeitpunkt
 from xwatc.jtg import eo_nw
@@ -228,14 +228,14 @@ fred = StoryChar(
         Dialog("woruhen", '"Wo kann ich mich hier ausruhen?"',
                ["Frag Lina, gleich im ersten Haus direkt hinter mir."], "hallo"),
         Dialog("wege", '"Wo führen die Wege hier hin?"', [
-            "Also...",
-            "Der Weg nach Osten führt nach Tauern, aber du kannst auch nach " +
-            jtg.SÜD_DORF_NAME + " abbiegen.",
-            "Der Weg nach Süden führt, falls du das nicht schon weißt, nach " +
-            "Grökrakchöl.",
-            "Zuallerletzt gäbe es noch den Weg nach Westen...",
-            "Da geht es nach Eo. Ich muss stark davon abraten, dahin zu gehen.",
-            "Wenn Ihnen Ihr Leben lieb ist."
+            _("Also..."),
+            _("Der Weg nach Osten führt nach Tauern, aber du kannst auch nach " +
+              "Scherenfeld abbiegen."),
+            _("Der Weg nach Süden führt, falls du das nicht schon weißt, nach "
+              "Grökrakchöl."),
+            _("Zuallerletzt gäbe es noch den Weg nach Westen..."),
+            _("Da geht es nach Eo. Ich muss stark davon abraten, dahin zu gehen. "
+              "Wenn Ihnen Ihr Leben lieb ist.")
         ], "hallo")])
 fred.kampf(kampf_in_disnayenbum)
 
