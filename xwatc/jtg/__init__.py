@@ -15,7 +15,7 @@ from xwatc.nsc import Person, StoryChar, NSC, bezeichnung
 from xwatc.system import (
     Mänx, minput, ja_nein, register, MenuOption,
     Spielende, mint, sprich, kursiv, malp, get_classes, Inventar, MänxFkt, Fortsetzung)
-from xwatc.untersystem.acker import Wildpflanze
+from xwatc.untersystem.acker import wildpflanze
 from xwatc.untersystem.person import Fähigkeit, Rasse
 from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
 from xwatc.weg import wegsystem, Wegkreuzung, Eintritt
@@ -38,11 +38,6 @@ def lichtung_gucken(mänx: Mänx):
     mint("Wenn du genau hinsiehst, erkennst du, dass hier ein Pfad von "
          "Norden nach Süden auf einen von Westen trifft. Im Osten sind "
          "nur Büsche.")
-
-
-@system.register("jtg:beeren")
-def beeren() -> Wildpflanze:
-    return Wildpflanze(2, {"Beere": 10}, "Du findest Beeren.")
 
 
 @weg.gebiet("jtg:mitte")
@@ -76,7 +71,7 @@ def erzeuge_mitte(mänx: Mänx, gebiet: weg.Gebiet) -> 'weg.Wegpunkt':
     osten = weg.kreuzung("osten", immer_fragen=True)
     osten.add_beschreibung(("Das Gestrüpp wird immer dichter.",
                             "Hohe Brombeerhecken verstellen dir den Weg."))
-    osten.add_effekt(beeren.main)
+    osten.add_effekt(wildpflanze("jtg:beeren", 2, {"Beere": 10}, "Du findest Beeren."))
     osten.add_beschreibung("Du kommst hier nicht weiter. Umkehren?")
 
     lichtung = weg.kreuzung(

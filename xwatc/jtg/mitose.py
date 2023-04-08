@@ -12,10 +12,9 @@ Glück gebracht hat und sorgt sich. Der Ehering ist bei den Kräutern.
 Links abbiegen führt zu Kiri-Wölfen=> Kampf
 
 """
-from xwatc.system import Mänx, register, malp, HatMain, mint, Spielende
+from xwatc.system import Mänx, malp, mint, Spielende
 from xwatc.dorf import Dorf, Malp, ort, Zeitpunkt
 from xwatc import weg, kampf
-from xwatc import jtg
 from xwatc.haendler import Preis, mache_händler, HandelsFn
 from xwatc.weg import kreuzung
 from typing import List, Tuple, Sequence
