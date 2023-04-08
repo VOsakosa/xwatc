@@ -10,8 +10,7 @@ norden = Eintritt("lg:norden", "süden")
 
 @gebiet("lg:norden")
 def erzeuge_norden(mänx: Mänx, gb: Gebiet) -> None:
-    gäfdah = mänx.welt.get_or_else(
-        "Gäfdah", gäfdah_module.erzeuge_Gäfdah, mänx)
+    gäfdah = gäfdah_module.erzeuge_gäfdah(mänx, gb)
     gb.setze_punkt((1, 1), gäfdah.draußen)
     gäfdah.draußen.verbinde(Gebietsende(
         None, gb, "süden", mitte.MITTE, "norden"), "s")

@@ -1,14 +1,16 @@
 
-from xwatc.system import Mänx, Inventar
-from xwatc.dorf import Dorf, ort, Malp
 from random import randint
+import random
+from xwatc import weg
+from xwatc.dorf import Dorf, ort, Malp
 from xwatc.jtg import frau
+from xwatc.lg.nsc import Freiwild  # @UnusedImport
+from xwatc.nsc import StoryChar, Person
+from xwatc.system import Mänx, Inventar
+from xwatc.weg import Eintritt
 from xwatc.lg.nsc.Wachen_von_Gäfdah import (
     SakcaBrauc, OrfGrouundt, ThomarcAizenfjäld)
 from xwatc.lg.nsc.Bürger_von_Gäfdah import martin
-from xwatc.lg.nsc import Freiwild  #@UnusedImport
-from xwatc.nsc import StoryChar, Person
-import random
 
 
 GÄFDAH_NAME = "Gäfdah"
@@ -20,18 +22,23 @@ STANDARDKLEIDUNG: Inventar = {
     "Leinenhemd": 1,
 }
 
+eintritt_schenke = Eintritt("lg:norden", "Schenke")
+eintritt_gäfdah = Eintritt("lg:norden", "Gäfdah")
 
-def erzeuge_Gäfdah(mänx: Mänx) -> Dorf:
+
+def erzeuge_gäfdah(mänx: Mänx, gb: weg.Gebiet) -> Dorf:
     from xwatc.lg.norden import fischfrisch
     d = Dorf.mit_draußen(GÄFDAH_NAME)
+    gb.eintrittspunkte[eintritt_gäfdah.port] = d.draußen
     kirche = ort("Kirche", d, [
         "Du bist in einer Kirche.",
-
     ])
+
     schenke = ort("Schenke", d, [
         "Du bist in einer Schenke.",
-        "Sie ist voll von grölenden und betrunkenden Leuten."
+        "Sie ist voll von grölenden und betrunkenen Leuten."
     ])
+    gb.eintrittspunkte[eintritt_schenke.port] = schenke
     schmiede = ort("Schmiede", d, [
         "Du kommst in einen warmen, kleinen Raum, der irgendwie gemütlich wirkt und nach Schweiß riecht.",
         "Hinter der Theke steht ein bulliger Mann und verkauft wohl Waffen, Rüstungen und Anderes.",
@@ -88,8 +95,3 @@ rob.dialog("helfen", '"Du siehst bedrückt aus. Kann ich dir helfen?"', [
     "hallo")
 rob.dialog("schmied", '"Wo ist der Schmied?"',
            ["Der ist weiter hinten.", "...müsste er sein."])
-
-
-if __name__ == '__main__':
-    mänx = Mänx()
-    mänx.welt.get_or_else("Gäfdah", erzeuge_Gäfdah, mänx).main(mänx)
