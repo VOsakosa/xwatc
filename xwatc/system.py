@@ -167,21 +167,6 @@ class InventarBasis:
         return item in self.inventar and self.inventar[item] >= anzahl
 
 
-class Karawanenfracht(InventarBasis):
-    """Die Fracht einer Karawane zeigt nicht direkt ihr Gold (, da sie keines hat)"""
-
-    def karawanenfracht_anzeigen(self):
-        ans = []
-        if not any(self.inventar.values()):
-            return "Nichts da."
-        for item, anzahl in sorted(self.inventar.items()):
-            if anzahl and item != "Gold":
-                item_obj = get_item(item)
-                kosten = get_preise(item)
-                ans.append(f"{anzahl:>4}x {item_obj:<20} ({kosten:>3}G)")
-        return "\n".join(ans)
-
-
 @define
 class Welt:
     """Speichert den Zustand der Welt, in der sich der Hauptcharakter befindet."""
@@ -487,13 +472,13 @@ class Mänx(InventarBasis):
                             "des Verbrechens sein.")
         self.verbrechen[verbrechen] += 1
 
-    def __getstate__(self):
+    def __getstate__(self): # TODO: Speichern entfernen
         dct = self.__dict__.copy()
         del dct["ausgabe"]
         assert dct["speicherpunkt"]
         return dct
 
-    def __setstate__(self, dct: dict):
+    def __setstate__(self, dct: dict): # TODO: Speichern entfernen
         bsp = type(self)()
         self.__dict__.update(bsp.__dict__)
         self.__dict__.update(dct)
@@ -506,7 +491,7 @@ class Mänx(InventarBasis):
             self.speicherdatei_name = "welt"
         if name:
             self.speicherdatei_name = name
-        filename = self.speicherdatei_name + ".pickle"
+        filename = self.speicherdatei_name + ".yaml"
 
         with open(SPEICHER_VERZEICHNIS / filename, "wb") as write:
             pickle.dump(self, write)
