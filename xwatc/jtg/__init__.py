@@ -13,7 +13,7 @@ from xwatc.jtg.ressourcen import zufälliger_name
 from xwatc.jtg.tauern import land_der_kühe
 from xwatc.nsc import Person, StoryChar, NSC, bezeichnung
 from xwatc.system import (
-    Mänx, minput, ja_nein, register, MenuOption,
+    Mänx, minput, ja_nein, MenuOption,
     Spielende, mint, sprich, kursiv, malp, get_classes, Inventar, MänxFkt, Fortsetzung)
 from xwatc.untersystem.acker import wildpflanze
 from xwatc.untersystem.person import Fähigkeit, Rasse

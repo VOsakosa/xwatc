@@ -12,7 +12,7 @@ from xwatc import nsc
 from xwatc.dorf import Rückkehr, Malp, Dialog, Zeitpunkt
 from xwatc.jtg import eo_nw
 from xwatc.jtg import osten, mitose
-from xwatc.nsc import StoryChar, bezeichnung, OldNSC, NSC
+from xwatc.nsc import StoryChar, bezeichnung, NSC
 from xwatc.scenario import Scenario, ScenarioWegpunkt
 from xwatc.system import Mänx, mint, Spielende, InventarBasis, sprich, malp, register
 from xwatc.weg import Eintritt
@@ -110,6 +110,7 @@ def nomuh_fliehen(self, mänx: Mänx):
             mint("Du entkommst der wütenden NoMuh")
     return Rückkehr.VERLASSEN
 
+
 @nomuh.dialog_deco("NoMuh füttern", "füttern", zeitpunkt=Zeitpunkt.Option)
 def füttern(self, mänx: Mänx):
     opts = [("Gras ausreißen", "gras", "gras")]
@@ -175,133 +176,112 @@ def kampf_axtmann(nsc: nsc.NSC, mänx: Mänx):
              "angespannt.")
 
 
-@register("jtg:axtmann")
-def axtmann() -> OldNSC:
-    return OldNSC("?", "Axtmann", kampf_axtmann, startinventar={
-        "mächtige Axt": 1,
-        "Kettenpanzer": 1,
-        "T-Shirt": 1,
-        "Pausenbrot": 2,
-        "Tomate": 1,
+def dlg_brian(nsc, _m):
+    nsc.bezeichnung = bezeichnung(("Brían", "Axtmann"))
+    malp("Brían nickt leicht.")
+    nsc.sprich("..", warte=True)
+
+
+brian = StoryChar("jtg:axtmann", ("?", "Axtmann"), startinventar={
+    "mächtige Axt": 1,
+    "Kettenpanzer": 1,
+    "T-Shirt": 1,
+    "Pausenbrot": 2,
+    "Tomate": 1,
+    "Ehering": 1,
+    "Kapuzenmantel": 1,
+    "Speisekarte": 1,
+    "Lederhose": 1,
+    "Gold": 3,
+}, vorstellen_fn=[
+    "Ein großer Mann hat eine Kapuze tief ins Gesicht gezogen.",
+    "Auffällig ist eine große Axt, die er in der Hand hält."
+], dialoge=[
+    Dialog("hallo", '"Hallo"', [".."]),
+    Dialog("axt", '"Du hast aber ein große Axt."', [
+           Malp("Der Mann wirkt ein wenig stolz.")]),
+    Dialog("heißt", '"Wie heißt du?"', [".."], "hallo"),
+    Dialog("brian", '"Du heißt Brían, oder?"',
+           dlg_brian).wenn_var("kennt:jtg:axtmann")
+])
+brian.kampf(kampf_axtmann)
+
+
+fred = StoryChar(
+    "jtg:fred", ("Fréd Fórmayr", "Dorfvorsteher"),
+    startinventar={
+        "Messer": 1,
+        "Anzug": 1,
+        "Anzugjacke": 1,
+        "Lederschuh": 2,
+        "Ledergürtel": 1,
+        "Kräutersud gegen Achselgeruch": 2,
+        "Armbanduhr": 1,
+        "Unterhose": 1,
         "Ehering": 1,
-        "Kapuzenmantel": 1,
-        "Speisekarte": 1,
-        "Lederhose": 1,
-        "Gold": 3,
-    }, vorstellen=["Ein großer Mann hat eine Kapuze tief ins Gesicht gezogen.",
-                   "Auffällig ist eine große Axt, die er in der Hand hält."],
-        dlg=brian_dlg)
+        "Gold": 51
+    }, vorstellen_fn=["Ein Mann in Anzug lächelt dich unverbindlich an."],
+    dialoge=[
+        Dialog("hallo", '"Hallo"', [
+            "Willkommen in Disnajenbun! Ich bin der Dorfvorsteher Fred.",
+            "Ruhe dich ruhig in unserem bescheidenen Dorf aus."]),
+        Dialog("woruhen", '"Wo kann ich mich hier ausruhen?"',
+               ["Frag Lina, gleich im ersten Haus direkt hinter mir."], "hallo"),
+        Dialog("wege", '"Wo führen die Wege hier hin?"', [
+            "Also...",
+            "Der Weg nach Osten führt nach Tauern, aber du kannst auch nach " +
+            jtg.SÜD_DORF_NAME + " abbiegen.",
+            "Der Weg nach Süden führt, falls du das nicht schon weißt, nach " +
+            "Grökrakchöl.",
+            "Zuallerletzt gäbe es noch den Weg nach Westen...",
+            "Da geht es nach Eo. Ich muss stark davon abraten, dahin zu gehen.",
+            "Wenn Ihnen Ihr Leben lieb ist."
+        ], "hallo")])
+fred.kampf(kampf_in_disnayenbum)
 
 
-def brian_dlg() -> Iterable[Dialog]:
-    yield Dialog("hallo", '"Hallo"', [".."])
-    yield Dialog("axt", '"Du hast aber ein große Axt."',
-                 [Malp("Der Mann wirkt ein wenig stolz.")])
-    yield Dialog("heißt", '"Wie heißt du?"', [".."], "hallo")
-
-    def dlg_brian(nsc, _m):
-        nsc.bezeichnung = bezeichnung(("Brían", "Axtmann"))
-        malp("Brían nickt leicht.")
-        nsc.sprich("..", warte=True)
-    yield Dialog("brian", '"Du heißt Brían, oder?"', dlg_brian
-                 ).wenn_var("kennt:jtg:axtmann")
+def gebe_nagel(n, m):
+    n.sprich("Immer gern.")
+    n.inventar["Nagel"] -= 1
+    m.erhalte("Nagel", 1)
 
 
-@register("jtg:fred")
-def fred() -> OldNSC:
-    return OldNSC("Fréd Fórmayr", "Dorfvorsteher", kampf_in_disnayenbum,
-                  startinventar={
-                      "Messer": 1,
-                      "Anzug": 1,
-                      "Anzugjacke": 1,
-                      "Lederschuh": 2,
-                      "Ledergürtel": 1,
-                      "Kräutersud gegen Achselgeruch": 2,
-                      "Armbanduhr": 1,
-                      "Unterhose": 1,
-                      "Ehering": 1,
-                      "Gold": 51
-                  }, vorstellen=["Ein Mann in Anzug lächelt dich unverbindlich an."],
-                  dlg=fred_dlg)
+mieko = StoryChar(
+    "jtg:mieko", ("Mìeko", "Rimàn", "Dorfbewohner"),
+    vorstellen_fn=[
+        "Ein Handwerker bastelt gerade an seiner Werkbank."],
+    startinventar=dict(
+        Banane=1,
+        Hering=4,
+        Karabiner=11,
+        Dübel=13,
+        Schraubenzieher=2,
+        Nagel=500,
+        Schraube=12,
+        Werkzeugkasten=1,
+        Latzhose=1,
+        Unterhose=1,
+        Gold=14
+    ), dialoge=[
+        Dialog("nagel", '"Kannst du mir einen Nagel geben?"', gebe_nagel, "hallo"
+               ).wiederhole(5),
+        Dialog("haus", '"Du hast aber ein schönes Haus."', [
+            "Danke! Ich habe es selbst gebaut.",
+            "Genau genommen habe ich alle Häuser hier gebaut.",
+            "Vielleicht baue ich dir später, wenn du willst, auch ein Haus!"]),
+        Dialog("tür", 'von der magischen Tür erzählen', [
+            "Das ist aber interessant.",
+            "Vielleicht finde ich einen Magier, und wir gründen gemeinsam ein Geschäft:",
+            "Ich mache die Türen, und er macht sie magisch.",
+        ], "hallo").wenn_var("jtg:t2"),
+        Dialog("flimmern", "vom der Höhle erzählen", [
+            "Und du warst plötzlich hier?",
+            "Das ist aber interessant.",
+        ]).wenn_var("jtg:flimmern")
 
-
-def fred_dlg():
-    yield Dialog("hallo", '"Hallo"', [
-        "Willkommen in Disnajenbun! Ich bin der Dorfvorsteher Fred.",
-        "Ruhe dich ruhig in unserem bescheidenen Dorf aus."])
-    yield Dialog("woruhen", '"Wo kann ich mich hier ausruhen?"',
-                 ["Frag Lina, gleich im ersten Haus direkt hinter mir."], "hallo")
-    yield Dialog("wege", '"Wo führen die Wege hier hin?"', [
-        "Also...",
-        "Der Weg nach Osten führt nach Tauern, aber du kannst auch nach " +
-        jtg.SÜD_DORF_NAME + " abbiegen.",
-        "Der Weg nach Süden führt, falls du das nicht schon weißt, nach " +
-        "Grökrakchöl.",
-        "Zuallerletzt gäbe es noch den Weg nach Westen...",
-        "Da geht es nach Eo. Ich muss stark davon abraten, dahin zu gehen.",
-        "Wenn Ihnen Ihr Leben lieb ist."
-    ], "hallo")
-
-
-@register("jtg:mieko")
-def mieko() -> OldNSC:
-    return OldNSC("Mìeko Rimàn", "Dorfbewohner", kampfdialog=kampf_in_disnayenbum,
-                  vorstellen=[
-                      "Ein Handwerker bastelt gerade an seiner Werkbank."],
-                  dlg=mieko_dlg, startinventar=dict(
-                      Banane=1,
-                      Hering=4,
-                      Karabiner=11,
-                      Dübel=13,
-                      Schraubenzieher=2,
-                      Nagel=500,
-                      Schraube=12,
-                      Werkzeugkasten=1,
-                      Latzhose=1,
-                      Unterhose=1,
-                      Gold=14
-                  ))
-
-
-def mieko_dlg():
-    def gebe_nagel(n, m):
-        n.sprich("Immer gern.")
-        n.inventar["Nagel"] -= 1
-        m.erhalte("Nagel", 1)
-
-    yield Dialog("nagel", '"Kannst du mir einen Nagel geben?"', gebe_nagel, "hallo"
-                 ).wiederhole(5)
-    yield Dialog("haus", '"Du hast aber ein schönes Haus."', [
-        "Danke! Ich habe es selbst gebaut.",
-        "Genau genommen habe ich alle Häuser hier gebaut.",
-        "Vielleicht baue ich dir später, wenn du willst, auch ein Haus!"])
-    yield Dialog("tür", 'von der magischen Tür erzählen', [
-        "Das ist aber interessant.",
-        "Vielleicht finde ich einen Magier, und wir gründen gemeinsam ein Geschäft:",
-        "Ich mache die Türen, und er macht sie magisch.",
-    ], "hallo").wenn_var("jtg:t2")
-    yield Dialog("flimmern", "vom der Höhle erzählen", [
-        "Und du warst plötzlich hier?",
-        "Das ist aber interessant.",
-    ]).wenn_var("jtg:flimmern")
-
-
-@register("jtg:kirie")
-def kirie() -> OldNSC:
-    n = OldNSC("Kirie Fórmayr", "Kind", kampfdialog=kampf_in_disnayenbum,
-               startinventar=dict(
-                   Matschhose=1,
-                   Teddybär=1,
-                   Unterhose=1,
-                   BH=1,
-                   Mütze=1,
-                   Haarband=1,
-                   Nagel=4,
-
-               ), direkt_reden=True,
-               vorstellen=["Ein junges Mädchen spielt im Feld."], dlg=kirie_dlg)
-    n.inventar["Talisman des Verstehens"] += 1
-    return n
+    ]
+)
+mieko.kampf(kampf_in_disnayenbum)
 
 
 def kirie_dlg() -> Iterable[Dialog]:
@@ -356,6 +336,22 @@ def kirie_dlg() -> Iterable[Dialog]:
         lambda n, m: m.hat_item("Talisman des Verstehens"))
     yield Dialog("axtmann", '"Wie heißt der Mann mit der Axt?"', axtmann_r).wenn(
         lambda n, m: m.welt.am_leben("jtg:axtmann"))
+
+
+kirie = StoryChar("jtg:kirie", ("Kirie", "Fórmayr", "Kind"),
+                  startinventar={
+    "Matschhose": 1,
+    "Teddybär": 1,
+    "Unterhose": 1,
+    "BH": 1,
+    "Mütze": 1,
+    "Haarband": 1,
+    "Nagel": 4,
+    "Talisman des Verstehens": 1,
+}, direkt_reden=True,
+    vorstellen_fn=["Ein junges Mädchen spielt im Feld."], dialoge=list(kirie_dlg()))
+
+kirie.kampf(kampf_in_disnayenbum)
 
 
 lina = StoryChar("jtg:lina", ("Lína", "Fórmayr", "Bäuerin"),
