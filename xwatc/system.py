@@ -6,12 +6,12 @@ from collections.abc import Sequence, Callable, Iterator, Mapping
 from logging import getLogger
 import logging
 from pathlib import Path
-import pickle
 from time import sleep
 from typing import TypeVar, Any, Protocol
 from typing import (Dict, List, Union, Optional, Optional as Opt, TypeAlias)
 from typing_extensions import Self
 import typing
+import yaml
 
 from xwatc import _
 from xwatc.terminal import Terminal
@@ -19,6 +19,7 @@ from xwatc.untersystem import hilfe
 from xwatc.untersystem.itemverzeichnis import lade_itemverzeichnis, Item
 from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
 from xwatc.untersystem.person import Rasse, Fähigkeit
+from xwatc.serialize import converter
 
 if typing.TYPE_CHECKING:
     from xwatc import dorf  # @UnusedImport
@@ -266,7 +267,7 @@ class Welt:
 class Mänx(InventarBasis):
     """Der Hauptcharakter des Spiels, alles dreht sich um ihn, er hält alle
     Information."""
-    ausgabe: Terminal | 'anzeige.XwatcFenster' = ausgabe
+    ausgabe: 'Terminal | anzeige.XwatcFenster' = ausgabe
     welt: Welt = field(factory=Welt.default)
     rasse: Rasse = Rasse.Mensch
     titel: set[str] = field(factory=set, repr=False)
@@ -500,7 +501,7 @@ class Mänx(InventarBasis):
         filename = self.speicherdatei_name + ".yaml"
 
         with open(SPEICHER_VERZEICHNIS / filename, "wb") as write:
-            pickle.dump(self, write)
+            yaml.dump(write, converter.unstructure(self, Mänx))
         self.speicherpunkt = None
 
 
@@ -584,3 +585,8 @@ def kursiv(text: str) -> str:
 
 class Spielende(Exception):
     """Diese Exception wird geschmissen, um das Spiel zu beenden."""
+    
+from xwatc import anzeige, nsc, dorf, weg  # @UnusedImport @Reimport
+if __debug__:
+    from typing import get_type_hints
+    get_type_hints(Mänx)

@@ -15,8 +15,8 @@ import cattrs
 from xwatc import dorf
 from xwatc import system
 from xwatc import weg
-from xwatc.dorf import Fortsetzung, Rückkehr
-from xwatc.system import Inventar, MenuOption, malp, mint, schiebe_inventar, MissingIDError
+from xwatc.dorf import Rückkehr
+from xwatc.system import Fortsetzung, Inventar, MenuOption, malp, mint, schiebe_inventar, MissingIDError
 from xwatc.serialize import converter
 from xwatc.untersystem.person import Rasse
 
