@@ -411,7 +411,7 @@ class NSC(system.InventarBasis):
                 if isinstance(g, dorf.Malp):
                     g()
                 elif isinstance(g, dorf.Sprich):
-                    self.sprich(g.text, art=g.art)
+                    self.sprich(g.text, wie=g.wie)
                 else:
                     self.sprich(g)
             if warte:
