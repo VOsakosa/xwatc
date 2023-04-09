@@ -276,6 +276,7 @@ class Mänx(InventarBasis):
         factory=lambda: defaultdict(int))
     gefährten: list[nsc.NSC] = field(factory=list, repr=False)
     context: Any | None = None
+    # Speicherpunkt signalisiert, dass der Mänx gerade geladen wird.
     speicherpunkt: Fortsetzung | None = None
     speicherdatei_name: str | None = None
 
@@ -491,7 +492,8 @@ class Mänx(InventarBasis):
         self.__dict__.update(dct)
         self.ausgabe = ausgabe
 
-    def save(self, punkt: HatMain | MänxFkt, name: Opt[str] = None) -> None:
+    def save(self, punkt: HatMain | MänxFkt, name: str | None = None) -> None:
+        """Speicher den Mänxen."""
         self.speicherpunkt = punkt
         SPEICHER_VERZEICHNIS.mkdir(exist_ok=True, parents=True)
         if not self.speicherdatei_name:
@@ -500,9 +502,18 @@ class Mänx(InventarBasis):
             self.speicherdatei_name = name
         filename = self.speicherdatei_name + ".yaml"
 
-        with open(SPEICHER_VERZEICHNIS / filename, "wb") as write:
+        with open(SPEICHER_VERZEICHNIS / filename, "w", encoding="utf8") as write:
             yaml.dump(write, converter.unstructure(self, Mänx))
         self.speicherpunkt = None
+
+    @classmethod
+    def load_from_file(cls, path: Path | str) -> Self:
+        """Lade einen Spielstand aus der Datei."""
+        if isinstance(path, str):
+            path = SPEICHER_VERZEICHNIS / path
+        with open(path, "r", encoding="utf8") as file:
+            dict_ = yaml.safe_load_all(file)
+            return converter.structure(dict_, cls)
 
 
 def schiebe_inventar(start: Inventar, ziel: Inventar):
@@ -585,7 +596,8 @@ def kursiv(text: str) -> str:
 
 class Spielende(Exception):
     """Diese Exception wird geschmissen, um das Spiel zu beenden."""
-    
+
+
 from xwatc import anzeige, nsc, dorf, weg  # @UnusedImport @Reimport
 if __debug__:
     from typing import get_type_hints

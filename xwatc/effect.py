@@ -53,13 +53,14 @@ class TextGeschichte:
                     malp(text)
                 case _:
                     raise TypeError("Wrong type in TextGeschichte", text)
-        for schatz, anzahl in self.schatz.items():
-            mänx.erhalte(schatz, anzahl)
         for titel in self.titel:
             mänx.titel.add(titel)
         for var in self.variablen:
             mänx.welt.setze(var)
-        mänx.welt.tick(self.zeit)
+        if mänx.speicherpunkt is None:
+            for schatz, anzahl in self.schatz.items():
+                mänx.erhalte(schatz, anzahl)
+            mänx.welt.tick(self.zeit)
 
 
 @define

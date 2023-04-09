@@ -27,9 +27,7 @@ def hauptmenu() -> None:
         mgn2.append(("Zurück", "zurück", None))
         wahl = system.ausgabe.menu(None, mgn2)
         if wahl:
-            with wahl.open("rb") as file:
-                mänx = pickle.load(file)
-            assert isinstance(mänx, Mänx)
+            mänx = Mänx.load_from_file(wahl)
             main(mänx)
             return
 
@@ -70,12 +68,12 @@ def waffe_wählen(mänx: Mänx) -> Fortsetzung:
     return mitte.MITTE_EINTRITT
 
 
-def main(mänx: Mänx):
+def main(mänx: Mänx, punkt: Fortsetzung | None = None):
     """Die Hauptschleife von Xwatc."""
-    if not mänx.speicherpunkt:
+    punkt = mänx.speicherpunkt or punkt
+    if punkt is None:
         malp(_("Willkommen bei Xwatc"))
     ende = False
-    punkt: Fortsetzung | None = mänx.speicherpunkt
     while not ende:
         if not punkt:
             punkt = waffe_wählen

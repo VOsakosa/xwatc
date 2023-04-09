@@ -14,7 +14,6 @@ from gi.repository import Gtk, GLib, Gdk
 from contextlib import contextmanager
 from functools import wraps
 from pathlib import Path
-import pickle
 from logging import getLogger
 import queue
 import threading
@@ -121,7 +120,7 @@ class XwatcFenster:
         win.set_default_size(400, 500)
         win.set_title("Xwatc")
         # Spiel beginnen
-        self.speicherpunkt: Opt[Speicherpunkt] = None
+        self.speicherpunkt: Speicherpunkt | None = None
         self.mänx: Opt[system.Mänx] = None
         self.unterbrochen = False
         system.ausgabe = self
@@ -129,7 +128,7 @@ class XwatcFenster:
                          name="Xwatc-Geschichte", daemon=True).start()
         win.show_all()
 
-    def _xwatc_thread(self, startpunkt: Opt[Speicherpunkt]):
+    def _xwatc_thread(self, startpunkt: Speicherpunkt | None):
         from xwatc_Hauptgeschichte import main as xw_main
         # Das nächste, was passiert. None für Abbruch, die Buchstaben stehen für interne Menüs
         next_: str | Path | None
@@ -178,8 +177,7 @@ class XwatcFenster:
                     else:
                         next_ = "h"
                 elif isinstance(next_, Path):  # laden
-                    with next_.open("rb") as file:
-                        self.mänx = pickle.load(file)
+                    self.mänx = Mänx.load_from_file(next_)
                     assert isinstance(self.mänx, Mänx)
                     next_ = "m"
                 else:
