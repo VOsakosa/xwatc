@@ -138,7 +138,6 @@ class Weg(_Strecke):
     """Ein Weg hat zwei Enden und dient dazu, die Länge der Reise darzustellen.
     Zwei Menschen auf dem Weg zählen als nicht benachbart."""
 
-    # TODO: Wegkrezung als Argument verbieten
     def __init__(self, länge: float,
                  p1: Ausgang | None = None,
                  p2: Ausgang | None = None,

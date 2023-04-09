@@ -501,9 +501,17 @@ class Mänx(InventarBasis):
         if name:
             self.speicherdatei_name = name
         filename = self.speicherdatei_name + ".yaml"
-
-        with open(SPEICHER_VERZEICHNIS / filename, "w", encoding="utf8") as write:
-            yaml.dump(write, converter.unstructure(self, Mänx))
+        dict_ = converter.unstructure(self, Mänx)
+        try:
+            
+            with open(SPEICHER_VERZEICHNIS / filename, "w", encoding="utf8") as write:
+                yaml.dump(write, dict_)
+        except Exception:
+            try:
+                (SPEICHER_VERZEICHNIS / filename).unlink()
+            except OSError:
+                pass
+            raise
         self.speicherpunkt = None
 
     @classmethod
