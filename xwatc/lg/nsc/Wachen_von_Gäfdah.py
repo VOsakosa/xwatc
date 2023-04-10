@@ -1,7 +1,6 @@
-from xwatc.dorf import NSCOptionen, Rückkehr, Malp
 from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
 from xwatc.system import mint, kursiv, Mänx, ja_nein, malp
-from xwatc.nsc import Person, StoryChar, OldNSC
+from xwatc.nsc import Person, StoryChar, OldNSC, Rückkehr, Malp
 
 WACHEN_INVENTAR = {
     "Schild": 1

@@ -1,24 +1,25 @@
 """Ein NSC-System, das das Template (bei Kompilierzeit erstellt, im Code) und den
 gespeicherten Teil trennt. Bei Erstellung soll alles einen eindeutigen Namen haben.
 """
+from xwatc import dorf
+from xwatc import system
+from xwatc import weg
+from xwatc.serialize import converter
+from xwatc.system import Fortsetzung, Inventar, MenuOption, malp, mint, schiebe_inventar, MissingIDError
+from xwatc.untersystem.person import Rasse
+
+from attrs import define, field, Factory
+import attrs
+import cattrs
+
 from collections import defaultdict
 from collections.abc import Mapping, Iterator, Sequence, Callable
 from enum import Enum
 from logging import getLogger
 import pickle
 from typing import Any, Literal
-
-from attrs import define, field, Factory
-import attrs
-import cattrs
-
-from xwatc import dorf
-from xwatc import system
-from xwatc import weg
-from xwatc.dorf import Rückkehr
-from xwatc.system import Fortsetzung, Inventar, MenuOption, malp, mint, schiebe_inventar, MissingIDError
-from xwatc.serialize import converter
-from xwatc.untersystem.person import Rasse
+from xwatc.nsc._dialog import (Dialog, DialogFn, DialogErzeugerFn, DialogGeschichte, Rückkehr,
+                               RunType, VorList, Zeitpunkt, Malp, Sprich)
 
 
 class Geschlecht(Enum):
@@ -86,12 +87,12 @@ class StoryChar:
     startinventar: Mapping[str, int] = Factory(lambda: defaultdict(int))
     """Das Inventar, mit dem der Charakter erzeugt wird."""
     # ort: str = ""
-    #"""Der Ort, an dem ein NSC startet. Wenn er leer ist, muss er manuell per Events in
-    #Orte geholt werden."""
+    # """Der Ort, an dem ein NSC startet. Wenn er leer ist, muss er manuell per Events in
+    # Orte geholt werden."""
     direkt_reden: bool = True
     """Ob bei dem NSC-Menu die Rede-Optionen direkt angezeigt werden."""
-    vorstellen_fn: dorf.DialogGeschichte | None = None
-    dialoge: list[dorf.Dialog] = Factory(list)
+    vorstellen_fn: DialogGeschichte | None = None
+    dialoge: list[Dialog] = Factory(list)
     randomize_fn: Callable[['NSC'], Any] | None = field(default=None)
 
     def __attrs_post_init__(self):
@@ -102,25 +103,36 @@ class StoryChar:
         #    ORTS_CHARE[self.ort].append(self)
 
     def zu_nsc(self) -> 'NSC':
-        """Erzeuge den zugehörigen NSC aus dem Template."""
+        """Erzeuge den zugehörigen NSC aus dem Template. Dieser wird
+        zunächst nirgendwo gespeichert!
+        Um den NSC direkt einem Ort zuzuweisen,
+        nutze direkt `welt.obj(story_char.id_)`.
+        """
         # Der Ort ist zunächst immer None. Der Ort wird erst zugeordnet
         ans = NSC(self, self.bezeichnung, self.startinventar)
         if self.randomize_fn:
             self.randomize_fn(ans)
         return ans
+    
+    def erzeuge_mehrere(self, welt: system.Welt, anzahl: int) -> list['NSC']:
+        """Erzeuge gleich mehrere, zufällige NSCs."""
+        ans = [self.zu_nsc() for __ in range(anzahl)]
+        assert self.id_
+        welt.setze_objekt(self.id_, ans)
+        return ans
 
     def dialog(self,
                name: str,
                text: str,
-               geschichte: dorf.DialogGeschichte,
-               vorherige: str | dorf.VorList = (),
+               geschichte: DialogGeschichte,
+               vorherige: str | VorList = (),
                wiederhole: int = 0,
                min_freundlich: int | None = None,
-               zeitpunkt: dorf.Zeitpunkt = dorf.Zeitpunkt.Reden,
-               effekt: dorf.DialogFn | None = None,
-               gruppe: str | None = None) -> dorf.Dialog:
+               zeitpunkt: Zeitpunkt = Zeitpunkt.Reden,
+               effekt: DialogFn | None = None,
+               gruppe: str | None = None) -> Dialog:
         "Erstelle einen Dialog"
-        dia = dorf.Dialog(
+        dia = Dialog(
             name=name, text=text, geschichte=geschichte,
             vorherige=vorherige, wiederhole=wiederhole, min_freundlich=min_freundlich,
             zeitpunkt=zeitpunkt, effekt=effekt, gruppe=gruppe)
@@ -130,16 +142,16 @@ class StoryChar:
     def dialog_deco(self,
                     name: str,
                     text: str,
-                    vorherige: str | dorf.VorList = (),
+                    vorherige: str | VorList = (),
                     wiederhole: int = 0,
                     min_freundlich: int | None = None,
-                    zeitpunkt: dorf.Zeitpunkt = dorf.Zeitpunkt.Reden,
-                    effekt: dorf.DialogFn | None = None,
-                    gruppe: str | None = None) -> Callable[[dorf.DialogFn], dorf.Dialog]:
+                    zeitpunkt: Zeitpunkt = Zeitpunkt.Reden,
+                    effekt: DialogFn | None = None,
+                    gruppe: str | None = None) -> Callable[[DialogFn], Dialog]:
         """Erstelle einen Dialog als Wrapper. Alle Parameter außer der Funktion sind gleich zu
         Dialog"""
-        def wrapper(geschichte: dorf.DialogFn) -> dorf.Dialog:
-            dia = dorf.Dialog(
+        def wrapper(geschichte: DialogFn) -> Dialog:
+            dia = Dialog(
                 name=name, text=text, geschichte=geschichte,
                 vorherige=vorherige, wiederhole=wiederhole, min_freundlich=min_freundlich,
                 zeitpunkt=zeitpunkt, effekt=effekt, gruppe=gruppe)
@@ -147,7 +159,7 @@ class StoryChar:
             return dia
         return wrapper
 
-    def vorstellen(self, fn: dorf.DialogGeschichte) -> dorf.DialogGeschichte:
+    def vorstellen(self, fn: DialogGeschichte) -> DialogGeschichte:
         """Dekorator, um die Vorstellen-Funktion zu setzen
         >>>hans = StoryChar("test:hans", "Hans", Person("m","Spinner"), {})
         ...@vorstellen
@@ -157,10 +169,10 @@ class StoryChar:
         self.vorstellen_fn = fn
         return fn
 
-    def kampf(self, fn: dorf.DialogGeschichte) -> dorf.Dialog:
+    def kampf(self, fn: DialogGeschichte) -> Dialog:
         """Dekorator, um die Kampf-Funktion zu setzen"""
-        dia = dorf.Dialog("k", "Angreifen", fn,
-                          zeitpunkt=dorf.Zeitpunkt.Option)
+        dia = Dialog("k", "Angreifen", fn,
+                          zeitpunkt=Zeitpunkt.Option)
         self.dialoge.append(dia)
         return dia
 
@@ -238,17 +250,17 @@ class NSC(system.InventarBasis):
             if ans != Rückkehr.WEITER_REDEN:
                 return ans
         for dialog in self.template.dialoge:
-            if dialog.zeitpunkt == dorf.Zeitpunkt.Vorstellen and dialog.verfügbar(self, mänx):
+            if dialog.zeitpunkt == Zeitpunkt.Vorstellen and dialog.verfügbar(self, mänx):
                 ans = self._run(dialog, mänx)
                 if ans != Rückkehr.WEITER_REDEN:
                     return ans
         return None
 
-    def optionen(self, mänx: system.Mänx) -> Iterator[MenuOption[dorf.RunType]]:
+    def optionen(self, mänx: system.Mänx) -> Iterator[MenuOption[RunType]]:
         """Gibt die zusätzlichen Optionen außer Reden zurück."""
         fliehen_da = False
         for dialog in self.template.dialoge:
-            if dialog.zeitpunkt == dorf.Zeitpunkt.Option and dialog.verfügbar(self, mänx):
+            if dialog.zeitpunkt == Zeitpunkt.Option and dialog.verfügbar(self, mänx):
                 yield dialog.zu_option()
                 if dialog.name in ("fliehen", "zurück"):
                     fliehen_da = True
@@ -267,16 +279,16 @@ class NSC(system.InventarBasis):
         malp(f"Dir ist nicht danach, {self.name} anzugreifen.")
         return Rückkehr.VERLASSEN
 
-    def dialog_optionen(self, mänx: system.Mänx) -> Iterator[MenuOption[dorf.Dialog]]:
+    def dialog_optionen(self, mänx: system.Mänx) -> Iterator[MenuOption[Dialog]]:
         """Hole die Dialoge, die der Mänx einleitet."""
         for d in self.template.dialoge:
-            if d.zeitpunkt == dorf.Zeitpunkt.Reden and d.verfügbar(self, mänx):
+            if d.zeitpunkt == Zeitpunkt.Reden and d.verfügbar(self, mänx):
                 yield d.zu_option()
 
-    def direkte_dialoge(self, mänx: system.Mänx) -> Iterator[dorf.Dialog]:
+    def direkte_dialoge(self, mänx: system.Mänx) -> Iterator[Dialog]:
         """Hole die Dialoge, die direkt beim Ansprechen abgespielt werden."""
         for d in self.template.dialoge:
-            if d.zeitpunkt == dorf.Zeitpunkt.Ansprechen and d.verfügbar(self, mänx):
+            if d.zeitpunkt == Zeitpunkt.Ansprechen and d.verfügbar(self, mänx):
                 yield d
 
     def main(self, mänx: system.Mänx) -> Fortsetzung | None:
@@ -306,8 +318,7 @@ class NSC(system.InventarBasis):
                 else:
                     return ans
         while True:
-            opts: dorf._MainOpts
-            opts = list()
+            opts = list[MenuOption[RunType]]()
             if self.template.direkt_reden:
                 opts.extend(self.dialog_optionen(mänx))
             else:
@@ -331,7 +342,7 @@ class NSC(system.InventarBasis):
             if ans != Rückkehr.WEITER_REDEN:
                 return ans
         while ans == Rückkehr.WEITER_REDEN:
-            optionen: list[MenuOption[dorf.Dialog | Rückkehr]]
+            optionen: list[MenuOption[Dialog | Rückkehr]]
             optionen = list(self.dialog_optionen(mänx))
             if not optionen:
                 if start:
@@ -344,10 +355,10 @@ class NSC(system.InventarBasis):
             start = False
         return ans
 
-    def _run(self, option: dorf.RunType,
+    def _run(self, option: RunType,
              mänx: system.Mänx) -> Rückkehr | Fortsetzung:
         """Führe eine Option aus."""
-        if isinstance(option, dorf.Dialog):
+        if isinstance(option, Dialog):
             getLogger("xwatc.nsc").info(
                 f"Starte Dialog {option.name} von {self.name}")
             dlg = option
@@ -373,8 +384,8 @@ class NSC(system.InventarBasis):
                 option, type(option)))
 
     def _call_geschichte(self, mänx: system.Mänx,
-                         geschichte: dorf.DialogGeschichte,
-                         effekt: dorf.DialogFn | None = None,
+                         geschichte: DialogGeschichte,
+                         effekt: DialogFn | None = None,
                          erzähler: bool = False) -> Rückkehr | Fortsetzung:
         """Führe den Geschichtsteil eines Dialoges aus."""
         ans: Rückkehr | Fortsetzung = Rückkehr.WEITER_REDEN
@@ -395,7 +406,7 @@ class NSC(system.InventarBasis):
                 ans = ans3
         return ans
 
-    def _call_inner(self, text: Sequence[str | dorf.Malp | dorf.Sprich], erzähler: bool,
+    def _call_inner(self, text: Sequence[str | Malp | Sprich], erzähler: bool,
                     warte: bool = True):
         """Führe einen Text des Dialoges aus."""
         if isinstance(text, str):
@@ -408,22 +419,22 @@ class NSC(system.InventarBasis):
                 malp(g)
         else:
             for g in text:
-                if isinstance(g, dorf.Malp):
+                if isinstance(g, Malp):
                     g()
-                elif isinstance(g, dorf.Sprich):
+                elif isinstance(g, Sprich):
                     self.sprich(g.text, wie=g.wie)
                 else:
                     self.sprich(g)
             if warte:
                 mint()
 
-    def sprich(self, text: str | Sequence[str | dorf.Malp], *args, **kwargs) -> None:
+    def sprich(self, text: str | Sequence[str | Malp], *args, **kwargs) -> None:
         """Minte mit vorgestelltem Namen"""
         if isinstance(text, str):
             system.sprich(self.bezeichnung.kurz_name, text, *args, **kwargs)
         else:
             for block in text:
-                if isinstance(block, dorf.Malp):
+                if isinstance(block, Malp):
                     block()
                 else:
                     system.sprich(self.bezeichnung.kurz_name,
@@ -438,7 +449,7 @@ class NSC(system.InventarBasis):
         else:
             self.freundlich = max(grenze, wert + self.freundlich)
 
-    def dialog(self, *args, **kwargs) -> 'dorf.Dialog':
+    def dialog(self, *args, **kwargs) -> 'Dialog':
         "Erstelle einen Dialog"
         dia = self.template.dialog(*args, **kwargs)
         assert pickle.dumps(dia)
@@ -453,13 +464,13 @@ def mache_monster(
         id_: str,
         name: str | tuple[str, str] | tuple[str, str, str] | Bezeichnung,
         beute: Mapping[str, int] | None = None
-) -> Callable[[dorf.DialogFn], StoryChar]:
+) -> Callable[[DialogFn], StoryChar]:
     """Decorator, um ein Monster zu machen, mit der Kampffunktion gegeben.
     ```
-    
+
     ```
     """
-    def wrapper(geschichte: dorf.DialogFn) -> StoryChar:
+    def wrapper(geschichte: DialogFn) -> StoryChar:
         ans = StoryChar(id_, name, startinventar=beute or {})
         ans.kampf(geschichte)
         return ans
@@ -480,14 +491,14 @@ class OldNSC(NSC):
     def __init__(self,
                  name: str,
                  art: str,
-                 kampfdialog: dorf.DialogFn | None = None,
+                 kampfdialog: DialogFn | None = None,
                  direkt_reden: bool = False,
                  freundlich: int = 0,
                  startinventar: dict[str, int] | None = None,
-                 vorstellen: dorf.DialogGeschichte | None = None,
+                 vorstellen: DialogGeschichte | None = None,
                  ort: weg.Wegkreuzung | None = None,
                  max_lp: int | None = None,
-                 dlg: dorf.DialogErzeugerFn | None = None):
+                 dlg: DialogErzeugerFn | None = None):
         inventar = startinventar or {}
         template = StoryChar(
             id_=None,
@@ -503,9 +514,9 @@ class OldNSC(NSC):
         if kampfdialog:
             self.template.kampf(kampfdialog)
         self._dlg = dlg
-        self._static_dialoge: list[dorf.Dialog] = []
+        self._static_dialoge: list[Dialog] = []
 
-    def change_dlg(self, new_dlg: dorf.DialogErzeugerFn):
+    def change_dlg(self, new_dlg: DialogErzeugerFn):
         """Ändere die Dialoge auf eine neue Dlg-Funktion"""
         self._dlg = new_dlg
         self.template.dialoge[:] = new_dlg()

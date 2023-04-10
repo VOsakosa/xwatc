@@ -2,10 +2,9 @@
 from random import randint
 import random
 from xwatc import weg
-from xwatc.dorf import Dorf, ort, Malp
-from xwatc.jtg import frau
+from xwatc.dorf import Dorf, ort
 from xwatc.lg.nsc import Freiwild  # @UnusedImport
-from xwatc.nsc import StoryChar, Person
+from xwatc.nsc import StoryChar, Person, Malp
 from xwatc.system import Mänx, Inventar
 from xwatc.weg import Eintritt
 from xwatc.lg.nsc.Wachen_von_Gäfdah import (
@@ -56,8 +55,6 @@ def erzeuge_gäfdah(mänx: Mänx, gb: weg.Gebiet) -> Dorf:
     ])
     assert fischfrisch.frau.id_
     mänx.welt.obj(fischfrisch.frau.id_).ort = kirche
-    # schmiede.menschen.append(mänx.welt.get_or_else)
-    # d.orte.append(schmiede)
     mänx.welt.obj("nsc:Wachen_von_Gäfdah:MarioWittenpfäld").ort = rathaus
     rathaus.add_nsc(mänx.welt, "nsc:Wachen_von_Gäfdah:SakcaBrauc", SakcaBrauc)
     mänx.welt.obj("nsc:freiwild:ruboic").ort = schenke
@@ -66,9 +63,10 @@ def erzeuge_gäfdah(mänx: Mänx, gb: weg.Gebiet) -> Dorf:
     haus1.add_char(mänx.welt, martin)
     d.draußen.add_nsc(
         mänx.welt, "nsc:Wachen_von_Gäfdah:OrfGrouundt", OrfGrouundt)
-    for _i in range(randint(2, 5)):
-        w = frau.zu_nsc()
-        random.choice((schmiede, schenke, rathaus)).menschen.append(w)
+    # TODO: Zufällige Charaktere
+    # for _i in range(randint(2, 5)):
+    #    w = frau.zu_nsc()
+    #    random.choice((schmiede, schenke, rathaus)).menschen.append(w)
     return d
 
 

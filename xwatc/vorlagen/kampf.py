@@ -3,8 +3,7 @@ Kampf-vorlagen
 """
 from __future__ import annotations
 from typing import Optional as Opt, cast
-from xwatc.system import Mänx, mint, Spielende, malp, Fortsetzung, kursiv,\
-    malpw
+from xwatc.system import Mänx, mint, Spielende, malp, Fortsetzung, kursiv, malpw
 import random
 from xwatc.untersystem.verbrechen import Verbrechensart
 import time
@@ -146,7 +145,7 @@ def dorfbewohner_kampf(self: NSC, mänx: Mänx) -> Fortsetzung | None:
             malp("Sofort kommen Leute, um dich aufzuhalten.")
             malp("Sie entschließen sich, dich ins Gefängnis zu schmeißen.")
             mänx.add_verbrechen(Verbrechensart.MORD, versuch=True)
-            return gefängnis_von_gäfdah
+            return gefängnis_von_gäfdah.gefängnis_von_gäfdah
         else:
             malp("Irgendwann ist dein Gegner bewusstlos.")
             self.plündern(mänx)
@@ -166,14 +165,13 @@ def dorfbewohner_kampf(self: NSC, mänx: Mänx) -> Fortsetzung | None:
         if a != 1:
             mint("Als du wieder aufwachst, bist du woanders.")
             mänx.add_verbrechen(Verbrechensart.MORD, versuch=True)
-            return gefängnis_von_gäfdah
+            return gefängnis_von_gäfdah.gefängnis_von_gäfdah
         else:
             mint("Er hat dich einfach liegen lassen und nicht ausgeliefert.")
             return None
 
 
 def _konfrontation(self: NSC, mänx: Mänx) -> Opt[Fortsetzung]:
-    from xwatc.lg.norden import gefängnis_von_gäfdah
     # hilfe = self.ort and self.ort.melde(mänx, Ereignis.KAMPF, [self])
     hilfe = None
     if hilfe:

@@ -7,8 +7,8 @@ from unittest.mock import MagicMock
 
 from xwatc import nsc, dorf
 from xwatc import system
-from xwatc.dorf import Dialog, Zeitpunkt
-from xwatc.effect import Zufällig, TextGeschichte
+from xwatc.nsc import Dialog, Zeitpunkt
+from xwatc.effect import Zufällig
 from xwatc.haendler import mache_händler
 from xwatc.nsc import StoryChar, Person, Rasse, Geschlecht, NSC, OldNSC, bezeichnung, Bezeichnung
 from xwatc.serialize import converter

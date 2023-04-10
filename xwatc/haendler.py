@@ -9,8 +9,7 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 import re
 
-from xwatc.dorf import Rückkehr, Zeitpunkt, Dialog, DialogFn
-from xwatc.nsc import StoryChar, NSC
+from xwatc.nsc import Rückkehr, Zeitpunkt, Dialog, StoryChar, NSC
 from xwatc.system import (Mänx, get_classes, malp, Fortsetzung,
                           ITEMVERZEICHNIS, get_preise, Speicherpunkt, MenuOption)
 

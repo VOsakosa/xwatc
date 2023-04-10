@@ -4,12 +4,13 @@ Created on 15.10.2020
 """
 from xwatc import jtg
 from xwatc import nsc
-from xwatc.dorf import ort, Malp, Dorf, Rückkehr
+from xwatc.dorf import ort, Dorf
 from xwatc.effect import Cooldown, NurWenn
-from xwatc.nsc import StoryChar, NSC, Person
 from xwatc.system import Mänx, malp, Welt, malpw, Fortsetzung
 from xwatc.untersystem.person import Fähigkeit
 from xwatc.weg import get_eintritt, gebiet, Gebiet, kreuzung, Eintritt, Gebietsende
+
+from xwatc.nsc import StoryChar, NSC, Person, Malp, Rückkehr
 __author__ = "jasper"
 
 GENAUER = [
@@ -87,7 +88,7 @@ def _grökrak(welt: Welt, gb: Gebiet) -> Dorf:
                       welt.obj("jtg:gr:klavier"),
                   ])
     tor - haupt - taverne
-    return Dorf.mit_struktur("Grökrakchöl", gb, [tor, haupt, taverne]) 
+    return Dorf.mit_struktur("Grökrakchöl", gb, [tor, haupt, taverne])
 
 
 özil = StoryChar("jtg:gr:özil", ("Özil", "Çakır", "Kellner"), startinventar={

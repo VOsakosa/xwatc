@@ -1,4 +1,4 @@
-from xwatc.dorf import Rückkehr, Zeitpunkt
+from xwatc.nsc import Rückkehr, Zeitpunkt
 from xwatc.jtg import t2
 from xwatc.nsc import StoryChar, Person, NSC
 from xwatc.system import mint, kursiv, Mänx, ja_nein, minput, malp
