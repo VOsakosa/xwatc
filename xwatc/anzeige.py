@@ -378,7 +378,7 @@ class XwatcFenster:
         self.malp("Unter welchem Namen willst du speichern?")
         vergeben = [
             path.stem for path in SPEICHER_VERZEICHNIS.iterdir()  # @UndefinedVariable
-            if path.suffix == ".pickle"]
+            if path.suffix == ".yaml"]
         if vergeben:
             self.malp("Bereits vergeben sind:", ", ".join(vergeben))
         self.eingabe("Als was möchstest du speichern?",
@@ -386,7 +386,7 @@ class XwatcFenster:
 
     def _speichern_als_name(self, name: str):
         """Reagiert auf Speichern-Als."""
-        if (SPEICHER_VERZEICHNIS / (name + ".pickle")).exists():
+        if (SPEICHER_VERZEICHNIS / (name + ".yaml")).exists():
             self.malp(
                 "Dieser Name ist bereits vergeben. Willst du überschreiben?")
             self.auswahl([(_("Ja"), name), (_("Nein"), "")],

@@ -16,7 +16,6 @@ from collections import defaultdict
 from collections.abc import Mapping, Iterator, Sequence, Callable
 from enum import Enum
 from logging import getLogger
-import pickle
 from typing import Any, Literal
 from xwatc.nsc._dialog import (Dialog, DialogFn, DialogErzeugerFn, DialogGeschichte, Rückkehr,
                                RunType, VorList, Zeitpunkt, Malp, Sprich)
@@ -452,7 +451,6 @@ class NSC(system.InventarBasis):
     def dialog(self, *args, **kwargs) -> 'Dialog':
         "Erstelle einen Dialog"
         dia = self.template.dialog(*args, **kwargs)
-        assert pickle.dumps(dia)
         return dia
 
     def plündern(self, mänx: system.Mänx) -> Any:

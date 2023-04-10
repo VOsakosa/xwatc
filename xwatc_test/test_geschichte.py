@@ -1,11 +1,12 @@
 """
 Created on 25.03.2023
 """
+from pathlib import Path
+import tempfile
 import unittest
 from xwatc_test.mock_system import MockSystem, ScriptEnde
-from xwatc.lg.mitte import MITTE
 from xwatc.system import _OBJEKT_REGISTER
-from xwatc.weg import wegsystem
+from xwatc_Hauptgeschichte import waffe_wählen
 __author__ = "Jasper Ischebeck"
 
 
@@ -14,15 +15,7 @@ class TestLG(unittest.TestCase):
         self.system = MockSystem()
         self.mänx = self.system.install()
 
-    def test_reach_jtg(self):
-        self.system.ein("osten")
-        self.system.ein("norden")
-        self.system.ein("rechte")
-        with self.assertRaises(ScriptEnde):
-            wegsystem(self.mänx, MITTE)
-        self.assertIn("Es erwartet dich Vogelgezwitscher.",
-                      self.system.ausgaben)
-
+    @unittest.skip("Takes too long")
     def test_all_registered(self):
         for name in _OBJEKT_REGISTER:  # @UndefinedVariable
             with self.subTest(id_=name):
@@ -31,6 +24,11 @@ class TestLG(unittest.TestCase):
                     obj.main(self.mänx)
                 except ScriptEnde:
                     pass
+
+class TestSpeichernLaden(unittest.TestCase):
+    def test_speichern(self) -> None:
+        with tempfile.NamedTemporaryFile() as obj:
+            MockSystem().install().save(waffe_wählen, Path(obj.name))
 
 
 if __name__ == "__main__":

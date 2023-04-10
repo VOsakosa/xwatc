@@ -9,17 +9,17 @@ from pathlib import Path
 from time import sleep
 from typing import TypeVar, Any, Protocol
 from typing import (Dict, List, Union, Optional, Optional as Opt, TypeAlias)
-from typing_extensions import Self
+from typing_extensions import Self, assert_never
 import typing
 import yaml
 
 from xwatc import _
+from xwatc.serialize import mache_converter
 from xwatc.terminal import Terminal
 from xwatc.untersystem import hilfe
 from xwatc.untersystem.itemverzeichnis import lade_itemverzeichnis, Item
 from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
 from xwatc.untersystem.person import Rasse, Fähigkeit
-from xwatc.serialize import converter
 
 if typing.TYPE_CHECKING:
     from xwatc import dorf  # @UnusedImport
@@ -494,39 +494,37 @@ class Mänx(InventarBasis):
 
             self._geladen_von = None
 
-    def __getstate__(self):  # TODO: Speichern entfernen
-        dct = self.__dict__.copy()
-        del dct["ausgabe"]
-        assert dct["speicherpunkt"]
-        return dct
-
-    def __setstate__(self, dct: dict):  # TODO: Speichern entfernen
-        bsp = type(self)()
-        self.__dict__.update(bsp.__dict__)
-        self.__dict__.update(dct)
-        self.ausgabe = ausgabe
-
-    def save(self, punkt: HatMain | MänxFkt, name: str | None = None) -> None:
+    def save(self, punkt: HatMain | MänxFkt, name: Path | str | None = None) -> None:
         """Speicher den Mänxen."""
-        self._geladen_von = punkt
-        SPEICHER_VERZEICHNIS.mkdir(exist_ok=True, parents=True)
-        if not self.speicherdatei_name:
-            self.speicherdatei_name = "welt"
-        if name:
+        # self._geladen_von = punkt
+        if name is None:
+            name = self.speicherdatei_name or "welt"
+        if isinstance(name, str):
             self.speicherdatei_name = name
-        filename = self.speicherdatei_name + ".yaml"
-        dict_ = converter.unstructure(self, Mänx)
+            SPEICHER_VERZEICHNIS.mkdir(exist_ok=True, parents=True)
+            if not self.speicherdatei_name:
+                self.speicherdatei_name = "welt"
+            if name:
+                self.speicherdatei_name = name
+            filename = self.speicherdatei_name + ".yaml"
+            path = SPEICHER_VERZEICHNIS / filename
+        elif isinstance(name, Path):
+            path = name
+        else:
+            assert_never(name)
+
+        dict_ = mache_converter().unstructure(self, Mänx)
         try:
 
-            with open(SPEICHER_VERZEICHNIS / filename, "w", encoding="utf8") as write:
-                yaml.dump(write, dict_)
+            with open(path, "w", encoding="utf8") as write:
+                yaml.safe_dump(dict_, stream=write)
         except Exception:
             try:
-                (SPEICHER_VERZEICHNIS / filename).unlink()
+                path.unlink()
             except OSError:
                 pass
             raise
-        self._geladen_von = None
+        # self._geladen_von = None
 
     @classmethod
     def load_from_file(cls, path: Path | str) -> tuple[Self, Fortsetzung]:
@@ -535,8 +533,9 @@ class Mänx(InventarBasis):
             path = SPEICHER_VERZEICHNIS / path
         with open(path, "r", encoding="utf8") as file:
             dict_ = yaml.safe_load_all(file)
-            ans = converter.structure(dict_, cls)
+            ans = mache_converter().structure(dict_, cls)
             assert ans._geladen_von
+            ans.ausgabe = ausgabe
             return ans, ans._geladen_von
 
 

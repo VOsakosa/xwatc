@@ -21,7 +21,6 @@ from xwatc.system import (Fortsetzung, Mänx, MenuOption, MänxFkt, malp, mint,
                           MänxPrädikat, Welt, MissingID)
 from xwatc.utils import uartikel, bartikel, adj_endung, UndPred
 from itertools import repeat
-from xwatc.serialize import converter
 
 
 if TYPE_CHECKING:

@@ -1,4 +1,3 @@
-import pickle
 from logging import getLogger
 from xwatc.system import (Mänx, Spielende, mint, malp, SPEICHER_VERZEICHNIS,
                           Fortsetzung, MenuOption)
