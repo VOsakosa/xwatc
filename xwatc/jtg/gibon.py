@@ -10,10 +10,11 @@ from xwatc.dorf import Dorf, ort
 from xwatc.nsc import Person, Rasse, StoryChar
 from xwatc.effect import TextGeschichte, Warten
 from xwatc.system import Mänx
+from xwatc import weg
 
 
-def erzeuge_gibon(mänx: Mänx) -> Dorf:
-    gibon = Dorf.mit_struktur("gibon", [])
+def erzeuge_gibon(mänx: Mänx, gebiet: weg.Gebiet) -> Dorf:
+    gibon = Dorf.mit_struktur("gibon", gebiet, [])
     osttor = ort("Osttor", gibon, "Ein kleines Stadttor.")
     westtor = ort("Westtor", gibon, "Ein belebtes Stadttor.")
     platz = ort("Anger", gibon, "Ein großer Platz, über der die Kirche thront.")

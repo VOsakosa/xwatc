@@ -80,7 +80,7 @@ saxa.dialog("verloren", "Ich habe deinen Ring gefunden, aber wieder verloren.",
 def erzeuge_norddörfer(mänx: Mänx, gebiet: weg.Gebiet) -> weg.Wegpunkt:
     zur_mitte = weg.Gebietsende(
         None, gebiet, "mitose-mitte", "jtg:mitte")
-    mitose = Dorf.mit_draußen("Mitose")
+    mitose = Dorf.mit_draußen("Mitose", gebiet)
     mitose_ort = mitose.draußen
     mitose_ort.verbinde(zur_mitte, "s")
     mitose_ort.beschreibungen.clear()

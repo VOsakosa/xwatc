@@ -2,14 +2,14 @@
 Die große Feste von Grökrakchöl mitsamt umliegender Landschaft und See.
 Created on 15.10.2020
 """
-from xwatc import nsc
 from xwatc import jtg
+from xwatc import nsc
 from xwatc.dorf import ort, Malp, Dorf, Rückkehr
-from xwatc.nsc import StoryChar, NSC, Person
-from xwatc.system import mint, Mänx, malp, HatMain, Welt, malpw, Fortsetzung
-from xwatc.weg import get_eintritt, gebiet, Gebiet, kreuzung, WegAdapter, Eintritt, Gebietsende
 from xwatc.effect import Cooldown, NurWenn
+from xwatc.nsc import StoryChar, NSC, Person
+from xwatc.system import Mänx, malp, Welt, malpw, Fortsetzung
 from xwatc.untersystem.person import Fähigkeit
+from xwatc.weg import get_eintritt, gebiet, Gebiet, kreuzung, Eintritt, Gebietsende
 __author__ = "jasper"
 
 GENAUER = [
@@ -35,14 +35,14 @@ def pflücken(mänx: Mänx) -> None:
 
 
 @gebiet("jtg:grökrak")
-def grökrak(mänx: Mänx, gebiet: Gebiet) -> None:
+def grökrak(mänx: Mänx, gb: Gebiet) -> None:
     wiese = kreuzung("Streuobstwiese", immer_fragen=True).add_beschreibung(
         "Du folgst dem Weg. Auf der linken Seite sind Felder.", nur="o").add_beschreibung((
             "Du kommst in eine Streuobstwiese.",
             "Du siehst Äpfel, Zwetschgen und Aprikosen.",
             "Willst du einige pflücken?"
         ))
-    wiese.verbinde(gebiet.ende(zugang_südost, jtg.süd_dorf_west), "o")
+    wiese.verbinde(gb.ende(zugang_südost, jtg.süd_dorf_west), "o")
     wiese.add_option("Plücken", "pflücken", NurWenn(Cooldown("jtg:grk:pflücken", 1),
                                                     pflücken))  # type: ignore
     vor_stadt = kreuzung("Vor dem Stadttor").add_beschreibung([
@@ -58,18 +58,18 @@ def grökrak(mänx: Mänx, gebiet: Gebiet) -> None:
             "Du stehst vor den Toren von Grökrakchöl.")
     vor_stadt.verbinde_mit_weg(wiese, 1 / 24, "so")
     vor_stadt.add_option("Genauer", "genauer", GENAUER)
-    vor_stadt - _grökrak(mänx.welt).get_ort("Stadttor")
+    vor_stadt - _grökrak(mänx.welt, gb).get_ort("Stadttor")
     biegung = kreuzung("Waldeingang", immer_fragen=False).add_beschreibung(
         "Der Weg führt nach Südwesten aus dem Wald heraus.", nur="o"
     ).add_beschreibung(
         "Der Weg führt in einen Wald hinein.", nur="sw"
     )
     biegung.verbinde(Gebietsende(
-        None, gebiet, "ost", "jtg:mitte", "west"), "o")
+        None, gb, "ost", "jtg:mitte", "west"), "o")
     vor_stadt.verbinde_mit_weg(biegung, 1 / 24, "no")
 
 
-def _grökrak(welt: Welt) -> Dorf:
+def _grökrak(welt: Welt, gb: Gebiet) -> Dorf:
     """"""
     tor = ort("Stadttor", None,
               "Am Stadttor von Grökrakchöl herrscht reger Betrieb.")
@@ -87,7 +87,7 @@ def _grökrak(welt: Welt) -> Dorf:
                       welt.obj("jtg:gr:klavier"),
                   ])
     tor - haupt - taverne
-    return Dorf.mit_struktur("Grökrakchöl", [tor, haupt, taverne])
+    return Dorf.mit_struktur("Grökrakchöl", gb, [tor, haupt, taverne]) 
 
 
 özil = StoryChar("jtg:gr:özil", ("Özil", "Çakır", "Kellner"), startinventar={

@@ -110,7 +110,7 @@ def erzeuge_teil_süd(mänx: Mänx, gb: weg.Gebiet) -> Wegkreuzung:
         "Plötzlich siehst du ein Licht im Westen in der Ferne."
     ), nur=("n", "s"))
 
-    süddorf = erzeuge_süd_dorf(mänx).draußen
+    süddorf = erzeuge_süd_dorf(mänx, gb).draußen
     nebelwald.verbinde_mit_weg(süddorf, 3, "s")
     süddorf.add_beschreibung([
         "Der Wald wird schnell viel weniger unheimlich.",
@@ -613,8 +613,8 @@ SÜD_DORF_DIALOGE = [
 frau.dialoge.extend(SÜD_DORF_DIALOGE)
 
 
-def erzeuge_süd_dorf(mänx) -> Dorf:
-    do = Dorf.mit_draußen(SÜD_DORF_NAME)
+def erzeuge_süd_dorf(mänx: Mänx, gb: weg.Gebiet) -> Dorf:
+    do = Dorf.mit_draußen(SÜD_DORF_NAME, gb)
     kirche = ort("Kirche", do, [
         "Du bist in einer kleinen Kirche.",
         # Tobiac tot?
