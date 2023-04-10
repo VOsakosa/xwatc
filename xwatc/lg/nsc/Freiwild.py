@@ -1,13 +1,13 @@
-from xwatc.system import mint, kursiv, Mänx, ja_nein, Spielende, malp, sprich, Fortsetzung
 import random
-from xwatc.jtg import t2
-from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
-from time import sleep
-from xwatc.lg import mitte
-from xwatc.untersystem.person import Fähigkeit
-from xwatc.nsc import OldNSC, StoryChar, NSC, Person
+from xwatc import _
 from xwatc.dorf import Rückkehr
-from xwatc.weg import WegEnde, Wegpunkt
+from xwatc.jtg import t2
+from xwatc.lg import mitte
+from xwatc.lg.norden import gäfdah
+from xwatc.nsc import StoryChar, NSC, Person
+from xwatc.system import mint, kursiv, Mänx, ja_nein, Spielende, malp, sprich, Fortsetzung
+from xwatc.untersystem.person import Fähigkeit
+from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah
 
 
 ruboic = StoryChar("nsc:freiwild:ruboic", ("Ruboic", "Hätxrik", "Äntor"),
@@ -37,33 +37,41 @@ ruboic = StoryChar("nsc:freiwild:ruboic", ("Ruboic", "Hätxrik", "Äntor"),
 })
 
 
-def sgh(nsc: NSC, mänx: Mänx) -> Rückkehr:
+def sgh(nsc: NSC, mänx: Mänx) -> Rückkehr | Fortsetzung:
+    """Das passiert, nachdem Ruboic vor dir tot umfällt."""
     # gäfdah = mänx.welt.obj("Gäfdah")
     if ja_nein(mänx, "Durchsuchst du den Mann?"):
-        nsc.plündern(mänx)
-        if mänx.hat_fähigkeit(Fähigkeit.Schnellplündern):
-            mint(
-                'Junger Mann: "Oh, Verdammt". Zwei junge Männer stehen eilig von ihren Stühlen auf.')
-            sprich("Junger Mann", 'Ruboic hat schon wieder einen Anfall! Der Arzt hat ihm zwar gesagt, '
-                                  'er soll mit dem Trinken aufhören, doch was hat er gemacht? Ach Verdammt, '
-                                  'dieses Mal scheints wirklich richtig übel zu sein...', warte=True)
-            mint("Die beiden Männer tragen Hätxrik vorsichtig aus der Taverne.")
-            if ja_nein(mänx, "Folgst du ihnen"):
-                mint("Du versuchst ihnen zu folgen, doch als du auf die Straße "
-                     "trittst, sind sie bereits nicht mehr zu sehen.")
-                if ja_nein(mänx, "Gehst du zürück in die Taverne?"):
-                    mint("Du gehst zurück in die Taverne")
-                else:
-                    mint("Du bleibst draußen")
-                    return mänx.context.get_ort("draußen")
-            else:
-                pass
+        if not mänx.hat_fähigkeit(Fähigkeit.Schnellplündern):
+            malp("Zwei Männer kommen zufällig herein und erwischen dich.")
+            sprich(_("Junger Mann"), _("He! Was machst du da mit Ruboic?"))
+            sprich(_("Junger Mann"), _("Wachen!"))
+            mint("Die Wachen kommen und führen dich ab.")
+            return gefängnis_von_gäfdah
         else:
-            pass
+            malp("Du plünderst schnell den Mann.")
+            nsc.plündern(mänx)
+            malp("Kaum nachdem du fertig bist, kommen zwei junge Männer hinein.")
     else:
         mint("OK, dann nicht.")
-
-    return Rückkehr.VERLASSEN
+            
+    sprich(_("Junger Mann"), _("Oh, Verdammt"))
+    sprich(_("Junger Mann"), _(
+        'Ruboic hat schon wieder einen Anfall! Der Arzt hat ihm zwar gesagt, '
+        'er soll mit dem Trinken aufhören, doch was hat er gemacht? Ach Verdammt, '
+        'dieses Mal scheints wirklich richtig übel zu sein...'))
+    mint("Die beiden Männer tragen Hätxrik vorsichtig aus der Taverne.")
+    nsc.ort = None
+    if ja_nein(mänx, "Folgst du ihnen?"):
+        mint("Du versuchst ihnen zu folgen, doch als du auf die Straße "
+             "trittst, sind sie bereits nicht mehr zu sehen.")
+        if ja_nein(mänx, "Gehst du zurück in die Taverne?"):
+            mint("Du gehst zurück in die Taverne")
+            return gäfdah.eintritt_schenke
+        else:
+            mint("Du bleibst draußen")
+            return gäfdah.eintritt_gäfdah
+    else:
+        return Rückkehr.VERLASSEN
 
 
 @ruboic.kampf
@@ -84,7 +92,7 @@ def ruboic_kampf(self: NSC, mänx: Mänx):
 
 
 @ruboic.vorstellen
-def ruboic_vorstellen(self: NSC, mänx: Mänx) -> None:
+def ruboic_vorstellen(self: NSC, mänx: Mänx) -> Rückkehr | None:
     malp('Der Mensch, welchen du ansprachest, ist in einen dicken '
          'Bärenpelzmantel gekleidet.')
     mint("Er ist wohl ein Äntor, ein Jäger.")
@@ -92,7 +100,9 @@ def ruboic_vorstellen(self: NSC, mänx: Mänx) -> None:
     if a == 1:
         malp("Bevor du mit ihm reden konntest, fiel der Mann einfach tot um")
         self.tot = True
+        return Rückkehr.VERLASSEN
     self.sprich('Tag. Äch ben Hätrik')
+    return None
 
 
 def ruboic_reden_makc(self: NSC, mänx: Mänx):

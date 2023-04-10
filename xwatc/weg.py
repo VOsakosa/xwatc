@@ -4,22 +4,24 @@ Created on 17.10.2020
 """
 from __future__ import annotations
 
-from attrs import define, field, Factory
+from attrs import define, field
 from collections.abc import Collection, Callable, Iterable, Iterator, Sequence
 from dataclasses import dataclass
 import enum
 from functools import wraps
 from logging import getLogger
 import random
-from typing import (Any, ClassVar, NewType, TYPE_CHECKING, runtime_checkable,
+from typing import (ClassVar, NewType, TYPE_CHECKING, runtime_checkable,
                     Protocol, TypeAlias, TypeVar)
 import typing
 from typing_extensions import Self
 
+from xwatc import _
 from xwatc.system import (Fortsetzung, Mänx, MenuOption, MänxFkt, malp, mint,
                           MänxPrädikat, Welt, MissingID)
 from xwatc.utils import uartikel, bartikel, adj_endung, UndPred
 from itertools import repeat
+from xwatc.serialize import converter
 
 
 if TYPE_CHECKING:
@@ -137,7 +139,6 @@ class Weg(_Strecke):
     """Ein Weg hat zwei Enden und dient dazu, die Länge der Reise darzustellen.
     Zwei Menschen auf dem Weg zählen als nicht benachbart."""
 
-    # TODO: Wegkrezung als Argument verbieten
     def __init__(self, länge: float,
                  p1: Ausgang | None = None,
                  p2: Ausgang | None = None,
@@ -527,7 +528,7 @@ class Wegkreuzung(Wegpunkt):
                  von: NachbarKey | None) -> Iterable[MenuOption[Wegpunkt | 'nsc.NSC']]:
         """Sammelt Optionen, wie der Mensch sich verhalten kann."""
         for mensch in self.menschen:
-            yield (f"Mit {mensch.name} reden", mensch.name.lower(),
+            yield (_("Mit {name} reden").format(mensch.name), mensch.bezeichnung.kurz_name.lower(),
                    mensch)
         for pt, himri in self._richtungen(mänx, von):
             ri = self._optionen.setdefault(himri, Richtungsoption())
@@ -1037,3 +1038,15 @@ def wegsystem(mänx: Mänx, start: Wegpunkt | str | tuple[str, str], return_fn: 
 
 
 GEBIETE: dict[str, MänxFkt[Gebiet]] = {}
+from xwatc import dorf  # @Reimport
+from xwatc import nsc
+
+# def wegkreuzung_structure(_typ: type, kreuzung) -> Wegkreuzung:
+#     raise NotImplementedError
+#
+# def wegkreuzung_unstructure(kreuzung: Wegkreuzung) -> dict:
+#     assert kreuzung._gebiet
+#     return {"gebiet": kreuzung._gebiet.name, "ort": kreuzung.name}
+#
+# converter.register_structure_hook(Wegkreuzung, wegkreuzung_structure)
+# converter.register_unstructure_hook(Wegkreuzung, wegkreuzung_unstructure)

@@ -3,8 +3,7 @@ Anzeige von Xwatc durch das Terminal.
 """
 from __future__ import annotations
 import re
-from typing import (Sequence, Optional, List, Mapping,
-                    TypeVar, TYPE_CHECKING, Optional as Opt)
+from typing import (Optional, Mapping, TypeVar, TYPE_CHECKING, Optional as Opt)
 from time import sleep
 __author__ = "jasper"
 

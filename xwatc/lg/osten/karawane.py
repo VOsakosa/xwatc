@@ -1,13 +1,25 @@
-from time import sleep
-from xwatc.system import Mänx, minput, Spielende, mint, Karawanenfracht, malp
-from xwatc.dorf import NSC
-import random
+
 from typing import List
+from xwatc.nsc import OldNSC
+from xwatc.system import Mänx, minput, InventarBasis, malp, get_item, get_preise, Inventar
+
+
+
+def karawanenfracht_anzeigen(inventar: Inventar):
+    ans = []
+    if not any(inventar.values()):
+        return "Nichts da."
+    for item, anzahl in sorted(inventar.items()):
+        if anzahl and item != "Gold":
+            item_obj = get_item(item)
+            kosten = get_preise(item)
+            ans.append(f"{anzahl:>4}x {item_obj:<20} ({kosten:>3}G)")
+    return "\n".join(ans)
 
 
 class Karawane:
     def __init__(self):
-        self.fracht = Karawanenfracht()
+        self.fracht = InventarBasis()
         self.angestellte: List['Angestellte'] = []
 
     def lohn_zahlen(self, mänx: Mänx) -> bool:
@@ -31,7 +43,7 @@ class Karawane:
         opt = mänx.menu(opts, "Was sagst du?")
 
         if opt == 0:
-            malp(self.fracht.karawanenfracht_anzeigen())
+            malp(karawanenfracht_anzeigen(self.fracht.inventar))
 
         elif opt == 1:
             malp("Lass mich in Ruhe!")
@@ -47,7 +59,7 @@ class Karawane:
             pass
 
 
-class Angestellte(NSC):
+class Angestellte(OldNSC):
     def __init__(self, lohn: int, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.lohn = lohn

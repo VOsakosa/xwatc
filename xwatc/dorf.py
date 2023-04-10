@@ -8,7 +8,7 @@ import attrs
 from attrs import define, field
 from enum import Enum
 from collections.abc import Sequence, Callable, Iterable
-from typing import List, Tuple, Optional as Opt, Union, TypeAlias
+from typing import List, Tuple, Union, TypeAlias
 from typing import TYPE_CHECKING
 from dataclasses import dataclass
 from xwatc.system import (malp, MenuOption, sprich, MänxFkt, Fortsetzung)
@@ -21,13 +21,12 @@ __author__ = "jasper"
 
 
 class Rückkehr(Enum):
+    """Wie es nach einem Dialog weitergeht. Bei WEITER_REDEN ist man weiter in dem vorherigen
+    Menu. Bei ZURÜCK wechselt man eine Ebene nach oben, und bei VERLASSEN verlässt man den NSC.
+    """
     WEITER_REDEN = 0
     ZURÜCK = 1
     VERLASSEN = 2
-
-
-NSCOptionen: TypeAlias = Iterable[MenuOption[MänxFkt]]
-
 
 # Vorherige Dialoge, nur str für Name, sonst (name, mindestanzahl)
 VorList: TypeAlias = Sequence[str | Tuple[str, int]]
@@ -46,6 +45,7 @@ class Malp:
     def __str__(self) -> str:
         return self.text
 
+
 @define
 class Sprich:
     """Wird in DialogFunktionen gebraucht. Schon Strings werden standardmäßig gesprochen, 
@@ -60,16 +60,16 @@ class Sprich:
 class Zeitpunkt(Enum):
     """Der Zeitpunkt, an dem ein Dialog ausführbar ist bzw. ausgeführt wird.
 
-    Reden steht für den normalen Zeitpunkt, wenn der Spieler auf eigene Initiative den
+    - Reden steht für den normalen Zeitpunkt, wenn der Spieler auf eigene Initiative den
     Dialog starten kann.
 
-    Vorstellen steht für Dialoge, die automatisch noch vor der Auswahl k/r/f abgespielt
+    - Vorstellen steht für Dialoge, die automatisch noch vor der Auswahl k/r/f abgespielt
     werden.
 
-    Ansprechen steht für Dialoge, die direkt ausgeführt werden, wenn der Spieler versucht,
+    - Ansprechen steht für Dialoge, die direkt ausgeführt werden, wenn der Spieler versucht,
     den NSC anzusprechen.
 
-    Option steht für Dialoge, die zusätzlich zu k/r/f auftauchen. Es gibt nur dann einen
+    - Option steht für Dialoge, die zusätzlich zu k/r/f auftauchen. Es gibt nur dann einen
     Unterschied zu Reden, wenn direkt_reden beim NSC nicht an ist.
     """
     Reden = 0
@@ -79,7 +79,7 @@ class Zeitpunkt(Enum):
 
 
 DialogFn = Callable[["nsc.NSC", system.Mänx],
-                    Union[None, bool, Fortsetzung, Rückkehr]]
+                    Rückkehr | Fortsetzung | None | bool]
 
 
 def _vorherige_converter(value: VorList | str) -> VorList:
@@ -194,13 +194,13 @@ HalloDialoge = [
 
 def ort(
         name: str,
-        dorf: Union[None, Dorf, weg.Wegkreuzung],
-        text: Opt[Sequence[str]] = None,
+        dorf: Dorf | weg.Wegkreuzung | None,
+        text: Sequence[str] | None = None,
         menschen: Sequence[nsc.NSC] = ()) -> weg.Wegkreuzung:
     """
     Konstruiere einen neuen Ort. Das ist eine Wegkreuzung, die zu einem Dorf
     gehört und generell mit Namen statt mit Himmelsrichtung verbunden wird.
-    
+
     ```
     ort = ort("Taverne Zum Katzenschweif", None, # wird noch hinzugefügt
               "Eine lebhafte Taverne voller Katzen",
@@ -212,8 +212,9 @@ def ort(
     """
     if isinstance(dorf, weg.Wegkreuzung):
         dorf = dorf.dorf
-    ans = weg.Wegkreuzung(name, {}, menschen=[
-                          *menschen], immer_fragen=True, dorf=dorf)
+    ans = weg.Wegkreuzung(
+        name, {}, menschen=[*menschen], immer_fragen=True, dorf=dorf,
+        gebiet=dorf.gebiet if dorf else None)
     if text:
         ans.add_beschreibung(text)
     if dorf:
@@ -221,6 +222,7 @@ def ort(
         if dorf.hat_draußen and len(dorf.orte) > 1:
             dorf.draußen - ans
     return ans
+
 
 @define
 class Dorf:
@@ -231,21 +233,23 @@ class Dorf:
     name: str
     orte: list[weg.Wegkreuzung]
     hat_draußen: bool
-    
+    gebiet: weg.Gebiet
+
     @classmethod
-    def mit_draußen(cls, name: str) -> 'Dorf':
+    def mit_draußen(cls, name: str, gebiet: weg.Gebiet) -> 'Dorf':
         """Erzeuge ein Dorf mit einem Standard-Ort (draußen), der wie das Dorf heißt."""
-        ans = cls(name, [], hat_draußen=True)
+        ans = cls(name, [], hat_draußen=True, gebiet=gebiet)
         ort(name, ans)
         return ans
-    
+
     @property
     def draußen(self) -> weg.Wegkreuzung:
         return self.orte[0]
-    
+
     @classmethod
-    def mit_struktur(cls, name: str, orte: Sequence[weg.Wegkreuzung]) -> 'Dorf':
-        return cls(name, [*orte], hat_draußen=False)
+    def mit_struktur(cls, name: str, gebiet: weg.Gebiet, orte: Sequence[weg.Wegkreuzung]
+                     ) -> 'Dorf':
+        return cls(name, [*orte], hat_draußen=False, gebiet=gebiet)
 
     def main(self, _mänx) -> Fortsetzung | None:
         malp(f"Du erreichst {self.name}.")

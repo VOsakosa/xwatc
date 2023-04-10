@@ -6,12 +6,12 @@ from collections.abc import Sequence, Callable, Iterator, Mapping
 from logging import getLogger
 import logging
 from pathlib import Path
-import pickle
 from time import sleep
 from typing import TypeVar, Any, Protocol
 from typing import (Dict, List, Union, Optional, Optional as Opt, TypeAlias)
 from typing_extensions import Self
 import typing
+import yaml
 
 from xwatc import _
 from xwatc.terminal import Terminal
@@ -19,6 +19,7 @@ from xwatc.untersystem import hilfe
 from xwatc.untersystem.itemverzeichnis import lade_itemverzeichnis, Item
 from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
 from xwatc.untersystem.person import Rasse, Fähigkeit
+from xwatc.serialize import converter
 
 if typing.TYPE_CHECKING:
     from xwatc import dorf  # @UnusedImport
@@ -53,6 +54,7 @@ class MissingID(KeyError):
     """Zeigt an, dass ein Objekt per ID gesucht wurde, aber nicht existiert."""
 
 
+Speicherpunkt = HatMain | MänxFkt
 MänxPrädikat = MänxFkt[bool]
 Fortsetzung = Union[MänxFkt, HatMain, 'weg.Wegpunkt']
 ITEMVERZEICHNIS = lade_itemverzeichnis(Path(__file__).parent / "itemverzeichnis.txt",
@@ -167,21 +169,6 @@ class InventarBasis:
         return item in self.inventar and self.inventar[item] >= anzahl
 
 
-class Karawanenfracht(InventarBasis):
-    """Die Fracht einer Karawane zeigt nicht direkt ihr Gold (, da sie keines hat)"""
-
-    def karawanenfracht_anzeigen(self):
-        ans = []
-        if not any(self.inventar.values()):
-            return "Nichts da."
-        for item, anzahl in sorted(self.inventar.items()):
-            if anzahl and item != "Gold":
-                item_obj = get_item(item)
-                kosten = get_preise(item)
-                ans.append(f"{anzahl:>4}x {item_obj:<20} ({kosten:>3}G)")
-        return "\n".join(ans)
-
-
 @define
 class Welt:
     """Speichert den Zustand der Welt, in der sich der Hauptcharakter befindet."""
@@ -280,7 +267,7 @@ class Welt:
 class Mänx(InventarBasis):
     """Der Hauptcharakter des Spiels, alles dreht sich um ihn, er hält alle
     Information."""
-    ausgabe: Terminal | 'anzeige.XwatcFenster' = ausgabe
+    ausgabe: 'Terminal | anzeige.XwatcFenster' = ausgabe
     welt: Welt = field(factory=Welt.default)
     rasse: Rasse = Rasse.Mensch
     titel: set[str] = field(factory=set, repr=False)
@@ -289,7 +276,8 @@ class Mänx(InventarBasis):
         factory=lambda: defaultdict(int))
     gefährten: list[nsc.NSC] = field(factory=list, repr=False)
     context: Any | None = None
-    speicherpunkt: Fortsetzung | None = None
+    # Speicherpunkt signalisiert, dass der Mänx gerade geladen wird.
+    _geladen_von: Fortsetzung | None = None
     speicherdatei_name: str | None = None
 
     def __attrs_pre_init__(self) -> None:
@@ -346,13 +334,18 @@ class Mänx(InventarBasis):
         if von:
             von.inventar[item] -= anzahl
 
-    def minput(self, *args, **kwargs):
-        self.speicherpunkt = None
-        return self.ausgabe.minput(self, *args, **kwargs)
+    def minput(self, frage: str, möglichkeiten: Sequence[str] | None = None, lower: bool = True,
+               save: Speicherpunkt | None = None) -> str:
+        """Fragt den Benutzer nach einer Eingabe."""
+        self._reset_laden(save)
+        return self.ausgabe.minput(
+            self, frage=frage, möglichkeiten=möglichkeiten,
+            lower=lower, save=save)
 
-    def ja_nein(self, *args, **kwargs):
-        self.speicherpunkt = None
-        return self.ausgabe.ja_nein(self, *args, **kwargs)
+    def ja_nein(self, frage: str, save: Speicherpunkt | None = None) -> bool:
+        """Fragt den Benutzer eine Ja-Nein-Frage."""
+        self._reset_laden(save)
+        return self.ausgabe.ja_nein(self, frage=frage, save=save)
 
     def menu(self,
              optionen: List[MenuOption[T]],
@@ -368,7 +361,7 @@ class Mänx(InventarBasis):
         erlaubt Eingaben 1, hau, hause für "Nach Hause gehen".
 
         """
-        self.speicherpunkt = None
+        self._reset_laden(save)
         return ausgabe.menu(self, optionen, frage, versteckt, save)
 
     def genauer(self, text: Sequence[str]) -> None:
@@ -487,30 +480,64 @@ class Mänx(InventarBasis):
                             "des Verbrechens sein.")
         self.verbrechen[verbrechen] += 1
 
-    def __getstate__(self):
+    @property
+    def am_laden(self) -> bool:
+        return self._geladen_von is not None
+
+    def _reset_laden(self, save: Fortsetzung | None) -> None:
+        """Beende den Lade-Modus. Prüfe möglichst noch, ob man auch an der selben Stelle
+        landet und gebe sonst eine Warnung aus."""
+        warn = getLogger("xwatc.system").warn
+        if self._geladen_von is not None:
+            if self._geladen_von != save:
+                warn(f"Load from {self._geladen_von} first asked for {save}.")
+
+            self._geladen_von = None
+
+    def __getstate__(self):  # TODO: Speichern entfernen
         dct = self.__dict__.copy()
         del dct["ausgabe"]
         assert dct["speicherpunkt"]
         return dct
 
-    def __setstate__(self, dct: dict):
+    def __setstate__(self, dct: dict):  # TODO: Speichern entfernen
         bsp = type(self)()
         self.__dict__.update(bsp.__dict__)
         self.__dict__.update(dct)
         self.ausgabe = ausgabe
 
-    def save(self, punkt: HatMain | MänxFkt, name: Opt[str] = None) -> None:
-        self.speicherpunkt = punkt
+    def save(self, punkt: HatMain | MänxFkt, name: str | None = None) -> None:
+        """Speicher den Mänxen."""
+        self._geladen_von = punkt
         SPEICHER_VERZEICHNIS.mkdir(exist_ok=True, parents=True)
         if not self.speicherdatei_name:
             self.speicherdatei_name = "welt"
         if name:
             self.speicherdatei_name = name
-        filename = self.speicherdatei_name + ".pickle"
+        filename = self.speicherdatei_name + ".yaml"
+        dict_ = converter.unstructure(self, Mänx)
+        try:
 
-        with open(SPEICHER_VERZEICHNIS / filename, "wb") as write:
-            pickle.dump(self, write)
-        self.speicherpunkt = None
+            with open(SPEICHER_VERZEICHNIS / filename, "w", encoding="utf8") as write:
+                yaml.dump(write, dict_)
+        except Exception:
+            try:
+                (SPEICHER_VERZEICHNIS / filename).unlink()
+            except OSError:
+                pass
+            raise
+        self._geladen_von = None
+
+    @classmethod
+    def load_from_file(cls, path: Path | str) -> tuple[Self, Fortsetzung]:
+        """Lade einen Spielstand aus der Datei."""
+        if isinstance(path, str):
+            path = SPEICHER_VERZEICHNIS / path
+        with open(path, "r", encoding="utf8") as file:
+            dict_ = yaml.safe_load_all(file)
+            ans = converter.structure(dict_, cls)
+            assert ans._geladen_von
+            return ans, ans._geladen_von
 
 
 def schiebe_inventar(start: Inventar, ziel: Inventar):
@@ -523,9 +550,6 @@ def schiebe_inventar(start: Inventar, ziel: Inventar):
 @define
 class MissingIDError(Exception):
     id_: str
-
-
-Speicherpunkt = Union[HatMain, MänxFkt]
 
 
 class Besuche:
@@ -563,10 +587,8 @@ def register(name: str) -> Callable[[Callable[[], HatMain]], Besuche]:
 
 # EIN- und AUSGABE
 
-
-def minput(mänx: Mänx, frage: str, möglichkeiten=None, lower=True, save=None) -> str:
-    """Ruft die Methode auf Mänx auf."""
-    return mänx.minput(frage, möglichkeiten, lower, save)
+minput = Mänx.minput
+ja_nein = Mänx.ja_nein
 
 
 def mint(*text) -> None:
@@ -591,11 +613,6 @@ def malpw(*text, sep=" ", end='\n') -> None:
     ausgabe.malp(*text, sep=sep, end=end, warte=True)
 
 
-def ja_nein(mänx: Mänx, frage, save=None) -> bool:
-    """Ja-Nein-Frage"""
-    return mänx.ja_nein(frage, save)
-
-
 def kursiv(text: str) -> str:
     """Packt text so, dass es kursiv ausgedruckt wird."""
     return ausgabe.kursiv(text)
@@ -603,3 +620,9 @@ def kursiv(text: str) -> str:
 
 class Spielende(Exception):
     """Diese Exception wird geschmissen, um das Spiel zu beenden."""
+
+
+from xwatc import anzeige, nsc, dorf, weg  # @UnusedImport @Reimport
+if __debug__:
+    from typing import get_type_hints
+    get_type_hints(Mänx)

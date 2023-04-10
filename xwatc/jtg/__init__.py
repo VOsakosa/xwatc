@@ -6,16 +6,16 @@ from xwatc import haendler
 from xwatc import scenario
 from xwatc import system
 from xwatc import weg
-from xwatc.dorf import Dorf, ort, NSCOptionen, Dialog, HalloDialoge, Malp, Zeitpunkt, Rückkehr
+from xwatc.dorf import Dorf, ort, Dialog, HalloDialoge, Malp, Zeitpunkt, Rückkehr
 from xwatc.jtg import groekrak, see, nord, osten, mitose, eo_nw
 from xwatc.jtg.groekrak import zugang_südost
 from xwatc.jtg.ressourcen import zufälliger_name
 from xwatc.jtg.tauern import land_der_kühe
 from xwatc.nsc import Person, StoryChar, NSC, bezeichnung
 from xwatc.system import (
-    Mänx, minput, ja_nein, register, MenuOption,
+    Mänx, minput, ja_nein, MenuOption,
     Spielende, mint, sprich, kursiv, malp, get_classes, Inventar, MänxFkt, Fortsetzung)
-from xwatc.untersystem.acker import Wildpflanze
+from xwatc.untersystem.acker import wildpflanze
 from xwatc.untersystem.person import Fähigkeit, Rasse
 from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
 from xwatc.weg import wegsystem, Wegkreuzung, Eintritt
@@ -38,11 +38,6 @@ def lichtung_gucken(mänx: Mänx):
     mint("Wenn du genau hinsiehst, erkennst du, dass hier ein Pfad von "
          "Norden nach Süden auf einen von Westen trifft. Im Osten sind "
          "nur Büsche.")
-
-
-@system.register("jtg:beeren")
-def beeren() -> Wildpflanze:
-    return Wildpflanze(2, {"Beere": 10}, "Du findest Beeren.")
 
 
 @weg.gebiet("jtg:mitte")
@@ -76,7 +71,7 @@ def erzeuge_mitte(mänx: Mänx, gebiet: weg.Gebiet) -> 'weg.Wegpunkt':
     osten = weg.kreuzung("osten", immer_fragen=True)
     osten.add_beschreibung(("Das Gestrüpp wird immer dichter.",
                             "Hohe Brombeerhecken verstellen dir den Weg."))
-    osten.add_effekt(beeren.main)
+    osten.add_effekt(wildpflanze("jtg:beeren", 2, {"Beere": 10}, "Du findest Beeren."))
     osten.add_beschreibung("Du kommst hier nicht weiter. Umkehren?")
 
     lichtung = weg.kreuzung(
@@ -115,7 +110,7 @@ def erzeuge_teil_süd(mänx: Mänx, gb: weg.Gebiet) -> Wegkreuzung:
         "Plötzlich siehst du ein Licht im Westen in der Ferne."
     ), nur=("n", "s"))
 
-    süddorf = erzeuge_süd_dorf(mänx).draußen
+    süddorf = erzeuge_süd_dorf(mänx, gb).draußen
     nebelwald.verbinde_mit_weg(süddorf, 3, "s")
     süddorf.add_beschreibung([
         "Der Wald wird schnell viel weniger unheimlich.",
@@ -618,8 +613,8 @@ SÜD_DORF_DIALOGE = [
 frau.dialoge.extend(SÜD_DORF_DIALOGE)
 
 
-def erzeuge_süd_dorf(mänx) -> Dorf:
-    do = Dorf.mit_draußen(SÜD_DORF_NAME)
+def erzeuge_süd_dorf(mänx: Mänx, gb: weg.Gebiet) -> Dorf:
+    do = Dorf.mit_draußen(SÜD_DORF_NAME, gb)
     kirche = ort("Kirche", do, [
         "Du bist in einer kleinen Kirche.",
         # Tobiac tot?
