@@ -6,7 +6,7 @@ from xwatc import haendler
 from xwatc import scenario
 from xwatc import system
 from xwatc import weg
-from xwatc.dorf import Dorf, ort, Dialog, HalloDialoge, Malp, Zeitpunkt, Rückkehr
+from xwatc.dorf import Dorf, ort, Dialog, Malp, Zeitpunkt, Rückkehr
 from xwatc.jtg import groekrak, see, nord, osten, mitose, eo_nw
 from xwatc.jtg.groekrak import zugang_südost
 from xwatc.jtg.ressourcen import zufälliger_name
@@ -22,6 +22,7 @@ from xwatc.weg import wegsystem, Wegkreuzung, Eintritt
 
 from collections import defaultdict
 from typing import List, Tuple, cast
+from xwatc.vorlagen.dialoge import HalloDialoge
 
 
 def t2(mänx: Mänx) -> Fortsetzung:

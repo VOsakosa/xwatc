@@ -175,23 +175,6 @@ RunType = MänxFkt | Rückkehr | Dialog
 _MainOpts = List[MenuOption[RunType]]
 
 
-def hallo(n, _m):
-    sprich(n.name, f"Hallo, ich bin {n.name}. "
-           "Freut mich, dich kennenzulernen.")
-    return True
-
-
-def hallo2(n, _m):
-    sprich(n.name, "Hallo nochmal!")
-    return True
-
-
-HalloDialoge = [
-    Dialog("hallo", "Hallo", hallo).wiederhole(1),
-    Dialog("hallo2", "Hallo", hallo2, "hallo")
-]
-
-
 def ort(
         name: str,
         dorf: Dorf | weg.Wegkreuzung | None,
