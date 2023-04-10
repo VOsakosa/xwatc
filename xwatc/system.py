@@ -12,6 +12,10 @@ from typing import (Dict, List, Union, Optional, Optional as Opt, TypeAlias)
 from typing_extensions import Self, assert_never
 import typing
 import yaml
+try:
+    from yaml import CSafeDumper as SafeDumper
+except ImportError:
+    from yaml import SafeDumper
 
 from xwatc import _
 from xwatc.serialize import mache_converter
@@ -514,10 +518,12 @@ class Mänx(InventarBasis):
             assert_never(name)
 
         dict_ = mache_converter().unstructure(self, Mänx)
+        from pprint import pprint
+        pprint(dict_)
         try:
 
             with open(path, "w", encoding="utf8") as write:
-                yaml.safe_dump(dict_, stream=write)
+                yaml.dump(dict_, stream=write, Dumper=SafeDumper, allow_unicode=True)
         except Exception:
             try:
                 path.unlink()

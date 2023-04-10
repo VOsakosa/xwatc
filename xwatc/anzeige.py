@@ -390,7 +390,7 @@ class XwatcFenster:
             self.malp(
                 "Dieser Name ist bereits vergeben. Willst du überschreiben?")
             self.auswahl([(_("Ja"), name), (_("Nein"), "")],
-                         action=self._speichern_als_name2)
+                         action=self._speichern_als_name2, save=self.speicherpunkt)
         else:
             self._speichern_als_name2(name)
 

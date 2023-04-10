@@ -2,13 +2,15 @@
 Hält die Converter-Klasse, die zum Serialisieren der Daten dient.
 Created on 24.03.2023
 """
-from typing import Final
+from typing import Any, Final
 import cattrs.preconf.pyyaml
+from logging import getLogger
 
 __author__ = "jasper"
 # Der unfertige Converter.
 converter: Final = cattrs.preconf.pyyaml.make_converter()
 _functions_added = False
+_logger: Final = getLogger("xwatc.serialize")
 
 # Stellt sicher, dass der Converter fertig ist
 
@@ -23,8 +25,39 @@ def mache_converter() -> cattrs.preconf.pyyaml.PyyamlConverter:
 
 def _add_fns() -> None:
     """Fügt die Converter-Funktionen dem Converter hinzu."""
-    from xwatc.system import Mänx
+    from xwatc.system import Mänx, Welt
+    from xwatc.nsc import NSC
+    from xwatc.weg import Gebiet, Wegkreuzung
     omit = cattrs.gen.override(omit=True)
+    
+    def kreuzung_un(kreuzung: Wegkreuzung) -> list[str]:
+        return [kreuzung.gebiet.name, kreuzung.name]
+    
+    converter.register_unstructure_hook(Wegkreuzung, kreuzung_un)
+    
+    def _welt_unstructure(welt: Welt) -> dict:
+        base = _welt_unstructure_base(welt)
+        objekte: dict[str, Any] = {}
+        for key, obj in welt._objekte.items():
+            match obj:
+                case float() | int():
+                    objekte[key] = obj
+                case NSC():
+                    if type(obj) != NSC:
+                        _logger.warn("Unterklasse von NSC kann nicht richtig gespeichert werden"
+                                     f": {type(obj)}")
+                    objekte[key] = converter.unstructure(obj, NSC)
+                case Gebiet():
+                    objekte[key] = None
+                case _:
+                    _logger.warn(f"Unbekannte Art Objekt bei {key}({type(obj)}) kann nicht "
+                                 "gespeichert werden.")
+                    objekte[key] = None
+
+        base["objekte"] = objekte
+        return base
+
+    converter.register_unstructure_hook(Welt, _welt_unstructure)
 
     _mänx_unstructure_base = cattrs.gen.make_dict_unstructure_fn(
         Mänx, converter,
@@ -40,3 +73,10 @@ def _add_fns() -> None:
         return base
 
     converter.register_unstructure_hook(Mänx, _mänx_unstructure)
+
+    _welt_unstructure_base = cattrs.gen.make_dict_unstructure_fn(
+        Welt, converter,
+        _objekte=omit,
+    )
+
+    

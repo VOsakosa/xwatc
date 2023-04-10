@@ -178,16 +178,24 @@ class StoryChar:
     @classmethod
     def structure(cls, data, typ) -> 'StoryChar':
         """Create the story char """
-        if id_ := data.get("id_"):
+        if isinstance(data, str):
+            id_ = data
             if id_ not in CHAR_REGISTER:
                 raise MissingIDError(id_)
             return CHAR_REGISTER[id_]
         return story_char_base_structure(data, typ)
+    
+    def _unstructure(self) -> dict | str:
+        if self.id_:
+            return self.id_
+        return story_char_base_unstructure(self)
 
 
 converter.register_structure_hook(StoryChar, StoryChar.structure)
 story_char_base_structure = cattrs.gen.make_dict_structure_fn(
     StoryChar, converter)
+story_char_base_unstructure = cattrs.gen.make_dict_unstructure_fn(StoryChar, converter)
+converter.register_unstructure_hook(StoryChar, StoryChar._unstructure)
 
 
 def _copy_inventar(old: Mapping[str, int]) -> defaultdict[str, int]:

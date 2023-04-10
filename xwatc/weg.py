@@ -414,7 +414,7 @@ def kreuzung(
     return ans
 
 
-@define
+@define(eq=False)
 class Wegkreuzung(Wegpunkt):
     """Eine Wegkreuzung enthält ist ein Punkt, wo
     1) mehrere Wege fortführen
@@ -702,7 +702,7 @@ class Wegkreuzung(Wegpunkt):
         while to_check:
             punkt = to_check.pop()
             match punkt:
-                case Wegkreuzung(gebiet=Gebiet() as ans):
+                case Wegkreuzung(_gebiet=Gebiet() as ans):
                     return ans
             for next_ in punkt.get_nachbarn():
                 if next_ not in seen:
