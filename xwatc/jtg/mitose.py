@@ -88,8 +88,8 @@ def erzeuge_norddörfer(mänx: Mänx, gebiet: weg.Gebiet) -> weg.Wegpunkt:
         "Du bist im Ort Mitose.",
         "Ein Weg führt in Nord-Süd-Richtung durch das Dorf.",
         "Es gibt einen Pfad nach Westen in den Wald hinein."])
-    mitose_ort.menschen.append(mänx.welt.obj("jtg:saxa"))
-    mitose_ort.menschen.append(mänx.welt.obj("jtg:mädchen"))
+    mitose_ort.add_char(mänx.welt, saxa)
+    mitose_ort.add_char(mänx.welt, älen)
 
     mitose_ort.verbinde(
         weg.Weg(

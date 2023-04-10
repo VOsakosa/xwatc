@@ -23,8 +23,7 @@ __author__ = "jasper"
 def ort(
         name: str,
         dorf: Dorf | weg.Wegkreuzung | None,
-        text: Sequence[str] | None = None,
-        menschen: Sequence[nsc.NSC] = ()) -> weg.Wegkreuzung:
+        text: Sequence[str] | None = None) -> weg.Wegkreuzung:
     """
     Konstruiere einen neuen Ort. Das ist eine Wegkreuzung, die zu einem Dorf
     gehört und generell mit Namen statt mit Himmelsrichtung verbunden wird.
@@ -41,7 +40,7 @@ def ort(
     if isinstance(dorf, weg.Wegkreuzung):
         dorf = dorf.dorf
     ans = weg.Wegkreuzung(
-        name, {}, menschen=[*menschen], immer_fragen=True, dorf=dorf,
+        name, {}, immer_fragen=True, dorf=dorf,
         gebiet=dorf.gebiet if dorf else None)
     if text:
         ans.add_beschreibung(text)

@@ -395,7 +395,6 @@ def kreuzung(
     gucken: BeschreibungFn | Sequence[str] = (),
     kreuzung_beschreiben: bool = False,
     immer_fragen: bool = False,
-    menschen: Sequence[nsc.NSC] = (),
     **kwargs: Ausgang
 ) -> 'Wegkreuzung':
     """Konstruktor für Wegkreuzungen ursprünglichen Typs, die nicht auf einem Gitter liegen,
@@ -408,7 +407,7 @@ def kreuzung(
     nb = {Himmelsrichtung.from_kurz(
         key): value.wegpunkt for key, value in kwargs.items()}
     ans = Wegkreuzung(name, nb, kreuzung_beschreiben=kreuzung_beschreiben,
-                      immer_fragen=immer_fragen, menschen=[*menschen])
+                      immer_fragen=immer_fragen)
     if gucken:
         ans.add_option("Umschauen", "gucken", gucken)
     for ausgang in kwargs.values():
@@ -521,7 +520,7 @@ class Wegkreuzung(Wegpunkt):
             else:
                 beschreibe_kreuzung(self, None)
         # for mensch in self.menschen:
-        #    mensch.vorstellen(mänx)
+        #    mensch.ansehen(mänx)
         return None
 
     def optionen(self, mänx: Mänx,
@@ -694,6 +693,22 @@ class Wegkreuzung(Wegpunkt):
         nsc = welt.obj(char.id_)
         nsc.ort = self
         return nsc
+    
+    @property
+    def gebiet(self) -> Gebiet:
+        # Tiefensuche nach Gebiet
+        seen: set[Wegpunkt] = {self}
+        to_check: list[Wegpunkt] = [self]
+        while to_check:
+            punkt = to_check.pop()
+            match punkt:
+                case Wegkreuzung(gebiet=Gebiet() as ans):
+                    return ans
+            for next_ in punkt.get_nachbarn():
+                if next_ not in seen:
+                    seen.add(next_)
+                    to_check.append(next_)
+        raise ValueError("Diese Kreuzung gehört zu keinem Gebiet.")
 
 
 @define
