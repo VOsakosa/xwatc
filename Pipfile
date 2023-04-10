@@ -8,6 +8,7 @@ PyGObject = "*"
 pyparsing = "*"
 attrs = "*"
 cattrs = "*"
+pyyaml = "*"
 
 [dev-packages]
 PyGObject-stubs = "*"
