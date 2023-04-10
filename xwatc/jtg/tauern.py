@@ -3,12 +3,11 @@ Tauern, das Land der aufrechten Kühe.
 Created on 15.10.2020
 """
 from xwatc import weg
-from xwatc.dorf import Rückkehr
 from xwatc.jtg import osten, gibon
 from xwatc.system import Mänx, malp, Spielende
 from xwatc.untersystem.person import Fähigkeit
 from xwatc.weg import gebiet, kreuzung, Wegtyp, Eintritt
-from xwatc.nsc import StoryChar, Person, Rasse, NSC
+from xwatc.nsc import StoryChar, Person, Rasse, NSC, Rückkehr
 
 
 __author__ = "jasper"

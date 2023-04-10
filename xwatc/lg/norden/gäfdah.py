@@ -2,10 +2,10 @@
 from random import randint
 import random
 from xwatc import weg
-from xwatc.dorf import Dorf, ort, Malp
+from xwatc.dorf import Dorf, ort
 from xwatc.jtg import frau
 from xwatc.lg.nsc import Freiwild  # @UnusedImport
-from xwatc.nsc import StoryChar, Person
+from xwatc.nsc import StoryChar, Person, Malp
 from xwatc.system import Mänx, Inventar
 from xwatc.weg import Eintritt
 from xwatc.lg.nsc.Wachen_von_Gäfdah import (

@@ -1,10 +1,9 @@
 import random
 from xwatc import _
-from xwatc.dorf import Rückkehr
 from xwatc.jtg import t2
 from xwatc.lg import mitte
 from xwatc.lg.norden import gäfdah
-from xwatc.nsc import StoryChar, NSC, Person
+from xwatc.nsc import StoryChar, NSC, Person, Rückkehr
 from xwatc.system import mint, kursiv, Mänx, ja_nein, Spielende, malp, sprich, Fortsetzung
 from xwatc.untersystem.person import Fähigkeit
 from xwatc.lg.norden.gefängnis_von_gäfdah import gefängnis_von_gäfdah

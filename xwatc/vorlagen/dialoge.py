@@ -4,7 +4,7 @@ Vorlagen für Dialoge.
 Created on 10.04.2023
 """
 from xwatc import _
-from xwatc.dorf import Dialog
+from xwatc.nsc import Dialog
 __author__ = "jasper"
 
 

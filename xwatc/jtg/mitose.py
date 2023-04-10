@@ -13,12 +13,12 @@ Links abbiegen führt zu Kiri-Wölfen=> Kampf
 
 """
 from xwatc.system import Mänx, malp, mint, Spielende
-from xwatc.dorf import Dorf, Malp, ort, Zeitpunkt
+from xwatc.dorf import Dorf, ort
 from xwatc import weg, kampf
 from xwatc.haendler import Preis, mache_händler, HandelsFn
 from xwatc.weg import kreuzung
 from typing import List, Tuple, Sequence
-from xwatc.nsc import Person, StoryChar, bezeichnung, NSC, mache_monster
+from xwatc.nsc import Person, StoryChar, bezeichnung, NSC, mache_monster, Malp, Zeitpunkt
 from xwatc.jtg import nord
 from xwatc.effect import Cooldown, NurWenn, Zufällig
 __author__ = "jasper"

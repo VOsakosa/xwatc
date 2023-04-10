@@ -9,14 +9,17 @@ import random
 import re
 from xwatc import _, weg
 from xwatc import nsc
-from xwatc.dorf import Rückkehr, Malp, Dialog, Zeitpunkt
+from xwatc.effect import Cooldown
 from xwatc.jtg import eo_nw
 from xwatc.jtg import osten, mitose
-from xwatc.nsc import StoryChar, bezeichnung, NSC
+from xwatc.nsc import StoryChar, bezeichnung, NSC, Rückkehr, Malp, Dialog, Zeitpunkt
 from xwatc.scenario import Scenario, ScenarioWegpunkt
 from xwatc.system import Mänx, mint, Spielende, InventarBasis, sprich, malp, register
 from xwatc.weg import Eintritt
-from xwatc.effect import Cooldown
+
+
+
+
 
 __author__ = "jasper"
 

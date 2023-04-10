@@ -6,12 +6,12 @@ from xwatc import haendler
 from xwatc import scenario
 from xwatc import system
 from xwatc import weg
-from xwatc.dorf import Dorf, ort, Dialog, Malp, Zeitpunkt, Rückkehr
+from xwatc.dorf import Dorf, ort
 from xwatc.jtg import groekrak, see, nord, osten, mitose, eo_nw
 from xwatc.jtg.groekrak import zugang_südost
 from xwatc.jtg.ressourcen import zufälliger_name
 from xwatc.jtg.tauern import land_der_kühe
-from xwatc.nsc import Person, StoryChar, NSC, bezeichnung
+from xwatc.nsc import Person, StoryChar, NSC, bezeichnung, Dialog, Malp, Zeitpunkt, Rückkehr
 from xwatc.system import (
     Mänx, minput, ja_nein, MenuOption,
     Spielende, mint, sprich, kursiv, malp, get_classes, Inventar, MänxFkt, Fortsetzung)
