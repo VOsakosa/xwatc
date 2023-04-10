@@ -27,8 +27,8 @@ def hauptmenu() -> None:
         mgn2.append(("Zurück", "zurück", None))
         wahl = system.ausgabe.menu(None, mgn2)
         if wahl:
-            mänx = Mänx.load_from_file(wahl)
-            main(mänx)
+            mänx, punkt = Mänx.load_from_file(wahl)
+            main(mänx, punkt)
             return
 
 
@@ -70,7 +70,7 @@ def waffe_wählen(mänx: Mänx) -> Fortsetzung:
 
 def main(mänx: Mänx, punkt: Fortsetzung | None = None):
     """Die Hauptschleife von Xwatc."""
-    punkt = mänx.speicherpunkt or punkt
+    mänx._geladen_von = punkt
     if punkt is None:
         malp(_("Willkommen bei Xwatc"))
     ende = False

@@ -57,7 +57,7 @@ class TextGeschichte:
             mänx.titel.add(titel)
         for var in self.variablen:
             mänx.welt.setze(var)
-        if mänx.speicherpunkt is None:
+        if not mänx.am_laden:
             for schatz, anzahl in self.schatz.items():
                 mänx.erhalte(schatz, anzahl)
             mänx.welt.tick(self.zeit)

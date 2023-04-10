@@ -135,7 +135,6 @@ class XwatcFenster:
         try:
             if startpunkt:
                 self.mänx = system.Mänx(self)
-                self.mänx.speicherpunkt = startpunkt
                 next_ = "m"
             else:
                 next_ = "h"  # hauptmenu
@@ -177,7 +176,7 @@ class XwatcFenster:
                     else:
                         next_ = "h"
                 elif isinstance(next_, Path):  # laden
-                    self.mänx = Mänx.load_from_file(next_)
+                    self.mänx, startpunkt = Mänx.load_from_file(next_)
                     assert isinstance(self.mänx, Mänx)
                     next_ = "m"
                 else:

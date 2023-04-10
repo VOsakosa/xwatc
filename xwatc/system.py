@@ -277,7 +277,7 @@ class Mänx(InventarBasis):
     gefährten: list[nsc.NSC] = field(factory=list, repr=False)
     context: Any | None = None
     # Speicherpunkt signalisiert, dass der Mänx gerade geladen wird.
-    speicherpunkt: Fortsetzung | None = None
+    _geladen_von: Fortsetzung | None = None
     speicherdatei_name: str | None = None
 
     def __attrs_pre_init__(self) -> None:
@@ -337,14 +337,14 @@ class Mänx(InventarBasis):
     def minput(self, frage: str, möglichkeiten: Sequence[str] | None = None, lower: bool = True,
                save: Speicherpunkt | None = None) -> str:
         """Fragt den Benutzer nach einer Eingabe."""
-        self.speicherpunkt = None
+        self._reset_laden(save)
         return self.ausgabe.minput(
             self, frage=frage, möglichkeiten=möglichkeiten,
             lower=lower, save=save)
 
     def ja_nein(self, frage: str, save: Speicherpunkt | None = None) -> bool:
         """Fragt den Benutzer eine Ja-Nein-Frage."""
-        self.speicherpunkt = None
+        self._reset_laden(save)
         return self.ausgabe.ja_nein(self, frage=frage, save=save)
 
     def menu(self,
@@ -361,7 +361,7 @@ class Mänx(InventarBasis):
         erlaubt Eingaben 1, hau, hause für "Nach Hause gehen".
 
         """
-        self.speicherpunkt = None
+        self._reset_laden(save)
         return ausgabe.menu(self, optionen, frage, versteckt, save)
 
     def genauer(self, text: Sequence[str]) -> None:
@@ -480,6 +480,20 @@ class Mänx(InventarBasis):
                             "des Verbrechens sein.")
         self.verbrechen[verbrechen] += 1
 
+    @property
+    def am_laden(self) -> bool:
+        return self._geladen_von is not None
+
+    def _reset_laden(self, save: Fortsetzung | None) -> None:
+        """Beende den Lade-Modus. Prüfe möglichst noch, ob man auch an der selben Stelle
+        landet und gebe sonst eine Warnung aus."""
+        warn = getLogger("xwatc.system").warn
+        if self._geladen_von is not None:
+            if self._geladen_von != save:
+                warn(f"Load from {self._geladen_von} first asked for {save}.")
+
+            self._geladen_von = None
+
     def __getstate__(self):  # TODO: Speichern entfernen
         dct = self.__dict__.copy()
         del dct["ausgabe"]
@@ -494,7 +508,7 @@ class Mänx(InventarBasis):
 
     def save(self, punkt: HatMain | MänxFkt, name: str | None = None) -> None:
         """Speicher den Mänxen."""
-        self.speicherpunkt = punkt
+        self._geladen_von = punkt
         SPEICHER_VERZEICHNIS.mkdir(exist_ok=True, parents=True)
         if not self.speicherdatei_name:
             self.speicherdatei_name = "welt"
@@ -503,7 +517,7 @@ class Mänx(InventarBasis):
         filename = self.speicherdatei_name + ".yaml"
         dict_ = converter.unstructure(self, Mänx)
         try:
-            
+
             with open(SPEICHER_VERZEICHNIS / filename, "w", encoding="utf8") as write:
                 yaml.dump(write, dict_)
         except Exception:
@@ -512,16 +526,18 @@ class Mänx(InventarBasis):
             except OSError:
                 pass
             raise
-        self.speicherpunkt = None
+        self._geladen_von = None
 
     @classmethod
-    def load_from_file(cls, path: Path | str) -> Self:
+    def load_from_file(cls, path: Path | str) -> tuple[Self, Fortsetzung]:
         """Lade einen Spielstand aus der Datei."""
         if isinstance(path, str):
             path = SPEICHER_VERZEICHNIS / path
         with open(path, "r", encoding="utf8") as file:
             dict_ = yaml.safe_load_all(file)
-            return converter.structure(dict_, cls)
+            ans = converter.structure(dict_, cls)
+            assert ans._geladen_von
+            return ans, ans._geladen_von
 
 
 def schiebe_inventar(start: Inventar, ziel: Inventar):

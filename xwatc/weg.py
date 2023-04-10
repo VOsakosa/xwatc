@@ -694,16 +694,6 @@ class Wegkreuzung(Wegpunkt):
         nsc.ort = self
         return nsc
 
-def wegkreuzung_structure(_typ: type, kreuzung) -> Wegkreuzung:
-    raise NotImplementedError
-
-def wegkreuzung_unstructure(kreuzung: Wegkreuzung) -> dict:
-    assert kreuzung._gebiet
-    return {"gebiet": kreuzung._gebiet.name, "ort": kreuzung.name}
-
-converter.register_structure_hook(Wegkreuzung, wegkreuzung_structure)
-converter.register_unstructure_hook(Wegkreuzung, wegkreuzung_unstructure)
-
 
 @define
 class Gebiet:
@@ -1049,3 +1039,13 @@ def wegsystem(mänx: Mänx, start: Wegpunkt | str | tuple[str, str], return_fn: 
 GEBIETE: dict[str, MänxFkt[Gebiet]] = {}
 from xwatc import dorf  # @Reimport
 from xwatc import nsc
+
+# def wegkreuzung_structure(_typ: type, kreuzung) -> Wegkreuzung:
+#     raise NotImplementedError
+#
+# def wegkreuzung_unstructure(kreuzung: Wegkreuzung) -> dict:
+#     assert kreuzung._gebiet
+#     return {"gebiet": kreuzung._gebiet.name, "ort": kreuzung.name}
+#
+# converter.register_structure_hook(Wegkreuzung, wegkreuzung_structure)
+# converter.register_unstructure_hook(Wegkreuzung, wegkreuzung_unstructure)
