@@ -103,11 +103,22 @@ class StoryChar:
         #    ORTS_CHARE[self.ort].append(self)
 
     def zu_nsc(self) -> 'NSC':
-        """Erzeuge den zugehörigen NSC aus dem Template."""
+        """Erzeuge den zugehörigen NSC aus dem Template. Dieser wird
+        zunächst nirgendwo gespeichert!
+        Um den NSC direkt einem Ort zuzuweisen,
+        nutze direkt `welt.obj(story_char.id_)`.
+        """
         # Der Ort ist zunächst immer None. Der Ort wird erst zugeordnet
         ans = NSC(self, self.bezeichnung, self.startinventar)
         if self.randomize_fn:
             self.randomize_fn(ans)
+        return ans
+    
+    def erzeuge_mehrere(self, welt: system.Welt, anzahl: int) -> list['NSC']:
+        """Erzeuge gleich mehrere, zufällige NSCs."""
+        ans = [self.zu_nsc() for __ in range(anzahl)]
+        assert self.id_
+        welt.setze_objekt(self.id_, ans)
         return ans
 
     def dialog(self,

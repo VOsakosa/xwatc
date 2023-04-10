@@ -623,8 +623,8 @@ def erzeuge_süd_dorf(mänx: Mänx, gb: weg.Gebiet) -> Dorf:
     ])
     mänx.welt.obj("jtg:m:tobiac").ort = kirche
     mänx.welt.obj("jtg:süd:garnichts").ort = kirche
-    for _i in range(randint(2, 5)):
-        frau.zu_nsc().ort = do.draußen
+    for fr in frau.erzeuge_mehrere(mänx.welt, randint(2, 5)):
+        fr.ort = do.draußen
     # TODO weitere Objekte
     return do
 

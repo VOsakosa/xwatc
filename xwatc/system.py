@@ -224,7 +224,7 @@ class Welt:
         from xwatc import nsc  # @Reimport
         obj: HatMain
         if name in nsc.CHAR_REGISTER:
-            obj = nsc.CHAR_REGISTER[name].zu_nsc()
+            obj = nsc.CHAR_REGISTER[name]._zu_nsc()
         elif name in _OBJEKT_REGISTER:
             obj = _OBJEKT_REGISTER[name]()
         else:
