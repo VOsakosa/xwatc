@@ -9,4 +9,4 @@ __author__ = "jasper"
 
 
 def wildpflanze(id_: str, reife: float, beute: Inventar, text: str) -> MänxFkt[None]:
-    return NurWenn(Cooldown(id_, reife), TextGeschichte([text], beute=beute))  # type: ignore
+    return NurWenn(Cooldown(id_, reife), TextGeschichte([text], schatz=beute))  # type: ignore

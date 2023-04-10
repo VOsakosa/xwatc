@@ -526,7 +526,8 @@ class Wegkreuzung(Wegpunkt):
                  von: NachbarKey | None) -> Iterable[MenuOption[Wegpunkt | 'nsc.NSC']]:
         """Sammelt Optionen, wie der Mensch sich verhalten kann."""
         for mensch in self.menschen:
-            yield (_("Mit {name} reden").format(mensch.name), mensch.bezeichnung.kurz_name.lower(),
+            yield (_("Mit {name} reden").format(name=mensch.name),
+                   mensch.bezeichnung.kurz_name.lower(),
                    mensch)
         for pt, himri in self._richtungen(mänx, von):
             ri = self._optionen.setdefault(himri, Richtungsoption())
