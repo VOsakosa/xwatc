@@ -80,10 +80,6 @@ class ThomarcAizenfjäld(OldNSC):
             malp('Sie scheint nicht allzu gesprächig zu sein.')
         return Rückkehr.VERLASSEN
 
-    def optionen(self, mänx: Mänx) -> NSCOptionen:
-        yield from OldNSC.optionen(self, mänx)
-        yield ("handeln", "handeln", self.handeln)
-
     def main(self, mänx: Mänx) -> None:
         malp("Die Wache steht herum und geht ernst und dienstbeflissen ihrer Arbeit nach.")
         super().main(mänx)

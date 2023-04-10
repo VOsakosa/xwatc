@@ -21,13 +21,12 @@ __author__ = "jasper"
 
 
 class Rückkehr(Enum):
+    """Wie es nach einem Dialog weitergeht. Bei WEITER_REDEN ist man weiter in dem vorherigen
+    Menu. Bei ZURÜCK wechselt man eine Ebene nach oben, und bei VERLASSEN verlässt man den NSC.
+    """
     WEITER_REDEN = 0
     ZURÜCK = 1
     VERLASSEN = 2
-
-
-NSCOptionen: TypeAlias = Iterable[MenuOption[MänxFkt]]
-
 
 # Vorherige Dialoge, nur str für Name, sonst (name, mindestanzahl)
 VorList: TypeAlias = Sequence[str | Tuple[str, int]]
@@ -61,16 +60,16 @@ class Sprich:
 class Zeitpunkt(Enum):
     """Der Zeitpunkt, an dem ein Dialog ausführbar ist bzw. ausgeführt wird.
 
-    Reden steht für den normalen Zeitpunkt, wenn der Spieler auf eigene Initiative den
+    - Reden steht für den normalen Zeitpunkt, wenn der Spieler auf eigene Initiative den
     Dialog starten kann.
 
-    Vorstellen steht für Dialoge, die automatisch noch vor der Auswahl k/r/f abgespielt
+    - Vorstellen steht für Dialoge, die automatisch noch vor der Auswahl k/r/f abgespielt
     werden.
 
-    Ansprechen steht für Dialoge, die direkt ausgeführt werden, wenn der Spieler versucht,
+    - Ansprechen steht für Dialoge, die direkt ausgeführt werden, wenn der Spieler versucht,
     den NSC anzusprechen.
 
-    Option steht für Dialoge, die zusätzlich zu k/r/f auftauchen. Es gibt nur dann einen
+    - Option steht für Dialoge, die zusätzlich zu k/r/f auftauchen. Es gibt nur dann einen
     Unterschied zu Reden, wenn direkt_reden beim NSC nicht an ist.
     """
     Reden = 0

@@ -6,7 +6,7 @@ from xwatc import haendler
 from xwatc import scenario
 from xwatc import system
 from xwatc import weg
-from xwatc.dorf import Dorf, ort, NSCOptionen, Dialog, HalloDialoge, Malp, Zeitpunkt, Rückkehr
+from xwatc.dorf import Dorf, ort, Dialog, HalloDialoge, Malp, Zeitpunkt, Rückkehr
 from xwatc.jtg import groekrak, see, nord, osten, mitose, eo_nw
 from xwatc.jtg.groekrak import zugang_südost
 from xwatc.jtg.ressourcen import zufälliger_name
