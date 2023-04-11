@@ -76,7 +76,11 @@ class Dorf:
     @classmethod
     def mit_struktur(cls, name: str, gebiet: weg.Gebiet, orte: Sequence[weg.Wegkreuzung]
                      ) -> 'Dorf':
-        return cls(name, [*orte], hat_draußen=False, gebiet=gebiet)
+        ans = cls(name, [*orte], hat_draußen=False, gebiet=gebiet)
+        for ort in orte:
+            ort._gebiet = gebiet
+            ort.dorf = ans
+        return ans
 
     def main(self, _mänx) -> Fortsetzung | None:
         malp(f"Du erreichst {self.name}.")

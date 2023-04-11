@@ -79,14 +79,12 @@ def _grökrak(welt: Welt, gb: Gebiet) -> Dorf:
                 "davor eine Statue eines großen Denkers.")
 
     taverne = ort("Taverne Zum Katzenschweif", None,
-                  "Eine lebhafte Taverne voller Katzen",
-                  [
-                      welt.obj("jtg:gr:özil"),
-                      welt.obj("jtg:gr:kloos"),
-                      welt.obj("jtg:gr:canna"),
-                      welt.obj("jtg:gr:carlo"),
-                      welt.obj("jtg:gr:klavier"),
-                  ])
+                  "Eine lebhafte Taverne voller Katzen")
+    taverne.add_char(welt, özil)
+    taverne.add_char(welt, kloos)
+    taverne.add_char(welt, canna)
+    taverne.add_char(welt, carlo)
+    taverne.add_char(welt, klavier)
     tor - haupt - taverne
     return Dorf.mit_struktur("Grökrakchöl", gb, [tor, haupt, taverne])
 
