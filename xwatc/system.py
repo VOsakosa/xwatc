@@ -57,6 +57,10 @@ class MänxFkt(Protocol[M_cov]):
 class MissingID(KeyError):
     """Zeigt an, dass ein Objekt per ID gesucht wurde, aber nicht existiert."""
 
+@define
+class MissingIDError(Exception):
+    id_: str
+
 
 Speicherpunkt = HatMain | MänxFkt
 MänxPrädikat = MänxFkt[bool]
@@ -550,11 +554,6 @@ def schiebe_inventar(start: Inventar, ziel: Inventar):
     for item, anzahl in start.items():
         ziel[item] += anzahl
     start.clear()
-
-
-@define
-class MissingIDError(Exception):
-    id_: str
 
 
 class Besuche:
