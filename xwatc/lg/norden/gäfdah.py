@@ -26,7 +26,6 @@ eintritt_gäfdah = Eintritt("lg:norden", "Gäfdah")
 
 
 def erzeuge_gäfdah(mänx: Mänx, gb: weg.Gebiet) -> Dorf:
-    from xwatc.lg.norden import fischfrisch
     d = Dorf.mit_draußen(GÄFDAH_NAME, gb)
     gb.eintrittspunkte[eintritt_gäfdah.port] = d.draußen
     kirche = ort("Kirche", d, [
@@ -93,3 +92,5 @@ rob.dialog("helfen", '"Du siehst bedrückt aus. Kann ich dir helfen?"', [
     "hallo")
 rob.dialog("schmied", '"Wo ist der Schmied?"',
            ["Der ist weiter hinten.", "...müsste er sein."])
+
+from xwatc.lg.norden import fischfrisch

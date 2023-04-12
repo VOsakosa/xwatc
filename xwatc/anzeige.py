@@ -17,6 +17,7 @@ from pathlib import Path
 from logging import getLogger
 import queue
 import threading
+import traceback
 from typing import (Tuple, Optional as Opt, Mapping,
                     Protocol, Sequence, Any, TypeVar, Callable,
                     ClassVar, NamedTuple)
@@ -128,7 +129,7 @@ class XwatcFenster:
                          name="Xwatc-Geschichte", daemon=True).start()
         win.show_all()
 
-    def _xwatc_thread(self, startpunkt: Speicherpunkt | None):
+    def _xwatc_thread(self, startpunkt: Fortsetzung | None):
         from xwatc_Hauptgeschichte import main as xw_main
         # Das nächste, was passiert. None für Abbruch, die Buchstaben stehen für interne Menüs
         next_: str | Path | None
@@ -157,7 +158,6 @@ class XwatcFenster:
                         next_ = ende.weiter
                         continue
                     except Exception:
-                        import traceback
                         self.mint(_("Xwatc ist abgestürzt:\n")
                                   + traceback.format_exc())
                         next_ = "h"
@@ -176,9 +176,15 @@ class XwatcFenster:
                     else:
                         next_ = "h"
                 elif isinstance(next_, Path):  # laden
-                    self.mänx, startpunkt = Mänx.load_from_file(next_)
-                    assert isinstance(self.mänx, Mänx)
-                    next_ = "m"
+                    try:
+                        self.mänx, startpunkt = Mänx.load_from_file(next_)
+                        assert isinstance(self.mänx, Mänx)
+                    except Exception as exc:
+                        self.mint(_("Das Laden des Spielstands ist gescheitert:\n") +
+                                  traceback.format_exc())
+                        next_ = "h"
+                    else:
+                        next_ = "m"
                 else:
                     assert False, f"Falscher Zustand {next_}"
         except AnzeigeSpielEnde:

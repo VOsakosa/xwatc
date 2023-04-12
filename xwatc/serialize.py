@@ -5,6 +5,7 @@ Created on 24.03.2023
 from typing import Any, Final, TYPE_CHECKING
 import cattrs.preconf.pyyaml
 from logging import getLogger
+from exceptiongroup import ExceptionGroup
 
 if TYPE_CHECKING:
     from xwatc import system
@@ -31,14 +32,14 @@ def _add_fns() -> None:
     from xwatc.system import Mänx, Welt
     from xwatc.nsc import NSC
     from xwatc.weg import Gebiet, Wegkreuzung
+    from xwatc import system, weg  # @Reimport
     omit = cattrs.gen.override(omit=True)
-    
+
     def kreuzung_un(kreuzung: Wegkreuzung) -> list[str]:
         return [kreuzung.gebiet.name, kreuzung.name]
-    
+
     converter.register_unstructure_hook(Wegkreuzung, kreuzung_un)
-    
-    
+
     def _welt_unstructure(welt: Welt) -> dict:
         base = _welt_unstructure_base(welt)
         objekte: dict[str, Any] = {}
@@ -70,26 +71,59 @@ def _add_fns() -> None:
         ausgabe=omit,
         context=omit,
         speicherdatei_name=omit)
+    _mänx_structure_base = cattrs.gen.make_dict_structure_fn(Mänx, converter)
+    _welt_unstructure_base = cattrs.gen.make_dict_unstructure_fn(
+        Welt, converter,
+        _objekte=omit,
+    )
 
     def _mänx_unstructure(m: Mänx) -> dict:
         base = _mänx_unstructure_base(m)
         base["gefährten"] = [gefährte.template.id_ for gefährte in m.gefährten]
         return base
 
+
+    def _mänx_structure(dict_: dict, _typ: type) -> Mänx:
+        mänx = _mänx_structure_base(dict_, Mänx)
+        mänx.ausgabe = system.ausgabe
+        conv2 = mache_strukturierer(mänx)
+        # Objekte
+        key: str
+        for key, value in dict_["welt"]["objekte"].items():
+            try:
+                match value:
+                    case None:  # Gebiet oder aus Register @UnusedVariable
+                        if key.startswith("weg:"):
+                            key = key.removeprefix("weg:")
+                            weg.get_gebiet(mänx, key)
+                        else:
+                            mänx.welt.obj(key)
+                    case float() | int():
+                        mänx.welt.setze_objekt(key, value)
+                    case {}:
+                            mänx.welt.setze_objekt(key, conv2.structure(value, NSC))
+            except cattrs.errors.ClassValidationError as cve:
+                if missing_ids := cve.subgroup(system.MissingIDError):
+                    for exc in missing_ids.exceptions:
+                        if isinstance(exc, system.MissingIDError):
+                            _logger.error(f"Missing ID while loading: {exc.id_}")
+            except system.MissingIDError as err:   
+                _logger.error(f"Missing ID while loading: {err.id_}")
+            except system.MissingID as exc:
+                _logger.exception(exc)
+        return mänx
+
     converter.register_unstructure_hook(Mänx, _mänx_unstructure)
+    converter.register_structure_hook(Mänx, _mänx_structure)
 
-    _welt_unstructure_base = cattrs.gen.make_dict_unstructure_fn(
-        Welt, converter,
-        _objekte=omit,
-    )
 
-def mache_strukturierer(mänx: 'system.Mänx'):
+def mache_strukturierer(mänx: 'system.Mänx') -> cattrs.Converter:
     """Mache einen Strukturierer, der an den Mänxen gebunden ist und damit
     die Erzeugerfunktionen bedienen kann."""
     from xwatc.weg import Gebiet, Wegkreuzung, finde_kreuzung, get_gebiet
-    
+
     conv = converter.copy()
-    
+
     def gebiet_st(in_: str, _typ) -> Gebiet:
         return get_gebiet(mänx, in_)
 
@@ -99,5 +133,4 @@ def mache_strukturierer(mänx: 'system.Mänx'):
 
     conv.register_structure_hook(Gebiet, gebiet_st)
     conv.register_structure_hook(Wegkreuzung, kreuzung_st)
-
-    
+    return conv

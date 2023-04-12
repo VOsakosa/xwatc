@@ -15,7 +15,7 @@ import yaml
 try:
     from yaml import CSafeDumper as SafeDumper
 except ImportError:
-    from yaml import SafeDumper
+    from yaml import SafeDumper  # type: ignore
 
 from xwatc import _
 from xwatc.serialize import mache_converter
@@ -542,7 +542,7 @@ class Mänx(InventarBasis):
         if isinstance(path, str):
             path = SPEICHER_VERZEICHNIS / path
         with open(path, "r", encoding="utf8") as file:
-            dict_ = yaml.safe_load_all(file)
+            dict_ = yaml.safe_load(file)
             ans = mache_converter().structure(dict_, cls)
             assert ans._geladen_von
             ans.ausgabe = ausgabe
