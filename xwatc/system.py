@@ -475,7 +475,7 @@ class Mänx(InventarBasis):
         if gefährte := self.menu(opts):
             gefährte.main(self)
 
-    def add_verbrechen(self, name: str | Verbrechen | Verbrechensart, versuch=False):
+    def add_verbrechen(self, name: str | Verbrechen | Verbrechensart, versuch=False) -> None:
         """Laste dem Mänxen ein Verbrechen an."""
         if isinstance(name, str):
             verbrechen = Verbrechen(Verbrechensart(name.upper()), versuch)
@@ -548,7 +548,7 @@ class Mänx(InventarBasis):
             return ans, ans._geladen_von
 
 
-def schiebe_inventar(start: Inventar, ziel: Inventar):
+def schiebe_inventar(start: Inventar, ziel: Inventar) -> None:
     """Schiebe alles aus start in ziel"""
     for item, anzahl in start.items():
         ziel[item] += anzahl
@@ -560,12 +560,12 @@ class Besuche:
     Bei der Main wird das Objekt aus dem Register gesucht bzw. erzeugt und dann dessen
     Main aufgerufen."""
 
-    def __init__(self, objekt_name: str):
+    def __init__(self, objekt_name: str) -> None:
         self.objekt_name = objekt_name
         assert self.objekt_name in _OBJEKT_REGISTER
 
     def main(self, mänx: Mänx):
-        mänx.welt.obj(self.objekt_name).main(mänx)
+        return mänx.welt.obj(self.objekt_name).main(mänx)
 
 
 def register(name: str) -> Callable[[Callable[[], HatMain]], Besuche]:
