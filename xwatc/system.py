@@ -18,7 +18,7 @@ except ImportError:
     from yaml import SafeDumper  # type: ignore
 
 from xwatc import _
-from xwatc.serialize import mache_converter
+from xwatc.serialize import mache_converter, unstructure_punkt
 from xwatc.terminal import Terminal
 from xwatc.untersystem import hilfe
 from xwatc.untersystem.itemverzeichnis import lade_itemverzeichnis, Item
@@ -522,8 +522,7 @@ class Mänx(InventarBasis):
             assert_never(name)
 
         dict_ = mache_converter().unstructure(self, Mänx)
-        from pprint import pprint
-        pprint(dict_)
+        dict_["punkt"] = unstructure_punkt(punkt)
         try:
 
             with open(path, "w", encoding="utf8") as write:

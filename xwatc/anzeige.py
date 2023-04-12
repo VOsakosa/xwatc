@@ -153,7 +153,7 @@ class XwatcFenster:
                 elif next_ == "m":  # main (neue Geschichte)
                     assert self.mänx
                     try:
-                        xw_main(self.mänx)
+                        xw_main(self.mänx, startpunkt)
                     except AnzeigeSpielEnde as ende:
                         next_ = ende.weiter
                         continue

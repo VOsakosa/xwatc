@@ -2,10 +2,10 @@
 Hält die Converter-Klasse, die zum Serialisieren der Daten dient.
 Created on 24.03.2023
 """
+from importlib import import_module
 from typing import Any, Final, TYPE_CHECKING
 import cattrs.preconf.pyyaml
 from logging import getLogger
-from exceptiongroup import ExceptionGroup
 
 if TYPE_CHECKING:
     from xwatc import system
@@ -82,7 +82,6 @@ def _add_fns() -> None:
         base["gefährten"] = [gefährte.template.id_ for gefährte in m.gefährten]
         return base
 
-
     def _mänx_structure(dict_: dict, _typ: type) -> Mänx:
         mänx = _mänx_structure_base(dict_, Mänx)
         mänx.ausgabe = system.ausgabe
@@ -101,16 +100,19 @@ def _add_fns() -> None:
                     case float() | int():
                         mänx.welt.setze_objekt(key, value)
                     case {}:
-                            mänx.welt.setze_objekt(key, conv2.structure(value, NSC))
+                        mänx.welt.setze_objekt(
+                            key, conv2.structure(value, NSC))
             except cattrs.errors.ClassValidationError as cve:
                 if missing_ids := cve.subgroup(system.MissingIDError):
                     for exc in missing_ids.exceptions:
                         if isinstance(exc, system.MissingIDError):
-                            _logger.error(f"Missing ID while loading: {exc.id_}")
-            except system.MissingIDError as err:   
+                            _logger.error(
+                                f"Missing ID while loading: {exc.id_}")
+            except system.MissingIDError as err:
                 _logger.error(f"Missing ID while loading: {err.id_}")
             except system.MissingID as exc:
                 _logger.exception(exc)
+        mänx._geladen_von = structure_punkt(dict_["punkt"], mänx)
         return mänx
 
     converter.register_unstructure_hook(Mänx, _mänx_unstructure)
@@ -134,3 +136,32 @@ def mache_strukturierer(mänx: 'system.Mänx') -> cattrs.Converter:
     conv.register_structure_hook(Gebiet, gebiet_st)
     conv.register_structure_hook(Wegkreuzung, kreuzung_st)
     return conv
+
+
+def unstructure_punkt(punkt: 'system.HatMain | system.MänxFkt') -> Any:
+    from xwatc import weg, nsc
+    from types import FunctionType
+    match punkt:
+        case weg.Wegkreuzung(gebiet=gebiet, name=name):
+            return [gebiet.name, name]
+        case FunctionType(__name__=name):
+            return {"fn": name}
+        case nsc.NSC(ort=weg.Wegkreuzung(gebiet=gebiet, name=name), template=nsc.StoryChar(id_=id_)):
+            return {"nsc": id_, "gebiet": gebiet.name, "ort": name}
+        case _:
+            raise TypeError(f"{punkt} kann nicht gespeichert werden.")
+
+def structure_punkt(punkt: Any, mänx: 'system.Mänx') -> 'system.HatMain | system.MänxFkt':
+    from xwatc.weg import finde_kreuzung
+    match punkt:
+        case [str(gebiet), str(name)]:
+            return finde_kreuzung(mänx, gebiet, name)
+        case {"nsc": str(id_), "gebiet": str(gebiet), "ort": str(name)}:
+            raise NotImplementedError()
+        case {"fn": str(function_name)}:
+            package, __, fun = function_name.rpartition(".")
+            ans = getattr(import_module(package), fun)
+            assert callable(ans)
+            return ans
+        case _:
+            raise ValueError("Unbekanntes Format für Speicherpunkt.")
