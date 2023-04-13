@@ -6,6 +6,7 @@ from importlib import import_module
 from typing import Any, Final, TYPE_CHECKING
 import cattrs.preconf.pyyaml
 from logging import getLogger
+from exceptiongroup import ExceptionGroup
 
 if TYPE_CHECKING:
     from xwatc import system
@@ -104,15 +105,18 @@ def _add_fns() -> None:
                     case []:
                         mänx.welt.setze_objekt(
                             key, conv2.structure(value, list[NSC]))
-                    case {}:
+                    case {"template":str()}:
                         mänx.welt.setze_objekt(
                             key, conv2.structure(value, NSC))
             except cattrs.errors.ClassValidationError as cve:
-                if missing_ids := cve.subgroup(system.MissingIDError):
+                missing_ids, rest = cve.split(system.MissingIDError)
+                if missing_ids:
                     for exc in missing_ids.exceptions:
                         if isinstance(exc, system.MissingIDError):
                             _logger.error(
                                 f"Missing ID while loading: {exc.id_}")
+                if rest:
+                    raise rest from None
             except system.MissingIDError as err:
                 _logger.error(f"Missing ID while loading: {err.id_}")
             except system.MissingID as exc:

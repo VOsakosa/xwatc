@@ -112,7 +112,7 @@ class StoryChar:
         if self.randomize_fn:
             self.randomize_fn(ans)
         return ans
-    
+
     def erzeuge_mehrere(self, welt: system.Welt, anzahl: int) -> list['NSC']:
         """Erzeuge gleich mehrere, zufällige NSCs."""
         ans = [self.zu_nsc(nr=i) for i in range(anzahl)]
@@ -183,8 +183,9 @@ class StoryChar:
             if id_ not in CHAR_REGISTER:
                 raise MissingIDError(id_)
             return CHAR_REGISTER[id_]
-        return story_char_base_structure(data, typ)
-    
+        raise TypeError(f"Can't structure {data['bezeichnung']['name']}")
+        # return story_char_base_structure(data, typ)
+
     def _unstructure(self) -> dict | str:
         if self.id_:
             return self.id_
@@ -194,8 +195,18 @@ class StoryChar:
 converter.register_structure_hook(StoryChar, StoryChar.structure)
 story_char_base_structure = cattrs.gen.make_dict_structure_fn(
     StoryChar, converter)
-story_char_base_unstructure = cattrs.gen.make_dict_unstructure_fn(StoryChar, converter)
+story_char_base_unstructure = cattrs.gen.make_dict_unstructure_fn(
+    StoryChar, converter)
 converter.register_unstructure_hook(StoryChar, StoryChar._unstructure)
+
+
+def structure_geschichte(base, typ) -> DialogGeschichte | None:
+    if base is None:
+        return None
+    return converter.structure(base, Sequence[str | Malp | Sprich])  # type: ignore
+
+
+converter.register_structure_hook(DialogGeschichte | None, structure_geschichte)
 
 
 def _copy_inventar(old: Mapping[str, int]) -> defaultdict[str, int]:

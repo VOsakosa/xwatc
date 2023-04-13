@@ -17,7 +17,7 @@ from pathlib import Path
 from logging import getLogger
 import queue
 import threading
-import traceback
+import exceptiongroup
 from typing import (Tuple, Optional as Opt, Mapping,
                     Protocol, Sequence, Any, TypeVar, Callable,
                     ClassVar, NamedTuple)
@@ -112,7 +112,7 @@ class XwatcFenster:
         self.show_grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
         self.main_grid.add(self.info_widget.widget)
         self.main_grid.add(self.show_grid)
-        self.show_grid.add(textview)
+        self.show_grid.add(Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=textview))
         self.grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
         self.main_grid.add(self.grid)
         win.connect("destroy", self.fenster_schließt)
@@ -157,9 +157,9 @@ class XwatcFenster:
                     except AnzeigeSpielEnde as ende:
                         next_ = ende.weiter
                         continue
-                    except Exception:
+                    except Exception as exc:
                         self.mint(_("Xwatc ist abgestürzt:\n")
-                                  + traceback.format_exc())
+                                  + "\n".join(exceptiongroup.format_exception(exc))[-10000:])
                         next_ = "h"
                     else:
                         next_ = "h"
@@ -181,7 +181,7 @@ class XwatcFenster:
                         assert isinstance(self.mänx, Mänx)
                     except Exception as exc:
                         self.mint(_("Das Laden des Spielstands ist gescheitert:\n") +
-                                  traceback.format_exc()[-10000:])
+                                  "\n".join(exceptiongroup.format_exception(exc))[-10000:])
                         next_ = "h"
                     else:
                         next_ = "m"

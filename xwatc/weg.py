@@ -419,10 +419,10 @@ class NSCReference:
     """Referenz auf einen NSC per Template-Name und Nummer."""
     template: str
     idx: int = 0
-    
+
     @classmethod
     def from_nsc(cls, nsc_: nsc.NSC) -> Self:
-        assert nsc_.template.id_
+        assert nsc_.template.id_, "NSC-Template hat keine ID."
         return cls(nsc_.template.id_, nsc_.nr)
 
 
@@ -701,16 +701,16 @@ class Wegkreuzung(Wegpunkt):
                 yield nscs[ref.idx]
             else:
                 yield nscs
-    
+
     def add_nsc(self, nsc: nsc.NSC) -> None:
         """Fügt den NSC hinzu. Wird auch beim Setzen vom NSC-Ort aufgerufen."""
         if nsc.ort is not self:
-            nsc.ort = self # Will call this function again
+            nsc.ort = self  # Will call this function again
             return
         ref = NSCReference.from_nsc(nsc)
-        assert ref not in self._menschen, "NSC bereits an diesem Ort."
-        self._menschen.append(ref)
-        
+        if ref not in self._menschen:
+            self._menschen.append(ref)
+
     def remove_nsc(self, nsc: nsc.NSC) -> None:
         """Entfernt den NSC."""
         if nsc.ort is self:
@@ -719,8 +719,10 @@ class Wegkreuzung(Wegpunkt):
         self._menschen.remove(NSCReference.from_nsc(nsc))
 
     def add_old_nsc(self, welt: Welt, name: str, fkt: Callable[..., nsc.NSC],
-                *args, **kwargs):
-        welt.get_or_else(name, fkt, *args, **kwargs).ort = self
+                    *args, **kwargs):
+        nsc = welt.get_or_else(name, fkt, *args, **kwargs)
+        nsc.template.id_ = name
+        self.add_nsc(nsc)
 
     def add_char(self, welt: Welt, char: nsc.StoryChar) -> nsc.NSC:
         """Füge einen Story-Charakter zu diesem Ort hinzu."""
