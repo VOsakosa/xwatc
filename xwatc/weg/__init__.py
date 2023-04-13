@@ -1,5 +1,9 @@
 """
 Wegpunkte für JTGs Wegesystem.
+
+Das Wegsystem besteht aus mehreren, gegenseitig miteinander verbundenen Wegpunkten.
+An diesen Punkten passieren dann die Geschichten. Üblicherweise geht der Spieler dann
+zu einem benachbarten Wegpunkt.
 Created on 17.10.2020
 """
 from __future__ import annotations
@@ -25,7 +29,6 @@ from itertools import repeat
 
 if TYPE_CHECKING:
     from xwatc import nsc
-    from xwatc import dorf
     from xwatc.weg._kreuzung import Wegkreuzung
 
 __author__ = "jasper"
@@ -59,7 +62,9 @@ AndererAusgang = TypeVar("AndererAusgang", bound="Ausgang")
 
 @runtime_checkable
 class Ausgang(Protocol):
-    """Ein Wegpunkt mit festen losen Enden."""
+    """Ein Wegpunkt mit festen losen Enden. Dieses Protokoll ist beim Zusammenbauen des
+    Wegenetzes wichtig: Ein Ausgang lässt sich wohldefiniert mit einem anderen Ausgang
+    verbinden."""
 
     def verbinde(self, __anderer: Wegpunkt):
         """Verbinde diesen Wegpunkt mit anderen. Diese Methode wird vom anderen Wegpunkt
@@ -566,7 +571,6 @@ def wegsystem(mänx: Mänx, start: Wegpunkt | str | tuple[str, str], return_fn: 
 
 
 GEBIETE: dict[str, MänxFkt[Gebiet]] = {}
-from xwatc import dorf  # @Reimport
 from xwatc import nsc  # @Reimport
 from xwatc.weg._kreuzung import Wegkreuzung, Himmelsrichtung, kreuzung, Wegtyp  # @Reimport
 

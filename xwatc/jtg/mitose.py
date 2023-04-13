@@ -13,7 +13,7 @@ Links abbiegen führt zu Kiri-Wölfen=> Kampf
 
 """
 from xwatc.system import Mänx, malp, mint, Spielende
-from xwatc.dorf import Dorf, ort
+from xwatc.weg.dorf import Dorf, ort
 from xwatc import weg, kampf
 from xwatc.haendler import Preis, mache_händler, HandelsFn
 from xwatc.weg import kreuzung

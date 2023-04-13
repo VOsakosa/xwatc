@@ -625,7 +625,7 @@ class Spielende(Exception):
     """Diese Exception wird geschmissen, um das Spiel zu beenden."""
 
 
-from xwatc import anzeige, nsc, dorf, weg  # @UnusedImport @Reimport
+from xwatc import anzeige, nsc, weg  # @UnusedImport @Reimport
 if __debug__:
     from typing import get_type_hints
     get_type_hints(Mänx)

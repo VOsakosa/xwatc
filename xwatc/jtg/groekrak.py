@@ -4,7 +4,7 @@ Created on 15.10.2020
 """
 from xwatc import jtg
 from xwatc import nsc
-from xwatc.dorf import ort, Dorf
+from xwatc.weg.dorf import ort, Dorf
 from xwatc.effect import Cooldown, NurWenn
 from xwatc.system import Mänx, malp, Welt, malpw, Fortsetzung
 from xwatc.untersystem.person import Fähigkeit

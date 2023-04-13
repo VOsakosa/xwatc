@@ -1,7 +1,7 @@
 """Ein NSC-System, das das Template (bei Kompilierzeit erstellt, im Code) und den
 gespeicherten Teil trennt. Bei Erstellung soll alles einen eindeutigen Namen haben.
 """
-from xwatc import dorf
+from xwatc.weg import dorf
 from xwatc import system
 from xwatc import weg
 from xwatc.serialize import converter

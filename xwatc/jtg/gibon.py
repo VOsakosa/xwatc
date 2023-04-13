@@ -6,7 +6,7 @@ Notizen
 
 Created on 09.08.2021
 """
-from xwatc.dorf import Dorf, ort
+from xwatc.weg.dorf import Dorf, ort
 from xwatc.nsc import Person, Rasse, StoryChar
 from xwatc.effect import TextGeschichte, Warten
 from xwatc.system import Mänx

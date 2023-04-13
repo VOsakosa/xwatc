@@ -14,4 +14,3 @@ _ = translations.gettext
 
 from . import system
 from . import weg
-from . import dorf

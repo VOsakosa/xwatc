@@ -2,7 +2,7 @@
 from random import randint
 import random
 from xwatc import weg
-from xwatc.dorf import Dorf, ort
+from xwatc.weg.dorf import Dorf, ort
 from xwatc.lg.nsc import Freiwild  # @UnusedImport
 from xwatc.nsc import StoryChar, Person, Malp
 from xwatc.system import Mänx, Inventar
