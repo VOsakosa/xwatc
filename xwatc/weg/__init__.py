@@ -66,7 +66,7 @@ class Ausgang(Protocol):
     Wegenetzes wichtig: Ein Ausgang lässt sich wohldefiniert mit einem anderen Ausgang
     verbinden."""
 
-    def verbinde(self, __anderer: Wegpunkt):
+    def verbinde(self, __anderer: Wegpunkt) -> None:
         """Verbinde diesen Wegpunkt mit anderen. Diese Methode wird vom anderen Wegpunkt
         aufgerufen, um sicherzugehen, dass der andere Wegpunkt verbunden ist."""
 
@@ -102,17 +102,17 @@ class _Strecke(WegpunktAusgang):
         if anderer is None:
             return anderer
         else:
-            return anderer.verbinde(self)
+            anderer.verbinde(self)
+            return anderer.wegpunkt
 
     def get_nachbarn(self) -> list[Wegpunkt]:
         return [a for a in (self.p1, self.p2) if a]
 
-    def verbinde(self, anderer: Wegpunkt) -> Wegpunkt:
+    def verbinde(self, anderer: Wegpunkt) -> None:
         if not self.p1:
             self.p1 = anderer
         elif self.p1 != anderer and not self.p2:
             self.p2 = anderer
-        return self
 
     def __repr__(self):
         def name(pk: Wegpunkt | None):
