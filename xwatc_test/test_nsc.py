@@ -124,28 +124,30 @@ class TestNSC(unittest.TestCase):
 
     def test_ort(self):
         """Test if the Ort attribute adds the NSC to the Ort's menschen attribute"""
+        welt = MockSystem().install().welt
         ort = dorf.ort("Geheim", dorf=None)
         # On init
-        juicy = NSC(StoryChar(None, "Juicy", Person("w"), {}),
+        juicy = NSC(StoryChar("test:juicy", "Juicy", Person("w"), {}),
                     bezeichnung("Juicy"), ort=ort)
+        welt.setze_objekt(juicy.template.id_, juicy)
         self.assertIs(ort, juicy.ort)
-        self.assertIn(juicy, ort.menschen)
+        self.assertIn(juicy, ort.get_nscs(welt))
         # On set
         ort2 = dorf.ort("Publik", dorf=None)
         juicy.ort = ort2
         self.assertIs(juicy.ort, ort2)
-        self.assertIn(juicy, ort2.menschen)
-        self.assertNotIn(juicy, ort.menschen)
+        self.assertIn(juicy, ort2.get_nscs(welt))
+        self.assertNotIn(juicy, ort.get_nscs(welt))
         # On unset
         juicy.ort = None
         self.assertIsNone(juicy.ort)
-        self.assertNotIn(juicy, ort2.menschen)
+        self.assertNotIn(juicy, ort2.get_nscs(welt))
         # On set from None
         juicy.ort = ort
         # And done twice
         juicy.ort = ort
         self.assertIs(ort, juicy.ort)
-        self.assertIn(juicy, ort.menschen)
+        self.assertIn(juicy, ort.get_nscs(welt))
 
     def test_vorstellen(self):
         """Test the vorstellen function."""

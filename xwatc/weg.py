@@ -414,6 +414,18 @@ def kreuzung(
     return ans
 
 
+@define(eq=True)
+class NSCReference:
+    """Referenz auf einen NSC per Template-Name und Nummer."""
+    template: str
+    idx: int = 0
+    
+    @classmethod
+    def from_nsc(cls, nsc_: nsc.NSC) -> Self:
+        assert nsc_.template.id_
+        return cls(nsc_.template.id_, nsc_.nr)
+
+
 @define(eq=False)
 class Wegkreuzung(Wegpunkt):
     """Eine Wegkreuzung enthält ist ein Punkt, wo
@@ -433,7 +445,7 @@ class Wegkreuzung(Wegpunkt):
     nachbarn: dict[NachbarKey, Wegpunkt] = field(repr=False)
     _optionen: dict[NachbarKey, Richtungsoption] = field(
         repr=False, factory=dict)
-    menschen: list[nsc.NSC] = field(factory=list, repr=False)
+    _menschen: list[NSCReference] = field(factory=list, repr=False)
     immer_fragen: bool = True
     kreuzung_beschreiben: bool = False
     _gebiet: 'Gebiet | None' = None
@@ -525,7 +537,7 @@ class Wegkreuzung(Wegpunkt):
     def optionen(self, mänx: Mänx,
                  von: NachbarKey | None) -> Iterable[MenuOption[Wegpunkt | 'nsc.NSC']]:
         """Sammelt Optionen, wie der Mensch sich verhalten kann."""
-        for mensch in self.menschen:
+        for mensch in self.get_nscs(mänx.welt):
             yield (_("Mit {name} reden").format(name=mensch.name),
                    mensch.bezeichnung.kurz_name.lower(),
                    mensch)
@@ -681,6 +693,31 @@ class Wegkreuzung(Wegpunkt):
         self._optionen[himri] = Richtungsoption(name, name_kurz)
         return self
 
+    def get_nscs(self, welt: Welt) -> Iterable[nsc.NSC]:
+        """Gibt einen Iterator über die NSCs an diesem Ort."""
+        for ref in self._menschen:
+            nscs: Sequence[nsc.NSC] | nsc.NSC = welt.obj(ref.template)
+            if isinstance(nscs, Sequence):
+                yield nscs[ref.idx]
+            else:
+                yield nscs
+    
+    def add_nsc(self, nsc: nsc.NSC) -> None:
+        """Fügt den NSC hinzu. Wird auch beim Setzen vom NSC-Ort aufgerufen."""
+        if nsc.ort is not self:
+            nsc.ort = self # Will call this function again
+            return
+        ref = NSCReference.from_nsc(nsc)
+        assert ref not in self._menschen, "NSC bereits an diesem Ort."
+        self._menschen.append(ref)
+        
+    def remove_nsc(self, nsc: nsc.NSC) -> None:
+        """Entfernt den NSC."""
+        if nsc.ort is self:
+            nsc.ort = None  # Will call this function again
+            return
+        self._menschen.remove(NSCReference.from_nsc(nsc))
+
     def add_old_nsc(self, welt: Welt, name: str, fkt: Callable[..., nsc.NSC],
                 *args, **kwargs):
         welt.get_or_else(name, fkt, *args, **kwargs).ort = self
@@ -727,6 +764,7 @@ def finde_kreuzung(mänx: Mänx, gebiet: str, kreuzung: str) -> Wegkreuzung:
                 seen.add(next_)
                 to_check.append(next_)
     raise MissingIDError(kreuzung)
+
 
 @define
 class Gebiet:

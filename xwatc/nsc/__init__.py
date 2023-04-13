@@ -221,7 +221,7 @@ class NSC(system.InventarBasis):
 
     def __attrs_post_init__(self):
         if self._ort:
-            self._ort.menschen.append(self)
+            self._ort.add_nsc(self)
 
     @property
     def name(self) -> str:
@@ -240,15 +240,16 @@ class NSC(system.InventarBasis):
     def ort(self, ort: weg.Wegkreuzung | None) -> None:
         """Den Ort an einem NSC zu setzen, speichert ihn in die Liste der
         NSCs an einem Ort."""
-        if self._ort is not None:
+        if ort is self._ort:
+            return
+        ort_alt, self._ort = self._ort, ort
+        if ort_alt is not None:
             try:
-                self._ort.menschen.remove(self)
+                ort_alt.remove_nsc(self)
             except ValueError:
                 pass
-        self._ort = ort
         if ort is not None:
-            if self not in ort.menschen:
-                ort.menschen.append(self)
+            ort.add_nsc(self)
 
     def vorstellen(self, mänx: system.Mänx) -> None | Fortsetzung | Rückkehr:
         """So wird der NSC vorgestellt"""
