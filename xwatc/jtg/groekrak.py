@@ -59,7 +59,8 @@ def grökrak(mänx: Mänx, gb: Gebiet) -> None:
             "Du stehst vor den Toren von Grökrakchöl.")
     vor_stadt.verbinde_mit_weg(wiese, 1 / 24, "so")
     vor_stadt.add_option("Genauer", "genauer", GENAUER)
-    vor_stadt - _grökrak(mänx.welt, gb).get_ort("Stadttor")
+    (vor_stadt.ausgang("stadttor", "Stadt betreten", "stadt") - _grökrak(mänx.welt, gb).get_ort(
+        "Stadttor").ausgang("vor_stadt", "Grökrakhöl verlassen", "verlassen"))
     biegung = kreuzung("Waldeingang", immer_fragen=False).add_beschreibung(
         "Der Weg führt nach Südwesten aus dem Wald heraus.", nur="o"
     ).add_beschreibung(
@@ -74,7 +75,7 @@ def _grökrak(welt: Welt, gb: Gebiet) -> Dorf:
     """"""
     tor = ort("Stadttor", None,
               "Am Stadttor von Grökrakchöl herrscht reger Betrieb.")
-    haupt = ort("Hauptplatz", None, "Vor dem Burgfried Grökrakchöls ist ein großer,"
+    haupt = ort("Hauptplatz", None, "Vor dem Burgfried Grökrakchöls ist ein großer, "
                 "geschäftiger Platz. In der Mitte ist ein großer Springbrunnen, "
                 "davor eine Statue eines großen Denkers.")
 
