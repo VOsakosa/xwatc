@@ -101,21 +101,21 @@ class StoryChar:
         # if self.ort:
         #    ORTS_CHARE[self.ort].append(self)
 
-    def zu_nsc(self) -> 'NSC':
+    def zu_nsc(self, nr: int = 0) -> 'NSC':
         """Erzeuge den zugehörigen NSC aus dem Template. Dieser wird
         zunächst nirgendwo gespeichert!
         Um den NSC direkt einem Ort zuzuweisen,
         nutze direkt `welt.obj(story_char.id_)`.
         """
         # Der Ort ist zunächst immer None. Der Ort wird erst zugeordnet
-        ans = NSC(self, self.bezeichnung, self.startinventar)
+        ans = NSC(self, self.bezeichnung, self.startinventar, nr=nr)
         if self.randomize_fn:
             self.randomize_fn(ans)
         return ans
     
     def erzeuge_mehrere(self, welt: system.Welt, anzahl: int) -> list['NSC']:
         """Erzeuge gleich mehrere, zufällige NSCs."""
-        ans = [self.zu_nsc() for __ in range(anzahl)]
+        ans = [self.zu_nsc(nr=i) for i in range(anzahl)]
         assert self.id_
         welt.setze_objekt(self.id_, ans)
         return ans
@@ -217,6 +217,7 @@ class NSC(system.InventarBasis):
     freundlich: int = 0
     tot: bool = False
     _ort: weg.Wegkreuzung | None = None
+    nr: int = 0
 
     def __attrs_post_init__(self):
         if self._ort:
