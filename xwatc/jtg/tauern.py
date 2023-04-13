@@ -77,7 +77,7 @@ def erzeuge_tauern(mänx: Mänx, gebiet: weg.Gebiet) -> None:
         return inner
     vorbrück.add_effekt(bewege(vorbrück))
     hinterbrück.add_effekt(bewege(hinterbrück))
-    osttor = gibon.erzeuge_gibon(mänx).get_ort("Osttor")
+    osttor = gibon.erzeuge_gibon(mänx, gebiet).get_ort("Osttor")
     hinterbrück.verbinde_mit_weg(
         osttor, 1.5, richtung="o", beschriftung_zurück="Jotungard")
     osttor.bschr("Du erreichst nach Gibon, ein große Stadt direkt an der Grenze zu Jotungard.",
