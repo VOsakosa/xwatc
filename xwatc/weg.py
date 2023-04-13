@@ -681,7 +681,7 @@ class Wegkreuzung(Wegpunkt):
         self._optionen[himri] = Richtungsoption(name, name_kurz)
         return self
 
-    def add_nsc(self, welt: Welt, name: str, fkt: Callable[..., nsc.NSC],
+    def add_old_nsc(self, welt: Welt, name: str, fkt: Callable[..., nsc.NSC],
                 *args, **kwargs):
         welt.get_or_else(name, fkt, *args, **kwargs).ort = self
 
@@ -693,7 +693,7 @@ class Wegkreuzung(Wegpunkt):
         nsc = welt.obj(char.id_)
         nsc.ort = self
         return nsc
-    
+
     @property
     def gebiet(self) -> Gebiet:
         # Tiefensuche nach Gebiet
