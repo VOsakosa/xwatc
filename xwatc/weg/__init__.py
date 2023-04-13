@@ -126,29 +126,13 @@ class _Strecke(WegpunktAusgang):
         return (f"{type(self).__name__} von {name(self.p1)} "
                 f"nach {name(self.p2)}")
 
-
-class MonsterChance:
-    """Eine Möglichkeit eines Monster-Zusammenstoßes."""
-
-    def __init__(self, wahrscheinlichkeit: float, geschichte: MänxFkt) -> None:
-        super().__init__()
-        self.wkeit = wahrscheinlichkeit
-        self.geschichte = geschichte
-
-    def main(self, mänx: Mänx):
-        # Hier in den Kampf einsteigen
-        self.geschichte(mänx)
-
-
 class Weg(_Strecke):
     """Ein Weg hat zwei Enden und dient dazu, die Länge der Reise darzustellen.
     Zwei Menschen auf dem Weg zählen als nicht benachbart."""
 
     def __init__(self, länge: float,
                  p1: Ausgang | None = None,
-                 p2: Ausgang | None = None,
-                 monster_tag: list[MonsterChance] | None = None,
-                 monster_nachts: list[MonsterChance] | None = None):
+                 p2: Ausgang | None = None):
         """
         :param länge: Länge in Stunden
         :param p1: Startpunkt
@@ -157,26 +141,6 @@ class Weg(_Strecke):
         """
         super().__init__(p1, p2)
         self.länge = länge / 24
-        self.monster_tag = monster_tag
-        self.monster_nachts = monster_nachts
-
-    def monster_check(self, mänx: Mänx) -> bool:
-        """Checkt, ob ein Monster getroffen wird.
-
-        :return:
-            True, wenn der Spieler sich entscheidet umzukehren.
-        """
-        if mänx.welt.is_nacht():
-            ms = self.monster_nachts
-        else:
-            ms = self.monster_tag
-        if ms:
-            r = random.random()
-            for mon in ms:
-                r -= mon.wkeit
-                if r < 0:
-                    return mon.main(mänx)
-        return False
 
     def main(self, mänx: Mänx, von: Wegpunkt | None) -> Wegpunkt:
         """Verwendet Zeit und bringt den Spieler an die gegenüberliegende Seite."""
@@ -190,10 +154,6 @@ class Weg(_Strecke):
         weg_rest = self.länge
         while weg_rest > 0:
             mänx.welt.tick(1 / 24)
-            if self.monster_check(mänx):
-                # umkehren
-                richtung = not richtung
-                weg_rest = self.länge - weg_rest
             if ruhen and mänx.welt.is_nacht():
                 if mänx.ja_nein("Es ist Nacht. Willst du ruhen?"):
                     mänx.welt.nächster_tag()
