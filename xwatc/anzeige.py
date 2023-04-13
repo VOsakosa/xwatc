@@ -181,7 +181,7 @@ class XwatcFenster:
                         assert isinstance(self.mänx, Mänx)
                     except Exception as exc:
                         self.mint(_("Das Laden des Spielstands ist gescheitert:\n") +
-                                  traceback.format_exc())
+                                  traceback.format_exc()[-10000:])
                         next_ = "h"
                     else:
                         next_ = "m"
