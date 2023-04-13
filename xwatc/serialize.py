@@ -54,6 +54,8 @@ def _add_fns() -> None:
                     objekte[key] = converter.unstructure(obj, NSC)
                 case Gebiet():
                     objekte[key] = None
+                case []:
+                    objekte[key] = converter.structure(obj, list[NSC])
                 case _:
                     _logger.warn(f"Unbekannte Art Objekt bei {key}({type(obj)}) kann nicht "
                                  "gespeichert werden.")
@@ -99,6 +101,9 @@ def _add_fns() -> None:
                             mänx.welt.obj(key)
                     case float() | int():
                         mänx.welt.setze_objekt(key, value)
+                    case []:
+                        mänx.welt.setze_objekt(
+                            key, conv2.structure(value, list[NSC]))
                     case {}:
                         mänx.welt.setze_objekt(
                             key, conv2.structure(value, NSC))
