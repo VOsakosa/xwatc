@@ -55,13 +55,11 @@ def erzeuge_gäfdah(mänx: Mänx, gb: weg.Gebiet) -> Dorf:
     assert fischfrisch.frau.id_
     mänx.welt.obj(fischfrisch.frau.id_).ort = kirche
     mänx.welt.obj("nsc:Wachen_von_Gäfdah:MarioWittenpfäld").ort = rathaus
-    rathaus.add_old_nsc(mänx.welt, "nsc:Wachen_von_Gäfdah:SakcaBrauc", SakcaBrauc)
+    rathaus.add_char(mänx.welt, SakcaBrauc)
     mänx.welt.obj("nsc:freiwild:ruboic").ort = schenke
-    rathaus.add_old_nsc(mänx.welt,
-                    "nsc:Wachen_von_Gäfdah:ThomarcAizenfjäld", ThomarcAizenfjäld)
+    rathaus.add_char(mänx.welt, ThomarcAizenfjäld)
     haus1.add_char(mänx.welt, martin)
-    d.draußen.add_old_nsc(
-        mänx.welt, "nsc:Wachen_von_Gäfdah:OrfGrouundt", OrfGrouundt)
+    d.draußen.add_char(        mänx.welt,  OrfGrouundt)
     # TODO: Zufällige Charaktere
     # for _i in range(randint(2, 5)):
     #    w = frau.zu_nsc()

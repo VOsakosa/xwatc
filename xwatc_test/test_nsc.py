@@ -10,7 +10,7 @@ from xwatc import system
 from xwatc.nsc import Dialog, Zeitpunkt
 from xwatc.effect import Zufällig
 from xwatc.haendler import mache_händler
-from xwatc.nsc import StoryChar, Person, Rasse, Geschlecht, NSC, OldNSC, bezeichnung, Bezeichnung
+from xwatc.nsc import StoryChar, Person, Rasse, Geschlecht, NSC, bezeichnung, Bezeichnung
 from xwatc.serialize import converter
 from xwatc.system import Welt
 from xwatc_test.mock_system import MockSystem
@@ -110,17 +110,6 @@ class TestNSC(unittest.TestCase):
         jonas2 = converter.structure(pickled, NSC)
         self.assertIs(jonas2.template, char2)
         self.assertEqual(jonas2.inventar["Unterhose"], 4)
-
-    @unittest.skip("Old geht eh nicht")
-    def test_old_nsc_pickle(self):
-        """Test if OldNSC can be pickled."""
-        jonas = OldNSC("Jonas Berncdo", "Subokianer",
-                       None, dlg=dlg_fn_für_test)
-        jonas.inventar["Unterhose"] += 2
-        pickled = converter.unstructure(jonas)
-        jonas2 = converter.structure(pickled, OldNSC)
-        self.assertEqual(jonas2.name, "Jonas Berncdo")
-        self.assertIs(jonas2._dlg, dlg_fn_für_test)
 
     def test_ort(self):
         """Test if the Ort attribute adds the NSC to the Ort's menschen attribute"""

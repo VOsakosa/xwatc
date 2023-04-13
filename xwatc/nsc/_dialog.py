@@ -7,6 +7,7 @@ from enum import Enum
 from collections.abc import Sequence, Callable, Iterable
 from typing import List, Tuple, Union, TypeAlias
 from typing import TYPE_CHECKING
+from typing_extensions import Self
 from dataclasses import dataclass
 from xwatc.system import (malp, MenuOption, MänxFkt, Fortsetzung)
 from xwatc import system
@@ -115,6 +116,12 @@ class Dialog:
     effekt: DialogFn | None = None
     gruppe: str | None = None
     wenn_fn: DialogFn | None = None
+    
+    @classmethod
+    def ansprechen_neu(cls, geschichte: 'DialogGeschichte', *, name="ansprechen") -> Self:
+        if isinstance(geschichte, str):
+            geschichte = [Malp(geschichte)]
+        return cls(name, name, geschichte, zeitpunkt=Zeitpunkt.Ansprechen)
 
     def wenn(self, fn: DialogFn) -> 'Dialog':
         """Dieser Dialog soll nur aufrufbar sein, wenn die Funktion fn
