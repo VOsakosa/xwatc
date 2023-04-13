@@ -496,51 +496,6 @@ def mache_monster(
     return wrapper
 
 
-class OldNSC(NSC):
-    """Unterklasse von NSC, die dazu dient, das alte System mit dem neuen zu vereinen.
-    Beim alten System war das Template nicht benamt und nicht gespeichert.
-
-    Stattdessen gab
-    es die (pickelbare) DLG-Funktion, die dafür zuständig war, die (nicht-pickelbaren)
-    Dialoge zu erzeugen. Die pickelbaren Dialoge waren dann außerdem in static_dialogs gespeichert.
-
-    """
-    _ort: weg.Wegkreuzung | None
-
-    def __init__(self,
-                 name: str,
-                 art: str,
-                 kampfdialog: DialogFn | None = None,
-                 direkt_reden: bool = False,
-                 freundlich: int = 0,
-                 startinventar: dict[str, int] | None = None,
-                 vorstellen: DialogGeschichte | None = None,
-                 ort: weg.Wegkreuzung | None = None,
-                 max_lp: int | None = None,
-                 dlg: DialogErzeugerFn | None = None):
-        inventar = startinventar or {}
-        template = StoryChar(
-            id_=None,
-            bezeichnung=(name, art),
-            person=None,
-            direkt_reden=direkt_reden,
-            dialoge=list(dlg()) if dlg else [],
-            startinventar=inventar,
-            vorstellen_fn=vorstellen
-        )
-        super().__init__(template, template.bezeichnung,
-                         inventar=inventar, ort=ort, freundlich=freundlich)
-        if kampfdialog:
-            self.template.kampf(kampfdialog)
-        self._dlg = dlg
-        self._static_dialoge: list[Dialog] = []
-
-    def change_dlg(self, new_dlg: DialogErzeugerFn):
-        """Ändere die Dialoge auf eine neue Dlg-Funktion"""
-        self._dlg = new_dlg
-        self.template.dialoge[:] = new_dlg()
-
-
 CHAR_REGISTER: dict[str, StoryChar] = {}
 """Ein zentrales Register für StoryChar nach id_"""
 ORTS_CHARE: dict[str, list[StoryChar]] = defaultdict(list)
