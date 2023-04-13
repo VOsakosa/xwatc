@@ -118,6 +118,7 @@ class TestNSC(unittest.TestCase):
         # On init
         juicy = NSC(StoryChar("test:juicy", "Juicy", Person("w"), {}),
                     bezeichnung("Juicy"), ort=ort)
+        assert juicy.template.id_
         welt.setze_objekt(juicy.template.id_, juicy)
         self.assertIs(ort, juicy.ort)
         self.assertIn(juicy, ort.get_nscs(welt))

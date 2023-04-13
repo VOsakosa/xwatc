@@ -1,8 +1,7 @@
 
-from typing import List
-from xwatc.nsc import OldNSC
-from xwatc.system import Mänx, minput, InventarBasis, malp, get_item, get_preise, Inventar
-
+from xwatc.nsc import NSC
+from xwatc.system import Mänx, InventarBasis, malp, get_item, get_preise, Inventar
+from attr import field
 
 
 def karawanenfracht_anzeigen(inventar: Inventar):
@@ -18,19 +17,18 @@ def karawanenfracht_anzeigen(inventar: Inventar):
 
 
 class Karawane:
-    def __init__(self):
-        self.fracht = InventarBasis()
-        self.angestellte: List['Angestellte'] = []
+    fracht: InventarBasis = field(factory=InventarBasis)
+    angestellte: list[NSC] = field(factory=list)
 
     def lohn_zahlen(self, mänx: Mänx) -> bool:
         """Zahle Gold an deine Angestellten, solange es reicht. Gib False zurück, falls
         einige nicht bezahlt worden sind."""
-        for an in self.angestellte:
-            if an.lohn <= mänx.gold:
-                mänx.gold -= an.lohn
-                an.gold += an.lohn
-            else:
-                return False
+        # for an in self.angestellte:
+        #     if an.lohn <= mänx.gold:
+        #         mänx.gold -= an.lohn
+        #         an.gold += an.lohn
+        #     else:
+        #         return False
         return True
 
     def main(self, mänx: Mänx):
@@ -57,19 +55,3 @@ class Karawane:
 
         else:
             pass
-
-
-class Angestellte(OldNSC):
-    def __init__(self, lohn: int, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.lohn = lohn
-        # self.dialog("lohn", "Über Lohn reden", type(self).lohn_reden)
-
-    def lohn_reden(self, mänx: Mänx):
-        w = minput(
-            mänx, "Willst du den Lohn erhöhen oder erniedrigen? h/n ", ["h", "n"])
-        if w == "h":
-            self.lohn += 1
-            self.sprich(f"Hurra! Ich verdiene jetzt {self.lohn} Gold!")
-        else:  # niedriger
-            self.sprich("Wieso nur?!")
