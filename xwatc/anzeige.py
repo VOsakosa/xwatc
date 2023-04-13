@@ -17,6 +17,7 @@ from pathlib import Path
 from logging import getLogger
 import queue
 import threading
+import exceptiongroup
 from typing import (Tuple, Optional as Opt, Mapping,
                     Protocol, Sequence, Any, TypeVar, Callable,
                     ClassVar, NamedTuple)
@@ -111,7 +112,7 @@ class XwatcFenster:
         self.show_grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
         self.main_grid.add(self.info_widget.widget)
         self.main_grid.add(self.show_grid)
-        self.show_grid.add(textview)
+        self.show_grid.add(Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=textview))
         self.grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
         self.main_grid.add(self.grid)
         win.connect("destroy", self.fenster_schließt)
@@ -128,7 +129,7 @@ class XwatcFenster:
                          name="Xwatc-Geschichte", daemon=True).start()
         win.show_all()
 
-    def _xwatc_thread(self, startpunkt: Speicherpunkt | None):
+    def _xwatc_thread(self, startpunkt: Fortsetzung | None):
         from xwatc_Hauptgeschichte import main as xw_main
         # Das nächste, was passiert. None für Abbruch, die Buchstaben stehen für interne Menüs
         next_: str | Path | None
@@ -152,14 +153,13 @@ class XwatcFenster:
                 elif next_ == "m":  # main (neue Geschichte)
                     assert self.mänx
                     try:
-                        xw_main(self.mänx)
+                        xw_main(self.mänx, startpunkt)
                     except AnzeigeSpielEnde as ende:
                         next_ = ende.weiter
                         continue
-                    except Exception:
-                        import traceback
+                    except Exception as exc:
                         self.mint(_("Xwatc ist abgestürzt:\n")
-                                  + traceback.format_exc())
+                                  + "\n".join(exceptiongroup.format_exception(exc))[-10000:])
                         next_ = "h"
                     else:
                         next_ = "h"
@@ -176,9 +176,15 @@ class XwatcFenster:
                     else:
                         next_ = "h"
                 elif isinstance(next_, Path):  # laden
-                    self.mänx, startpunkt = Mänx.load_from_file(next_)
-                    assert isinstance(self.mänx, Mänx)
-                    next_ = "m"
+                    try:
+                        self.mänx, startpunkt = Mänx.load_from_file(next_)
+                        assert isinstance(self.mänx, Mänx)
+                    except Exception as exc:
+                        self.mint(_("Das Laden des Spielstands ist gescheitert:\n") +
+                                  "\n".join(exceptiongroup.format_exception(exc))[-10000:])
+                        next_ = "h"
+                    else:
+                        next_ = "m"
                 else:
                     assert False, f"Falscher Zustand {next_}"
         except AnzeigeSpielEnde:

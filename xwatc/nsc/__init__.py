@@ -101,21 +101,21 @@ class StoryChar:
         # if self.ort:
         #    ORTS_CHARE[self.ort].append(self)
 
-    def zu_nsc(self) -> 'NSC':
+    def zu_nsc(self, nr: int = 0) -> 'NSC':
         """Erzeuge den zugehörigen NSC aus dem Template. Dieser wird
         zunächst nirgendwo gespeichert!
         Um den NSC direkt einem Ort zuzuweisen,
         nutze direkt `welt.obj(story_char.id_)`.
         """
         # Der Ort ist zunächst immer None. Der Ort wird erst zugeordnet
-        ans = NSC(self, self.bezeichnung, self.startinventar)
+        ans = NSC(self, self.bezeichnung, self.startinventar, nr=nr)
         if self.randomize_fn:
             self.randomize_fn(ans)
         return ans
-    
+
     def erzeuge_mehrere(self, welt: system.Welt, anzahl: int) -> list['NSC']:
         """Erzeuge gleich mehrere, zufällige NSCs."""
-        ans = [self.zu_nsc() for __ in range(anzahl)]
+        ans = [self.zu_nsc(nr=i) for i in range(anzahl)]
         assert self.id_
         welt.setze_objekt(self.id_, ans)
         return ans
@@ -183,8 +183,9 @@ class StoryChar:
             if id_ not in CHAR_REGISTER:
                 raise MissingIDError(id_)
             return CHAR_REGISTER[id_]
-        return story_char_base_structure(data, typ)
-    
+        raise TypeError(f"Can't structure {data['bezeichnung']['name']}")
+        # return story_char_base_structure(data, typ)
+
     def _unstructure(self) -> dict | str:
         if self.id_:
             return self.id_
@@ -194,8 +195,18 @@ class StoryChar:
 converter.register_structure_hook(StoryChar, StoryChar.structure)
 story_char_base_structure = cattrs.gen.make_dict_structure_fn(
     StoryChar, converter)
-story_char_base_unstructure = cattrs.gen.make_dict_unstructure_fn(StoryChar, converter)
+story_char_base_unstructure = cattrs.gen.make_dict_unstructure_fn(
+    StoryChar, converter)
 converter.register_unstructure_hook(StoryChar, StoryChar._unstructure)
+
+
+def structure_geschichte(base, typ) -> DialogGeschichte | None:
+    if base is None:
+        return None
+    return converter.structure(base, Sequence[str | Malp | Sprich])  # type: ignore
+
+
+converter.register_structure_hook(DialogGeschichte | None, structure_geschichte)
 
 
 def _copy_inventar(old: Mapping[str, int]) -> defaultdict[str, int]:
@@ -217,10 +228,11 @@ class NSC(system.InventarBasis):
     freundlich: int = 0
     tot: bool = False
     _ort: weg.Wegkreuzung | None = None
+    nr: int = 0
 
     def __attrs_post_init__(self):
         if self._ort:
-            self._ort.menschen.append(self)
+            self._ort.add_nsc(self)
 
     @property
     def name(self) -> str:
@@ -239,15 +251,16 @@ class NSC(system.InventarBasis):
     def ort(self, ort: weg.Wegkreuzung | None) -> None:
         """Den Ort an einem NSC zu setzen, speichert ihn in die Liste der
         NSCs an einem Ort."""
-        if self._ort is not None:
+        if ort is self._ort:
+            return
+        ort_alt, self._ort = self._ort, ort
+        if ort_alt is not None:
             try:
-                self._ort.menschen.remove(self)
+                ort_alt.remove_nsc(self)
             except ValueError:
                 pass
-        self._ort = ort
         if ort is not None:
-            if self not in ort.menschen:
-                ort.menschen.append(self)
+            ort.add_nsc(self)
 
     def vorstellen(self, mänx: system.Mänx) -> None | Fortsetzung | Rückkehr:
         """So wird der NSC vorgestellt"""

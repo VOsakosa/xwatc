@@ -3,11 +3,12 @@ Unittests für xwatc.weg
 
 """
 import unittest
-from xwatc.weg import Wegtyp, GEBIETE, Beschreibung, get_gebiet, Gebiet, Himmelsrichtung, Weg,\
-    kreuzung, WegEnde, wegsystem
-from xwatc.system import Mänx, mint, malp
+from unittest.mock import patch, Mock
+
+from xwatc.system import Mänx, mint, malp, MissingIDError
+from xwatc.weg import (Wegtyp, GEBIETE, Beschreibung, get_gebiet, Gebiet, Himmelsrichtung, Weg,
+                       kreuzung, WegEnde, wegsystem, Eintritt, finde_kreuzung)
 from xwatc_test.mock_system import MockSystem, ScriptEnde, UnpassendeEingabe
-from unittest.mock import Mock
 
 
 class TestWeg(unittest.TestCase):
@@ -104,14 +105,14 @@ class TestWeg(unittest.TestCase):
         self.assertIs(ans, ende)
         self.assertListEqual(["Startpunkt", "Welchen Weg nimmst du?", "Effekt eingetreten"],
                              sys.pop_ausgaben())
-        
+
         kr.add_option("Sprach-Option", "test_sprach", "Hallo")
         sys.ein("test_sprach")
         with self.assertRaises(ScriptEnde):
             wegsystem(sys.install(), kr, return_fn=True)
         self.assertListEqual(["Startpunkt", "Welchen Weg nimmst du?", "Hallo",
                               "Startpunkt", "Welchen Weg nimmst du?"
-            ], sys.pop_ausgaben())
+                              ], sys.pop_ausgaben())
 
     def test_kreuzung_ausgang(self) -> None:
         kr1 = kreuzung("1", immer_fragen=True)
@@ -124,7 +125,7 @@ class TestWeg(unittest.TestCase):
         self.assertDictEqual(kr2.nachbarn, {"A": kr1})
         self.assertIs(kr2, MockSystem().test_mänx_fn(self, kr1.main, ["kr2"], [
             "In Kreuzung 1", "Welchen Weg nimmst du?"]))
-        
+
         # Einseitige Verbindung
         kr3 = kreuzung("3", immer_fragen=True).bschr("In Kreuzung 3")
         kr1.ausgang("C", "KR3") < kr3.ausgang("A", "KR1")  # @NoEffect
@@ -132,7 +133,18 @@ class TestWeg(unittest.TestCase):
             MockSystem().test_mänx_fn(self, kr1.main, ["kr3"], [])
         self.assertIs(kr1, MockSystem().test_mänx_fn(self, kr3.main, ["kr1"], [
             "In Kreuzung 3", "Welchen Weg nimmst du?"]))
-        
+
+    @patch("xwatc.weg.get_gebiet")
+    def test_finde_kreuzung(self, get_gebiet) -> None:
+        m = MockSystem().install()
+        g = Gebiet("test")
+        get_gebiet.return_value = g
+        h = g.neuer_punkt((0, 0), "hallo")
+        h.verbinde(g.ende(Eintritt("test", "hallo"), lambda _m: h), "w")
+        self.assertIs(finde_kreuzung(m, "test", "hallo"), h)
+        get_gebiet.assert_called_with(m, "test")
+        with self.assertRaises(MissingIDError):
+            print(finde_kreuzung(m, "test", "nein"))
 
 
 class TestIntegration(unittest.TestCase):

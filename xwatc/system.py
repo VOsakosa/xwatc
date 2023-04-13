@@ -15,10 +15,10 @@ import yaml
 try:
     from yaml import CSafeDumper as SafeDumper
 except ImportError:
-    from yaml import SafeDumper
+    from yaml import SafeDumper  # type: ignore
 
 from xwatc import _
-from xwatc.serialize import mache_converter
+from xwatc.serialize import mache_converter, unstructure_punkt
 from xwatc.terminal import Terminal
 from xwatc.untersystem import hilfe
 from xwatc.untersystem.itemverzeichnis import lade_itemverzeichnis, Item
@@ -56,6 +56,10 @@ class MänxFkt(Protocol[M_cov]):
 
 class MissingID(KeyError):
     """Zeigt an, dass ein Objekt per ID gesucht wurde, aber nicht existiert."""
+
+@define
+class MissingIDError(Exception):
+    id_: str
 
 
 Speicherpunkt = HatMain | MänxFkt
@@ -471,7 +475,7 @@ class Mänx(InventarBasis):
         if gefährte := self.menu(opts):
             gefährte.main(self)
 
-    def add_verbrechen(self, name: str | Verbrechen | Verbrechensart, versuch=False):
+    def add_verbrechen(self, name: str | Verbrechen | Verbrechensart, versuch=False) -> None:
         """Laste dem Mänxen ein Verbrechen an."""
         if isinstance(name, str):
             verbrechen = Verbrechen(Verbrechensart(name.upper()), versuch)
@@ -518,8 +522,7 @@ class Mänx(InventarBasis):
             assert_never(name)
 
         dict_ = mache_converter().unstructure(self, Mänx)
-        from pprint import pprint
-        pprint(dict_)
+        dict_["punkt"] = unstructure_punkt(punkt)
         try:
 
             with open(path, "w", encoding="utf8") as write:
@@ -538,23 +541,18 @@ class Mänx(InventarBasis):
         if isinstance(path, str):
             path = SPEICHER_VERZEICHNIS / path
         with open(path, "r", encoding="utf8") as file:
-            dict_ = yaml.safe_load_all(file)
+            dict_ = yaml.safe_load(file)
             ans = mache_converter().structure(dict_, cls)
             assert ans._geladen_von
             ans.ausgabe = ausgabe
             return ans, ans._geladen_von
 
 
-def schiebe_inventar(start: Inventar, ziel: Inventar):
+def schiebe_inventar(start: Inventar, ziel: Inventar) -> None:
     """Schiebe alles aus start in ziel"""
     for item, anzahl in start.items():
         ziel[item] += anzahl
     start.clear()
-
-
-@define
-class MissingIDError(Exception):
-    id_: str
 
 
 class Besuche:
@@ -562,12 +560,12 @@ class Besuche:
     Bei der Main wird das Objekt aus dem Register gesucht bzw. erzeugt und dann dessen
     Main aufgerufen."""
 
-    def __init__(self, objekt_name: str):
+    def __init__(self, objekt_name: str) -> None:
         self.objekt_name = objekt_name
         assert self.objekt_name in _OBJEKT_REGISTER
 
     def main(self, mänx: Mänx):
-        mänx.welt.obj(self.objekt_name).main(mänx)
+        return mänx.welt.obj(self.objekt_name).main(mänx)
 
 
 def register(name: str) -> Callable[[Callable[[], HatMain]], Besuche]:

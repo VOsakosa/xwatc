@@ -18,7 +18,7 @@ from typing_extensions import Self
 
 from xwatc import _
 from xwatc.system import (Fortsetzung, Mänx, MenuOption, MänxFkt, malp, mint,
-                          MänxPrädikat, Welt, MissingID)
+                          MänxPrädikat, Welt, MissingID, MissingIDError)
 from xwatc.utils import uartikel, bartikel, adj_endung, UndPred
 from itertools import repeat
 
@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 __author__ = "jasper"
 
 
-@dataclass
+@dataclass(eq=False)
 class WegEnde:
     """Wird vom Wegpunkt zurückgegeben und markiert, dass das
     Wegsystem hier zu Ende ist und in das alte, MänxFkt-basierte
@@ -414,6 +414,18 @@ def kreuzung(
     return ans
 
 
+@define(eq=True)
+class NSCReference:
+    """Referenz auf einen NSC per Template-Name und Nummer."""
+    template: str
+    idx: int = 0
+
+    @classmethod
+    def from_nsc(cls, nsc_: nsc.NSC) -> Self:
+        assert nsc_.template.id_, "NSC-Template hat keine ID."
+        return cls(nsc_.template.id_, nsc_.nr)
+
+
 @define(eq=False)
 class Wegkreuzung(Wegpunkt):
     """Eine Wegkreuzung enthält ist ein Punkt, wo
@@ -433,7 +445,7 @@ class Wegkreuzung(Wegpunkt):
     nachbarn: dict[NachbarKey, Wegpunkt] = field(repr=False)
     _optionen: dict[NachbarKey, Richtungsoption] = field(
         repr=False, factory=dict)
-    menschen: list[nsc.NSC] = field(factory=list, repr=False)
+    _menschen: list[NSCReference] = field(factory=list, repr=False)
     immer_fragen: bool = True
     kreuzung_beschreiben: bool = False
     _gebiet: 'Gebiet | None' = None
@@ -525,7 +537,7 @@ class Wegkreuzung(Wegpunkt):
     def optionen(self, mänx: Mänx,
                  von: NachbarKey | None) -> Iterable[MenuOption[Wegpunkt | 'nsc.NSC']]:
         """Sammelt Optionen, wie der Mensch sich verhalten kann."""
-        for mensch in self.menschen:
+        for mensch in self.get_nscs(mänx.welt):
             yield (_("Mit {name} reden").format(name=mensch.name),
                    mensch.bezeichnung.kurz_name.lower(),
                    mensch)
@@ -681,9 +693,36 @@ class Wegkreuzung(Wegpunkt):
         self._optionen[himri] = Richtungsoption(name, name_kurz)
         return self
 
-    def add_nsc(self, welt: Welt, name: str, fkt: Callable[..., nsc.NSC],
-                *args, **kwargs):
-        welt.get_or_else(name, fkt, *args, **kwargs).ort = self
+    def get_nscs(self, welt: Welt) -> Iterable[nsc.NSC]:
+        """Gibt einen Iterator über die NSCs an diesem Ort."""
+        for ref in self._menschen:
+            nscs: Sequence[nsc.NSC] | nsc.NSC = welt.obj(ref.template)
+            if isinstance(nscs, Sequence):
+                yield nscs[ref.idx]
+            else:
+                yield nscs
+
+    def add_nsc(self, nsc: nsc.NSC) -> None:
+        """Fügt den NSC hinzu. Wird auch beim Setzen vom NSC-Ort aufgerufen."""
+        if nsc.ort is not self:
+            nsc.ort = self  # Will call this function again
+            return
+        ref = NSCReference.from_nsc(nsc)
+        if ref not in self._menschen:
+            self._menschen.append(ref)
+
+    def remove_nsc(self, nsc: nsc.NSC) -> None:
+        """Entfernt den NSC."""
+        if nsc.ort is self:
+            nsc.ort = None  # Will call this function again
+            return
+        self._menschen.remove(NSCReference.from_nsc(nsc))
+
+    def add_old_nsc(self, welt: Welt, name: str, fkt: Callable[..., nsc.NSC],
+                    *args, **kwargs):
+        nsc = welt.get_or_else(name, fkt, *args, **kwargs)
+        nsc.template.id_ = name
+        self.add_nsc(nsc)
 
     def add_char(self, welt: Welt, char: nsc.StoryChar) -> nsc.NSC:
         """Füge einen Story-Charakter zu diesem Ort hinzu."""
@@ -693,7 +732,7 @@ class Wegkreuzung(Wegpunkt):
         nsc = welt.obj(char.id_)
         nsc.ort = self
         return nsc
-    
+
     @property
     def gebiet(self) -> Gebiet:
         # Tiefensuche nach Gebiet
@@ -709,6 +748,24 @@ class Wegkreuzung(Wegpunkt):
                     seen.add(next_)
                     to_check.append(next_)
         raise ValueError("Diese Kreuzung gehört zu keinem Gebiet.")
+
+
+def finde_kreuzung(mänx: Mänx, gebiet: str, kreuzung: str) -> Wegkreuzung:
+    """Finde eine Kreuzung in einem Gebiet."""
+    # Tiefensuche nach der Kreuzung mit den richtigen Namen.
+    gb = get_gebiet(mänx, gebiet)
+    seen: set[Wegpunkt] = {*gb.eintrittspunkte.values()}
+    to_check: list[Wegpunkt] = [*gb.eintrittspunkte.values()]
+    while to_check:
+        punkt = to_check.pop()
+        match punkt:
+            case Wegkreuzung(name=name) if name == kreuzung:
+                return punkt
+        for next_ in punkt.get_nachbarn():
+            if next_ not in seen:
+                seen.add(next_)
+                to_check.append(next_)
+    raise MissingIDError(kreuzung)
 
 
 @define
@@ -813,7 +870,7 @@ class Gebiet:
                 return WegAdapter(zurück, name.port, self)
 
 
-@define(init=False)
+@define(init=False, eq=False)
 class WegAdapter(WegpunktAusgang):
     """Ein Übergang von Wegesystem zum normalen System."""
     zurück: MänxFkt

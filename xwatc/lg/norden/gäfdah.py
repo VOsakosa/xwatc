@@ -26,7 +26,6 @@ eintritt_gäfdah = Eintritt("lg:norden", "Gäfdah")
 
 
 def erzeuge_gäfdah(mänx: Mänx, gb: weg.Gebiet) -> Dorf:
-    from xwatc.lg.norden import fischfrisch
     d = Dorf.mit_draußen(GÄFDAH_NAME, gb)
     gb.eintrittspunkte[eintritt_gäfdah.port] = d.draußen
     kirche = ort("Kirche", d, [
@@ -56,12 +55,12 @@ def erzeuge_gäfdah(mänx: Mänx, gb: weg.Gebiet) -> Dorf:
     assert fischfrisch.frau.id_
     mänx.welt.obj(fischfrisch.frau.id_).ort = kirche
     mänx.welt.obj("nsc:Wachen_von_Gäfdah:MarioWittenpfäld").ort = rathaus
-    rathaus.add_nsc(mänx.welt, "nsc:Wachen_von_Gäfdah:SakcaBrauc", SakcaBrauc)
+    rathaus.add_old_nsc(mänx.welt, "nsc:Wachen_von_Gäfdah:SakcaBrauc", SakcaBrauc)
     mänx.welt.obj("nsc:freiwild:ruboic").ort = schenke
-    rathaus.add_nsc(mänx.welt,
+    rathaus.add_old_nsc(mänx.welt,
                     "nsc:Wachen_von_Gäfdah:ThomarcAizenfjäld", ThomarcAizenfjäld)
     haus1.add_char(mänx.welt, martin)
-    d.draußen.add_nsc(
+    d.draußen.add_old_nsc(
         mänx.welt, "nsc:Wachen_von_Gäfdah:OrfGrouundt", OrfGrouundt)
     # TODO: Zufällige Charaktere
     # for _i in range(randint(2, 5)):
@@ -93,3 +92,5 @@ rob.dialog("helfen", '"Du siehst bedrückt aus. Kann ich dir helfen?"', [
     "hallo")
 rob.dialog("schmied", '"Wo ist der Schmied?"',
            ["Der ist weiter hinten.", "...müsste er sein."])
+
+from xwatc.lg.norden import fischfrisch

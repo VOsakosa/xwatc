@@ -9,6 +9,7 @@ pyparsing = "*"
 attrs = "*"
 cattrs = "*"
 pyyaml = "*"
+typing-extensions = "*"
 
 [dev-packages]
 PyGObject-stubs = "*"
