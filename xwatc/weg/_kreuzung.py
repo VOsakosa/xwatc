@@ -555,6 +555,8 @@ class Wegkreuzung(Wegpunkt):
 
     @property
     def gebiet(self) -> Gebiet:
+        if self._gebiet:
+            return self._gebiet
         # Tiefensuche nach Gebiet
         seen: set[Wegpunkt] = {self}
         to_check: list[Wegpunkt] = [self]
@@ -562,6 +564,7 @@ class Wegkreuzung(Wegpunkt):
             punkt = to_check.pop()
             match punkt:
                 case Wegkreuzung(_gebiet=Gebiet() as ans):
+                    self._gebiet = ans
                     return ans
             for next_ in punkt.get_nachbarn():
                 if next_ not in seen:
