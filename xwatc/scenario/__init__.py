@@ -365,7 +365,7 @@ class ScenarioWegpunkt(weg.Wegpunkt):
         return [a.wegpunkt for a in self.ziele.values()]
 
     def main(self, mänx: Mänx, von: weg.Wegpunkt | None = None) -> weg.Wegpunkt:
-        # TODO von könnte für verschiedene Spawnpunkte genutzt werden
+        # Idee: Von könnte für verschiedene Spawnpunkte genutzt werden
         von
         ans = self.scenario.einleiten(mänx)
         if ans.tot:

@@ -56,7 +56,9 @@ def _add_fns() -> None:
                 case Gebiet():
                     objekte[key] = None
                 case []:
-                    objekte[key] = converter.structure(obj, list[NSC])
+                    objekte[key] = converter.unstructure(obj, list[NSC])
+                case _ if key in system._OBJEKT_REGISTER:  # Do it by attrs
+                    objekte[key] = converter.unstructure(obj, system._OBJEKT_REGISTER[key])
                 case _:
                     _logger.warn(f"Unbekannte Art Objekt bei {key}({type(obj)}) kann nicht "
                                  "gespeichert werden.")
@@ -94,6 +96,9 @@ def _add_fns() -> None:
         for key, value in dict_["welt"]["objekte"].items():
             try:
                 match value:
+                    case _ if key in system._OBJEKT_REGISTER:
+                        mänx.welt.setze_objekt(key, conv2.structure(
+                            value, system._OBJEKT_REGISTER[key]))
                     case None:  # Gebiet oder aus Register @UnusedVariable
                         if key.startswith("weg:"):
                             key = key.removeprefix("weg:")
@@ -105,7 +110,7 @@ def _add_fns() -> None:
                     case []:
                         mänx.welt.setze_objekt(
                             key, conv2.structure(value, list[NSC]))
-                    case {"template":str()}:
+                    case {"template": str()}:
                         mänx.welt.setze_objekt(
                             key, conv2.structure(value, NSC))
             except cattrs.errors.ClassValidationError as cve:
@@ -159,6 +164,7 @@ def unstructure_punkt(punkt: 'system.HatMain | system.MänxFkt') -> Any:
             return {"nsc": id_, "gebiet": gebiet.name, "ort": name}
         case _:
             raise TypeError(f"{punkt} kann nicht gespeichert werden.")
+
 
 def structure_punkt(punkt: Any, mänx: 'system.Mänx') -> 'system.HatMain | system.MänxFkt':
     from xwatc.weg import finde_kreuzung

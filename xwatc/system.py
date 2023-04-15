@@ -26,7 +26,6 @@ from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
 from xwatc.untersystem.person import Rasse, Fähigkeit
 
 if typing.TYPE_CHECKING:
-    from xwatc import dorf  # @UnusedImport
     from xwatc import anzeige  # @UnusedImport
     from xwatc import weg  # @UnusedImport
     from xwatc import nsc  # @UnusedImport
@@ -40,8 +39,19 @@ class HatMain(typing.Protocol):
     ausgeführt werden können. Das können Menschen, aber auch Wegpunkte
     und Pflanzen sein."""
 
-    def main(self, mänx: 'Mänx'):
+    def main(self, mänx: 'Mänx', /):
         """Lasse den Mänxen mit dem Objekt interagieren."""
+
+
+class StoryObject(HatMain, typing.Protocol):
+    """Eine Klasse für Objekte, die Geschichte haben und daher mit main()
+    ausgeführt werden können. Das können Menschen, aber auch Wegpunkte
+    und Pflanzen sein."""
+    
+    @classmethod
+    def create(cls, welt: 'Welt', /) -> Self:
+        """Erzeuge das Objekt. Dabei darf auf die Welt zugegriffen werden."""
+        return cls()
 
 
 M_cov = TypeVar("M_cov", covariant=True)
@@ -68,7 +78,7 @@ Fortsetzung = Union[MänxFkt, HatMain, 'weg.Wegpunkt']
 ITEMVERZEICHNIS = lade_itemverzeichnis(Path(__file__).parent / "itemverzeichnis.txt",
                                        Path(__file__).parent / "waffenverzeichnis.yaml")
 
-_OBJEKT_REGISTER: Dict[str, Callable[[], 'HatMain']] = {}
+_OBJEKT_REGISTER: Dict[str, type[StoryObject]] = {}
 ausgabe: Terminal | 'anzeige.XwatcFenster' = Terminal()
 
 
@@ -234,7 +244,7 @@ class Welt:
         if name in nsc.CHAR_REGISTER:
             obj = nsc.CHAR_REGISTER[name].zu_nsc()
         elif name in _OBJEKT_REGISTER:
-            obj = _OBJEKT_REGISTER[name]()
+            obj = _OBJEKT_REGISTER[name].create(self)
         else:
             raise MissingID(f"Das Objekt {name} existiert nicht.")
         self._objekte[name] = obj
@@ -562,25 +572,27 @@ class Besuche:
 
     def __init__(self, objekt_name: str) -> None:
         self.objekt_name = objekt_name
-        assert self.objekt_name in _OBJEKT_REGISTER
+        # assert self.objekt_name in _OBJEKT_REGISTER
 
     def main(self, mänx: Mänx):
         return mänx.welt.obj(self.objekt_name).main(mänx)
 
 
-def register(name: str) -> Callable[[Callable[[], HatMain]], Besuche]:
+def register(name: str) -> Callable[[type[StoryObject]], Besuche]:
     """Registriere einen Erzeuger im Objekt-Register.
     Beispiel:
     ..
+        from attrs import define
         @register("system.test.banana")
-        def banane():
-            class Banane:
-                def main(mänx: Mänx):
-                    malp("Du rutscht auf der Banane aus.")
+        @define
+        class Banane(StoryCharacter):
+            leckerheit: float = 1.2
+            def main(self, mänx: Mänx) -> None:
+                malp(_("Ich bin {self.leckerheit} lecker").format(self=self))
 
     """
 
-    def wrapper(func: Callable[[], HatMain]) -> Besuche:
+    def wrapper(func: type[StoryObject]) -> Besuche:
         # assert name not in _OBJEKT_REGISTER,("Doppelte Registrierung " + name)
         _OBJEKT_REGISTER[name] = func
         return Besuche(name)

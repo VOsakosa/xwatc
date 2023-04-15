@@ -1,18 +1,20 @@
 import random
+from attrs import define
 from xwatc.system import (mint, register, Mänx, malp, Fortsetzung,
-    sprich)
+                          sprich, StoryObject)
 
 from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
 from xwatc import weg
 from xwatc.lg import mitte
+from typing_extensions import Self
 
 
 @register("lg:gefängnis_von_gäfdah")
-class GefängnisGäfdah:
-    def __init__(self):
-        self.war_drinnen = False
-        self.war_sauber = False
-        self.sauber = False
+@define
+class GefängnisGäfdah(StoryObject):
+    war_drinnen: bool = False
+    war_sauber: bool = False
+    sauber: bool = False
 
     def beschreibung(self, sauber: bool):
         if self.war_drinnen:
@@ -83,7 +85,8 @@ class GefängnisGäfdah:
         sprich("Richter", f"Deine Haftstrafe liegt bei -kzzt-")
         malp("Plötzlich nimmst die Welt nur noch gedämpft war.")
         malp("Da dröhnt in deinem Kopf eine Stimme:")
-        sprich("Unbekannte Stimme", "Deine Haftstrafe liegt bei {:g} RL-Minuten.".format(dauer/2), warte=True)
+        sprich("Unbekannte Stimme",
+               "Deine Haftstrafe liegt bei {:g} RL-Minuten.".format(dauer / 2), warte=True)
         return self.absitzen(mänx, dauer)
 
     def absitzen(self, mänx: Mänx, dauer: int) -> Fortsetzung:
@@ -113,7 +116,7 @@ class GefängnisGäfdah:
             weg.get_gebiet(mänx, "jtg:tauern")
             # gibon holen
             return mänx.welt.obj("jtg:tau:gibon").get_ort("Anger")
-            
+
         elif rand == "m":
             # MITOSE
             return weg.get_eintritt(mänx, "jtg:mitose")
@@ -121,10 +124,9 @@ class GefängnisGäfdah:
             # GÄFDAH
             from xwatc.lg.norden.norden import norden
             return norden
-        else: # rand == "k"
+        else:  # rand == "k"
             from xwatc.jtg.groekrak import grökrak
             return grökrak
-        
 
     def main(self, mänx: Mänx):
         self.sauber = random.randint(1, 10) <= 6
@@ -160,19 +162,22 @@ class GefängnisGäfdah:
         return ans
 
 
-def gefängnis_von_gäfdah(mänx):
+def gefängnis_von_gäfdah(mänx: Mänx) -> Fortsetzung:
     return mänx.welt.obj("lg:gefängnis_von_gäfdah").main(mänx)
     # TODO: Mänx.next()
 
 
 if __name__ == '__main__':
     from xwatc.anzeige import main
-
-    def ständig_gäfdah(mänx):
-        mänx.sleep = lambda zeit, zeichen=None: malp("Schlafe,", str(zeit))
-        mänx.verbrechen[Verbrechen(Verbrechensart.DIEBSTAHL)] = 1
-        while True:
-            mänx.verbrechen[Verbrechen(Verbrechensart.MORD, True)] += 1
-            gefängnis_von_gäfdah(mänx)
-            malp("Weil's so schön war, nochmal", warte=True)
-    main(ständig_gäfdah)
+    from unittest.mock import patch
+    class NonSlotsMänx(Mänx):
+        pass
+    with patch("xwatc.system.Mänx", NonSlotsMänx):
+        def ständig_gäfdah(mänx):
+            mänx.sleep = lambda zeit, zeichen=None: malp("Schlafe,", str(zeit))
+            mänx.verbrechen[Verbrechen(Verbrechensart.DIEBSTAHL)] = 1
+            while True:
+                mänx.verbrechen[Verbrechen(Verbrechensart.MORD, True)] += 1
+                gefängnis_von_gäfdah(mänx)
+                malp("Weil's so schön war, nochmal", warte=True)
+        main(ständig_gäfdah)

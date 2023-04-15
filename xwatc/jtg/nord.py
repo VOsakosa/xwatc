@@ -4,6 +4,7 @@ Created on 18.10.2020
 """
 from __future__ import annotations
 
+from attrs import define
 from collections.abc import Iterable
 import random
 import re
@@ -16,6 +17,7 @@ from xwatc.nsc import StoryChar, bezeichnung, NSC, Rückkehr, Malp, Dialog, Zeit
 from xwatc.scenario import Scenario, ScenarioWegpunkt
 from xwatc.system import Mänx, mint, Spielende, InventarBasis, sprich, malp, register
 from xwatc.weg import Eintritt
+from typing_extensions import Self
 
 
 
@@ -430,9 +432,15 @@ lina.dialog("kiste", '"Kann ich an die Kiste?"', [
 
 
 @register("jtg:obj:kiste")
+@define
 class Kiste:
-    def __init__(self):
-        self.fach1 = InventarBasis()
+    fach1: InventarBasis
+    fach2: InventarBasis
+    lina: NSC | None = None
+    
+    @classmethod
+    def create(cls, _mänx: 'Mänx', /) -> Self:
+        self = cls(InventarBasis(), InventarBasis())
         self.fach1.inventar.update({
             "Erbse": 4,
             "Karotte": 5,
@@ -440,7 +448,6 @@ class Kiste:
             "Reisportion": 2,
             "Tomate": 2,
         })
-        self.fach2 = InventarBasis()
         self.fach2.inventar.update({
             "Großer BH": 2,
             "Kleid": 1,
@@ -452,7 +459,7 @@ class Kiste:
             "Kleid (Kind)": 1,
             "Gummistiefel": 2,
         })
-        self.lina = None
+        return self
 
     def main(self, mänx: Mänx):
         if isinstance(mänx.context, Scenario) and mänx.welt.am_leben("jtg:lina"):
