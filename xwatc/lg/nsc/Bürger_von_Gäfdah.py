@@ -1,7 +1,7 @@
 from xwatc.nsc import Rückkehr, Zeitpunkt
-from xwatc.jtg import t2
+from xwatc import jtg
 from xwatc.nsc import StoryChar, Person, NSC
-from xwatc.system import mint, kursiv, Mänx, ja_nein, minput, malp
+from xwatc.system import mint, kursiv, Mänx, ja_nein, minput, malp, Fortsetzung
 
 
 martin = StoryChar("lg:nsc:martin", ("Martin", "Portulakk", "Bürger"), Person("m"),
@@ -27,7 +27,7 @@ def martin_kampf(self: NSC, mänx: Mänx) -> Rückkehr:
 
 
 @martin.dialog_deco("ansprechen", "Ansprechen", zeitpunkt=Zeitpunkt.Option)
-def martin_reden(self: NSC, mänx: Mänx) -> Rückkehr:
+def martin_reden(self: NSC, mänx: Mänx) -> Rückkehr | Fortsetzung:
     self.sprich("Was machst du in meinem Haus?!", wie="ängstlich")
     opts = [
         ('"Ich tue dir nichts. Ich habe mich verirrt."', 'verirrt', 0),
@@ -118,5 +118,5 @@ def martin_reden(self: NSC, mänx: Mänx) -> Rückkehr:
         mänx.erhalte("Erbse", 438)
         mänx.erhalte("Truthahnfleisch", 50)
         mänx.erhalte("JOEL@þ", 1)
-        t2(mänx)
+        return jtg.t2
     return Rückkehr.VERLASSEN

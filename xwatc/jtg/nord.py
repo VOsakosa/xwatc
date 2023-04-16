@@ -439,7 +439,7 @@ class Kiste:
     lina: NSC | None = None
     
     @classmethod
-    def create(cls, _mänx: 'Mänx', /) -> Self:
+    def erzeuge(cls, _mänx: 'Mänx', /) -> Self:
         self = cls(InventarBasis(), InventarBasis())
         self.fach1.inventar.update({
             "Erbse": 4,

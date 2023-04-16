@@ -1,6 +1,6 @@
 import random
 from xwatc import _
-from xwatc.jtg import t2
+from xwatc import jtg
 from xwatc.lg import mitte
 from xwatc.lg.norden import gäfdah
 from xwatc.nsc import StoryChar, NSC, Person, Rückkehr
@@ -155,7 +155,7 @@ def ruboic_reden_ares(self: NSC, mänx: Mänx) -> Rückkehr | Fortsetzung:
                 elif b == 2:
                     return mitte.MITTE_EINTRITT
                 else:
-                    return t2
+                    return jtg.t2
             else:
                 mint("", kursiv("Das"), "wirst du bereuen.")
                 raise Spielende
