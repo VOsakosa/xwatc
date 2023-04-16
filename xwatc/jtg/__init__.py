@@ -450,7 +450,8 @@ tobi.dialog('ring', "Den Ring vorzeigen", ring_zeigen).wenn(
 
 def erzeuge_frau(nsc: NSC):
     """Passe eine zufällig erzeugte Hausfrau an."""
-    nsc.bezeichnung = bezeichnung((zufälliger_name(), "Hausfrau"))
+    nsc.bezeichnung = bezeichnung((
+        zufälliger_name("FVorname"), zufälliger_name("FNachname"), "Hausfrau"))
     verheiratet = random.random() > 0.4
     if verheiratet:
         nsc.erhalte("Schnöder Ehering")
@@ -555,7 +556,7 @@ def rechtfertigen(mänx: Mänx, nsc):
         raise Spielende
 
 
-StoryChar("jtg:süd:garnichts", ("Gaa", "Nix", "Junge"), Person("m"), direkt_reden=True,
+gaa = StoryChar("jtg:süd:garnichts", ("Gaa", "Nix", "Junge"), Person("m"), direkt_reden=True,
           startinventar=dict(
     Schuh=1,
     Tomate=4,
@@ -620,8 +621,8 @@ def erzeuge_süd_dorf(mänx: Mänx, gb: weg.Gebiet) -> Dorf:
         # Tobiac tot?
         "Im Hauptschiff ist niemand, aber du hörst die Orgel."
     ])
-    mänx.welt.obj("jtg:m:tobiac").ort = kirche
-    mänx.welt.obj("jtg:süd:garnichts").ort = kirche
+    kirche.add_char(mänx.welt, tobi)
+    kirche.add_char(mänx.welt, gaa)
     for fr in frau.erzeuge_mehrere(mänx.welt, randint(2, 5)):
         fr.ort = do.draußen
     # TODO weitere Objekte
