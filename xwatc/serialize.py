@@ -6,11 +6,11 @@ from importlib import import_module
 from typing import Any, Final, TYPE_CHECKING
 import cattrs.preconf.pyyaml
 from logging import getLogger
-from exceptiongroup import ExceptionGroup
 from xwatc.untersystem.variablen import get_var_typ
+from attrs import define
 
 if TYPE_CHECKING:
-    from xwatc import system
+    from xwatc import system, weg, nsc  # @UnusedImport
 
 __author__ = "jasper"
 # Der unfertige Converter.
@@ -33,8 +33,8 @@ def _add_fns() -> None:
     """Fügt die Converter-Funktionen dem Converter hinzu."""
     from xwatc.system import Mänx, Welt
     from xwatc.nsc import NSC
-    from xwatc.weg import Gebiet, Wegkreuzung
-    from xwatc import system, weg  # @Reimport
+    from xwatc.weg import Wegkreuzung
+    from xwatc import system  # @Reimport
     omit = cattrs.gen.override(omit=True)
 
     def kreuzung_un(kreuzung: Wegkreuzung) -> list[str]:
@@ -149,7 +149,7 @@ def mache_strukturierer(mänx: 'system.Mänx') -> cattrs.Converter:
 
 
 def unstructure_punkt(punkt: 'system.HatMain | system.MänxFkt') -> Any:
-    from xwatc import weg, nsc
+    from xwatc import weg, nsc  # @Reimport
     from types import FunctionType
     match punkt:
         case weg.Wegkreuzung(gebiet=gebiet, name=name):
@@ -168,7 +168,7 @@ def structure_punkt(punkt: Any, mänx: 'system.Mänx') -> 'system.HatMain | syst
         case [str(gebiet), str(name)]:
             return finde_kreuzung(mänx, gebiet, name)
         case {"nsc": str(id_), "gebiet": str(gebiet), "ort": str(name)}:
-            raise NotImplementedError()
+            return BesucheNSC(mänx.welt.obj(id_), finde_kreuzung(mänx, gebiet, name))
         case {"fn": str(function_name)}:
             package, __, fun = function_name.rpartition(".")
             ans = getattr(import_module(package), fun)
@@ -176,3 +176,17 @@ def structure_punkt(punkt: Any, mänx: 'system.Mänx') -> 'system.HatMain | syst
             return ans
         case _:
             raise ValueError("Unbekanntes Format für Speicherpunkt.")
+
+
+@define
+class BesucheNSC:
+    nsc: 'nsc.NSC'
+    kreuzung: 'weg.Wegkreuzung'
+    
+    def __str__(self) -> str:
+        return f"BesucheNSC({self.nsc.name}, {self.kreuzung})"
+
+    def main(self, mänx: 'system.Mänx') -> 'system.Fortsetzung':
+        if ans := self.nsc.main(mänx):
+            return ans
+        return self.kreuzung
