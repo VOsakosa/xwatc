@@ -4,7 +4,7 @@ Enthält die Wegkreuzung, der zentrale Punkt des Wegsystems, an dem die meisten 
 from __future__ import annotations
 
 from attrs import define, field
-from collections.abc import Collection, Callable, Iterable, Iterator, Sequence
+from collections.abc import Collection, Iterable, Iterator, Sequence
 import enum
 from logging import getLogger
 from typing import (ClassVar, NewType, TYPE_CHECKING)
@@ -19,7 +19,7 @@ from xwatc.weg import Ausgang, Wegpunkt, WegEnde, Weg, Gebiet
 
 if TYPE_CHECKING:
     from xwatc import nsc
-    from xwatc import dorf
+    from xwatc.weg import dorf  # @UnusedImport
 __author__ = "jasper"
 
 
@@ -537,12 +537,6 @@ class Wegkreuzung(Wegpunkt):
             nsc.ort = None  # Will call this function again
             return
         self._menschen.remove(NSCReference.from_nsc(nsc))
-
-    def add_old_nsc(self, welt: Welt, name: str, fkt: Callable[..., nsc.NSC],
-                    *args, **kwargs):
-        nsc = welt.get_or_else(name, fkt, *args, **kwargs)
-        nsc.template.id_ = name
-        self.add_nsc(nsc)
 
     def add_char(self, welt: Welt, char: nsc.StoryChar) -> nsc.NSC:
         """Füge einen Story-Charakter zu diesem Ort hinzu."""
