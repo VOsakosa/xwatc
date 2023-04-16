@@ -67,7 +67,7 @@ def erzeuge_gäfdah(mänx: Mänx, gb: weg.Gebiet) -> Dorf:
     return d
 
 
-rob = StoryChar(
+rob: StoryChar = StoryChar(
     "lg:norden:robert", ("Robert", "Nikc", "Schmiedegehilfe"), Person("m"),
     direkt_reden=True,
     startinventar=STANDARDKLEIDUNG | {

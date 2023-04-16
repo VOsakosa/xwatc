@@ -219,6 +219,21 @@ class Welt:
             return False
         else:
             return not getattr(obj, 'tot', False)
+    
+    def hat_obj(self, name: type[Any] | WeltVariable[Any] | nsc.StoryChar) -> bool:
+        """Teste, ob ein Objekt bereits erzeugt wurde."""
+        match name:
+            case str(name_str):
+                welt_var = get_welt_var(name_str)  # @UnusedVariable
+            case type():
+                welt_var = getattr(name, "_variable")
+                assert welt_var
+                name_str = welt_var.name
+            case WeltVariable(name=name_str):
+                pass
+            case nsc.StoryChar(id_=str(name_str)):
+                pass
+        return name_str in self._objekte
 
     @overload
     def obj(self, name: WeltVariable[VT]) -> VT: ...  # @UnusedVariable

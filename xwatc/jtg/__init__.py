@@ -10,7 +10,7 @@ from xwatc.jtg import groekrak, see, nord, osten, mitose, eo_nw
 from xwatc.jtg.groekrak import zugang_südost
 from xwatc.jtg.ressourcen import zufälliger_name
 from xwatc.jtg.tauern import land_der_kühe
-from xwatc.nsc import Person, StoryChar, NSC, bezeichnung, Dialog, Malp, Zeitpunkt, Rückkehr
+from xwatc.nsc import Person, StoryChar, NSC, bezeichnung, Dialog, Malp, Zeitpunkt, Rückkehr, Kennt
 from xwatc.system import (
     Mänx, minput, ja_nein, MenuOption, _,
     Spielende, mint, sprich, kursiv, malp, get_classes, Inventar, MänxFkt, Fortsetzung)
@@ -22,6 +22,7 @@ from xwatc.weg import wegsystem, Wegkreuzung, Eintritt
 from collections import defaultdict
 from typing import List, Tuple, cast
 from xwatc.vorlagen.dialoge import HalloDialoge
+from xwatc.lg.norden import gäfdah
 
 
 def t2(mänx: Mänx) -> Fortsetzung:
@@ -457,6 +458,7 @@ def erzeuge_frau(nsc: NSC) -> NSC:
         nsc.erhalte("Schnöder Ehering")
     elif random.random() > 0.5:
         nsc.erhalte("Gänseblümchen", 5)
+        nsc.setze("blumig")
     nsc.erhalte("BH" if random.random() < 0.6 else "Großer BH")
     if random.random() > 0.8:
         nsc.erhalte("Haarband")
@@ -464,8 +466,7 @@ def erzeuge_frau(nsc: NSC) -> NSC:
     if random.random() > 0.8:
         nsc.erhalte("Dolch")
     nsc.gold += max(0, random.randint(-4, 10))
-    if not verheiratet:
-        nsc.variablen.add("ledig")
+    nsc.setze("ledig", not verheiratet)
     return nsc
 
 
@@ -475,9 +476,10 @@ frau = StoryChar("jtg:süd:hausfrau", "-", Person("w"), {
 
 frau.dialoge.extend(HalloDialoge)
 
+
 @frau.dialog_deco("ledig", "Bist du verheiratet?", "hallo")
 def frau_verheiratet(nsc: NSC, mänx: Mänx) -> None:
-    if "ledig" not in nsc.variablen:
+    if not nsc.ist("ledig"):
         nsc.sprich(_("Ja."))
     else:
         nsc.sprich(_("Nein. Warum fragst du?"))
@@ -510,7 +512,7 @@ def gar_kampf(nsc, mänx: Mänx) -> None:
     nsc.tot = True
 
 
-def rechtfertigen(mänx: Mänx, nsc):
+def rechtfertigen(mänx: Mänx, nsc: NSC) -> None:
     opts = [
         ("Weil du lecker aussahst.", "lecker", "mord"),
         ("Mir war gerade danach", "danach", "mord"),
@@ -552,7 +554,7 @@ def rechtfertigen(mänx: Mänx, nsc):
     else:  # ans == "bespuckt":
         sprich(helfer, "Das ist kein Grund, einfach auf jemanden loszugehen!")
         try:
-            if nsc.ort.dorf.name == SÜD_DORF_NAME:
+            if nsc.ort and nsc.ort.dorf and nsc.ort.dorf.name == SÜD_DORF_NAME:
                 sprich(helfer, "Tu das nie wieder!")
                 return
         except AttributeError:
@@ -564,7 +566,7 @@ def rechtfertigen(mänx: Mänx, nsc):
 
 
 gaa = StoryChar("jtg:süd:garnichts", ("Gaa", "Nix", "Junge"), Person("m"), direkt_reden=True,
-          startinventar=dict(
+                startinventar=dict(
     Schuh=1,
     Tomate=4,
     Banane=2,
@@ -574,8 +576,17 @@ gaa = StoryChar("jtg:süd:garnichts", ("Gaa", "Nix", "Junge"), Person("m"), dire
     Leinenhemd=1,
     Oberhemd=1,
 ),
-    vorstellen_fn=["Ein sommersprössiger Junge mit braunen Haaren "]
+    vorstellen_fn=["Ein sommersprössiger Junge mit braunen Haaren."]
 )
+
+gaa.dialog("hallo", _("Hallo"), "Hallo, ich bin Gaa.")
+gaa.dialog("bruder", _("Bist du der Bruder von Robert?"), [
+    "Ja, kennst du Robert?"
+], "hallo").wenn_mänx(Kennt(gäfdah.rob))
+
+@gaa.dialog_deco("robert", _("Robert sucht nach dir."), "bruder")
+def suche_robert(nsc: NSC, mänx: Mänx):
+    nsc.sprich("Wo ist Robert? Weißt du etwa, wie ich zu Robert zurückkomme?")
 
 
 def süd_dorf_wo(nsc: NSC, _mänx: Mänx):
@@ -613,7 +624,7 @@ def süd_dorf_norden(nsc: NSC, _mänx: Mänx):
 
 SÜD_DORF_DIALOGE = [
     Dialog("wo", '"Wo bin ich hier?"', süd_dorf_wo).wenn(
-        lambda n,m: n.ort and n.ort.dorf and n.ort.dorf.name==SÜD_DORF_NAME),
+        lambda n, m: n.ort and n.ort.dorf and n.ort.dorf.name == SÜD_DORF_NAME),
     Dialog("grenzen", '"Welche Grenzen?"', süd_dorf_grenzen, "wo"),
     Dialog("norden", '"Was ist mit dem Norden?"', süd_dorf_norden, "wo"),
 ]

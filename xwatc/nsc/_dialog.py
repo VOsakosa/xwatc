@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from xwatc import nsc  # @UnusedImport
 from xwatc.utils import UndPred
 
+
 class Rückkehr(Enum):
     """Wie es nach einem Dialog weitergeht. Bei WEITER_REDEN ist man weiter in dem vorherigen
     Menu. Bei ZURÜCK wechselt man eine Ebene nach oben, und bei VERLASSEN verlässt man den NSC.
@@ -22,6 +23,7 @@ class Rückkehr(Enum):
     WEITER_REDEN = 0
     ZURÜCK = 1
     VERLASSEN = 2
+
 
 # Vorherige Dialoge, nur str für Name, sonst (name, mindestanzahl)
 VorList: TypeAlias = Sequence[str | Tuple[str, int]]
@@ -116,14 +118,14 @@ class Dialog:
     effekt: DialogFn | None = None
     gruppe: str | None = None
     wenn_fn: DialogFn | None = None
-    
+
     @classmethod
     def ansprechen_neu(cls, geschichte: 'DialogGeschichte', *, name="ansprechen") -> Self:
         if isinstance(geschichte, str):
             geschichte = [Malp(geschichte)]
         return cls(name, name, geschichte, zeitpunkt=Zeitpunkt.Ansprechen)
 
-    def wenn(self, fn: DialogFn) -> 'Dialog':
+    def wenn(self, fn: DialogFn) -> Self:
         """Dieser Dialog soll nur aufrufbar sein, wenn die Funktion fn
         erfüllt ist."""
         if self.wenn_fn:
@@ -132,10 +134,13 @@ class Dialog:
             self.wenn_fn = fn
         return self
 
-    def wenn_var(self, *welt_variabeln: str) -> 'Dialog':
+    def wenn_var(self, *welt_variabeln: str) -> Self:
         """Dieser Dialog soll nur aufrufbar sein, wenn die Weltvariable
         gesetzt ist."""
         return self.wenn(lambda _n, m: all(m.welt.ist(v) for v in welt_variabeln))
+    
+    def wenn_mänx(self, fn: system.MänxPrädikat) -> Self:
+        return self.wenn(lambda _n, m: fn(m))
 
     def wiederhole(self, anzahl: int) -> 'Dialog':
         """Füge eine maximale Anzahl von Wiederholungen hinzu"""

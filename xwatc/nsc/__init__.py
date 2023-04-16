@@ -468,6 +468,17 @@ class NSC(system.InventarBasis):
             self.freundlich = min(grenze, wert + self.freundlich)
         else:
             self.freundlich = max(grenze, wert + self.freundlich)
+    
+    def ist(self, variable: str) -> bool:
+        """Prüfe, ob eine Variable gesetzt ist."""
+        return variable in self.variablen
+    
+    def setze(self, variable: str, zu: bool =True) -> None:
+        """Setze eine Variable an diesem NSC."""
+        if zu:
+            self.variablen.add(variable)
+        else:
+            self.variablen.difference_update({variable})
 
     def plündern(self, mänx: system.Mänx) -> Any:
         """Schiebe das ganze Inventar von NSC zum Mänxen."""
@@ -489,6 +500,15 @@ def mache_monster(
         ans.kampf(geschichte)
         return ans
     return wrapper
+
+
+@define
+class Kennt:
+    """Prädikat, um zu testen, ob ein Mänx einen StoryChar kennt."""
+    char: StoryChar
+    
+    def __call__(self, mänx: system.Mänx) -> bool:
+        return mänx.welt.hat_obj(self.char) and mänx.welt.obj(self.char).kennt_spieler
 
 
 CHAR_REGISTER: dict[str, StoryChar] = {}
