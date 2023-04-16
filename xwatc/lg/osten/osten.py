@@ -192,8 +192,8 @@ def osten_alt(mänx: Mänx):
 
 
 def monster(mänx: Mänx):
-    mint("Du hörst ein Klatschen.")
-    mint("Es klingt ein wenig so, wie wenn man einen nassen Frosch an eine nasse Wand wirft.")
+    malp("Du hörst ein Klatschen.")
+    malp("Es klingt ein wenig so, wie wenn man einen nassen Frosch an eine nasse Wand wirft.")
     mint("Vorsichtig gehst du weiter.")
     a = random.randint(1, 5)
     if a == 1:
@@ -208,7 +208,7 @@ def monster(mänx: Mänx):
     elif a == 3:
         mint("Und bleibst stehen als vor dir das uralte Skelett eines Minotaurus,"
              "offenbar durch böse Magie wiederbelebt,"
-             "aus dem Schatten trat und dabei seine anscheinend noch gut erhaltene Steitaxt schwang.")
+             "aus dem Schatten trat und dabei seine anscheinend noch gut erhaltene Streitaxt schwang.")
 
     elif a == 4:
         mint("Ohne dir Zeit zum Reagieren zu geben,"
@@ -219,13 +219,13 @@ def monster(mänx: Mänx):
             "Vor dir tritt ein bärtiger, nach Alkohol stinkender Mann aus dem Schatten.")
 
     else:
-        mint("Plötzlich fängst du an gewaltige Kompo-schmerzen zu haben."
+        malp("Plötzlich fängst du an gewaltige Kompo-schmerzen zu haben."
              "Aber warte mal! Du ", kursiv("hast"), " ja gar keinen Kompo!"
              "Du bist schließlich ein Me, ein Män, ein Mons..."
              "Naja, irgendetwas in der Art halt."
              "Was ", kursiv("machst"), " du hier eigentlich? Du solltest schleunigst verschwinden!")
-        mint("Ein Schrei entringt deiner Kehle und dir wird schwarz vor Augen.")
-        mint("Als du wieder aufwachst,"
+        malp("Ein Schrei entringt deiner Kehle und dir wird schwarz vor Augen.")
+        malp("Als du wieder aufwachst,"
              "liegst du inmitten einer saftigen Wiese aus leuchtendem blauem Gras.")
         malp("Nein... Anscheinend befindest du dich in einer Höhle.")
         mint("In einer mit leuchtend blauem Gras bewachsenen Höhle.")
