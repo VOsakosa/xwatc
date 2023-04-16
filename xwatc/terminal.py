@@ -5,10 +5,11 @@ from __future__ import annotations
 import re
 from typing import (Optional, Mapping, TypeVar, TYPE_CHECKING, Optional as Opt)
 from time import sleep
+from xwatc.untersystem.menus import Menu
 __author__ = "jasper"
 
 if TYPE_CHECKING:
-    from xwatc.system import Mänx, MenuOption, Speicherpunkt
+    from xwatc.system import Mänx, Speicherpunkt
 
 T = TypeVar("T")
 
@@ -19,11 +20,9 @@ class Terminal:
     terminal = True
 
     @staticmethod
-    def menu(mänx: Opt[Mänx],
-             optionen: list[MenuOption[T]],
-             frage: str = "",
-             versteckt: Optional[Mapping[str, T]] = None,
-             save: Opt[Speicherpunkt] = None) -> T:
+    def menu(mänx: Mänx,
+             menu: Menu[T],
+             save: Speicherpunkt | None = None) -> T:
         """Ähnlich wie Minput, nur werden jetzt Optionen als Liste gegeben.
 
         Die Zuordnung geschieht in folgender Reihenfolge
@@ -35,6 +34,8 @@ class Terminal:
         #. Passendste Antwort
         """
         # print("Du kannst")
+        optionen = menu.optionen
+        frage = menu.frage
         print()
         for i, (name, kurz, _) in enumerate(optionen):
             print(i + 1, ".", name, " [", kurz, "]", sep="")
@@ -43,8 +44,8 @@ class Terminal:
             frage += kurz_optionen + " "
         while True:
             eingabe = input(frage).lower()
-            if versteckt and eingabe in versteckt:
-                return versteckt[eingabe]
+            if eingabe in menu.versteckt:
+                return menu.versteckt[eingabe]
             kandidaten = []
             for _, o, v in optionen:
                 if o == eingabe:  # Genauer Match

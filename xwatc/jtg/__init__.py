@@ -582,7 +582,7 @@ gaa = StoryChar("jtg:süd:garnichts", ("Gaa", "Nix", "Junge"), Person("m"), dire
 gaa.dialog("hallo", _("Hallo"), "Hallo, ich bin Gaa.")
 gaa.dialog("bruder", _("Bist du der Bruder von Robert?"), [
     "Ja, kennst du Robert?"
-], "hallo").wenn_mänx(Kennt(gäfdah.rob))
+], "hallo").wenn_mänx(lambda m: Kennt(gäfdah.rob)(m))
 
 @gaa.dialog_deco("robert", _("Robert sucht nach dir."), "bruder")
 def suche_robert(nsc: NSC, mänx: Mänx):

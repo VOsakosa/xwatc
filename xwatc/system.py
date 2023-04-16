@@ -12,7 +12,7 @@ from typing import (List, Union, Optional, Optional as Opt, TypeAlias, overload)
 from typing_extensions import Self, assert_never
 import typing
 import yaml
-from xwatc.untersystem.menus import MenuOption
+from xwatc.untersystem.menus import Menu, MenuOption
 try:
     from yaml import CSafeDumper as SafeDumper
 except ImportError:
@@ -414,7 +414,7 @@ class Mänx(InventarBasis):
 
         """
         self._reset_laden(save)
-        return ausgabe.menu(self, optionen, frage, versteckt, save)
+        return ausgabe.menu(self, Menu(optionen, frage, versteckt or {}), save)
 
     def genauer(self, text: Sequence[str]) -> None:
         """Frage nach, ob der Spieler etwas genauer erfahren will.

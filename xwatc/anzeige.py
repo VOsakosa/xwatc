@@ -25,7 +25,7 @@ from typing_extensions import Self
 from xwatc import _
 from xwatc import system
 from xwatc.system import (Fortsetzung, Speicherpunkt, SPEICHER_VERZEICHNIS,
-                          MenuOption, Mänx)
+                          Menu, MenuOption, Mänx)
 __author__ = "jasper"
 
 
@@ -143,9 +143,8 @@ class XwatcFenster:
             while next_ is not None:
                 if next_ == "h":  # hauptmenu
                     self.malp("Xwatc-Hauptmenü")
-                    mgn1 = [(_("Lade Spielstand"), "lade", False),
-                            (_("Neuer Spielstand"), "neu", True)]
-                    if system.ausgabe.menu(None, mgn1):
+                    if self.menu(None, Menu([(_("Lade Spielstand"), "lade", False),
+                            (_("Neuer Spielstand"), "neu", True)])):
                         self.mänx = system.Mänx(self)
                         next_ = "m"
                     else:
@@ -165,12 +164,11 @@ class XwatcFenster:
                         next_ = "h"
                 elif next_ == "l":  # Lademenü
                     SPEICHER_VERZEICHNIS.mkdir(exist_ok=True, parents=True)
-                    mgn2: list[MenuOption[Opt[Path]]] = [
+                    mgn2: Menu[Path | None] = Menu([
                         (path.stem, path.name.lower(), path) for path in
                         SPEICHER_VERZEICHNIS.iterdir()  # @UndefinedVariable
-                    ]
-                    mgn2.append(("Zurück", "zurück", None))
-                    wahl = system.ausgabe.menu(None, mgn2)
+                    ] +[ ("Zurück", "zurück", None)])
+                    wahl: Path | None = self.menu(None, mgn2)
                     if wahl:
                         next_ = wahl
                     else:
@@ -270,14 +268,12 @@ class XwatcFenster:
 
     def menu(self,
              _mänx,
-             optionen: list[system.MenuOption[T]],
-             frage: str = "",
-             versteckt: Opt[Mapping[str, T]] = None,
-             save: Opt[system.Speicherpunkt] = None) -> T:
-        if frage:
-            self.malp(frage)
+             menu: Menu[T],
+             save: system.Speicherpunkt | None = None) -> T:
+        if menu.frage:
+            self.malp(menu.frage)
         self.auswahl([(name, value, shorthand)
-                      for name, shorthand, value in optionen], versteckt, save=save)
+                      for name, shorthand, value in menu.optionen], menu.versteckt, save=save)
         ans = self.get_minput_return()
         return ans
 

@@ -8,7 +8,7 @@ from collections.abc import Sequence, Mapping
 from typing import TypeVar
 import unittest
 from xwatc import system
-from xwatc.system import MenuOption, Mänx, Speicherpunkt, MänxFkt
+from xwatc.system import Menu, Mänx, Speicherpunkt, MänxFkt
 from attr import Factory
 __author__ = "jasper"
 
@@ -62,26 +62,23 @@ class MockSystem:
         return ans
 
     def menu(self,
-             mänx: Mänx | None,
-             optionen: list[MenuOption[T]],
-             frage: str = "",
-             versteckt: Mapping[str, T] | None = None,
+             mänx: Mänx,
+             menu: Menu[T],
              save: Speicherpunkt | None = None) -> T:
         """Bei Menu wird nur genau geantwortet.
         """
-        if frage:
-            self.ausgaben.append(frage.strip())
+        if menu.frage:
+            self.ausgaben.append(menu.frage.strip())
         if not self.eingaben:
             raise ScriptEnde()
         eingabe = self.eingaben.pop(0)
-        for _label, opt, value in optionen:
+        for _label, opt, value in menu.optionen:
             if opt == eingabe:
                 return value
-        if versteckt and eingabe in versteckt:
-            return versteckt[eingabe]
-        ok = [a[1] for a in optionen]
-        if versteckt:
-            ok.extend(versteckt.keys())
+        if eingabe in menu.versteckt:
+            return menu.versteckt[eingabe]
+        ok = [a[1] for a in menu.optionen]
+        ok.extend(menu.versteckt.keys())
         raise UnpassendeEingabe(eingabe, ok)
 
     def minput(self, mänx: Mänx | None, frage: str, möglichkeiten=None, lower=True,
