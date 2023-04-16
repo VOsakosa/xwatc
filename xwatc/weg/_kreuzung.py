@@ -425,7 +425,8 @@ class Wegkreuzung(Wegpunkt):
         if not self.immer_fragen and ((von is None) + len(opts)) <= 2:
             if isinstance(opts[0][2], Wegpunkt):
                 return opts[0][2]
-        ans = mänx.menu(opts, frage="Welchen Weg nimmst du?", save=self)
+        frage = _("Welchen Weg nimmst du?") if mänx.ausgabe.terminal else ""
+        ans = mänx.menu(opts, frage=frage, save=self)
         if isinstance(ans, Wegpunkt):
             return ans
         elif isinstance(ans, NSC):
