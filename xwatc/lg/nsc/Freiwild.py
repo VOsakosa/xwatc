@@ -213,7 +213,7 @@ def ruboic_reden_suche1(self: NSC, mänx: Mänx) -> None:
 def ruboic_reden_suche2(self: NSC, mänx: Mänx) -> None:
     malp("Der Mann blickt zu dir hoch")
     malp("Angst steht in seinen Augen geschrieben.")
-    mänx.sleep(4)
+    mänx.sleep(4, stunden=0)
     mint("Von der einen Sekunde auf die andere ist er verschwunden.")
     self.tot = True
 

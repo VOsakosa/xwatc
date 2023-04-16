@@ -429,7 +429,7 @@ class Mänx(InventarBasis):
             if self.menu([("Genauer", "", True), ("Weiter", "", False)]):
                 self.ausgabe.malp("\n".join(text))
 
-    def sleep(self, länge: float, pausenzeichen="."):
+    def sleep(self, länge: float, pausenzeichen=".", stunden: float | None = None):
         """Lasse den Spieler warten und zeige nur in regelmäßigen Abständen Pausenzeichen."""
         for _i in range(int(länge / 0.5)):
             if self.ausgabe.terminal:
@@ -437,6 +437,9 @@ class Mänx(InventarBasis):
             else:
                 malp(pausenzeichen, end="")
             sleep(0.5)
+        if stunden is None:
+            stunden = länge
+        self.welt.tick(stunden / 24)
         malp()
 
     def tutorial(self, art: str) -> None:

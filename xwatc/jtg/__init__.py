@@ -245,12 +245,12 @@ def hexer_dlg_halloli(leo: NSC, mänx: Mänx) -> Fortsetzung:
 def hexer_gut(leo: NSC, mänx: Mänx) -> Rückkehr:
     """Das sind die zwei Antwortmöglichkeiten, wo man weiter mit Leo reden kann."""
     leo.sprich("Soso.")
-    mänx.sleep(1)
+    mänx.sleep(1, stunden=0)
     leo.sprich("...")
-    mänx.sleep(1)
+    mänx.sleep(1, stunden=0)
     leo.sprich("Ich habe ein Gästebett. Da kannst du schlafen.")
     malp("Dein erstes Bett in dieser Welt ist schön weich.")
-    mänx.sleep(3)
+    mänx.sleep(3, stunden=12)
     malp("Als du am nächsten Morgen aufwachst, fühlst du dich schwach und kalt.")
     malp("Leo steht vor dir.")
     leo.sprich(
