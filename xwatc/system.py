@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from attrs import define, field
 from collections import defaultdict
-from collections.abc import Sequence, Callable, Iterator, Mapping
+from collections.abc import Sequence, Iterator, Mapping
 from logging import getLogger
 import logging
 from pathlib import Path
@@ -12,6 +12,7 @@ from typing import (List, Union, Optional, Optional as Opt, TypeAlias, overload)
 from typing_extensions import Self, assert_never
 import typing
 import yaml
+from xwatc.untersystem.menus import MenuOption
 try:
     from yaml import CSafeDumper as SafeDumper
 except ImportError:
@@ -103,8 +104,6 @@ def get_item(item_name: str) -> Item:
 
 
 T = TypeVar("T")
-Tcov = TypeVar("Tcov", covariant=True)
-MenuOption: TypeAlias = tuple[str, str, Tcov]
 Inventar: TypeAlias = dict[str, int]
 _null_func = int
 
@@ -452,6 +451,7 @@ class Mänx(InventarBasis):
     def inventar_zugriff(self, inv: InventarBasis,
                          nimmt: Union[bool, Sequence[str]] = False) -> None:
         """Ein Menu, um auf ein anderes Inventar zuzugreifen."""
+        # TODO Inventar-Zugriff in ein Untersystem.
         malp(inv.erweitertes_inventar())
         self.tutorial("inventar_zugriff")
         while True:
