@@ -402,7 +402,7 @@ class XwatcFenster:
             if typ not in self.sichtbare_anzeigen:
                 anzeige.set_visible(False)
         if self.mänx:
-            self.info_widget.update(self.mänx)
+            self.info_widget.update(self.mänx, can_save=self.speicherpunkt is not None)
 
     def _deactivate_choices(self):
         self.mgn.clear()
@@ -505,19 +505,27 @@ class InfoWidget:
     widget: Gtk.Box
     tag_label: Gtk.Label
     zeit_label: Gtk.Label
+    can_save_label: Gtk.Label
     
     @classmethod
     def create(cls) -> Self:
-        grid = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, hexpand=True, halign=Gtk.Align.END)
-        tag_label = Gtk.Label(margin_end=12)
+        grid = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, hexpand=True, halign=Gtk.Align.END,
+                       spacing=6)
+        can_save_label = Gtk.Label()
+        tag_label = Gtk.Label()
         zeit_label = Gtk.Label()
+        grid.add(can_save_label)
         grid.add(tag_label)
         grid.add(zeit_label)
-        return cls(grid, tag_label, zeit_label)
+        return cls(grid, tag_label, zeit_label, can_save_label)
     
-    def update(self, mänx: Mänx) -> None:
+    def update(self, mänx: Mänx, can_save: bool) -> None:
         self.tag_label.set_text(_("Tag {}").format(mänx.welt.get_tag()))
         self.zeit_label.set_text(_("{:02}:{:02}").format(*mänx.welt.uhrzeit()))
+        if can_save:
+            self.can_save_label.set_label("S")
+        else:
+            self.can_save_label.set_markup('<span color="#AAAAAA">S</span>')
         
 
 def main(startpunkt: Fortsetzung | None = None):

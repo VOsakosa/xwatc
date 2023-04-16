@@ -411,13 +411,13 @@ def zuhören(self, _mänx: Mänx) -> None:
 
 
 @tobi.dialog_deco("orgel", '"Warum spielst du Orgel? Es ist doch nicht Gottesdienst gerade?"')
-def reden_orgel(self, mänx: Mänx) -> None:
-    sprich(self.name, "Ich spiele gerne Orgel. "
+def reden_orgel(self: NSC, mänx: Mänx) -> None:
+    self.sprich("Ich spiele gerne Orgel. "
            "Es beruhigt mich ungemein.")
-    sprich(self.name, "Wenn nur mein Sohn auch so gerne wie ich spielen würde.")
-    sprich(self.name, "Ich bin nie zu Hause und spiele lieber Orgel. "
+    self.sprich("Wenn nur mein Sohn auch so gerne wie ich spielen würde.")
+    self.sprich("Ich bin nie zu Hause und spiele lieber Orgel. "
            "Und mein Sohn spielt lieber bei den Nachbarn nebenan.")
-    if ja_nein(mänx, self.name + " :Ich bin ein schlechter Vater, nicht?"):
+    if ja_nein(mänx, self.name + ": Ich bin ein schlechter Vater, nicht?"):
         mänx.titel.add("Respektloser")
         sprich(self.name, "Es tut irgendwie doch weh, es so zu hören.")
     else:
