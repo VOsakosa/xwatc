@@ -4,7 +4,7 @@ Enthält die Wegkreuzung, der zentrale Punkt des Wegsystems, an dem die meisten 
 from __future__ import annotations
 
 from attrs import define, field
-from collections.abc import Collection, Callable, Iterable, Iterator, Sequence
+from collections.abc import Collection, Iterable, Iterator, Sequence
 import enum
 from logging import getLogger
 from typing import (ClassVar, NewType, TYPE_CHECKING)
@@ -15,11 +15,11 @@ from xwatc.system import (Mänx, MenuOption, MänxFkt, malp, mint,
                           MänxPrädikat, Welt)
 from xwatc.utils import uartikel, bartikel, adj_endung, UndPred
 from xwatc.weg import Ausgang, Wegpunkt, WegEnde, Weg, Gebiet
+from xwatc.weg import dorf
 
 
 if TYPE_CHECKING:
     from xwatc import nsc
-    from xwatc import dorf
 __author__ = "jasper"
 
 
@@ -269,7 +269,7 @@ class Wegkreuzung(Wegpunkt):
     immer_fragen: bool = True
     kreuzung_beschreiben: bool = False
     _gebiet: 'Gebiet | None' = None
-    dorf: 'dorf.Dorf | None' = None
+    dorf: dorf.Dorf | None = None
     beschreibungen: list[Beschreibung] = field(factory=list)
     _wenn_fn: dict[str, MänxPrädikat] = field(factory=dict)
 
@@ -538,12 +538,6 @@ class Wegkreuzung(Wegpunkt):
             return
         self._menschen.remove(NSCReference.from_nsc(nsc))
 
-    def add_old_nsc(self, welt: Welt, name: str, fkt: Callable[..., nsc.NSC],
-                    *args, **kwargs):
-        nsc = welt.get_or_else(name, fkt, *args, **kwargs)
-        nsc.template.id_ = name
-        self.add_nsc(nsc)
-
     def add_char(self, welt: Welt, char: nsc.StoryChar) -> nsc.NSC:
         """Füge einen Story-Charakter zu diesem Ort hinzu."""
         if not char.id_:
@@ -571,4 +565,3 @@ class Wegkreuzung(Wegpunkt):
                     seen.add(next_)
                     to_check.append(next_)
         raise ValueError("Diese Kreuzung gehört zu keinem Gebiet.")
-

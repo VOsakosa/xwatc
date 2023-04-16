@@ -271,6 +271,8 @@ class Gebiet:
 
     def main(self, _mänx: Mänx) -> Wegpunkt:
         """Das Gebiet als HatMain gibt einfach den Punkt namens "start" zurück."""
+        if "start" not in self.eintrittspunkte:
+            raise MissingIDError(f"Gebiet {self.name} hat keinen Default-Start.")
         return self.eintrittspunkte["start"]
 
     def ende(self, name: Eintritt, ziel: Eintritt | MänxFkt[Fortsetzung]
@@ -431,7 +433,7 @@ def get_gebiet(mänx: Mänx, name: str) -> Gebiet:
     """Hole oder erzeuge das Gebiet `name` in `mänx`."""
     if name not in GEBIETE:
         raise MissingID(f"Unbekanntes Gebiet {name}")
-    return mänx.welt.get_or_else(f"weg:{name}", GEBIETE[name], mänx)
+    return mänx.welt.get_gebiet(mänx, name)
 
 
 def get_eintritt(mänx: Mänx, name_or_gebiet: Wegpunkt | str | tuple[str, str]) -> Wegpunkt:
@@ -457,8 +459,6 @@ def get_eintritt(mänx: Mänx, name_or_gebiet: Wegpunkt | str | tuple[str, str])
         if port not in gebiet.eintrittspunkte:
             raise MissingID(f"Gebiet {gebiet_name} hat keinen Eingang {port}!")
         return gebiet.eintrittspunkte[port]
-        return mänx.welt.get_or_else(
-            "weg:" + name_or_gebiet, GEBIETE[name_or_gebiet], mänx)
     else:
         return name_or_gebiet
 

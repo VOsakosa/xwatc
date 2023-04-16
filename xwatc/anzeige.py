@@ -534,13 +534,11 @@ class InfoWidget:
         self.zeit_label.set_text(_("{:02}:{:02}").format(*mänx.welt.uhrzeit()))
         
 
-def main(startpunkt: Fortsetzung | str | None = None):
+def main(startpunkt: Fortsetzung | None = None):
     global _main_thread
     import logging
     getLogger("xwatc").setLevel(logging.INFO)
     app = Gtk.Application()
-    if isinstance(startpunkt, str):
-        startpunkt = system.Besuche(startpunkt)
     app.connect("activate", XwatcFenster, startpunkt)
     _main_thread = threading.main_thread()
     app.run()
