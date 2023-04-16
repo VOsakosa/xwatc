@@ -8,7 +8,7 @@ import logging
 from pathlib import Path
 from time import sleep
 from typing import TypeVar, Any, Protocol
-from typing import (Dict, List, Union, Optional, Optional as Opt, TypeAlias)
+from typing import (List, Union, Optional, Optional as Opt, TypeAlias, overload)
 from typing_extensions import Self, assert_never
 import typing
 import yaml
@@ -22,6 +22,8 @@ from xwatc.serialize import mache_converter, unstructure_punkt
 from xwatc.terminal import Terminal
 from xwatc.untersystem import hilfe
 from xwatc.untersystem.itemverzeichnis import lade_itemverzeichnis, Item
+from xwatc.untersystem.variablen import WeltVariable, VT, get_welt_var
+from xwatc.untersystem.variablen import register, Variable  # @UnusedImport
 from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
 from xwatc.untersystem.person import Rasse, Fähigkeit
 
@@ -47,7 +49,7 @@ class StoryObject(HatMain, typing.Protocol):
     """Eine Klasse für Objekte, die Geschichte haben und daher mit main()
     ausgeführt werden können. Das können Menschen, aber auch Wegpunkte
     und Pflanzen sein."""
-    
+
     @classmethod
     def create(cls, welt: 'Welt', /) -> Self:
         """Erzeuge das Objekt. Dabei darf auf die Welt zugegriffen werden."""
@@ -67,6 +69,7 @@ class MänxFkt(Protocol[M_cov]):
 class MissingID(KeyError):
     """Zeigt an, dass ein Objekt per ID gesucht wurde, aber nicht existiert."""
 
+
 @define
 class MissingIDError(Exception):
     id_: str
@@ -77,8 +80,6 @@ MänxPrädikat = MänxFkt[bool]
 Fortsetzung = Union[MänxFkt, HatMain, 'weg.Wegpunkt']
 ITEMVERZEICHNIS = lade_itemverzeichnis(Path(__file__).parent / "itemverzeichnis.txt",
                                        Path(__file__).parent / "waffenverzeichnis.yaml")
-
-_OBJEKT_REGISTER: Dict[str, type[StoryObject]] = {}
 ausgabe: Terminal | 'anzeige.XwatcFenster' = Terminal()
 
 
@@ -221,6 +222,7 @@ class Welt:
             self._objekte[name] = ans
             return ans
 
+    # TODO: Durch Story-Char ersetzen.
     def am_leben(self, name: str) -> bool:
         """Prüfe, ob das Objekt *name* da und noch am Leben ist."""
         try:
@@ -230,25 +232,47 @@ class Welt:
         else:
             return not getattr(obj, 'tot', False)
 
-    def obj(self, name: str | Besuche) -> Any:
+    @overload
+    def obj(self, name: WeltVariable[VT]) -> VT: ...  # @UnusedVariable
+
+    @overload
+    def obj(self, name: type[VT]) -> VT: ...  # @UnusedVariable
+
+    @overload
+    def obj(self, name: str | Besuche) -> Any: ...  # @UnusedVariable
+
+    def obj(self, name: str | Besuche | WeltVariable[Any] | type[Any]) -> Any:
         """Hole ein registriertes oder existentes Objekt.
 
         :raise MissingID: Wenn das Objekt nicht existiert und nicht registriert ist.
         """
-        if isinstance(name, Besuche):
-            name = name.objekt_name
-        if name in self._objekte:
-            return self._objekte[name]
+
+        match name:
+            case str(name_str):
+                welt_var = get_welt_var(name_str)  # @UnusedVariable
+            case Besuche(objekt_name=name_str):
+                welt_var = get_welt_var(name_str)  # @UnusedVariable
+            case type():
+                welt_var = getattr(name, "_variable")
+                assert welt_var
+                name_str = welt_var.name
+            case WeltVariable(name=name_str):
+                welt_var = name
+        if name_str in self._objekte:
+            return self._objekte[name_str]
         from xwatc import nsc  # @Reimport
         obj: HatMain
-        if name in nsc.CHAR_REGISTER:
-            obj = nsc.CHAR_REGISTER[name].zu_nsc()
-        elif name in _OBJEKT_REGISTER:
-            obj = _OBJEKT_REGISTER[name].create(self)
+        if welt_var:
+            obj = welt_var.erzeuger(self)
+        elif name_str in nsc.CHAR_REGISTER:
+            obj = nsc.CHAR_REGISTER[name_str].zu_nsc()
         else:
             raise MissingID(f"Das Objekt {name} existiert nicht.")
-        self._objekte[name] = obj
+        self._objekte[name_str] = obj
         return obj
+
+    def setze_var(self, var: WeltVariable[VT], wert: VT) -> None:
+        self._objekte[var.name] = wert
 
     def setze_objekt(self, name: str, objekt: object) -> None:
         """Setze ein Objekt in der Welt."""
@@ -566,38 +590,16 @@ def schiebe_inventar(start: Inventar, ziel: Inventar) -> None:
 
 
 class Besuche:
+    # TODO: Auf Verwendungen prüfen
     """Mache einer ID für ein Objekt aus dem Objektregister ein HatMain-object.
     Bei der Main wird das Objekt aus dem Register gesucht bzw. erzeugt und dann dessen
     Main aufgerufen."""
 
     def __init__(self, objekt_name: str) -> None:
         self.objekt_name = objekt_name
-        # assert self.objekt_name in _OBJEKT_REGISTER
 
     def main(self, mänx: Mänx):
         return mänx.welt.obj(self.objekt_name).main(mänx)
-
-
-def register(name: str) -> Callable[[type[StoryObject]], Besuche]:
-    """Registriere einen Erzeuger im Objekt-Register.
-    Beispiel:
-    ..
-        from attrs import define
-        @register("system.test.banana")
-        @define
-        class Banane(StoryCharacter):
-            leckerheit: float = 1.2
-            def main(self, mänx: Mänx) -> None:
-                malp(_("Ich bin {self.leckerheit} lecker").format(self=self))
-
-    """
-
-    def wrapper(func: type[StoryObject]) -> Besuche:
-        # assert name not in _OBJEKT_REGISTER,("Doppelte Registrierung " + name)
-        _OBJEKT_REGISTER[name] = func
-        return Besuche(name)
-
-    return wrapper
 
 
 # EIN- und AUSGABE

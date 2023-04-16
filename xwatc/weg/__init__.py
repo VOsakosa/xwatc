@@ -271,6 +271,8 @@ class Gebiet:
 
     def main(self, _mänx: Mänx) -> Wegpunkt:
         """Das Gebiet als HatMain gibt einfach den Punkt namens "start" zurück."""
+        if "start" not in self.eintrittspunkte:
+            raise MissingIDError(f"Gebiet {self.name} hat keinen Default-Start.")
         return self.eintrittspunkte["start"]
 
     def ende(self, name: Eintritt, ziel: Eintritt | MänxFkt[Fortsetzung]

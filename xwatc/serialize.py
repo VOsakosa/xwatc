@@ -7,6 +7,7 @@ from typing import Any, Final, TYPE_CHECKING
 import cattrs.preconf.pyyaml
 from logging import getLogger
 from exceptiongroup import ExceptionGroup
+from xwatc.untersystem.variablen import get_var_typ
 
 if TYPE_CHECKING:
     from xwatc import system
@@ -45,6 +46,7 @@ def _add_fns() -> None:
         base = _welt_unstructure_base(welt)
         objekte: dict[str, Any] = {}
         for key, obj in welt._objekte.items():
+            typ = get_var_typ(key)
             match obj:
                 case float() | int():
                     objekte[key] = obj
@@ -57,8 +59,8 @@ def _add_fns() -> None:
                     objekte[key] = None
                 case []:
                     objekte[key] = converter.unstructure(obj, list[NSC])
-                case _ if key in system._OBJEKT_REGISTER:  # Do it by attrs
-                    objekte[key] = converter.unstructure(obj, system._OBJEKT_REGISTER[key])
+                case _ if typ:
+                    objekte[key] = converter.unstructure(obj, typ)
                 case _:
                     _logger.warn(f"Unbekannte Art Objekt bei {key}({type(obj)}) kann nicht "
                                  "gespeichert werden.")
@@ -96,9 +98,8 @@ def _add_fns() -> None:
         for key, value in dict_["welt"]["objekte"].items():
             try:
                 match value:
-                    case _ if key in system._OBJEKT_REGISTER:
-                        mänx.welt.setze_objekt(key, conv2.structure(
-                            value, system._OBJEKT_REGISTER[key]))
+                    case _ if typ := get_var_typ(key):
+                        mänx.welt.setze_objekt(key, conv2.structure(value, typ))
                     case None:  # Gebiet oder aus Register @UnusedVariable
                         if key.startswith("weg:"):
                             key = key.removeprefix("weg:")

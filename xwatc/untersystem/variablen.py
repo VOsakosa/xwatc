@@ -19,7 +19,7 @@ class WeltVariable(Generic[VT]):
     """Eine Variable der Welt, mit Typ und Factory."""
     name: str
     typ: type[VT]
-    erzeuger: Callable[[Welt], VT]
+    erzeuger: Callable[['Welt'], VT]
 
     def __attrs_post_init__(self):
         if self.name in _WELT_VARIABLEN:
@@ -38,10 +38,38 @@ def Variable(name: str, default: VT, typ: type[VT] | None = None) -> WeltVariabl
 
 
 def erzeuge_objekt(name: str, typ: type[VT]
-                   ) -> Callable[[Callable[[Welt], VT]], WeltVariable[VT]]:
+                   ) -> Callable[[Callable[['Welt'], VT]], WeltVariable[VT]]:
     """Eine Variable mit einer Erzeuger-Funktion."""
     def wrapper(erzeuger: Callable[[Welt], VT]) -> WeltVariable[VT]:
         return WeltVariable(name, typ, erzeuger)
+    return wrapper
+
+
+TT = TypeVar("TT", bound=type)
+
+
+def register(name: str) -> Callable[[TT], TT]:
+    """Registriere eine Klasse im Objekt-Register.
+    Beispiel:
+    ..
+        from attrs import define
+        @register("system.test.banana")
+        @define
+        class Banane:
+            leckerheit: float = 1.2
+
+        def test(mänx: Mänx):
+            banane: Banane = mänx.welt.obj(Banane)
+    """
+
+    def wrapper(typ: TT) -> TT:
+        if hasattr(typ, "erzeuge"):
+            erzeuger = getattr(typ, "erzeuge")
+        else:
+            erzeuger = typ
+        setattr(typ, '_variable', WeltVariable(name, typ, erzeuger))
+        return typ
+
     return wrapper
 
 
@@ -49,6 +77,7 @@ def get_var_typ(name: str) -> type | None:
     if name in _WELT_VARIABLEN:
         return _WELT_VARIABLEN[name].typ
     return None
+
 
 def get_welt_var(name: str) -> WeltVariable[Any] | None:
     return _WELT_VARIABLEN.get(name)

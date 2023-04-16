@@ -6,11 +6,11 @@ from xwatc.system import (mint, register, Mänx, malp, Fortsetzung,
 from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
 from xwatc import weg
 from xwatc.lg import mitte
-from typing_extensions import Self
 
 # TODO Gefängnis
-# - Speichern bei Abschnitten
+# - Speichern bei Abschnitten (@episode)
 # - Speichern des Gefängnisses
+# - Mint mit Speichern
 
 
 @register("lg:gefängnis_von_gäfdah")
@@ -19,12 +19,45 @@ class GefängnisGäfdah(StoryObject):
     war_drinnen: bool = False
     war_sauber: bool = False
     sauber: bool = False
+    
+    def main(self, mänx: Mänx):
+        self.sauber = random.randint(1, 10) <= 6
+        self.beschreibung()
+        if not self.war_drinnen and random.randint(0, 1):
+            mint("Ein Zettel verkündet: Gefichtsverfahren, mogen.")
+            malp('Seltsamerweise fehlte das r, '
+                 'vom "Gefichtsverfahren" ganz zu schweigen. ')
+            mänx.sleep(20, 'o')
+            mint()
+            malp("Irgendwann öffnen sich deine Zellentüren und eine Wache tritt ein.")
+            if mänx.ja_nein("Versuchst du zu fliehen", save=self):
+                malp("Du versuchst die Wache anzugreifen, "
+                     "stolperst jedoch über deine Fesseln und stürzt.", warte=True)
+                mänx.verbrechen[Verbrechen(Verbrechensart.AUSBRUCH, True)] += 1
+                mint("Die Wache ignoriert deinen Fluchtversuch und zerrt "
+                     "dich aus der Zelle.")
+                ans = self.gerichtsverfahren(mänx)
+            elif random.randint(1, 30) == 1:
+                mint("Die Wache bedeutet dir, ihr zu folgen.")
+                ans = self.gerichtsverfahren(mänx)
+            else:
+                ans = self.vor_strafe(mänx)
 
-    def beschreibung(self, sauber: bool):
+        else:
+            malp("Du wartest in der Zelle, doch zunächst passiert nichts.")
+            mänx.welt.tick(0.5)
+            mänx.sleep(30, '<')
+            ans = self.vor_strafe(mänx)
+
+        self.war_sauber = self.sauber
+        self.war_drinnen = True
+        return ans
+
+    def beschreibung(self):
         if self.war_drinnen:
             malp("Du bist nun ein weiteres Mal im Gefängnis.")
             mint("Es ist noch genauso, wie du es in Erinnerung hast.")
-            if sauber:
+            if self.sauber:
                 if self.war_sauber:
                     malp("Die selben sterilen Zellen, wie letztes Mal.")
                 else:
@@ -43,7 +76,7 @@ class GefängnisGäfdah(StoryObject):
                          "nicht gewöhnen.")
         else:
 
-            if sauber:
+            if self.sauber:
                 malp("Du bist in einer sauberen, ja gar sterilen Kammer eingesperrt.")
             else:
                 malp("Du bist in einer dunklen und feuchten Zelle eingesperrt.")
@@ -132,42 +165,11 @@ class GefängnisGäfdah(StoryObject):
             from xwatc.jtg.groekrak import grökrak
             return grökrak
 
-    def main(self, mänx: Mänx):
-        self.sauber = random.randint(1, 10) <= 6
-        self.beschreibung(self.sauber)
-        if not self.war_drinnen and random.randint(0, 1):
-            mint("Ein Zettel verkündet: Gefichtsverfahren, mogen.")
-            malp('Seltsamerweise fehlte das r, '
-                 'vom "Gefichtsverfahren" ganz zu schweigen. ')
-            mänx.sleep(20, 'o')
-            mint()
-            mint("Irgendwann öffnen sich deine Zellentüren und eine Wache tritt ein.")
-            if mänx.ja_nein("Versuchst du zu fliehen"):
-                malp("Du versuchst die Wache anzugreifen, "
-                     "stolperst jedoch über deine Fesseln und stürzt.", warte=True)
-                mänx.verbrechen[Verbrechen(Verbrechensart.AUSBRUCH, True)] += 1
-                mint("Die Wache ignoriert deinen Fluchtversuch und zerrt "
-                     "dich aus der Zelle.")
-                ans = self.gerichtsverfahren(mänx)
-            elif random.randint(1, 30) == 1:
-                mint("Die Wache bedeutet dir, ihr zu folgen.")
-                ans = self.gerichtsverfahren(mänx)
-            else:
-                ans = self.vor_strafe(mänx)
-
-        else:
-            malp("Du wartest in der Zelle, doch zunächst passiert nichts.")
-            mänx.welt.tick(0.5)
-            mänx.sleep(30, '<')
-            ans = self.vor_strafe(mänx)
-
-        self.war_sauber = self.sauber
-        self.war_drinnen = True
-        return ans
+    
 
 
 def gefängnis_von_gäfdah(mänx: Mänx) -> Fortsetzung:
-    return mänx.welt.obj("lg:gefängnis_von_gäfdah").main(mänx)
+    return mänx.welt.obj(GefängnisGäfdah)
     # TODO: Mänx.next()
 
 
@@ -177,11 +179,9 @@ if __name__ == '__main__':
     class NonSlotsMänx(Mänx):
         pass
     with patch("xwatc.system.Mänx", NonSlotsMänx):
+        
         def ständig_gäfdah(mänx):
-            mänx.sleep = lambda zeit, zeichen=None: malp("Schlafe,", str(zeit))
+            mänx.sleep = lambda zeit, zeichen=None: malp(f"Schlafe({zeit}, {zeichen})")
             mänx.verbrechen[Verbrechen(Verbrechensart.DIEBSTAHL)] = 1
-            while True:
-                mänx.verbrechen[Verbrechen(Verbrechensart.MORD, True)] += 1
-                gefängnis_von_gäfdah(mänx)
-                malp("Weil's so schön war, nochmal", warte=True)
+            return gefängnis_von_gäfdah
         main(ständig_gäfdah)
