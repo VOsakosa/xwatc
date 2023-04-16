@@ -156,9 +156,13 @@ class InventarBasis:
         ans = ["{} Gold".format(self.inventar["Gold"])]
         for item, anzahl in sorted(self.inventar.items()):
             if anzahl and item != "Gold":
-                item_obj = get_item(item)
-                kosten = get_preise(item)
-                ans.append(f"{anzahl:>4}x {item_obj:<20} ({kosten:>3}G)")
+                try:
+                    item_obj = get_item(item)
+                    kosten = get_preise(item)
+                except KeyError:
+                    ans.append(f"{anzahl:>4}x {item:<20} (  ?G)")
+                else:
+                    ans.append(f"{anzahl:>4}x {item_obj:<20} ({kosten:>3}G)")
         return "\n".join(ans)
 
     @property
