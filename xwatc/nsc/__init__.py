@@ -469,11 +469,6 @@ class NSC(system.InventarBasis):
         else:
             self.freundlich = max(grenze, wert + self.freundlich)
 
-    def dialog(self, *args, **kwargs) -> 'Dialog':
-        "Erstelle einen Dialog"
-        dia = self.template.dialog(*args, **kwargs)
-        return dia
-
     def plündern(self, mänx: system.Mänx) -> Any:
         """Schiebe das ganze Inventar von NSC zum Mänxen."""
         schiebe_inventar(self.inventar, mänx.inventar)

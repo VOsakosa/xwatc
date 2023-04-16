@@ -12,7 +12,7 @@ from xwatc.jtg.ressourcen import zufälliger_name
 from xwatc.jtg.tauern import land_der_kühe
 from xwatc.nsc import Person, StoryChar, NSC, bezeichnung, Dialog, Malp, Zeitpunkt, Rückkehr
 from xwatc.system import (
-    Mänx, minput, ja_nein, MenuOption,
+    Mänx, minput, ja_nein, MenuOption, _,
     Spielende, mint, sprich, kursiv, malp, get_classes, Inventar, MänxFkt, Fortsetzung)
 from xwatc.untersystem.acker import wildpflanze
 from xwatc.untersystem.person import Fähigkeit, Rasse
@@ -448,7 +448,7 @@ tobi.dialog('ring', "Den Ring vorzeigen", ring_zeigen).wenn(
     lambda _n, m: m.hat_item("Ring des Berndoc"))
 
 
-def erzeuge_frau(nsc: NSC):
+def erzeuge_frau(nsc: NSC) -> NSC:
     """Passe eine zufällig erzeugte Hausfrau an."""
     nsc.bezeichnung = bezeichnung((
         zufälliger_name("FVorname"), zufälliger_name("FNachname"), "Hausfrau"))
@@ -474,6 +474,13 @@ frau = StoryChar("jtg:süd:hausfrau", "-", Person("w"), {
 }, direkt_reden=True, randomize_fn=erzeuge_frau)
 
 frau.dialoge.extend(HalloDialoge)
+
+@frau.dialog_deco("ledig", "Bist du verheiratet?", "hallo")
+def frau_verheiratet(nsc: NSC, mänx: Mänx) -> None:
+    if "ledig" not in nsc.variablen:
+        nsc.sprich(_("Ja."))
+    else:
+        nsc.sprich(_("Nein. Warum fragst du?"))
 
 
 def gar_kampf(nsc, mänx: Mänx) -> None:
