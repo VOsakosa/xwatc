@@ -8,6 +8,10 @@ from xwatc import weg
 from xwatc.lg import mitte
 from typing_extensions import Self
 
+# TODO Gefängnis
+# - Speichern bei Abschnitten
+# - Speichern des Gefängnisses
+
 
 @register("lg:gefängnis_von_gäfdah")
 @define
