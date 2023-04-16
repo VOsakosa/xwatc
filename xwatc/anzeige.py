@@ -240,15 +240,12 @@ class XwatcFenster:
         """Füge Text hinzu."""
         self.buffer.insert(self.buffer.get_end_iter(), text)
 
-    def minput(self, _mänx, frage: str, möglichkeiten=None,
+    def minput(self, _mänx, frage: str,
                lower=True,
                save: Opt[Speicherpunkt] = None) -> str:
         self.malp(frage)
-        if möglichkeiten is None:
-            self.speicherpunkt = save
-            self.eingabe(prompt=None)
-        else:
-            self.auswahl([(mg, mg) for mg in möglichkeiten], save=save)
+        self.speicherpunkt = save
+        self.eingabe(prompt=None)
         ans = self.get_minput_return()
         if lower:
             ans = ans.lower()
@@ -274,13 +271,6 @@ class XwatcFenster:
             self.malp(menu.frage)
         self.auswahl([(name, value, shorthand)
                       for name, shorthand, value in menu.optionen], menu.versteckt, save=save)
-        ans = self.get_minput_return()
-        return ans
-
-    def ja_nein(self, mänx: system.Mänx, frage: str,
-                save: Opt[system.Speicherpunkt] = None) -> bool:
-        self.malp(frage)
-        self.auswahl([(_("Ja"), True), (_("Nein"), False)], save=save)
         ans = self.get_minput_return()
         return ans
 

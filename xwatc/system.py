@@ -218,7 +218,7 @@ class Welt:
             return False
         else:
             return not getattr(obj, 'tot', False)
-    
+
     def hat_obj(self, name: type[Any] | WeltVariable[Any] | nsc.StoryChar) -> bool:
         """Teste, ob ein Objekt bereits erzeugt wurde."""
         match name:
@@ -239,7 +239,7 @@ class Welt:
 
     @overload
     def obj(self, name: type[VT]) -> VT: ...  # @UnusedVariable
-    
+
     @overload
     def obj(self, name: nsc.StoryChar) -> nsc.NSC: ...
 
@@ -282,7 +282,7 @@ class Welt:
     def setze_objekt(self, name: str, objekt: object) -> None:
         """Setze ein Objekt in der Welt."""
         self._objekte[name] = objekt
-        
+
     def get_gebiet(self, mänx: Mänx, name: str) -> weg.Gebiet:
         if name not in self._gebiete:
             self._gebiete[name] = weg.GEBIETE[name](mänx)
@@ -390,14 +390,15 @@ class Mänx(InventarBasis):
                save: Speicherpunkt | None = None) -> str:
         """Fragt den Benutzer nach einer Eingabe."""
         self._reset_laden(save)
-        return self.ausgabe.minput(
-            self, frage=frage, möglichkeiten=möglichkeiten,
-            lower=lower, save=save)
+        if möglichkeiten:
+            return self.ausgabe.menu(self, Menu.minput(möglichkeiten, frage), save)
+        else:
+            return self.ausgabe.minput(self, frage=frage, lower=lower, save=save)
 
     def ja_nein(self, frage: str, save: Speicherpunkt | None = None) -> bool:
         """Fragt den Benutzer eine Ja-Nein-Frage."""
         self._reset_laden(save)
-        return self.ausgabe.ja_nein(self, frage=frage, save=save)
+        return self.ausgabe.menu(self, Menu.ja_nein_bool(frage), save)
 
     def menu(self,
              optionen: List[MenuOption[T]],
@@ -414,7 +415,10 @@ class Mänx(InventarBasis):
 
         """
         self._reset_laden(save)
-        return ausgabe.menu(self, Menu(optionen, frage, versteckt or {}), save)
+        return self.ausgabe.menu(self, Menu(optionen, frage, versteckt or {}), save)
+
+    def call_menu(self, menu: Menu[T], save: Speicherpunkt | None) -> T:
+        return self.ausgabe.menu(self, menu, save)
 
     def genauer(self, text: Sequence[str]) -> None:
         """Frage nach, ob der Spieler etwas genauer erfahren will.

@@ -1,29 +1,27 @@
 from logging import getLogger
 from xwatc.system import (Mänx, Spielende, mint, malp, SPEICHER_VERZEICHNIS,
-                          Fortsetzung, MenuOption)
+                          Fortsetzung)
 from xwatc import _
 from xwatc import system
 from xwatc import weg
-from pathlib import Path
-from typing import Optional as Opt
 from xwatc.lg import mitte
 from xwatc.untersystem.person import Rasse
+from xwatc.untersystem.menus import Menu
 
 
 def hauptmenu() -> None:
     """Das Hauptmenu von Xwatc, erlaubt Laden und neues Spiel starten.
     (Nur Terminal-Modus)"""
     while True:
-        mgn1 = [(_("Lade Spielstand"), "lade", False),
-                (_("Neuer Spielstand"), "neu", True)]
-        if system.ausgabe.menu(None, mgn1):
+        
+        if system.ausgabe.menu(None, Menu([(_("Lade Spielstand"), "lade", False),
+                (_("Neuer Spielstand"), "neu", True)])):
             main(Mänx())
             return
-        mgn2: list[MenuOption[Opt[Path]]] = [
+        mgn2 = Menu([
             (path.name, path.name.lower(), path) for path in
             SPEICHER_VERZEICHNIS.iterdir()  # @UndefinedVariable
-        ]
-        mgn2.append(("Zurück", "zurück", None))
+        ] + [("Zurück", "zurück", None)])
         wahl = system.ausgabe.menu(None, mgn2)
         if wahl:
             mänx, punkt = Mänx.load_from_file(wahl)

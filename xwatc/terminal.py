@@ -20,7 +20,7 @@ class Terminal:
     terminal = True
 
     @staticmethod
-    def menu(mänx: Mänx,
+    def menu(mänx: Mänx | None,
              menu: Menu[T],
              save: Speicherpunkt | None = None) -> T:
         """Ähnlich wie Minput, nur werden jetzt Optionen als Liste gegeben.
@@ -66,21 +66,19 @@ class Terminal:
                           ",".join(o for o, v in kandidaten))
 
     @staticmethod
-    def minput(mänx: Opt[Mänx], frage: str, möglichkeiten=None, lower=True,
-               save: Opt[Speicherpunkt] = None) -> str:
+    def minput(mänx: Mänx | None, frage: str, lower=True,
+               save: Speicherpunkt | None = None) -> str:
         """Manipulierter Input
         Wenn möglichkeiten (in kleinbuchstaben) gegeben, dann muss die Antwort eine davon sein."""
         if not frage.endswith(" "):
             frage += " "
-        if möglichkeiten:
-            möglichkeiten = [m.lower() for m in möglichkeiten]
         while True:
             taste = input(frage)
             if lower:
                 taste = taste.lower()
             if mänx and Terminal.spezial_taste(mänx, taste, save=save):
                 pass
-            elif not möglichkeiten or taste in möglichkeiten:
+            else:
                 return taste
 
     @staticmethod
@@ -164,14 +162,6 @@ class Terminal:
             Terminal.mint(end)
         else:
             print(end=end)
-
-    @staticmethod
-    def ja_nein(mänx, frage,
-                save: Opt[Speicherpunkt] = None):
-        """Ja-Nein-Frage"""
-        ans = Terminal.minput(
-            mänx, frage, ["j", "ja", "n", "nein"], save=save).lower()
-        return ans == "j" or ans == "ja"
 
     @staticmethod
     def kursiv(text: str) -> str:

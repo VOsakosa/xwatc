@@ -26,7 +26,7 @@ Die Farben sind unter *FARBEN*.
 from __future__ import annotations
 from collections.abc import Mapping
 from typing import List, Optional as Op, Union, NewType, Dict, Any,\
-    TYPE_CHECKING
+    TYPE_CHECKING, cast
 import os.path
 from xwatc.system import Mänx, malp
 import sys
@@ -290,6 +290,7 @@ class Scenario:
         return True
 
     def einleiten(self, mänx: Mänx) -> ScenarioEnde:
+        from xwatc.anzeige import XwatcFenster  # @Reimport
         mänx.context = self
         ans = None
         clear = False
@@ -297,7 +298,8 @@ class Scenario:
             if mänx.ausgabe.terminal:
                 self.print_feld(clear)
             else:
-                mänx.ausgabe.show(self)  # type: ignore
+                # assert isinstance(mänx.ausgabe, XwatcFenster)
+                cast(XwatcFenster, mänx.ausgabe).show(self)
             if not clear:
                 mänx.tutorial("scenario")
             clear = True
