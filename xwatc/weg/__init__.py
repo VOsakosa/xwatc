@@ -459,8 +459,6 @@ def get_eintritt(mänx: Mänx, name_or_gebiet: Wegpunkt | str | tuple[str, str])
         if port not in gebiet.eintrittspunkte:
             raise MissingID(f"Gebiet {gebiet_name} hat keinen Eingang {port}!")
         return gebiet.eintrittspunkte[port]
-        return mänx.welt.get_or_else(
-            "weg:" + name_or_gebiet, GEBIETE[name_or_gebiet], mänx)
     else:
         return name_or_gebiet
 

@@ -237,11 +237,14 @@ class Welt:
 
     @overload
     def obj(self, name: type[VT]) -> VT: ...  # @UnusedVariable
+    
+    @overload
+    def obj(self, name: nsc.StoryChar) -> nsc.NSC: ...
 
     @overload
-    def obj(self, name: str | Besuche) -> Any: ...  # @UnusedVariable
+    def obj(self, name: str) -> Any: ...  # @UnusedVariable
 
-    def obj(self, name: str | Besuche | WeltVariable[Any] | type[Any]) -> Any:
+    def obj(self, name: str | WeltVariable[Any] | type[Any] | nsc.StoryChar) -> Any:
         """Hole ein registriertes oder existentes Objekt.
 
         :raise MissingID: Wenn das Objekt nicht existiert und nicht registriert ist.
@@ -250,14 +253,14 @@ class Welt:
         match name:
             case str(name_str):
                 welt_var = get_welt_var(name_str)  # @UnusedVariable
-            case Besuche(objekt_name=name_str):
-                welt_var = get_welt_var(name_str)  # @UnusedVariable
             case type():
                 welt_var = getattr(name, "_variable")
                 assert welt_var
                 name_str = welt_var.name
             case WeltVariable(name=name_str):
                 welt_var = name
+            case nsc.StoryChar(id_=str(name_str)):
+                welt_var = None
         if name_str in self._objekte:
             return self._objekte[name_str]
         from xwatc import nsc  # @Reimport
@@ -587,19 +590,6 @@ def schiebe_inventar(start: Inventar, ziel: Inventar) -> None:
     for item, anzahl in start.items():
         ziel[item] += anzahl
     start.clear()
-
-
-class Besuche:
-    # TODO: Auf Verwendungen prüfen
-    """Mache einer ID für ein Objekt aus dem Objektregister ein HatMain-object.
-    Bei der Main wird das Objekt aus dem Register gesucht bzw. erzeugt und dann dessen
-    Main aufgerufen."""
-
-    def __init__(self, objekt_name: str) -> None:
-        self.objekt_name = objekt_name
-
-    def main(self, mänx: Mänx):
-        return mänx.welt.obj(self.objekt_name).main(mänx)
 
 
 # EIN- und AUSGABE
