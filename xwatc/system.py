@@ -195,6 +195,7 @@ class Welt:
     tag: float = 0.
     _objekte: dict[str, Any] = field(factory=dict, repr=False)
     _flaggen: set[str] = field(factory=set, repr=False)
+    _gebiete: dict[str, weg.Gebiet] = field(factory=dict, repr=False)
 
     @classmethod
     def default(cls) -> Self:
@@ -208,19 +209,6 @@ class Welt:
     def ist(self, name: str) -> bool:
         """Testet eine Welt-Variable."""
         return name in self._flaggen
-
-    def get_or_else(self, name: str, fkt: Callable[..., T], *args,
-                    **kwargs) -> T:
-        """Hole ein Objekt aus dem Speicher oder erzeuge ist mit *fkt*"""
-        if name in self._objekte:
-            ans = self._objekte[name]
-            if isinstance(fkt, type):
-                assert isinstance(ans, fkt)
-            return ans
-        else:
-            ans = fkt(*args, **kwargs)
-            self._objekte[name] = ans
-            return ans
 
     # TODO: Durch Story-Char ersetzen.
     def am_leben(self, name: str) -> bool:
@@ -280,6 +268,11 @@ class Welt:
     def setze_objekt(self, name: str, objekt: object) -> None:
         """Setze ein Objekt in der Welt."""
         self._objekte[name] = objekt
+        
+    def get_gebiet(self, mänx: Mänx, name: str) -> weg.Gebiet:
+        if name not in self._gebiete:
+            self._gebiete[name] = weg.GEBIETE[name](mänx)
+        return self._gebiete[name]
 
     def nächster_tag(self, tage: int = 1):
         """Springe zum nächsten Tag"""

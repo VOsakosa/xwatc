@@ -55,9 +55,7 @@ def _add_fns() -> None:
                         _logger.warn("Unterklasse von NSC kann nicht richtig gespeichert werden"
                                      f": {type(obj)}")
                     objekte[key] = converter.unstructure(obj, NSC)
-                case Gebiet():
-                    objekte[key] = None
-                case []:
+                case [*_]:
                     objekte[key] = converter.unstructure(obj, list[NSC])
                 case _ if typ:
                     objekte[key] = converter.unstructure(obj, typ)
@@ -82,6 +80,7 @@ def _add_fns() -> None:
     _welt_unstructure_base = cattrs.gen.make_dict_unstructure_fn(
         Welt, converter,
         _objekte=omit,
+        _gebiete=omit,
     )
 
     def _mänx_unstructure(m: Mänx) -> dict:
@@ -101,11 +100,7 @@ def _add_fns() -> None:
                     case _ if typ := get_var_typ(key):
                         mänx.welt.setze_objekt(key, conv2.structure(value, typ))
                     case None:  # Gebiet oder aus Register @UnusedVariable
-                        if key.startswith("weg:"):
-                            key = key.removeprefix("weg:")
-                            weg.get_gebiet(mänx, key)
-                        else:
-                            mänx.welt.obj(key)
+                        mänx.welt.obj(key)
                     case float() | int():
                         mänx.welt.setze_objekt(key, value)
                     case []:

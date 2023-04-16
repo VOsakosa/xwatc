@@ -15,11 +15,11 @@ from xwatc.system import (Mänx, MenuOption, MänxFkt, malp, mint,
                           MänxPrädikat, Welt)
 from xwatc.utils import uartikel, bartikel, adj_endung, UndPred
 from xwatc.weg import Ausgang, Wegpunkt, WegEnde, Weg, Gebiet
+from xwatc.weg import dorf
 
 
 if TYPE_CHECKING:
     from xwatc import nsc
-    from xwatc.weg import dorf  # @UnusedImport
 __author__ = "jasper"
 
 
@@ -269,7 +269,7 @@ class Wegkreuzung(Wegpunkt):
     immer_fragen: bool = True
     kreuzung_beschreiben: bool = False
     _gebiet: 'Gebiet | None' = None
-    dorf: 'dorf.Dorf | None' = None
+    dorf: dorf.Dorf | None = None
     beschreibungen: list[Beschreibung] = field(factory=list)
     _wenn_fn: dict[str, MänxPrädikat] = field(factory=dict)
 
@@ -565,4 +565,3 @@ class Wegkreuzung(Wegpunkt):
                     seen.add(next_)
                     to_check.append(next_)
         raise ValueError("Diese Kreuzung gehört zu keinem Gebiet.")
-

@@ -433,7 +433,7 @@ def get_gebiet(mänx: Mänx, name: str) -> Gebiet:
     """Hole oder erzeuge das Gebiet `name` in `mänx`."""
     if name not in GEBIETE:
         raise MissingID(f"Unbekanntes Gebiet {name}")
-    return mänx.welt.get_or_else(f"weg:{name}", GEBIETE[name], mänx)
+    return mänx.welt.get_gebiet(mänx, name)
 
 
 def get_eintritt(mänx: Mänx, name_or_gebiet: Wegpunkt | str | tuple[str, str]) -> Wegpunkt:
