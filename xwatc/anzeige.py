@@ -252,8 +252,8 @@ class XwatcFenster:
         return ans
 
     @_idle_wrapper
-    def eingabe(self, prompt: Opt[str],
-                action: Opt[Callable[[str], Any]] = None) -> None:
+    def eingabe(self, prompt: str | None,
+                action: Callable[[str], Any] | None = None) -> None:
         if prompt:
             self.malp(prompt)
         self._remove_choices()
@@ -277,7 +277,7 @@ class XwatcFenster:
     @_idle_wrapper
     def auswahl(self, mgn: Sequence[Tuple[str, Any] | Tuple[str, Any, str]],
                 versteckt: Opt[Mapping[str, Any]] = None,
-                save: Opt[Speicherpunkt] = None,
+                save: Speicherpunkt | None = None,
                 action: Opt[Callable[[Any], Any]] = None) -> None:
         self.speicherpunkt = save
         self._remove_choices()

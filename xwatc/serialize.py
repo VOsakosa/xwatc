@@ -8,6 +8,7 @@ import cattrs.preconf.pyyaml
 from logging import getLogger
 from xwatc.untersystem.variablen import get_var_typ
 from attrs import define
+from typing_extensions import assert_never
 
 if TYPE_CHECKING:
     from xwatc import system, weg, nsc  # @UnusedImport
@@ -148,7 +149,7 @@ def mache_strukturierer(mänx: 'system.Mänx') -> cattrs.Converter:
     return conv
 
 
-def unstructure_punkt(punkt: 'system.HatMain | system.MänxFkt') -> Any:
+def unstructure_punkt(punkt: 'system.Speicherpunkt') -> Any:
     from xwatc import weg, nsc  # @Reimport
     from types import FunctionType
     match punkt:
@@ -158,11 +159,13 @@ def unstructure_punkt(punkt: 'system.HatMain | system.MänxFkt') -> Any:
             return {"fn": name}
         case nsc.NSC(ort=weg.Wegkreuzung(gebiet=gebiet, name=name), template=nsc.StoryChar(id_=id_)):
             return {"nsc": id_, "gebiet": gebiet.name, "ort": name}
+        case nsc.NSC():  # @UnusedVariable
+            raise ValueError("NSC außerhalb eines Ortes kann nicht gespeichert werden.")
         case _:
-            raise TypeError(f"{punkt} kann nicht gespeichert werden.")
+            assert_never(punkt)
 
 
-def structure_punkt(punkt: Any, mänx: 'system.Mänx') -> 'system.HatMain | system.MänxFkt':
+def structure_punkt(punkt: Any, mänx: 'system.Mänx') -> 'system.Fortsetzung':
     from xwatc.weg import finde_kreuzung
     match punkt:
         case [str(gebiet), str(name)]:

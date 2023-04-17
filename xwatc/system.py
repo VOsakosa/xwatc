@@ -7,6 +7,7 @@ from logging import getLogger
 import logging
 from pathlib import Path
 from time import sleep
+from types import FunctionType
 from typing import TypeVar, Any, Protocol
 from typing import (List, Union, Optional, Optional as Opt, TypeAlias, overload)
 from typing_extensions import Self, assert_never
@@ -76,7 +77,7 @@ class MissingIDError(Exception):
     id_: str
 
 
-Speicherpunkt = HatMain | MänxFkt
+Speicherpunkt: TypeAlias = 'FunctionType | nsc.NSC | weg.Wegkreuzung'
 MänxPrädikat = MänxFkt[bool]
 Fortsetzung = Union[MänxFkt, HatMain, 'weg.Wegpunkt']
 ITEMVERZEICHNIS = lade_itemverzeichnis(Path(__file__).parent / "itemverzeichnis.txt",
@@ -408,7 +409,7 @@ class Mänx(InventarBasis):
              optionen: List[MenuOption[T]],
              frage: str = "",
              versteckt: Mapping[str, T] | None = None,
-             save: Opt[HatMain | MänxFkt] = None) -> T:
+             save: Speicherpunkt | None = None) -> T:
         """Lasse den Spieler aus verschiedenen Optionen wählen.
 
         z.B:
@@ -558,7 +559,7 @@ class Mänx(InventarBasis):
 
             self._geladen_von = None
 
-    def save(self, punkt: HatMain | MänxFkt, name: Path | str | None = None) -> None:
+    def save(self, punkt: Speicherpunkt, name: Path | str | None = None) -> None:
         """Speicher den Mänxen."""
         # self._geladen_von = punkt
         if name is None:
