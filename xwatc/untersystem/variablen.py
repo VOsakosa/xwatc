@@ -7,7 +7,7 @@ from collections.abc import Callable
 from logging import getLogger
 from typing import Generic, TypeVar, Any, TYPE_CHECKING
 if TYPE_CHECKING:
-    from xwatc.system import Welt
+    from xwatc.system import MänxFkt, Fortsetzung, Welt  # @UnusedImport
 __author__ = "jasper"
 _logger = getLogger("xwatc.system")
 
@@ -71,6 +71,12 @@ def register(name: str) -> Callable[[TT], TT]:
         return typ
 
     return wrapper
+
+class MethodSave:
+    """Ein Speicherpunkt für Episoden, das sind Methoden eines registrierten Objektes."""
+    def __init__(self, fn: 'MänxFkt[Fortsetzung]') -> None:
+        self.method: str = fn.__name__  # type: ignore
+        self.obj: str = type(fn.__self__)._variable.name  # type: ignore
 
 
 def get_var_typ(name: str) -> type | None:

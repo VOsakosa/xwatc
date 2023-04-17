@@ -4,9 +4,10 @@ Created on 24.03.2023
 """
 from importlib import import_module
 from typing import Any, Final, TYPE_CHECKING
+from types import FunctionType, MethodType
 import cattrs.preconf.pyyaml
 from logging import getLogger
-from xwatc.untersystem.variablen import get_var_typ
+from xwatc.untersystem.variablen import get_var_typ, MethodSave
 from attrs import define
 from typing_extensions import assert_never
 
@@ -153,12 +154,13 @@ def mache_strukturierer(mänx: 'system.Mänx') -> cattrs.Converter:
 
 def unstructure_punkt(punkt: 'system.Speicherpunkt') -> Any:
     from xwatc import weg, nsc, scenario  # @Reimport
-    from types import FunctionType
     match punkt:
         case weg.Wegkreuzung(gebiet=gebiet, name=name):
             return {"gebiet": gebiet.name, "ort": name}
-        case FunctionType(__name__=name):
+        case FunctionType(__qualname__=name):
             return {"fn": name}
+        case MethodSave(method=method, obj=obj):
+            return {"obj": obj, "method": method}
         case nsc.NSC(ort=weg.Wegkreuzung(gebiet=gebiet, name=name), template=nsc.StoryChar(id_=id_)):
             return {"nsc": id_, "gebiet": gebiet.name, "ort": name}
         case nsc.NSC():  # @UnusedVariable
@@ -185,6 +187,8 @@ def structure_punkt(punkt: Any, mänx: 'system.Mänx') -> 'system.Fortsetzung':
             ans = getattr(import_module(package), fun)
             assert callable(ans)
             return ans
+        case {"obj": str(objekt_name), "method": str(methoden_name)}:
+            return getattr(mänx.welt.obj(objekt_name), methoden_name)
         case _:
             raise ValueError("Unbekanntes Format für Speicherpunkt.")
 

@@ -7,7 +7,7 @@ from logging import getLogger
 import logging
 from pathlib import Path
 from time import sleep
-from types import FunctionType
+import types  # @UnusedImport
 from typing import TypeVar, Any, Protocol
 from typing import (List, Union, Optional, Optional as Opt, TypeAlias, overload)
 from typing_extensions import Self, assert_never
@@ -25,7 +25,7 @@ from xwatc.terminal import Terminal
 from xwatc.untersystem import hilfe
 from xwatc.untersystem.itemverzeichnis import lade_itemverzeichnis, Item
 from xwatc.untersystem.variablen import WeltVariable, VT, get_welt_var
-from xwatc.untersystem.variablen import register, Variable  # @UnusedImport
+from xwatc.untersystem.variablen import register, Variable, MethodSave  # @UnusedImport
 from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
 from xwatc.untersystem.person import Rasse, Fähigkeit
 
@@ -75,7 +75,8 @@ class MissingIDError(Exception):
     id_: str
 
 
-Speicherpunkt: TypeAlias = 'FunctionType | nsc.NSC | weg.Wegkreuzung | scenario.ScenarioWegpunkt'
+Speicherpunkt: TypeAlias = ('types.FunctionType | nsc.NSC '
+' | weg.Wegkreuzung | scenario.ScenarioWegpunkt | MethodSave')
 MänxPrädikat = MänxFkt[bool]
 Fortsetzung = Union[MänxFkt, HatMain, 'weg.Wegpunkt']
 ITEMVERZEICHNIS = lade_itemverzeichnis(Path(__file__).parent / "itemverzeichnis.txt",
