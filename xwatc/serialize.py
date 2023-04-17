@@ -133,7 +133,7 @@ def _add_fns() -> None:
 def mache_strukturierer(mänx: 'system.Mänx') -> cattrs.Converter:
     """Mache einen Strukturierer, der an den Mänxen gebunden ist und damit
     die Erzeugerfunktionen bedienen kann."""
-    from xwatc.weg import Gebiet, Wegkreuzung, finde_kreuzung, get_gebiet
+    from xwatc.weg import Gebiet, Wegkreuzung, finde_punkt, get_gebiet
 
     conv = converter.copy()
 
@@ -142,7 +142,9 @@ def mache_strukturierer(mänx: 'system.Mänx') -> cattrs.Converter:
 
     def kreuzung_st(in_: list[str], _typ) -> Wegkreuzung:
         gebiet, name = in_
-        return finde_kreuzung(mänx, gebiet, name)
+        ans = finde_punkt(mänx, gebiet, name)
+        assert isinstance(ans, Wegkreuzung)
+        return ans
 
     conv.register_structure_hook(Gebiet, gebiet_st)
     conv.register_structure_hook(Wegkreuzung, kreuzung_st)
@@ -150,28 +152,34 @@ def mache_strukturierer(mänx: 'system.Mänx') -> cattrs.Converter:
 
 
 def unstructure_punkt(punkt: 'system.Speicherpunkt') -> Any:
-    from xwatc import weg, nsc  # @Reimport
+    from xwatc import weg, nsc, scenario  # @Reimport
     from types import FunctionType
     match punkt:
         case weg.Wegkreuzung(gebiet=gebiet, name=name):
-            return [gebiet.name, name]
+            return {"gebiet": gebiet.name, "ort": name}
         case FunctionType(__name__=name):
             return {"fn": name}
         case nsc.NSC(ort=weg.Wegkreuzung(gebiet=gebiet, name=name), template=nsc.StoryChar(id_=id_)):
             return {"nsc": id_, "gebiet": gebiet.name, "ort": name}
         case nsc.NSC():  # @UnusedVariable
             raise ValueError("NSC außerhalb eines Ortes kann nicht gespeichert werden.")
+        case scenario.ScenarioWegpunkt():
+            return {"gebiet": punkt.gebiet.name, "ort": punkt.name}
         case _:
             assert_never(punkt)
 
 
 def structure_punkt(punkt: Any, mänx: 'system.Mänx') -> 'system.Fortsetzung':
-    from xwatc.weg import finde_kreuzung
+    from xwatc.weg import finde_punkt, Wegkreuzung
     match punkt:
         case [str(gebiet), str(name)]:
-            return finde_kreuzung(mänx, gebiet, name)
+            return finde_punkt(mänx, gebiet, name)
+        case {"gebiet": str(gebiet), "ort": str(name)}:
+            return finde_punkt(mänx, gebiet, name)
         case {"nsc": str(id_), "gebiet": str(gebiet), "ort": str(name)}:
-            return BesucheNSC(mänx.welt.obj(id_), finde_kreuzung(mänx, gebiet, name))
+            ort = finde_punkt(mänx, gebiet, name)
+            assert isinstance(ort, Wegkreuzung)
+            return BesucheNSC(mänx.welt.obj(id_), ort)
         case {"fn": str(function_name)}:
             package, __, fun = function_name.rpartition(".")
             ans = getattr(import_module(package), fun)
@@ -185,7 +193,7 @@ def structure_punkt(punkt: Any, mänx: 'system.Mänx') -> 'system.Fortsetzung':
 class BesucheNSC:
     nsc: 'nsc.NSC'
     kreuzung: 'weg.Wegkreuzung'
-    
+
     def __str__(self) -> str:
         return f"BesucheNSC({self.nsc.name}, {self.kreuzung})"
 

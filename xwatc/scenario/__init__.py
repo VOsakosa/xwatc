@@ -291,7 +291,6 @@ class Scenario:
 
     def einleiten(self, mänx: Mänx) -> ScenarioEnde:
         from xwatc.anzeige import XwatcFenster  # @Reimport
-        mänx.context = self
         ans = None
         clear = False
         while not ans:
@@ -306,7 +305,11 @@ class Scenario:
             if mänx.ausgabe.terminal:
                 arg = mänx.minput(">")
             else:
-                arg = mänx.menu([], versteckt={a: a for a in "wasd"})
+                if isinstance(mänx.context, ScenarioWegpunkt) and mänx.context.scenario is self:
+                    save = mänx.context
+                else:
+                    save = None
+                arg = mänx.menu([], versteckt={a: a for a in "wasd"}, save=save)
             if arg == "w":
                 ans = self.bewege_spieler(mänx, -1, 0)
             elif arg == "d":
@@ -317,8 +320,6 @@ class Scenario:
                 ans = self.bewege_spieler(mänx, 0, -1)
             else:
                 malp("Hä? Was is'n 'n", repr(arg))
-        if mänx.context is self:
-            mänx.context = None
         return ans
 
 
@@ -352,9 +353,10 @@ def _lade_scenario(scenario: Scenario | str) -> Scenario:
         return scenario
 
 
-@define
+@define(eq=False)
 class ScenarioWegpunkt(weg.Wegpunkt):
     """Macht ein Scenario zu einem Wegpunkt."""
+    gebiet: weg.Gebiet
     name: str
     scenario: Scenario = field(converter=_lade_scenario)
     ziele: Mapping[str, weg.Ausgang]

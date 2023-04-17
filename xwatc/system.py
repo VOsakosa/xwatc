@@ -30,9 +30,7 @@ from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
 from xwatc.untersystem.person import Rasse, Fähigkeit
 
 if typing.TYPE_CHECKING:
-    from xwatc import anzeige  # @UnusedImport
-    from xwatc import weg  # @UnusedImport
-    from xwatc import nsc  # @UnusedImport
+    from xwatc import anzeige, weg, nsc, scenario  # @UnusedImport
 
 SPEICHER_VERZEICHNIS = Path(__file__).parent.parent / "xwatc_saves"
 getLogger("xwatc").addHandler(logging.StreamHandler())
@@ -77,7 +75,7 @@ class MissingIDError(Exception):
     id_: str
 
 
-Speicherpunkt: TypeAlias = 'FunctionType | nsc.NSC | weg.Wegkreuzung'
+Speicherpunkt: TypeAlias = 'FunctionType | nsc.NSC | weg.Wegkreuzung | scenario.ScenarioWegpunkt'
 MänxPrädikat = MänxFkt[bool]
 Fortsetzung = Union[MänxFkt, HatMain, 'weg.Wegpunkt']
 ITEMVERZEICHNIS = lade_itemverzeichnis(Path(__file__).parent / "itemverzeichnis.txt",

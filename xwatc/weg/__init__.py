@@ -126,6 +126,7 @@ class _Strecke(WegpunktAusgang):
         return (f"{type(self).__name__} von {name(self.p1)} "
                 f"nach {name(self.p2)}")
 
+
 class Weg(_Strecke):
     """Ein Weg hat zwei Enden und dient dazu, die Länge der Reise darzustellen.
     Zwei Menschen auf dem Weg zählen als nicht benachbart."""
@@ -168,25 +169,37 @@ class Weg(_Strecke):
             assert self.p1, "Loses Ende!"
             return self.p1
 
+@runtime_checkable
+class BenannterWegpunkt(Wegpunkt, Protocol):
+    """Protokoll, dass einen Wegpunkt mit Namen darstellt."""
+    @property
+    def name(self) -> str: ...
 
 
-
-def finde_kreuzung(mänx: Mänx, gebiet: str, kreuzung: str) -> Wegkreuzung:
+def finde_punkt(mänx: Mänx, gebiet: str, name: str) -> BenannterWegpunkt:
     """Finde eine Kreuzung in einem Gebiet."""
     # Tiefensuche nach der Kreuzung mit den richtigen Namen.
     gb = get_gebiet(mänx, gebiet)
+    if ans := gb.finde_punkt(name):
+        return ans
     seen: set[Wegpunkt] = {*gb.eintrittspunkte.values()}
     to_check: list[Wegpunkt] = [*gb.eintrittspunkte.values()]
     while to_check:
         punkt = to_check.pop()
         match punkt:
-            case Wegkreuzung(name=name) if name == kreuzung:
-                return punkt
+            case Wegkreuzung(name=name2):
+                gb.add_punkt(punkt)
+                if name == name2:
+                    return punkt
+            case BenannterWegpunkt(name=name2):
+                gb.add_punkt(punkt)
+                if name == name2:
+                    return punkt
         for next_ in punkt.get_nachbarn():
             if next_ not in seen:
                 seen.add(next_)
                 to_check.append(next_)
-    raise MissingIDError(kreuzung)
+    raise MissingIDError(name)
 
 
 @define
@@ -197,6 +210,7 @@ class Gebiet:
     gitterlänge: float = 5 / 64
     _punkte: list[list[Wegkreuzung | None]] = field(factory=list, repr=False)
     eintrittspunkte: dict[str, Wegpunkt] = field(factory=dict, repr=False)
+    _benannte: dict[str, BenannterWegpunkt] = field(factory=dict, repr=False)
 
     def neuer_punkt(self, koordinate: tuple[int, int], name: str, immer_fragen: bool = True
                     ) -> Wegkreuzung:
@@ -241,6 +255,19 @@ class Gebiet:
             self._punkte.extend([None for __ in range(y + 1)]
                                 for __ in range(len(self._punkte), x + 1))
         self._punkte[x][y] = wegpunkt
+        self.add_punkt(wegpunkt)
+
+    def add_punkt(self, punkt: BenannterWegpunkt) -> None:
+        self._benannte[punkt.name] = punkt
+
+    def finde_punkt(self, name: str) -> BenannterWegpunkt | None:
+        return self._benannte.get(name)
+
+    def finde_kreuzung(self, name: str) -> Wegkreuzung | None:
+        ans = self.finde_punkt(name)
+        if isinstance(ans, Wegkreuzung):
+            return ans
+        return None
 
     def _verbind(self, pkt1: Wegkreuzung, pkt2: Wegkreuzung, ri_name: str, länge: int) -> None:
         ri1 = Himmelsrichtung.from_kurz(ri_name)

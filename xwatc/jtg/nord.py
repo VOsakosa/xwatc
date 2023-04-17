@@ -32,7 +32,7 @@ eintritt_west = Eintritt("jtg:disnayenbum", "west")
 
 @weg.gebiet("jtg:disnayenbum")
 def disnayenbum(_mänx: Mänx, gb: weg.Gebiet):
-    ScenarioWegpunkt("disnajenbun", "disnajenbun", {
+    ScenarioWegpunkt(gb, "disnajenbun", "disnajenbun", {
         "osten": gb.ende(eintritt_ost, osten.no_dis),
         "westen": gb.ende(eintritt_west, eo_nw.eo_nw_ost),
         "süden": gb.ende(eintritt_süd, mitose.eingang_nord)
