@@ -9,8 +9,7 @@ from xwatc import weg
 from xwatc.lg import mitte
 
 # TODO Gefängnis
-# - Speichern bei Abschnitten (@episode)
-# - Speichern des Gefängnisses
+# - Der korrekte Ausgang
 # - Mint mit Speichern
 
 
@@ -20,6 +19,7 @@ class GefängnisGäfdah(StoryObject):
     war_drinnen: bool = False
     war_sauber: bool = False
     sauber: bool = False
+    absitzen_dauer: int = 0
 
     def main(self, mänx: Mänx) -> Fortsetzung:
         self.sauber = random.randint(1, 10) <= 6
@@ -86,7 +86,6 @@ class GefängnisGäfdah(StoryObject):
 
     def vor_strafe(self, mänx: Mänx) -> Fortsetzung:
         while True:
-            mänx.sleep(20, ">")
             if random.randint(1, 5) == 1:
                 # Gerichtsverfahren
                 return self.gerichtsverfahren
@@ -96,9 +95,11 @@ class GefängnisGäfdah(StoryObject):
 
     def wache_kommt(self, mänx: Mänx) -> Fortsetzung | None:
         """Du kannst mit der Wache reden oder kämpfen oder sie ignorieren."""
+        malp("Du wartest auf die Wache.")
+        mänx.sleep(20, ">")
         malp("Die Wache kommt nach dir schauen.")
-        # TODO: Die Wache kommt auch beim Absitzen...
-        mänx.menu([(_("nichts tun"), _("nichts tun"), "n")], save=MethodSave(self.vor_strafe))
+        mänx.menu([(_("nichts tun"), _("nichts tun"), "n")], save=MethodSave(
+            self.vor_strafe if self.absitzen_dauer == 0 else self.absitzen))
         return None
 
     def gerichtsverfahren(self, mänx: Mänx) -> Fortsetzung:
@@ -127,22 +128,26 @@ class GefängnisGäfdah(StoryObject):
         malp("Da dröhnt in deinem Kopf eine Stimme:")
         sprich("Unbekannte Stimme",
                "Deine Haftstrafe liegt bei {:g} RL-Minuten.".format(dauer / 2), warte=True)
-        return self.absitzen(mänx, dauer)
+        self.absitzen_dauer = dauer
+        return self.absitzen
 
-    def absitzen(self, mänx: Mänx, dauer: int) -> Fortsetzung:
-        for _rest in range(dauer, 0, -1):
-            mänx.sleep(30, '>')
+    def absitzen(self, mänx: Mänx) -> Fortsetzung:
+        if self.absitzen_dauer:
             if ans := self.wache_kommt(mänx):
                 return ans
-        mänx.sleep(30, ">")
+            self.absitzen_dauer -= 1
+        return self.fertig_abgesessen
+
+    def fertig_abgesessen(self, mänx: Mänx) -> Fortsetzung:
         malp("Du hast deine Strafe abgesessen.")
-        malp("Ein Wächter holt dich aus deiner Zelle und führt dich einen ", end="")
         if self.sauber:
-            malp("langen, weißen ", end="")
+            malp("Ein Wächter holt dich aus deiner Zelle und führt dich einen "
+                 "langen, weißen Korridor entlang, bis du schließlich zu einem kleinen Raum mit "
+                 "mehreren Knöpfen an der Wand kommst.", warte=True)
         else:
-            malp("langen, dunklen ", end="")
-        malp("Korridor entlang, bis du schließlich zu einem kleinen Raum mit "
-             "mehreren Knöpfen an der Wand kommst.", warte=True)
+            malp("Ein Wächter holt dich aus deiner Zelle und führt dich einen "
+                 "langen, dunklen Korridor entlang, bis du schließlich zu einem kleinen Raum mit "
+                 "mehreren Knöpfen an der Wand kommst.", warte=True)
         malp("Der Wächter drückt einen der Knöpfe und eine Sekunde lang hast "
              "du das "
              "Gefühl, als wärst du unendlich schwer.")
