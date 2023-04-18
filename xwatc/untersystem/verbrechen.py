@@ -2,7 +2,7 @@
 Created on 12.08.2021
 """
 from enum import Enum, auto
-from typing import NamedTuple
+from attrs import define
 __author__ = "leo"
 
 class Verbrechensart(Enum):
@@ -11,7 +11,7 @@ class Verbrechensart(Enum):
     DIEBSTAHL = auto()
     SACHBESCHÄDIGUNG = auto()
 
-
-class Verbrechen(NamedTuple):
+@define(frozen=True)
+class Verbrechen:
     art: Verbrechensart
     versuch: bool = False

@@ -1,4 +1,5 @@
 import random
+from collections import Counter
 from attrs import define
 from xwatc.system import (_, mint, register, Mänx, malp, Fortsetzung,
                           sprich, StoryObject, MethodSave)
@@ -33,7 +34,7 @@ class GefängnisGäfdah(StoryObject):
             if mänx.ja_nein("Versuchst du zu fliehen", save=MethodSave(self.main)):
                 malp("Du versuchst die Wache anzugreifen, "
                      "stolperst jedoch über deine Fesseln und stürzt.", warte=True)
-                mänx.verbrechen[Verbrechen(Verbrechensart.AUSBRUCH, True)] += 1
+                mänx.add_verbrechen(Verbrechensart.AUSBRUCH, True)
                 mint("Die Wache ignoriert deinen Fluchtversuch und zerrt "
                      "dich aus der Zelle.")
                 ans = self.gerichtsverfahren
@@ -112,7 +113,7 @@ class GefängnisGäfdah(StoryObject):
         malp("Der Richter blickt auf ein Stück Papier und liest laut deine "
              "Verbrechen auf:")
         dauer = 0
-        for verbrechen, anzahl in mänx.verbrechen.items():
+        for verbrechen, anzahl in Counter(mänx.verbrechen).items():
             zeile = verbrechen.art.name.capitalize()
             if verbrechen.versuch:
                 zeile += " (versucht)"
@@ -184,6 +185,6 @@ if __name__ == '__main__':
 
         def ständig_gäfdah(mänx):
             mänx.sleep = lambda zeit, zeichen=None: malp(f"Schlafe({zeit}, {zeichen})")
-            mänx.verbrechen[Verbrechen(Verbrechensart.DIEBSTAHL)] = 1
+            mänx.add_verbrechen(Verbrechensart.DIEBSTAHL)
             return gefängnis_von_gäfdah
         main(ständig_gäfdah)

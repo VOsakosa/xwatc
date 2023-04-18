@@ -76,7 +76,7 @@ class MissingIDError(Exception):
 
 
 Speicherpunkt: TypeAlias = ('types.FunctionType | nsc.NSC '
-' | weg.Wegkreuzung | scenario.ScenarioWegpunkt | MethodSave')
+                            ' | weg.Wegkreuzung | scenario.ScenarioWegpunkt | MethodSave')
 MänxPrädikat = MänxFkt[bool]
 Fortsetzung = Union[MänxFkt, HatMain, 'weg.Wegpunkt']
 ITEMVERZEICHNIS = lade_itemverzeichnis(Path(__file__).parent / "itemverzeichnis.txt",
@@ -328,8 +328,7 @@ class Mänx(InventarBasis):
     rasse: Rasse = Rasse.Mensch
     titel: set[str] = field(factory=set, repr=False)
     fähigkeiten: set[Fähigkeit] = field(factory=set, repr=False)
-    verbrechen: defaultdict[Verbrechen, int] = field(
-        factory=lambda: defaultdict(int))
+    verbrechen: list[Verbrechen] = field(factory=list)
     gefährten: list[nsc.NSC] = field(factory=list, repr=False)
     context: Any | None = None
     # Speicherpunkt signalisiert, dass der Mänx gerade geladen wird.
@@ -531,24 +530,22 @@ class Mänx(InventarBasis):
         if gefährte := self.menu(opts):
             gefährte.main(self)
 
-    def add_verbrechen(self, name: str | Verbrechen | Verbrechensart, versuch=False) -> None:
+    def add_verbrechen(self, name: Verbrechen | Verbrechensart, versuch: bool = False) -> None:
         """Laste dem Mänxen ein Verbrechen an."""
-        if isinstance(name, str):
-            verbrechen = Verbrechen(Verbrechensart(name.upper()), versuch)
-        elif isinstance(name, Verbrechen):
+        if isinstance(name, Verbrechen):
             verbrechen = name
         elif isinstance(name, Verbrechensart):
             verbrechen = Verbrechen(name, versuch)
         else:
             raise TypeError("name muss Verbrechen, VerbrechenArt oder Name "
                             "des Verbrechens sein.")
-        self.verbrechen[verbrechen] += 1
+        self.verbrechen.append(verbrechen)
 
     @property
     def am_laden(self) -> bool:
         return self._geladen_von is not None
 
-    def _reset_laden(self, save: Fortsetzung | None) -> None:
+    def _reset_laden(self, save: Speicherpunkt | None) -> None:
         """Beende den Lade-Modus. Prüfe möglichst noch, ob man auch an der selben Stelle
         landet und gebe sonst eine Warnung aus."""
         warn = getLogger("xwatc.system").warn
