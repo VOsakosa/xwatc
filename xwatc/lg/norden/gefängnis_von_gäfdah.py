@@ -7,6 +7,7 @@ from xwatc.system import (_, mint, register, Mänx, malp, Fortsetzung,
 from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
 from xwatc import weg
 from xwatc.lg import mitte
+from xwatc.weg import Eintritt
 
 # TODO Gefängnis
 # - Der korrekte Ausgang
@@ -20,6 +21,7 @@ class GefängnisGäfdah(StoryObject):
     war_sauber: bool = False
     sauber: bool = False
     absitzen_dauer: int = 0
+    ausgang: Eintritt | None = None
 
     def main(self, mänx: Mänx) -> Fortsetzung:
         self.sauber = random.randint(1, 10) <= 6
@@ -153,31 +155,18 @@ class GefängnisGäfdah(StoryObject):
              "Gefühl, als wärst du unendlich schwer.")
         malp("Dann öffnet der Wächter eine Tür ins Freie.", warte=True)
         mänx.verbrechen.clear()
-        rand = random.choice("hhhgmddk")
-        if rand == "h":
-            return mitte.MITTE_EINTRITT
-        elif rand == "g":
-            # GIBON
-            # erzeugen
-            weg.get_gebiet(mänx, "jtg:tauern")
-            # gibon holen
-            return mänx.welt.obj("jtg:tau:gibon").get_ort("Anger")
-
-        elif rand == "m":
-            # MITOSE
-            return weg.get_eintritt(mänx, "jtg:mitose")
-        elif rand == "d":
-            # GÄFDAH
-            from xwatc.lg.norden.norden import norden
-            return norden
-        else:  # rand == "k"
-            from xwatc.jtg.groekrak import grökrak
-            return grökrak
+        ausgang = self.ausgang
+        if not ausgang:
+            from xwatc.lg.norden.norden import gäfdah
+            ausgang = gäfdah
+        return ausgang
 
 
-def gefängnis_von_gäfdah(mänx: Mänx) -> Fortsetzung:
-    return mänx.welt.obj(GefängnisGäfdah)
-    # TODO: Mänx.next()
+def gefängnis_von_gäfdah(mänx: Mänx, ausgang: Eintritt | None = None) -> Fortsetzung:
+    """Führe das Gefängnis aus. Der Parameter ausgang gibt an, wohin der Mensch zurückkommt."""
+    gf = mänx.welt.obj(GefängnisGäfdah)
+    gf.ausgang = ausgang
+    return gf
 
 
 if __name__ == '__main__':

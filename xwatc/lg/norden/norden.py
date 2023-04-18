@@ -6,6 +6,7 @@ from xwatc.weg import Eintritt, Gebiet, gebiet, Gebietsende, Wegpunkt
 
 
 norden = Eintritt("lg:norden", "süden")
+gäfdah = Eintritt("lg:norden", "gäfdah")
 
 
 @gebiet("lg:norden")
@@ -20,6 +21,7 @@ def erzeuge_norden(mänx: Mänx, gb: Gebiet) -> None:
     gäfdah.draußen.bschr(nur="s", geschichte=NurWenn(Einmalig("lg:norden:bettler"),
                                                      norden_bettler))  # type: ignore
     gäfdah.draußen.bschr("Du bist in Gäfdah.")
+    gb.eintrittspunkte["gäfdah"] = gäfdah.draußen
 
 
 def norden_bettler(mänx: Mänx) -> Wegpunkt | None:
