@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from typing import (Optional, Mapping, TypeVar, TYPE_CHECKING, Optional as Opt)
 from time import sleep
+from xwatc import _
 from xwatc.untersystem.menus import Menu
 __author__ = "jasper"
 
@@ -167,3 +168,22 @@ class Terminal:
     def kursiv(text: str) -> str:
         """Packt text so, dass es kursiv ausgedruckt wird."""
         return "\x1b[3m" + text + "\x1b[0m"
+
+def hauptmenu() -> None:
+    """Das Hauptmenu von Xwatc, erlaubt Laden und neues Spiel starten.
+    (Nur Terminal-Modus)"""
+    from xwatc import system
+    while True:
+        if system.ausgabe.menu(None, Menu([(_("Lade Spielstand"), "lade", False),
+                (_("Neuer Spielstand"), "neu", True)])):
+            system.main_loop(system.Mänx())
+            return
+        mgn2 = Menu([
+            (path.name, path.name.lower(), path) for path in
+            system.SPEICHER_VERZEICHNIS.iterdir()  # @UndefinedVariable
+        ] + [("Zurück", "zurück", None)])
+        wahl = system.ausgabe.menu(None, mgn2)
+        if wahl:
+            mänx, punkt = system.Mänx.load_from_file(wahl)
+            system.main_loop(mänx, punkt)
+            return

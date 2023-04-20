@@ -4,8 +4,8 @@ Created on 25.03.2023
 from pathlib import Path
 import tempfile
 import unittest
-from xwatc_test.mock_system import MockSystem, ScriptEnde
-from xwatc_Hauptgeschichte import waffe_wählen
+from xwatc_test.mock_system import MockSystem
+from xwatc.lg.start import waffe_wählen
 __author__ = "Jasper Ischebeck"
 
 

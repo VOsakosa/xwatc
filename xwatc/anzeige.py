@@ -130,8 +130,8 @@ class XwatcFenster:
         win.show_all()
 
     def _xwatc_thread(self, startpunkt: Fortsetzung | None):
-        from xwatc_Hauptgeschichte import main as xw_main
         # Das nächste, was passiert. None für Abbruch, die Buchstaben stehen für interne Menüs
+        from xwatc.lg import start  # @UnusedImport
         next_: str | Path | None
         try:
             if startpunkt:
@@ -144,7 +144,7 @@ class XwatcFenster:
                 if next_ == "h":  # hauptmenu
                     self.malp("Xwatc-Hauptmenü")
                     if self.menu(None, Menu([(_("Lade Spielstand"), "lade", False),
-                            (_("Neuer Spielstand"), "neu", True)])):
+                                             (_("Neuer Spielstand"), "neu", True)])):
                         self.mänx = system.Mänx(self)
                         next_ = "m"
                     else:
@@ -152,7 +152,7 @@ class XwatcFenster:
                 elif next_ == "m":  # main (neue Geschichte)
                     assert self.mänx
                     try:
-                        xw_main(self.mänx, startpunkt)
+                        system.main_loop(self.mänx, startpunkt)
                     except AnzeigeSpielEnde as ende:
                         next_ = ende.weiter
                         continue
@@ -167,7 +167,7 @@ class XwatcFenster:
                     mgn2: Menu[Path | None] = Menu([
                         (path.stem, path.name.lower(), path) for path in
                         SPEICHER_VERZEICHNIS.iterdir()  # @UndefinedVariable
-                    ] +[ ("Zurück", "zurück", None)])
+                    ] + [("Zurück", "zurück", None)])
                     wahl: Path | None = self.menu(None, mgn2)
                     if wahl:
                         next_ = wahl
@@ -499,6 +499,7 @@ class AnzeigeDaten(Protocol):
     def update_widget(self, widget: Gtk.Widget, _fenster: XwatcFenster) -> Any:
         """Aktualisiert das Anzeige-Widget mit den Daten."""
 
+
 @define
 class InfoWidget:
     """Zeigt ständig irgendwelche Infos über den Mänxen."""
@@ -506,7 +507,7 @@ class InfoWidget:
     tag_label: Gtk.Label
     zeit_label: Gtk.Label
     can_save_label: Gtk.Label
-    
+
     @classmethod
     def create(cls) -> Self:
         grid = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, hexpand=True, halign=Gtk.Align.END,
@@ -518,7 +519,7 @@ class InfoWidget:
         grid.add(tag_label)
         grid.add(zeit_label)
         return cls(grid, tag_label, zeit_label, can_save_label)
-    
+
     def update(self, mänx: Mänx, can_save: bool) -> None:
         self.tag_label.set_text(_("Tag {}").format(mänx.welt.get_tag()))
         self.zeit_label.set_text(_("{:02}:{:02}").format(*mänx.welt.uhrzeit()))
@@ -526,7 +527,7 @@ class InfoWidget:
             self.can_save_label.set_label("S")
         else:
             self.can_save_label.set_markup('<span color="#AAAAAA">S</span>')
-        
+
 
 def main(startpunkt: Fortsetzung | None = None):
     global _main_thread

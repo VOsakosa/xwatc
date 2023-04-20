@@ -645,6 +645,42 @@ class Spielende(Exception):
     """Diese Exception wird geschmissen, um das Spiel zu beenden."""
 
 
+def main_loop(mänx: Mänx, punkt: Fortsetzung | None = None) -> None:
+    """Die Hauptschleife von Xwatc."""
+    from xwatc.lg.start import waffe_wählen
+    mänx._geladen_von = punkt
+    if punkt is None:
+        malp(_("Willkommen bei Xwatc"))
+    ende = False
+    while not ende:
+        if not punkt:
+            punkt = waffe_wählen
+        try:
+            while punkt:
+                getLogger("xwatc").info(f"Betrete {punkt}.")
+                if isinstance(punkt, weg.Wegpunkt):
+                    punkt = weg.wegsystem(mänx, punkt, return_fn=True)
+                elif callable(punkt):
+                    punkt = punkt(mänx)
+                else:
+                    punkt = punkt.main(mänx)
+        except Spielende:
+            malp(_("Du bist tot"))
+            punkt = None
+        except EOFError:
+            ende = True
+        else:
+            ende = False
+        malp("Hier ist die Geschichte zu Ende.")
+        if mänx.titel:
+            malp("Du hast folgende Titel erhalten:", ", ".join(mänx.titel))
+        if not ende:
+            mänx.inventar_leeren()
+            malp("Aber keine Sorge, du wirst wiedergeboren")
+        elif not mänx.ausgabe.terminal:
+            mänx.menu([("Beenden", "weiter", None)])
+
+
 from xwatc import anzeige, nsc, weg  # @UnusedImport @Reimport
 if __debug__:
     from typing import get_type_hints
