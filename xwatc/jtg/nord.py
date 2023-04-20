@@ -18,6 +18,7 @@ from xwatc.scenario import Scenario, ScenarioWegpunkt
 from xwatc.system import Mänx, mint, Spielende, InventarBasis, sprich, malp, register
 from xwatc.weg import Eintritt
 from typing_extensions import Self
+from xwatc.untersystem.variablen import Variable
 
 
 
@@ -287,10 +288,11 @@ mieko = StoryChar(
     ]
 )
 mieko.kampf(kampf_in_disnayenbum)
+talisman_tag = Variable("jtg:nord:talisman_tag", 0, float)
 
 
 def kirie_dlg() -> Iterable[Dialog]:
-    def spielen(n, m):
+    def spielen(n: NSC, m: Mänx):
         # Zeit vergeht
         malp(f"Du spielst eine Weile mit {n.name}")
         m.sleep(10)
@@ -299,7 +301,7 @@ def kirie_dlg() -> Iterable[Dialog]:
         if n.freundlich > 60:
             m.titel.add("Kinderfreund")
 
-    def talisman(n, m):
+    def talisman(n: NSC, m: Mänx):
         n.sprich("Das?")
         malp("Kirie zeigt auf den Talisman um ihren Hals.")
         n.sprich("Das ist mein Schatz. Ich habe in gefunden. Damit kann ich mit "
@@ -307,17 +309,19 @@ def kirie_dlg() -> Iterable[Dialog]:
         n.sprich("Willst du auch mal?")
         if m.ja_nein("Nimmst du den Talisman?"):
             n.sprich("Gib ihn aber zurück, ja?")
-            n.talisman_tag = m.welt.get_tag()
+            m.welt.setze_var(talisman_tag, m.welt.get_tag())
             n.sprich("Bis morgen, versprochen?")
             m.erhalte("Talisman des Verstehens", von=n)
 
-    def talisman_zurück(n, m):
+    def talisman_zurück(n: NSC, m: Mänx):
         n.sprich("Danke")
-        if m.welt.get_tag() > n.talisman_tag + 1:
+        if m.welt.get_tag() > m.welt.obj(talisman_tag) + 1:
             n.sprich("Aber du bist zu spät.")
             n.freundlich -= 40
             n.sprich("Du bist nicht mehr mein/e Freund/in!")
+            m.titel.add(_("Unzuverlässig"))
         else:
+            m.titel.add(_("Bewahrer des großen Ehrenworts"))
             n.freundlich += 40
             n.sprich("Und? Wie war's? Konntet ihr Freunde werden?")
         m.inventar["Talisman des Verstehens"] -= 1
@@ -337,10 +341,10 @@ def kirie_dlg() -> Iterable[Dialog]:
         "Sie ist eine echte Lady."], "heißt")
     yield Dialog("talisman", '"Was hast du da für einen Talisman?"', talisman).wenn(
         lambda n, m: n.freundlich > 10 and n.hat_item("Talisman des Verstehens"))
-    yield Dialog("talismanzurück", 'Talisman zurückgeben', talisman_zurück).wenn(
-        lambda n, m: m.hat_item("Talisman des Verstehens"))
-    yield Dialog("axtmann", '"Wie heißt der Mann mit der Axt?"', axtmann_r).wenn(
-        lambda n, m: m.welt.am_leben("jtg:axtmann"))
+    yield Dialog("talismanzurück", 'Talisman zurückgeben', talisman_zurück).wenn_mänx(
+        lambda m: m.hat_item("Talisman des Verstehens"))
+    yield Dialog("axtmann", '"Wie heißt der Mann mit der Axt?"', axtmann_r).wenn_mänx(
+        lambda m: m.welt.am_leben("jtg:axtmann"))
 
 
 kirie = StoryChar("jtg:kirie", ("Kirie", "Fórmayr", "Kind"),

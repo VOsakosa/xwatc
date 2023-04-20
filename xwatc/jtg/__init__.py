@@ -195,6 +195,8 @@ def hexer_skelett(leo: NSC, mänx: Mänx) -> Fortsetzung:
     else:
         return ende_des_waldes
 
+hexer_skelett.wenn_mänx(lambda m: m.rasse == Rasse.Skelett)
+
 
 leo.dialog("anreden", "Ansprechen", (
     Malp("Er bittet dich an den Tisch und gibt dir einen warmen Punsch."),
