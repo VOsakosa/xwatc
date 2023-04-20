@@ -6,7 +6,7 @@ from xwatc import system
 from xwatc import weg
 from xwatc.serialize import converter
 from xwatc.system import Fortsetzung, Inventar, MenuOption, malp, mint, schiebe_inventar, MissingIDError
-from xwatc.untersystem.person import Rasse
+from xwatc.untersystem.person import Rasse, Person
 
 from attrs import define, field, Factory
 import attrs
@@ -19,32 +19,6 @@ from logging import getLogger
 from typing import Any, Literal
 from xwatc.nsc._dialog import (Dialog, DialogFn, DialogErzeugerFn, DialogGeschichte, Rückkehr,
                                RunType, VorList, Zeitpunkt, Malp, Sprich)
-
-
-class Geschlecht(Enum):
-    Weiblich = 0
-    Männlich = 1
-
-
-def to_geschlecht(attr: Literal["m"] | Literal["w"] | Geschlecht) -> Geschlecht:
-    """Wandelt eine Eingabe zu Geschlecht um."""
-    match attr:
-        case "m":
-            return Geschlecht.Männlich
-        case Geschlecht():
-            return attr
-        case "w":
-            return Geschlecht.Weiblich
-        case str(other):
-            raise ValueError(f"Unbekanntes Geschlecht: {other}")
-    raise TypeError(f"Falscher Typ für Geschlecht: {type(attr)} ({attr})")
-
-
-@define
-class Person:
-    """Definiert Eigenschaften, die jedes intelligente Wesen in Xvatc hat."""
-    geschlecht: Geschlecht = attrs.field(converter=to_geschlecht)
-    rasse: Rasse = Rasse.Mensch
 
 
 @define(frozen=True)

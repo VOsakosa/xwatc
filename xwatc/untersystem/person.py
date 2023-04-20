@@ -5,6 +5,8 @@ Created on 03.04.2023
 __author__ = "Jasper Ischebeck"
 
 from enum import auto, Enum
+from attrs import define, field
+from typing import Literal
 
 
 class Rasse(Enum):
@@ -21,3 +23,27 @@ class Fähigkeit(Enum):
     Ausweichen = auto()
     Orgel = auto()
     Schnellplündern = auto()
+
+
+class Geschlecht(Enum):
+    Weiblich = 0
+    Männlich = 1
+
+
+def to_geschlecht(attr: Literal["m"] | Literal["w"] | Geschlecht) -> Geschlecht:
+    """Wandelt eine Eingabe zu Geschlecht um."""
+    match attr:
+        case "m":
+            return Geschlecht.Männlich
+        case Geschlecht():
+            return attr
+        case "w":
+            return Geschlecht.Weiblich
+        case str(other):
+            raise ValueError(f"Unbekanntes Geschlecht: {other}")
+    raise TypeError(f"Falscher Typ für Geschlecht: {type(attr)} ({attr})")
+@define
+class Person:
+    """Definiert Eigenschaften, die jedes intelligente Wesen in Xvatc hat."""
+    geschlecht: Geschlecht = field(converter=to_geschlecht)
+    rasse: Rasse = Rasse.Mensch

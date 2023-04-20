@@ -2,14 +2,18 @@
 Hält die Converter-Klasse, die zum Serialisieren der Daten dient.
 Created on 24.03.2023
 """
-from importlib import import_module
-from typing import Any, Final, TYPE_CHECKING
-from types import FunctionType, MethodType
-import cattrs.preconf.pyyaml
-from logging import getLogger
+from xwatc.untersystem.person import Rasse
 from xwatc.untersystem.variablen import get_var_typ, MethodSave
+
 from attrs import define
+import cattrs.preconf.pyyaml
 from typing_extensions import assert_never
+
+from importlib import import_module
+from logging import getLogger
+from types import FunctionType, MethodType
+from typing import Any, Final, TYPE_CHECKING
+
 
 if TYPE_CHECKING:
     from xwatc import system, weg, nsc  # @UnusedImport
@@ -94,6 +98,8 @@ def _add_fns() -> None:
         mänx = _mänx_structure_base(dict_, Mänx)
         mänx.ausgabe = system.ausgabe
         conv2 = mache_strukturierer(mänx)
+        if "rasse" in dict_:
+            mänx.person.rasse = Rasse(dict_["rasse"])
         # Objekte
         key: str
         for key, value in dict_["welt"]["objekte"].items():

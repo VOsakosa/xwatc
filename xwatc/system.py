@@ -27,7 +27,7 @@ from xwatc.untersystem.itemverzeichnis import lade_itemverzeichnis, Item
 from xwatc.untersystem.variablen import WeltVariable, VT, get_welt_var
 from xwatc.untersystem.variablen import register, Variable, MethodSave  # @UnusedImport
 from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
-from xwatc.untersystem.person import Rasse, Fähigkeit
+from xwatc.untersystem.person import Rasse, Fähigkeit, Person
 
 if typing.TYPE_CHECKING:
     from xwatc import anzeige, weg, nsc, scenario  # @UnusedImport
@@ -324,7 +324,7 @@ class Mänx(InventarBasis):
     Information."""
     ausgabe: 'Terminal | anzeige.XwatcFenster' = ausgabe
     welt: Welt = field(factory=Welt.default)
-    rasse: Rasse = Rasse.Mensch
+    person: Person = Person("w", Rasse.Mensch)
     titel: set[str] = field(factory=set, repr=False)
     fähigkeiten: set[Fähigkeit] = field(factory=set, repr=False)
     verbrechen: list[Verbrechen] = field(factory=list)
@@ -528,6 +528,11 @@ class Mänx(InventarBasis):
         opts.append(("zurück", "f", None))
         if gefährte := self.menu(opts):
             gefährte.main(self)
+
+    @property
+    def rasse(self) -> Rasse:
+        """Die Rasse des Mänxen."""
+        return self.person.rasse
 
     def add_verbrechen(self, name: Verbrechen | Verbrechensart, versuch: bool = False) -> None:
         """Laste dem Mänxen ein Verbrechen an."""
