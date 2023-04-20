@@ -76,8 +76,8 @@ class MissingIDError(Exception):
     id_: str
 
 
-MänxPrädikat = MänxFkt[bool]
-Fortsetzung = MänxFkt | HatMain
+MänxPrädikat: TypeAlias = MänxFkt[bool]
+Fortsetzung: TypeAlias = MänxFkt | HatMain | "weg.Wegpunkt"
 ITEMVERZEICHNIS = lade_itemverzeichnis(Path(__file__).parent / "itemverzeichnis.txt",
                                        Path(__file__).parent / "waffenverzeichnis.yaml")
 ausgabe: Terminal | 'anzeige.XwatcFenster' = Terminal()
