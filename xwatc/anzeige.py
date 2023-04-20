@@ -4,6 +4,7 @@ Anzeige für Xvatc mit GTK.
 from __future__ import annotations
 
 from attrs import define
+from collections.abc import Iterator
 from itertools import islice
 
 import gi
@@ -107,6 +108,7 @@ class XwatcFenster:
         self.anzeigen: dict[type, Gtk.Widget] = {}
         self.sichtbare_anzeigen: set[type] = set()
         self.choice_action: Opt[Callable[[Any], Any]] = None
+        self.speicherpunkt: Speicherpunkt | None = None
 
         self.info_widget: InfoWidget = InfoWidget.create()
         self._stack: list[_StackItem] = []
@@ -123,8 +125,7 @@ class XwatcFenster:
         win.set_default_size(400, 500)
         win.set_title("Xwatc")
         # Spiel beginnen
-        self.speicherpunkt: Speicherpunkt | None = None
-        self.mänx: Opt[system.Mänx] = None
+        self.mänx: system.Mänx | None = None
         self.unterbrochen = False
         system.ausgabe = self
         threading.Thread(target=self._xwatc_thread, args=(startpunkt,),
@@ -193,6 +194,10 @@ class XwatcFenster:
             GLib.idle_add(self.xwatc_ended)
 
     def get_minput_return(self) -> Any:
+        """Hole ein Item aus der Rückgabequeue für Usereingaben.
+        Hat der User aber eine Unterbrechung (wie z.B. das Betrachten des Inventars etc.)
+        eingereiht, so wird das erst ausgeführt.
+        """
         while True:
             ans = _minput_return.get()
             match ans:
@@ -277,10 +282,16 @@ class XwatcFenster:
         return ans
 
     @_idle_wrapper
-    def auswahl(self, mgn: Sequence[Tuple[str, Any] | Tuple[str, Any, str]],
-                versteckt: Opt[Mapping[str, Any]] = None,
+    def auswahl(self, mgn: Sequence[tuple[str, T] | tuple[str, T, str]],
+                versteckt: Mapping[str, T] | None = None,
                 save: Speicherpunkt | None = None,
-                action: Opt[Callable[[Any], Any]] = None) -> None:
+                action: Callable[[T], Any] | None = None) -> None:
+        """Zeige Auswahlmöglichkeiten unten an.
+
+        :param action:
+            Die Aktion, die ausgeführt wird, wenn die Auswahl getroffen wird.
+            Standardmäßig wird die gewählte Option an den Xwatc-Thread weitergegeben.
+        """
         self.speicherpunkt = save
         self._remove_choices()
         self.mgn_hidden_count = len(mgn)
@@ -300,6 +311,7 @@ class XwatcFenster:
 
     @_idle_wrapper
     def show(self, daten: AnzeigeDaten) -> None:
+        """Zeige ein komplizierteres Widget. Siehe :py:`AnzeigeDaten`."""
         typ = type(daten)
         if typ in self.anzeigen:
             self.anzeigen[typ].set_visible(True)
@@ -329,7 +341,7 @@ class XwatcFenster:
                 elif taste == "g":
                     _minput_return.put(Unterbrechung(
                         system.Mänx.rede_mit_gefährten))
-        # KEIN STRG
+        # KEIN STRG: Auswahl der Option
         elif not self.mgn:
             return False
         elif taste in self.mgn:
@@ -398,7 +410,8 @@ class XwatcFenster:
             self.malp_stack(_("Gespeichert."))
 
     def _remove_choices(self):
-        # entferne buttons
+        """Entferne die Auswahlen. Das wird immer vor dem Hinzufügen der neuen Auswahlen
+        eingefügt."""
         for _i in range(len(self.grid.get_children())):
             self.grid.remove_row(0)
         for typ, anzeige in self.anzeigen.items():
@@ -407,7 +420,8 @@ class XwatcFenster:
         if self.mänx:
             self.info_widget.update(self.mänx, can_save=self.speicherpunkt is not None)
 
-    def _deactivate_choices(self):
+    def _deactivate_choices(self) -> None:
+        """Graue die Auswahlen aus."""
         self.mgn.clear()
         self.buffer.set_text("")
         for child in self.grid.get_children():
@@ -447,7 +461,8 @@ class XwatcFenster:
             self.sichtbare_anzeigen,
             self.choice_action,
             self.grid.get_children(),
-            self.buffer))
+            self.buffer,
+            self.speicherpunkt))
         for child in self.show_grid.get_children():
             if isinstance(child, Gtk.TextView):
                 self.buffer = Gtk.TextBuffer()
@@ -460,7 +475,7 @@ class XwatcFenster:
         self._remove_choices()
         [self.mgn, self.mgn_hidden_count, self.anzeigen,
          self.sichtbare_anzeigen, self.choice_action,
-         controls, self.buffer] = self._stack.pop()
+         controls, self.buffer, self.speicherpunkt] = self._stack.pop()
         for control in controls:
             self.grid.add(control)
             if isinstance(control, (Gtk.Button, Gtk.Entry)):
@@ -470,7 +485,8 @@ class XwatcFenster:
                 child.set_buffer(self.buffer)
 
     @contextmanager
-    def stack(self):
+    def stack(self) -> Iterator[None]:
+        """Contextmanager für "Mache auf einem Stack"."""
         self.push_stack()
         try:
             yield None
@@ -488,6 +504,7 @@ class _StackItem(NamedTuple):
     choice_action: Opt[Callable[[Any], Any]]
     controls: list[Gtk.Widget]
     buffer: Gtk.TextBuffer
+    savepoint: 'system.Speicherpunkt | None'
 
 
 class AnzeigeDaten(Protocol):
@@ -505,7 +522,8 @@ class AnzeigeDaten(Protocol):
 
 @define
 class InfoWidget:
-    """Zeigt ständig irgendwelche Infos über den Mänxen."""
+    """Zeigt ständig irgendwelche Infos über den Mänxen, z.B. Zeit und ob gespeichert werden kann.
+    """
     widget: Gtk.Box
     tag_label: Gtk.Label
     zeit_label: Gtk.Label
@@ -513,6 +531,7 @@ class InfoWidget:
 
     @classmethod
     def create(cls) -> Self:
+        """Erzeuge ein neues InfoWidget."""
         grid = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, hexpand=True, halign=Gtk.Align.END,
                        spacing=6)
         can_save_label = Gtk.Label()
@@ -524,6 +543,7 @@ class InfoWidget:
         return cls(grid, tag_label, zeit_label, can_save_label)
 
     def update(self, mänx: Mänx, can_save: bool) -> None:
+        """Update die angezeigten Informationen."""
         self.tag_label.set_text(_("Tag {}").format(mänx.welt.get_tag()))
         self.zeit_label.set_text(_("{:02}:{:02}").format(*mänx.welt.uhrzeit()))
         if can_save:
@@ -532,7 +552,8 @@ class InfoWidget:
             self.can_save_label.set_markup('<span color="#AAAAAA">S</span>')
 
 
-def main(startpunkt: Fortsetzung | None = None):
+def main(startpunkt: Fortsetzung | None = None) -> None:
+    """Lasse xwatc.anzeige laufen."""
     global _main_thread
     import logging
     getLogger("xwatc").setLevel(logging.INFO)

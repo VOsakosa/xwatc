@@ -132,12 +132,12 @@ class Terminal:
         return True
 
     @staticmethod
-    def mint(*text):
+    def mint(*text: object) -> None:
         """Printe und warte auf ein Enter."""
         input(" ".join(str(t) for t in text))
 
     @staticmethod
-    def sprich(sprecher: str, text: str, warte: bool = False, wie: str = ""):
+    def sprich(sprecher: str, text: str, warte: bool = False, wie: str = "") -> None:
         if wie:
             sprecher += f"({wie})"
         if warte:
