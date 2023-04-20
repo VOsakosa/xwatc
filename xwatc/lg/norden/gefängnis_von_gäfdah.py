@@ -21,29 +21,11 @@ class GefängnisGäfdah(StoryObject):
     absitzen_dauer: int = 0
     ausgang: Eintritt | None = None
 
-    def main(self, mänx: Mänx) -> Fortsetzung:
+    def main(self, _mänx: Mänx) -> Fortsetzung:
         self.sauber = random.randint(1, 10) <= 6
         self.beschreibung()
         if not self.war_drinnen and random.randint(0, 1):
-            mint("Ein Zettel verkündet: Gefichtsverfahren, mogen.")
-            malp('Seltsamerweise fehlte das r, '
-                 'vom "Gefichtsverfahren" ganz zu schweigen. ')
-            mänx.sleep(20, 'o')
-            mint()
-            malp("Irgendwann öffnen sich deine Zellentüren und eine Wache tritt ein.")
-            if mänx.ja_nein("Versuchst du zu fliehen", save=MethodSave(self.main)):
-                malp("Du versuchst die Wache anzugreifen, "
-                     "stolperst jedoch über deine Fesseln und stürzt.", warte=True)
-                mänx.add_verbrechen(Verbrechensart.AUSBRUCH, True)
-                mint("Die Wache ignoriert deinen Fluchtversuch und zerrt "
-                     "dich aus der Zelle.")
-                ans = self.gerichtsverfahren
-            elif random.randint(1, 30) == 1:
-                mint("Die Wache bedeutet dir, ihr zu folgen.")
-                ans = self.gerichtsverfahren
-            else:
-                ans = self.vor_strafe
-
+            ans = self.morgen
         else:
             malp("Du wartest in der Zelle, doch zunächst passiert nichts.")
             ans = self.vor_strafe
@@ -51,6 +33,26 @@ class GefängnisGäfdah(StoryObject):
         self.war_sauber = self.sauber
         self.war_drinnen = True
         return ans
+
+    def morgen(self, mänx: Mänx) -> Fortsetzung:
+        mint("Ein Zettel verkündet: Gefichtsverfahren, mogen.")
+        malp('Seltsamerweise fehlte das r, '
+             'vom "Gefichtsverfahren" ganz zu schweigen. ')
+        mänx.sleep(20, 'o')
+        mint()
+        malp("Irgendwann öffnen sich deine Zellentüren und eine Wache tritt ein.")
+        if mänx.ja_nein("Versuchst du zu fliehen", save=MethodSave(self.morgen)):
+            malp("Du versuchst die Wache anzugreifen, "
+                 "stolperst jedoch über deine Fesseln und stürzt.", warte=True)
+            mänx.add_verbrechen(Verbrechensart.AUSBRUCH, True)
+            mint("Die Wache ignoriert deinen Fluchtversuch und zerrt "
+                 "dich aus der Zelle.")
+            return self.gerichtsverfahren
+        elif random.randint(1, 30) == 1:
+            mint("Die Wache bedeutet dir, ihr zu folgen.")
+            return self.gerichtsverfahren
+        else:
+            return self.vor_strafe
 
     def beschreibung(self) -> None:
         if self.war_drinnen:

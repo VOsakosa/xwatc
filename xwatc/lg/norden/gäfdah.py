@@ -1,6 +1,3 @@
-
-from random import randint
-import random
 from xwatc import weg
 from xwatc.weg.dorf import Dorf, ort
 from xwatc.lg.nsc import Freiwild  # @UnusedImport
