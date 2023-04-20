@@ -23,6 +23,12 @@ class Warten:
     length: float
 
 
+def seq_str_converter(maybe_string: Sequence[str]) -> Sequence[str]:
+    if isinstance(maybe_string, str):
+        return (maybe_string,)
+    return maybe_string
+
+
 def _to_geschichte(text: Sequence[str | Warten] | MänxFkt[F]) -> MänxFkt[F | None]:
     """Converter, um Listen von Texten als MänxFkt aufzufassen."""
     match text:
@@ -40,8 +46,8 @@ class TextGeschichte:
     diesem Typ umgewandelt. Am Ende kann der Mänx eine Belohnung erhalten."""
     texte: Sequence[str | Warten]
     schatz: Mapping[str, int] = Factory(dict)
-    titel: Sequence[str] = ()
-    variablen: Sequence[str] = ()
+    titel: Sequence[str] = field(converter=seq_str_converter, default=())
+    variablen: Sequence[str] = field(converter=seq_str_converter, default=())
     zeit: float = 0.
 
     def __call__(self, mänx: Mänx) -> None:

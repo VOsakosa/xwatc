@@ -602,6 +602,7 @@ class Mänx(InventarBasis):
             ans = mache_converter().structure(dict_, cls)
             assert ans._geladen_von
             ans.ausgabe = ausgabe
+            ans.speicherdatei_name = path.stem
             return ans, ans._geladen_von
 
 
