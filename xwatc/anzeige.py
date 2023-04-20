@@ -53,6 +53,7 @@ T = TypeVar("T")
 
 
 def _idle_wrapper(fn: Tcall) -> Tcall:
+    """Sorgt dafür, dass nur die GUI-Funktion diese Funktion aufrufen kann."""
     @wraps(fn)
     def wrapped(*args, **kwargs):
         if threading.current_thread() is _main_thread:
@@ -66,11 +67,12 @@ def _idle_wrapper(fn: Tcall) -> Tcall:
     return wrapped  # type: ignore
 
 
+@define
 class AnzeigeSpielEnde(BaseException):
     """Signalisiert, dass der Xvatc-Thread beendet werden muss, da die GUI geschlossen wurde."""
 
-    def __init__(self, weiter: Opt[Path]):
-        self.weiter = weiter
+    def __attrs_pre_init__(self):
+        super().__init__()
 
 
 @define
@@ -156,9 +158,8 @@ class XwatcFenster:
                     assert self.mänx
                     try:
                         system.main_loop(self.mänx, startpunkt)
-                    except AnzeigeSpielEnde as ende:
-                        next_ = ende.weiter
-                        continue
+                    except AnzeigeSpielEnde:
+                        raise
                     except Exception as exc:
                         self.mint(_("Xwatc ist abgestürzt:\n")
                                   + "\n".join(exceptiongroup.format_exception(exc))[-10000:])
@@ -188,7 +189,7 @@ class XwatcFenster:
                         next_ = "m"
                 else:
                     assert False, f"Falscher Zustand {next_}"
-        except AnzeigeSpielEnde:
+        except (AnzeigeSpielEnde, system.ZumHauptmenu):
             pass
         finally:
             GLib.idle_add(self.xwatc_ended)
@@ -261,6 +262,7 @@ class XwatcFenster:
     @_idle_wrapper
     def eingabe(self, prompt: str | None,
                 action: Callable[[str], Any] | None = None) -> None:
+        """Zeigt ein Eingabefeld unten an."""
         if prompt:
             self.malp(prompt)
         self._remove_choices()
@@ -328,6 +330,9 @@ class XwatcFenster:
         control = Gdk.ModifierType.CONTROL_MASK & event.state
         taste = Gdk.keyval_name(event.keyval)
         if control:
+            if taste == "q":
+                self._deactivate_choices()
+                _minput_return.put(system.ZumHauptmenu())
             if self.mänx:
                 if taste == 's' or taste == 'S':
                     if self.speicherpunkt:
@@ -421,7 +426,7 @@ class XwatcFenster:
             self.info_widget.update(self.mänx, can_save=self.speicherpunkt is not None)
 
     def _deactivate_choices(self) -> None:
-        """Graue die Auswahlen aus."""
+        """Graue die Auswahlen aus und lösche den Text."""
         self.mgn.clear()
         self.buffer.set_text("")
         for child in self.grid.get_children():
@@ -442,7 +447,7 @@ class XwatcFenster:
 
     def fenster_schließt(self, _window: Gtk.Window) -> bool:
         # xwatc-thread umbringen
-        _minput_return.put(AnzeigeSpielEnde(None))
+        _minput_return.put(AnzeigeSpielEnde())
         return False
 
     def xwatc_ended(self):
