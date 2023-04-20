@@ -12,6 +12,7 @@ import re
 from xwatc.nsc import Rückkehr, Zeitpunkt, Dialog, StoryChar, NSC
 from xwatc.system import (Mänx, get_classes, malp, Fortsetzung,
                           ITEMVERZEICHNIS, get_preise, Speicherpunkt, MenuOption)
+import typing_extensions
 
 
 Preis = int
@@ -42,7 +43,9 @@ def mache_händler(
     return nsc.dialog("h", "Handeln", handel, min_freundlich=0,
                       zeitpunkt=Zeitpunkt.Vorstellen if direkt_handeln else Zeitpunkt.Option)
 
+
 KaufenHook = Callable[[NSC, Mänx, Item, Preis, int], None]
+
 
 @define
 class HandelsFn:
@@ -143,9 +146,9 @@ class HandelsFn:
         if mänx.ausgabe.terminal:
             mänx.tutorial("handel")
         menu = InventarMenu([
-            InventarOption("kaufen",),
-            InventarOption("verkaufen",),
-            InventarOption("preis", menge=False),
+            InventarOption("kaufen", None),
+            InventarOption("verkaufen", None),
+            InventarOption("preis", None, menge=False),
             "auslage",
             "reden",
             "kämpfen",
@@ -155,12 +158,14 @@ class HandelsFn:
             "nur k zum Kämpfen, p [Item] um nach dem Preis zu fragen."
         )
         while True:
-            a, gegenstand, menge = menu.main(mänx, save=nsc)
+            befehl = menu.main(mänx, save=nsc)
+            a = befehl.name
+            gegenstand = befehl.item
             al = a[0]
             if a == "kaufen":
-                malp(self.kaufen(nsc, mänx, gegenstand, menge))
+                malp(self.kaufen(nsc, mänx, gegenstand, befehl.menge))
             elif al == "v":
-                self._verkaufen(nsc, mänx, gegenstand, menge)
+                self._verkaufen(nsc, mänx, gegenstand, befehl.menge)
             elif al == "p":
                 preis = self.get_preis(gegenstand)
                 if preis is None:
@@ -182,11 +187,11 @@ class HandelsFn:
                 return Rückkehr.ZURÜCK
             else:
                 assert False, f"Illegale Rückgabe {a}"
-    
+
     def kaufen_hook(self, fn: KaufenHook) -> KaufenHook:
         self._kaufen_hook = fn
         return fn
-    
+
     def verkaufen_hook(self, fn: KaufenHook) -> KaufenHook:
         self._verkaufen_hook = fn
         return fn
@@ -196,9 +201,22 @@ class HandelsFn:
 class InventarOption:
     """Eine Option für InventarMenu."""
     name: str
-#    inventar: InventarBasis
-    menge: bool = True
+    inventar: Mapping[str, int] | None
+    menge: bool = True  # Ob der Befehl eine Menge nimmt
     allow_missing: bool = True
+
+    def __str__(self) -> str:
+        return self.name
+
+
+@dataclass
+class GewählteOption:
+    """Eine ausgewählte Option beim InventarMenu, bestehend aus einem Befehl und möglicherweise
+    einem Item und einer Anzahl.
+    """
+    name: str
+    item: str = ""
+    menge: int = 0
 
 
 @dataclass
@@ -211,7 +229,7 @@ class InventarMenu():
     prompt: str
     hilfe: str
 
-    def main(self, mänx: Mänx, save: Speicherpunkt) -> tuple[str, str, int]:
+    def main(self, mänx: Mänx, save: Speicherpunkt) -> GewählteOption:
         """Run the option.
 
         :return: the option name, the item and the amount
@@ -219,7 +237,7 @@ class InventarMenu():
         while True:
             # Im Terminal wie Kommandozeile
             if mänx.ausgabe.terminal:
-                a: str = mänx.minput(self.prompt, lower=False, save=save)
+                text_input: str = mänx.minput(self.prompt, lower=False, save=save)
             else:
                 # Ansonsten mit schrittweiser Auswahl
                 mgn: list[MenuOption[str]] = []
@@ -228,24 +246,44 @@ class InventarMenu():
                         mgn.append((opt.name, opt.name.lower(), opt.name))
                     else:
                         mgn.append((opt, opt.lower(), opt))
-                a = mänx.menu(mgn, save=save)
-            args = a.split()
-            if not args:
+                text_input = mänx.menu(mgn, save=save)
+            if not text_input:
                 continue
+            cmd, *args = text_input.split()
             for option in self.optionen:
-                if isinstance(option, str) and option.startswith(args[0]):
-                    if len(args) > 1:
-                        malp("Die restlichen Argumente werden ignoriert.")
-                    return option, "", 0
-                elif isinstance(option, InventarOption) and option.name.startswith(args[0]):
-                    while len(args) == 1:
-                        args.extend(mänx.minput(
-                            "Welches Item?", lower=False).split())
-                    if option.menge and re.fullmatch("[0-9]+", args[-1]):
-                        anzahl = int(args.pop())
-                    else:
-                        anzahl = 1
-                    item = " ".join(args[1:])
-                    return option.name, item, anzahl
+                if str(option) == cmd:
+                    break
             else:
-                malp(self.hilfe)
+                passende_optionen = [
+                    option for option in self.optionen if str(option).startswith(cmd)]
+                if len(passende_optionen) == 1:
+                    option = passende_optionen[0]
+                else:
+                    malp(self.hilfe)
+                    continue
+
+            if isinstance(option, str):
+                if args:
+                    malp("Die restlichen Argumente werden ignoriert.")
+                return GewählteOption(option)
+            elif isinstance(option, InventarOption):
+                if not args:
+                    anzahl, item = self.wähle_item(mänx, option)
+                    if not item:
+                        continue
+                elif option.menge and re.fullmatch("[0-9]+", args[0]):
+                    anzahl = int(args[0])
+                    item = " ".join(args[1:])
+                else:
+                    anzahl = 1
+                    item = " ".join(args)
+                return GewählteOption(option.name, item, anzahl)
+            else:
+                typing_extensions.assert_never(option)
+
+    def wähle_item(self, mänx: Mänx, option: InventarOption) -> tuple[int, str | None]:
+        """Lasse den Spieler das Item und eine Anzahl für eine InventarOption wählen.
+
+        :return: Die Anzahl und der Name des Items, oder None wenn der Spieler abbricht.
+        """
+        return 1, mänx.minput("Welches Item?", lower=False)
