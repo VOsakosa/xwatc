@@ -31,7 +31,7 @@ T = TypeVar("T")
 @define
 class MockSystem:
     """Ausgaben über das Terminal"""
-    terminal = True
+    terminal: bool = True
     ausgaben: list[str] = Factory(list)
     eingaben: list[str] = Factory(list)
 

@@ -14,7 +14,7 @@ from xwatc.haendler import mache_händler, InventarMenu, InventarOption, Gewähl
 from xwatc.nsc import StoryChar, Person, Rasse, Geschlecht, NSC, bezeichnung, Bezeichnung
 from xwatc.serialize import converter
 from xwatc.system import Welt, Speicherpunkt, Mänx
-from xwatc_test.mock_system import MockSystem
+from xwatc_test.mock_system import MockSystem, UnpassendeEingabe
 
 
 def slots_var(obj: object) -> dict:
@@ -168,10 +168,11 @@ class TestHändler(unittest.TestCase):
         self.assertEqual(hdl_min.gold, 100 - gold_mantel)
         self.assertEqual(mx.gold - gold_start, gold_mantel)
 
-    def inventar_menu(self, menu: InventarMenu, eingaben: list[str], ausgaben: list[str]
+    def inventar_menu(self, menu: InventarMenu, eingaben: list[str], ausgaben: list[str],
+                      terminal: bool=True,
                       ) -> GewählteOption:
         """Simuliert das InventarMenu gegen eine Liste von Eingaben und prüft die Ausgaben,"""
-        ans = MockSystem().test_mänx_fn(
+        ans = MockSystem(terminal=terminal).test_mänx_fn(
             self,
             lambda m: menu.main(m, cast(Speicherpunkt, None)),
             eingaben, ausgaben)
@@ -204,7 +205,18 @@ class TestHändler(unittest.TestCase):
         menu = InventarMenu(["k", InventarOption("p", None)], ">", "")
         ans = self.inventar_menu(menu, ["p 3 Hut"], [">"])
         self.assertEqual(ans, GewählteOption("p", "Hut", 3))
-
+    
+    def test_inventar_menu_anzeige(self):
+        menu = InventarMenu(["k", InventarOption("p", None)], ">", "")
+        ans = self.inventar_menu(menu, ["p", "Hut"], ["Welches Item?"], terminal=False)
+        self.assertEqual(ans, GewählteOption("p", "Hut", 1))
+    
+        menu = InventarMenu(["k", InventarOption("p", {"Hut": 3, "Müll": 10, "Wesen": 11})], ">", "")
+        ans = self.inventar_menu(menu, ["p", "Hut"], ["Welches Item?"], terminal=False)
+        self.assertEqual(ans, GewählteOption("p", "Hut", 1))
+        
+        with self.assertRaises(UnpassendeEingabe):
+            self.inventar_menu(menu, ["p", "Wesel"], ["Welches Item?"], terminal=False)
 
 class TestEffect(unittest.TestCase):
 

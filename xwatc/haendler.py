@@ -77,10 +77,13 @@ class HandelsFn:
                 self._kaufen_hook(nsc, mänx, name, preis, anzahl)
             return "Gekauft."
 
-    def kann_kaufen(self, name: str):
+    def kann_kaufen(self, name: str) -> bool:
         """Prüft, ob der Händler *name* ankauft."""
-        return self.kauft is None or any(
-            cls in self.kauft for cls in get_classes(name))
+        try:
+            return self.kauft is None or any(
+                cls in self.kauft for cls in get_classes(name))
+        except KeyError:
+            return False
 
     def verkaufen(self, nsc: NSC, mänx: Mänx, name: str, preis: Preis, anzahl: int = 1) -> bool:
         """Mänx verkauft an Händler"""
@@ -95,6 +98,12 @@ class HandelsFn:
                 self._verkaufen_hook(nsc, mänx, name, preis, anzahl)
             return True
         return False
+    
+    def get_verkauf_inventar(self, nsc: NSC) -> Mapping[str, int]:
+        return {item: anzahl for item, anzahl in nsc.inventar.items() if item in self.verkauft}
+    
+    def get_ankauf_inventar(self, mänx: Mänx) -> Mapping[str, int]:
+        return {item: anzahl for item, anzahl in mänx.inventar.items() if self.kann_kaufen(item)}
 
     def get_preis(self, name: str) -> int | None:
         """Berechne den Ankaufpreis für das Objekt name.
@@ -146,9 +155,9 @@ class HandelsFn:
         if mänx.ausgabe.terminal:
             mänx.tutorial("handel")
         menu = InventarMenu([
-            InventarOption("kaufen", None),
-            InventarOption("verkaufen", None),
-            InventarOption("preis", None, menge=False),
+            InventarOption("kaufen", self.get_verkauf_inventar(nsc)),
+            InventarOption("verkaufen", self.get_ankauf_inventar(mänx)),
+            InventarOption("preis", self.get_ankauf_inventar(mänx), menge=False),
             "auslage",
             "reden",
             "kämpfen",
@@ -295,10 +304,11 @@ class InventarMenu():
                 return int(match_.group(1)), match_.group(2)
             return 1, text
         else:
+            malp("Welches Item?")
             item = mänx.menu([("mehrere", "", None),
-                             *((item, item.lower(), item) for item in option.inventar)])
+                             *((item, item, item) for item in option.inventar)])
             if item is None:
-                item = mänx.menu([(item, item.lower(), item) for item in option.inventar])
+                item = mänx.menu([(item, item, item) for item in option.inventar])
                 anzahl_str = mänx.minput(_("Wie viele?"))
                 try:
                     return int(anzahl_str), item
