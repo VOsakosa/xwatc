@@ -527,7 +527,7 @@ def rechtfertigen(mänx: Mänx, nsc: NSC) -> None:
     if ans == "mord":
         sprich(helfer, "Das ist keine gute Rechtfertigung!")
         sprich(helfer, "Mord dulden wir hier nicht.")
-        mänx.verbrechen[Verbrechen(Verbrechensart.MORD)] += 1
+        mänx.add_verbrechen(Verbrechen(Verbrechensart.MORD))
         raise Spielende  # TODO: Verbrecher
     elif ans == "diebstahl":
         val = ""
@@ -547,7 +547,7 @@ def rechtfertigen(mänx: Mänx, nsc: NSC) -> None:
             else:
                 sprich(helfer, "Du lügst. Der Junge ist unschuldig.")
                 sprich(helfer, "Mord dulden wir hier nicht.")
-                mänx.verbrechen[Verbrechen(Verbrechensart.MORD)] += 1
+                mänx.add_verbrechen(Verbrechensart.MORD)
                 raise Spielende
     elif ans == "ent":
         sprich(helfer, "Hoffen wir das mal.")
@@ -561,7 +561,7 @@ def rechtfertigen(mänx: Mänx, nsc: NSC) -> None:
             pass
         sprich(helfer, "Du hast unseren kleinen Gaa angegriffen, das "
                "verzeihen wir dir nicht!")
-        mänx.verbrechen[Verbrechen(Verbrechensart.MORD)] += 1
+        mänx.add_verbrechen(Verbrechensart.MORD)
         raise Spielende
 
 

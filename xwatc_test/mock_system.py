@@ -4,7 +4,7 @@ Ein Mock für das Aus-/Eingabesystem, um Geschichten ordentlich testen zu könne
 Created on 25.03.2023
 """
 from attrs import define
-from collections.abc import Sequence, Mapping
+from collections.abc import Sequence
 from typing import TypeVar
 import unittest
 from xwatc import system
@@ -47,9 +47,9 @@ class MockSystem:
         self.ausgaben.clear()
         return ans
 
-    def test_mänx_fn(self, case_: unittest.TestCase, mänx_fn: MänxFkt,
+    def test_mänx_fn(self, case_: unittest.TestCase, mänx_fn: MänxFkt[T],
                      eingaben: Sequence[str], ausgaben: Sequence[str],
-                     allow_script_ende: bool = False) -> object:
+                     allow_script_ende: bool = False) -> T | None:
         """Teste eine MänxFkt gegen eine Reihe von eingaben."""
         self.eingaben.extend(eingaben)
         ans = None
@@ -64,7 +64,7 @@ class MockSystem:
     def menu(self,
              mänx: Mänx,
              menu: Menu[T],
-             save: Speicherpunkt | None = None) -> T:
+             save: 'Speicherpunkt | None' = None) -> T:
         """Bei Menu wird nur genau geantwortet.
         """
         if menu.frage:
@@ -82,7 +82,7 @@ class MockSystem:
         raise UnpassendeEingabe(eingabe, ok)
 
     def minput(self, mänx: Mänx | None, frage: str, möglichkeiten=None, lower=True,
-               save: Speicherpunkt | None = None) -> str:
+               save: 'Speicherpunkt | None' = None) -> str:
         """Manipulierter Input
         Wenn möglichkeiten (in kleinbuchstaben) gegeben, dann muss die Antwort eine davon sein."""
         if frage:
@@ -111,7 +111,7 @@ class MockSystem:
         self.ausgaben.append((sep.join(text) + end).strip())
 
     def ja_nein(self, mänx, frage,
-                save: Speicherpunkt | None = None):
+                save: 'Speicherpunkt | None' = None):
         """Ja-Nein-Frage"""
         ans = self.minput(
             mänx, frage, ["j", "ja", "n", "nein"], save=save).lower()

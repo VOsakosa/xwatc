@@ -9,7 +9,7 @@ from pathlib import Path
 from time import sleep
 import types  # @UnusedImport
 from typing import TypeVar, Any, Protocol
-from typing import (List, Union, Optional, Optional as Opt, TypeAlias, overload)
+from typing import (List, Union, Optional, TypeAlias, overload)
 from typing_extensions import Self, assert_never
 import typing
 import yaml
@@ -86,7 +86,7 @@ ausgabe: Terminal | 'anzeige.XwatcFenster' = Terminal()
 
 def get_classes(item: str) -> Iterator[str]:
     """Hole die Klassen, zu dem ein Item gehört, also z.B. "magisch", "Waffe"."""
-    return map(str, ITEMVERZEICHNIS[item].yield_classes())
+    return (cls.name for cls in ITEMVERZEICHNIS[item].yield_classes())
 
 
 def get_preise(item: str) -> int:

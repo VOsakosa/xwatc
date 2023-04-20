@@ -10,7 +10,7 @@ from dataclasses import dataclass
 import re
 
 from xwatc.nsc import Rückkehr, Zeitpunkt, Dialog, StoryChar, NSC
-from xwatc.system import (Mänx, get_classes, malp, Fortsetzung,
+from xwatc.system import (_, Mänx, get_classes, malp, Fortsetzung,
                           ITEMVERZEICHNIS, get_preise, Speicherpunkt, MenuOption)
 import typing_extensions
 
@@ -197,7 +197,7 @@ class HandelsFn:
         return fn
 
 
-@dataclass
+@dataclass(eq=False)
 class InventarOption:
     """Eine Option für InventarMenu."""
     name: str
@@ -209,7 +209,7 @@ class InventarOption:
         return self.name
 
 
-@dataclass
+@dataclass(eq=True)
 class GewählteOption:
     """Eine ausgewählte Option beim InventarMenu, bestehend aus einem Befehl und möglicherweise
     einem Item und einer Anzahl.
@@ -219,7 +219,7 @@ class GewählteOption:
     menge: int = 0
 
 
-@dataclass
+@dataclass(eq=False)
 class InventarMenu():
     """Eine Verallgemeinerung des Handelsmenüs.
 
@@ -234,6 +234,7 @@ class InventarMenu():
 
         :return: the option name, the item and the amount
         """
+        assert self.optionen
         while True:
             # Im Terminal wie Kommandozeile
             if mänx.ausgabe.terminal:
@@ -286,4 +287,22 @@ class InventarMenu():
 
         :return: Die Anzahl und der Name des Items, oder None wenn der Spieler abbricht.
         """
-        return 1, mänx.minput("Welches Item?", lower=False)
+        if mänx.ausgabe.terminal or not option.inventar:
+            text = mänx.minput(_("Welches Item?"), lower=False)
+            if not text:
+                return 0, None
+            if match_ := re.match("([0-9]+)\\s+(.*)", text):
+                return int(match_.group(1)), match_.group(2)
+            return 1, text
+        else:
+            item = mänx.menu([("mehrere", "", None),
+                             *((item, item.lower(), item) for item in option.inventar)])
+            if item is None:
+                item = mänx.menu([(item, item.lower(), item) for item in option.inventar])
+                anzahl_str = mänx.minput(_("Wie viele?"))
+                try:
+                    return int(anzahl_str), item
+                except ValueError:
+                    malp("Das ist keine Zahl. Abbruch")
+                    return 0, None
+            return 1, item

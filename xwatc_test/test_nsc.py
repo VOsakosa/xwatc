@@ -1,18 +1,19 @@
 """"""
 from collections.abc import Iterator
-from typing import cast
 import unittest
+from typing import cast
 from unittest.mock import patch
 from unittest.mock import MagicMock
 
-from xwatc import nsc, dorf
+from xwatc import nsc
 from xwatc import system
+from xwatc.weg import dorf
 from xwatc.nsc import Dialog, Zeitpunkt
 from xwatc.effect import Zufällig
-from xwatc.haendler import mache_händler
+from xwatc.haendler import mache_händler, InventarMenu, InventarOption, GewählteOption
 from xwatc.nsc import StoryChar, Person, Rasse, Geschlecht, NSC, bezeichnung, Bezeichnung
 from xwatc.serialize import converter
-from xwatc.system import Welt
+from xwatc.system import Welt, Speicherpunkt, Mänx
 from xwatc_test.mock_system import MockSystem
 
 
@@ -69,7 +70,7 @@ class TestNSC(unittest.TestCase):
         rd.assert_called_once_with(toro_nsc)
         rd.reset_mock()
         self.assertIs(toro_nsc.template, toro)
-        
+
         toro_nsc2 = welt.obj("jtg:toro")
         rd.assert_not_called()
         self.assertIs(toro_nsc, toro_nsc2)
@@ -167,6 +168,43 @@ class TestHändler(unittest.TestCase):
         self.assertEqual(hdl_min.gold, 100 - gold_mantel)
         self.assertEqual(mx.gold - gold_start, gold_mantel)
 
+    def inventar_menu(self, menu: InventarMenu, eingaben: list[str], ausgaben: list[str]
+                      ) -> GewählteOption:
+        """Simuliert das InventarMenu gegen eine Liste von Eingaben und prüft die Ausgaben,"""
+        ans = MockSystem().test_mänx_fn(
+            self,
+            lambda m: menu.main(m, cast(Speicherpunkt, None)),
+            eingaben, ausgaben)
+        assert ans
+        return ans
+
+    def test_inventar_menu_needs_options(self):
+        with self.assertRaises(Exception):
+            InventarMenu([], ">", "Blubb").main(Mänx(), cast(Speicherpunkt, None))
+
+    def test_inventar_menu_choose_option(self) -> None:
+        ans = self.inventar_menu(InventarMenu(["k", "ka"], "Prompt", ""), ["ka"], ["Prompt"])
+        assert ans
+        self.assertEqual(ans.name, "ka")
+
+    def test_inventar_menu_choose_item_sequentially(self) -> None:
+        menu = InventarMenu(["k", InventarOption("p", None)], ">", "")
+        ans = self.inventar_menu(menu, ["p", "Hut"], [">", "Welches Item?"])
+        self.assertEqual(ans, GewählteOption("p", "Hut", 1))
+
+        menu = InventarMenu(["k", InventarOption("p", None)], ">", "")
+        ans = self.inventar_menu(menu, ["p", "3 Hut"], [">", "Welches Item?"])
+        self.assertEqual(ans, GewählteOption("p", "Hut", 3))
+
+    def test_inventar_menu_choose_item_directly(self) -> None:
+        menu = InventarMenu(["k", InventarOption("p", None)], ">", "")
+        ans = self.inventar_menu(menu, ["p Hut"], [">"])
+        self.assertEqual(ans, GewählteOption("p", "Hut", 1))
+
+        menu = InventarMenu(["k", InventarOption("p", None)], ">", "")
+        ans = self.inventar_menu(menu, ["p 3 Hut"], [">"])
+        self.assertEqual(ans, GewählteOption("p", "Hut", 3))
+
 
 class TestEffect(unittest.TestCase):
 
@@ -192,7 +230,7 @@ class TestEffect(unittest.TestCase):
         sys.test_mänx_fn(self, zuf, [], ["5"])
         rd.return_value = 0.322
         sys.test_mänx_fn(self, zuf, [], ["3"])
-    
+
     @patch("random.random")
     def test_mit_wkeit(self, rd):
         zuf: Zufällig[None] = Zufällig.mit_wkeit(0.8, "Test")
@@ -205,6 +243,7 @@ class TestEffect(unittest.TestCase):
         sys.test_mänx_fn(self, zuf, [], ["Test"])
         rd.return_value = 0
         sys.test_mänx_fn(self, zuf, [], ["Test"])
+
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
