@@ -1,4 +1,11 @@
 """
+Lädt Geschichten im Karvapedo-Format.
+
+Format
+######
+
+Pfad = ["."] Identifier { "." Identifier }
+
 Created on 25.07.2021
 """
 from __future__ import annotations
