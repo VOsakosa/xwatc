@@ -196,7 +196,7 @@ class XwatcFenster:
         while True:
             ans = _minput_return.get()
             match ans:
-                case AnzeigeSpielEnde():
+                case AnzeigeSpielEnde() | system.ZumHauptmenu():
                     raise ans
                 case Unterbrechung(fkt=fkt):
                     if self.mänx:
@@ -356,7 +356,8 @@ class XwatcFenster:
                 except StopIteration:
                     pass
         elif taste == "e" and self.mänx:
-            self.malp_stack(self.mänx.erweitertes_inventar())
+            _minput_return.put(Unterbrechung(
+                lambda m: system.malp(m.erweitertes_inventar(), warte=True)))
         return False
 
     def malp_stack(self, nachricht: str) -> None:
