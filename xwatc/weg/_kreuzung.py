@@ -493,7 +493,7 @@ class Wegkreuzung(Wegpunkt):
         self.nachbarn[ri1] = weg
         self._optionen[ri1] = Richtungsoption(beschriftung_hin, typ=typ)
         nach.nachbarn[ri2] = weg
-        self._optionen[ri2] = Richtungsoption(beschriftung_zurück, typ=typ)
+        nach._optionen[ri2] = Richtungsoption(beschriftung_zurück, typ=typ)
         weg.p1 = self
         weg.p2 = nach
 
