@@ -74,4 +74,5 @@ def waffe_wählen(mänx: Mänx) -> Fortsetzung:
 
 def respawn(_mänx: Mänx) -> Fortsetzung:
     malp("Du darfst dein Inventar behalten und wirst an den ursprünglichen Ort zurückgesetzt.")
+    mint()
     return mitte.MITTE_EINTRITT

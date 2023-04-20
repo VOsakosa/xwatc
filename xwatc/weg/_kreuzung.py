@@ -566,10 +566,9 @@ class Wegkreuzung(Wegpunkt):
                     seen.add(next_)
                     to_check.append(next_)
         raise ValueError("Diese Kreuzung gehört zu keinem Gebiet.")
- 
+
     def __str__(self) -> str:
         try:
             return f"{self.gebiet.name}:{self.name}"
         except ValueError:
             return f"?:{self.name}"
-    

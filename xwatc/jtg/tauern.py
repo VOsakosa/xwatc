@@ -4,10 +4,10 @@ Created on 15.10.2020
 """
 from xwatc import weg
 from xwatc.jtg import osten, gibon
-from xwatc.system import Mänx, malp, Spielende
-from xwatc.untersystem.person import Fähigkeit
+from xwatc.system import Mänx, malp, Spielende, _, sprich
+from xwatc.untersystem.person import Fähigkeit, Geschlecht
 from xwatc.weg import gebiet, kreuzung, Wegtyp, Eintritt
-from xwatc.nsc import StoryChar, Person, Rasse, NSC, Rückkehr
+from xwatc.nsc import StoryChar, Person, Rasse, NSC, Rückkehr, Sprich, Malp
 
 
 __author__ = "jasper"
@@ -57,7 +57,7 @@ def erzeuge_tauern(mänx: Mänx, gebiet: weg.Gebiet) -> None:
 
     steilwand = kreuzung("steilwand", immer_fragen=True)
     vorbrück.verbinde_mit_weg(
-        steilwand, 0.05, "no", None, Wegtyp.TRAMPELPFAD, beschriftung_zurück="Brücke"
+        steilwand, 0.05, "no", None, Wegtyp.TRAMPELPFAD, beschriftung_zurück="Zurück zur Brücke"
     )
     steilwand.add_beschreibung(
         "Du kommst an einen steilen Berg, der in den Fluss "
@@ -77,26 +77,30 @@ def erzeuge_tauern(mänx: Mänx, gebiet: weg.Gebiet) -> None:
         return inner
     vorbrück.add_effekt(bewege(vorbrück))
     hinterbrück.add_effekt(bewege(hinterbrück))
-    osttor = gibon.erzeuge_gibon(mänx, gebiet).get_ort("Osttor")
+    osttor = gibon.erzeuge_gibon(mänx, gebiet).get_ort("Westtor")
     hinterbrück.verbinde_mit_weg(
         osttor, 1.5, richtung="o", beschriftung_zurück="Jotungard")
     osttor.bschr("Du erreichst nach Gibon, ein große Stadt direkt an der Grenze zu Jotungard.",
                  nur="w")
 
 
-def zoll_fn(mänx: Mänx):
+def zoll_fn(mänx: Mänx) -> bool:
     """Die Schranke, die prüft, ob der Mensch durch kann."""
     wächter = mänx.welt.obj("jtg:tau:wächter")
     if wächter.tot:
-        mänx.ausgabe.malp("Das Zollhaus ist leer.")
+        malp("Das Zollhaus ist leer.")
         return True
-    kosten = (1 + len(mänx.gefährten)) * ZOLL_PREIS
-    wächter.sprich(f"Das macht dann {kosten} Gold.")
-    if mänx.ja_nein("Zahlst du das Geld?"):
-        mänx.erhalte("Gold", -kosten)
+    if mänx.welt.ist("jtg:tauern:freier_eintritt"):
+        malp("Der Wächter winkt dich durch.")
         return True
     else:
-        return False
+        kosten = (1 + len(mänx.gefährten)) * ZOLL_PREIS
+        wächter.sprich(_("Das macht dann {kosten} Gold.").format(kosten=kosten))
+        if mänx.ja_nein("Zahlst du das Geld?"):
+            mänx.erhalte("Gold", -kosten)
+            return True
+        else:
+            return False
 
 
 wärter = StoryChar("jtg:tau:wächter", ("Federico", "Pestalozzi", "Zollbeamter"),
@@ -119,18 +123,44 @@ wärter.dialog("teuer", "Das ist aber teuer!", [
     "oder Flohlosigkeitsnachweis.",
     "Wir machen keine Fieberkontrolle und durchsuchen nicht Ihr Gepäck.",
     "Und das alles sparen Sie sich und wir fordern nur etwas Gold."
-], "kosten")
+], "kosten", wiederhole=1)
 
 wärter.dialog("jubmumin", "Eine Jubmumin-Premium-Karte?", [
     "Nie davon gehört?", "Eine Sonderkarte für junge Mumin.",
     "Sie sind allerdings wohl weder jung noch ein Mumin.",
     "Außerdem sind diese Karten nicht übertragbar."
-], "teuer")
+], "teuer").wenn_mänx(lambda m: m.rasse != Rasse.Munin)
 
 wärter.dialog("ausreise", "Und die Ausreise?", [
     f"Auch {ZOLL_PREIS} Gold.",
     "Dafür gibt es aber keinen guten Grund.",
 ], "kosten")
+
+wärter.dialog("heim", _("Ich bin ein Munin, ich will heim."), [
+    "Warum du auch zahlen musst?",
+    "Mal unter uns. Ich finde diese Regeln auch ziemlich dumm.",
+    Sprich("Aber ich kann dich nicht einfach so hineinlassen.", wie="nervös")
+], "kosten", wiederhole=1).wenn_mänx(lambda m: m.rasse == Rasse.Munin)
+
+wärter.dialog("verführen", "Versuchen, zu verführen", [
+    Malp("Du zeigst ihm etwas von deinen Kurven."),
+    Sprich("Oh, la, la"),
+    Sprich("Äh, das habe ich nie gesagt.", wie="nervös")
+], "heim", effekt=lambda n, _m: n.add_freundlich(3, 20), wiederhole=2,
+).wenn_mänx(lambda m: m.person.geschlecht == Geschlecht.Weiblich)
+
+
+def wärter_überzeugen(_nsc: NSC, mänx: Mänx) -> None:
+    sprich(_("Du"), _("Geht doch."))
+    malp("Du zwinkerst ihm zu und lächelst verführerisch.")
+    mänx.welt.setze("jtg:tauern:freier_eintritt")
+
+
+wärter.dialog("überzeugen", _("Mein Süßer, du wirst doch für mich eine Ausnahme machen."), [
+    Malp("Du zwinkerst ihm zu."),
+    Sprich("Ja, werte Dame."),
+    Sprich("Wenn ich es besorgen kann, wirst du bei mir fortan keinen Zoll mehr zahlen."),
+], min_freundlich=6, effekt=wärter_überzeugen)
 
 
 @wärter.kampf
