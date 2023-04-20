@@ -4,18 +4,33 @@ Lädt Geschichten im Karvapedo-Format.
 Format
 ######
 
+Eine Geschichte besteht aus mehreren Tags, das ist eine kleine Geschichte mit einem Namen,
+wie z.B.:
+
+    !haupt
+    "Willkommen bei xwatc"
+    "Du wirst nun einem kleinen Persönlichkeitstest unterzogen."
+    &waffe_wählen
+
+Ein Tag besteht aus einem Ausrufezeichen, gefolgt von einem Namen, in der ersten Zeile, und dann
+danach mehreren Ausdrücken.
+Der grundlegendste Ausdruck ist die Ausgabe, sie ist ein in doppelten Ausführungszeichen gesetzter
+String.
+
+Mit einem & markiert man einen Sprung zu einer anderen Marke.
+
+
+
 Pfad = ["."] Identifier { "." Identifier }
 
 Created on 25.07.2021
 """
 from __future__ import annotations
 import pyparsing as pp
-from pyparsing import Combine, Group, Regex, OneOrMore, delimitedList, Suppress,\
-    ParseResults, delimitedList
+from pyparsing import Combine, Group, Regex, OneOrMore, Suppress, ParseResults, delimitedList
 
 import os
-import typing
-from typing import Dict, TextIO, Optional as Opt
+from typing import Dict, TextIO, Optional as Opt, Any
 from karvapedo.main import TextId, Möglichkeiten
 import karvapedo
 
@@ -32,7 +47,7 @@ Tag = Group(Suppress("!") + Identifier + OneOrMore(Statement))
 Text = pp.QuotedString(quoteChar='"', escChar="\\") + pp.Opt("n")
 
 FunktionP = Group(Identifier + Suppress("(") +
-                 pp.Opt(delimitedList(Identifier)) + Suppress(")"))
+                  pp.Opt(delimitedList(Identifier)) + Suppress(")"))
 AuswahlKopf = Group(
     "+" + (Identifier | pp.QuotedString(quoteChar='"', escChar="\\")) + ":")
 Auswahl = AuswahlKopf + Block
@@ -66,7 +81,7 @@ def get_marken(tokens, root: str) -> Marken:
     return ans
 
 
-def _marken_in_block(name: TextId, block, ans: Marken):
+def _marken_in_block(name: TextId, block: Any, ans: Marken) -> None:
     ans[name] = block
     for i, stmt in enumerate(block):
         if isinstance(stmt, list) and stmt[0] == "&":
@@ -83,11 +98,12 @@ def _marken_in_block(name: TextId, block, ans: Marken):
                         stmt[auswahl] = subblock[0][1]
                         continue
                 else:
-                    subblock.extend(block[i+1:])
+                    subblock.extend(block[i + 1:])
                 blockname = name + "!" + auswahl
                 stmt[auswahl] = blockname
                 _marken_in_block(blockname, subblock, ans)
             break
+
 
 class GeladeneGeschichte(karvapedo.main.Geschichte):
     def __init__(self, root: str = GESCHICHTEN):
@@ -157,7 +173,7 @@ class GeladeneGeschichte(karvapedo.main.Geschichte):
 
     def run_func(self, args: list[str]):
         # raise ValueError("Funktion unbekannt.")
-        pass # TODO Karvapedo
+        pass  # TODO Karvapedo
 
 
 def lade_geschichte(datei: str, root: str = GESCHICHTEN) -> Marken:
@@ -178,7 +194,7 @@ if __name__ == '__main__':
     print(Auswahl.parseString("+weiter:\n\t&Papel", True))
     stack[:] = [1]
     try:
-        
+
         geschichte = """
 !Popel
 "Ohjemine"
