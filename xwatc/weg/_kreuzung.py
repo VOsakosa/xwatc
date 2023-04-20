@@ -568,5 +568,8 @@ class Wegkreuzung(Wegpunkt):
         raise ValueError("Diese Kreuzung gehört zu keinem Gebiet.")
  
     def __str__(self) -> str:
-        return f"{self.gebiet.name}:{self.name}"
+        try:
+            return f"{self.gebiet.name}:{self.name}"
+        except ValueError:
+            return f"?:{self.name}"
     

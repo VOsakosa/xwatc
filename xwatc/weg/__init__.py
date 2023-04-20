@@ -559,7 +559,7 @@ def wegsystem(mänx: Mänx, start: Wegpunkt | str | tuple[str, str], return_fn: 
 
 GEBIETE: dict[str, MänxFkt[Gebiet]] = {}
 from xwatc import nsc  # @Reimport
-from xwatc.weg._kreuzung import Wegkreuzung, Himmelsrichtung, kreuzung, Wegtyp  # @Reimport
+from xwatc.weg._kreuzung import Wegkreuzung, Himmelsrichtung, kreuzung, Wegtyp, Beschreibung  # @Reimport
 
 # def wegkreuzung_structure(_typ: type, kreuzung) -> Wegkreuzung:
 #     raise NotImplementedError

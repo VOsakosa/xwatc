@@ -7,7 +7,7 @@ from unittest.mock import patch, Mock
 
 from xwatc.system import Mänx, mint, malp, MissingIDError
 from xwatc.weg import (Wegtyp, GEBIETE, Beschreibung, get_gebiet, Gebiet, Himmelsrichtung, Weg,
-                       kreuzung, WegEnde, wegsystem, Eintritt, finde_kreuzung)
+                       kreuzung, WegEnde, wegsystem, Eintritt, finde_punkt as finde_kreuzung)
 from xwatc_test.mock_system import MockSystem, ScriptEnde, UnpassendeEingabe
 
 
@@ -151,7 +151,7 @@ class TestIntegration(unittest.TestCase):
 
     def test_all(self):
         """Instantiiere alle Gebiete und prüfe damit, ob alle funktionieren."""
-        import xwatc_Hauptgeschichte  # @UnusedImport
+        import xwatc.lg.start  # @UnusedImport
         mänx = Mänx()
         for name in GEBIETE:  # @UndefinedVariable
             with self.subTest(name=name):
