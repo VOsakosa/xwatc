@@ -86,7 +86,7 @@ class Terminal:
     def spezial_taste(mänx: Mänx, taste: str,
                       save: 'Speicherpunkt | None' = None) -> bool:
         """Führe die Spezialaktion taste aus, oder gebe Falsch zurück."""
-        from xwatc.system import Spielende
+        from xwatc.system import Spielende, ZumHauptmenu
         from xwatc.untersystem import hilfe
         if taste == "e":
             print(mänx.inventar_zeigen())
@@ -123,7 +123,9 @@ class Terminal:
                         print(line)
             else:
                 print("Keine Hilfe für", args, "gefunden.")
-        elif taste == "sofort sterben" or taste == "sterben":
+        elif taste == "sofort sterben":
+            raise ZumHauptmenu()
+        elif taste == "sterben":
             raise Spielende()
         else:
             return False

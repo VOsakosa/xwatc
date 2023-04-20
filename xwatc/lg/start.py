@@ -11,7 +11,8 @@ __author__ = "Leo Ischebeck"
 
 
 def waffe_wählen(mänx: Mänx) -> Fortsetzung:
-    mint(_("Du wirst nun einem kleinen Persönlichkeitstest unterzogen."))
+    malp(_("Lass uns zunächst deinen Charakter erstellen."))
+    malp(_("Du wirst nun einem kleinen Persönlichkeitstest unterzogen."))
     rasse = mänx.menu([
         (_("Mensch"), "mensch", Rasse.Mensch),
         (_("Munin"), "munin", Rasse.Munin)
@@ -43,4 +44,8 @@ def waffe_wählen(mänx: Mänx) -> Fortsetzung:
     mänx.inventar[waffe.capitalize()] += 1
     mint(f"Übrigens, dein Inventar enthält jetzt: {mänx.inventar_zeigen()}. "
          "(Mit der Taste e kannst du dein Inventar überprüfen.)")
+    return mitte.MITTE_EINTRITT
+
+def respawn(_mänx: Mänx) -> Fortsetzung:
+    malp("Du darfst dein Inventar behalten und wirst an den ursprünglichen Ort zurückgesetzt.")
     return mitte.MITTE_EINTRITT

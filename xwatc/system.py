@@ -36,6 +36,7 @@ SPEICHER_VERZEICHNIS = Path(__file__).parent.parent / "xwatc_saves"
 getLogger("xwatc").addHandler(logging.StreamHandler())
 
 
+@typing.runtime_checkable
 class HatMain(typing.Protocol):
     """Eine Klasse für Objekte, die Geschichte haben und daher mit main()
     ausgeführt werden können. Das können Menschen, aber auch Wegpunkte
@@ -643,16 +644,21 @@ class Spielende(Exception):
     """Diese Exception wird geschmissen, um das Spiel zu beenden."""
 
 
+class ZumHauptmenu(Exception):
+    """Diese Exception wird geschmissen, um direkt zum Hauptmenü zu gelangen.
+    Sie sollte nur von den Ausgaben geschmissen werden, damit der Spieler je nach Regel
+    vorher noch abgespeichert wird.
+    """
+
+
 def main_loop(mänx: Mänx, punkt: Fortsetzung | None = None) -> None:
-    """Die Hauptschleife von Xwatc."""
-    from xwatc.lg.start import waffe_wählen
+    """Die Hauptschleife von Xwatc (im Spiel, das Hauptmenü ist in den Anzeigen.)"""
+    from xwatc.lg.start import respawn, waffe_wählen
     mänx._geladen_von = punkt
     if punkt is None:
         malp(_("Willkommen bei Xwatc"))
-    ende = False
-    while not ende:
-        if not punkt:
-            punkt = waffe_wählen
+        punkt = waffe_wählen
+    while True:
         try:
             while punkt:
                 getLogger("xwatc").info(f"Betrete {punkt}.")
@@ -660,23 +666,21 @@ def main_loop(mänx: Mänx, punkt: Fortsetzung | None = None) -> None:
                     punkt = weg.wegsystem(mänx, punkt, return_fn=True)
                 elif callable(punkt):
                     punkt = punkt(mänx)
-                else:
+                elif isinstance(punkt, HatMain):
                     punkt = punkt.main(mänx)
+                else:
+                    assert_never(punkt)
         except Spielende:
             malp(_("Du bist tot"))
-            punkt = None
-        except EOFError:
-            ende = True
+            if mänx.titel:
+                malp("Du hast folgende Titel erhalten:", ", ".join(mänx.titel))
+                malp("Aber keine Sorge, du wirst wiedergeboren")
+            punkt = respawn
+        except (EOFError, ZumHauptmenu):
+            return
         else:
-            ende = False
-        malp("Hier ist die Geschichte zu Ende.")
-        if mänx.titel:
-            malp("Du hast folgende Titel erhalten:", ", ".join(mänx.titel))
-        if not ende:
-            mänx.inventar_leeren()
-            malp("Aber keine Sorge, du wirst wiedergeboren")
-        elif not mänx.ausgabe.terminal:
-            mänx.menu([("Beenden", "weiter", None)])
+            malp("Hier ist die Geschichte zu Ende.")
+            punkt = respawn
 
 
 from xwatc import anzeige, nsc, weg, scenario  # @UnusedImport @Reimport
