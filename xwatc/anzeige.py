@@ -24,8 +24,10 @@ from typing import (Tuple, Optional as Opt, Mapping,
 from typing_extensions import Self
 from xwatc import _
 from xwatc import system
-from xwatc.system import (Fortsetzung, Speicherpunkt, SPEICHER_VERZEICHNIS,
-                          Menu, MenuOption, Mänx)
+from xwatc.system import (Fortsetzung, SPEICHER_VERZEICHNIS,
+                          Menu, Mänx)
+if False:
+    from xwatc.system import Speicherpunkt
 __author__ = "jasper"
 
 
@@ -242,7 +244,7 @@ class XwatcFenster:
 
     def minput(self, _mänx, frage: str,
                lower=True,
-               save: Opt[Speicherpunkt] = None) -> str:
+               save: Speicherpunkt | None = None) -> str:
         self.malp(frage)
         self.speicherpunkt = save
         self.eingabe(prompt=None)

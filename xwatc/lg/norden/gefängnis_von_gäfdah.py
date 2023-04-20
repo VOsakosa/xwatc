@@ -4,9 +4,7 @@ from attrs import define
 from xwatc.system import (_, mint, register, Mänx, malp, Fortsetzung,
                           sprich, StoryObject, MethodSave)
 
-from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
-from xwatc import weg
-from xwatc.lg import mitte
+from xwatc.untersystem.verbrechen import Verbrechensart
 from xwatc.weg import Eintritt
 
 # TODO Gefängnis

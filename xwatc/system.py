@@ -75,10 +75,8 @@ class MissingIDError(Exception):
     id_: str
 
 
-Speicherpunkt: TypeAlias = ('types.FunctionType | nsc.NSC '
-                            ' | weg.Wegkreuzung | scenario.ScenarioWegpunkt | MethodSave')
 MänxPrädikat = MänxFkt[bool]
-Fortsetzung = Union[MänxFkt, HatMain, 'weg.Wegpunkt']
+Fortsetzung = MänxFkt | HatMain
 ITEMVERZEICHNIS = lade_itemverzeichnis(Path(__file__).parent / "itemverzeichnis.txt",
                                        Path(__file__).parent / "waffenverzeichnis.yaml")
 ausgabe: Terminal | 'anzeige.XwatcFenster' = Terminal()
@@ -390,7 +388,7 @@ class Mänx(InventarBasis):
             von.inventar[item] -= anzahl
 
     def minput(self, frage: str, möglichkeiten: Sequence[str] | None = None, lower: bool = True,
-               save: Speicherpunkt | None = None) -> str:
+               save: 'Speicherpunkt | None' = None) -> str:
         """Fragt den Benutzer nach einer Eingabe."""
         self._reset_laden(save)
         if möglichkeiten:
@@ -398,7 +396,7 @@ class Mänx(InventarBasis):
         else:
             return self.ausgabe.minput(self, frage=frage, lower=lower, save=save)
 
-    def ja_nein(self, frage: str, save: Speicherpunkt | None = None) -> bool:
+    def ja_nein(self, frage: str, save: 'Speicherpunkt | None' = None) -> bool:
         """Fragt den Benutzer eine Ja-Nein-Frage."""
         self._reset_laden(save)
         return self.ausgabe.menu(self, Menu.ja_nein_bool(frage), save)
@@ -407,7 +405,7 @@ class Mänx(InventarBasis):
              optionen: List[MenuOption[T]],
              frage: str = "",
              versteckt: Mapping[str, T] | None = None,
-             save: Speicherpunkt | None = None) -> T:
+             save: 'Speicherpunkt | None' = None) -> T:
         """Lasse den Spieler aus verschiedenen Optionen wählen.
 
         z.B:
@@ -420,7 +418,7 @@ class Mänx(InventarBasis):
         self._reset_laden(save)
         return self.ausgabe.menu(self, Menu(optionen, frage, versteckt or {}), save)
 
-    def call_menu(self, menu: Menu[T], save: Speicherpunkt | None) -> T:
+    def call_menu(self, menu: Menu[T], save: 'Speicherpunkt | None') -> T:
         return self.ausgabe.menu(self, menu, save)
 
     def genauer(self, text: Sequence[str]) -> None:
@@ -545,7 +543,7 @@ class Mänx(InventarBasis):
     def am_laden(self) -> bool:
         return self._geladen_von is not None
 
-    def _reset_laden(self, save: Speicherpunkt | None) -> None:
+    def _reset_laden(self, save: 'Speicherpunkt | None') -> None:
         """Beende den Lade-Modus. Prüfe möglichst noch, ob man auch an der selben Stelle
         landet und gebe sonst eine Warnung aus."""
         warn = getLogger("xwatc.system").warn
@@ -555,7 +553,7 @@ class Mänx(InventarBasis):
 
             self._geladen_von = None
 
-    def save(self, punkt: Speicherpunkt, name: Path | str | None = None) -> None:
+    def save(self, punkt: 'Speicherpunkt', name: Path | str | None = None) -> None:
         """Speicher den Mänxen."""
         # self._geladen_von = punkt
         if name is None:
@@ -681,7 +679,9 @@ def main_loop(mänx: Mänx, punkt: Fortsetzung | None = None) -> None:
             mänx.menu([("Beenden", "weiter", None)])
 
 
-from xwatc import anzeige, nsc, weg  # @UnusedImport @Reimport
+from xwatc import anzeige, nsc, weg, scenario  # @UnusedImport @Reimport
+Speicherpunkt: TypeAlias = (MänxFkt[Fortsetzung] | nsc.NSC
+                            | weg.Wegkreuzung | scenario.ScenarioWegpunkt | MethodSave)
 if __debug__:
     from typing import get_type_hints
     get_type_hints(Mänx)
