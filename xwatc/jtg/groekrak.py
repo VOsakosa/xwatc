@@ -7,10 +7,11 @@ from xwatc import nsc
 from xwatc.weg.dorf import ort, Dorf
 from xwatc.effect import Cooldown, NurWenn
 from xwatc.system import Mänx, malp, Welt, malpw, Fortsetzung, _
-from xwatc.untersystem.person import Fähigkeit
+from xwatc.untersystem.person import Fähigkeit, Rasse
 from xwatc.weg import get_eintritt, gebiet, Gebiet, kreuzung, Eintritt, Gebietsende
 
 from xwatc.nsc import StoryChar, NSC, Person, Malp, Rückkehr
+from xwatc.haendler import mache_händler
 __author__ = "jasper"
 
 GENAUER = [
@@ -78,7 +79,7 @@ def _grökrak(welt: Welt, gb: Gebiet) -> Dorf:
     haupt = ort("Hauptplatz", None, "Vor dem Burgfried Grökrakchöls ist ein großer, "
                 "geschäftiger Platz. In der Mitte ist ein großer Springbrunnen, "
                 "davor eine Statue eines großen Denkers.")
-
+    markt = ort("Markt", None, "Auf einem großen Markt bieten die Händler ihre Waren an.")
     taverne = ort("Taverne Zum Katzenschweif", None,
                   "Eine lebhafte Taverne voller Katzen")
     taverne.add_char(welt, özil)
@@ -86,8 +87,10 @@ def _grökrak(welt: Welt, gb: Gebiet) -> Dorf:
     taverne.add_char(welt, canna)
     taverne.add_char(welt, carlo)
     taverne.add_char(welt, klavier)
+    markt.add_char(welt, waffenh)
     tor - haupt - taverne
-    return Dorf.mit_struktur("Grökrakchöl", gb, [tor, haupt, taverne])
+    haupt - markt
+    return Dorf.mit_struktur("Grökrakchöl", gb, [tor, haupt, taverne, markt])
 
 
 özil = StoryChar("jtg:gr:özil", ("Özil", "Çakır", "Kellner"), startinventar={
@@ -246,6 +249,17 @@ klavier.dialog("ein fröhliches Lied spielen", "froh", [
     Malp("Die Stimmung in der Taverne hellt sich auf.")]).wenn(kann_spielen)
 klavier.dialog("den gestiefelten Kater spielen", "kater", [
     Malp("Die Melodie klingt durch die Taverne")]).wenn(kann_spielen)
+
+
+waffenh = StoryChar("jtg:gr:waffenhändler", ("Mius", "Xiet", "Waffenhändler"),
+                    Person("m", Rasse.Munin), vorstellen_fn=_(
+    "Ein großer Munin mit mächtigem Bart verkauft hier Waffen."))
+waffenh.dialog("hallo", "Hallo! Wer sind Sie?", "Muin. Ich bin Mius Xiet, Waffenhändler.")
+mache_händler(waffenh, {
+    "Speer": (2, 30),
+    "Stahlhandschuh": (1, 61),
+    "mächtige Axt": (3, 154),
+}, kauft=(), gold=324)
 
 
 if __name__ == '__main__':
