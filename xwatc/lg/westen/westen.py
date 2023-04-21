@@ -1,8 +1,9 @@
 from time import sleep
 from xwatc.system import Mänx, minput, ja_nein, Spielende, mint, malp, Fortsetzung, _
-from xwatc.weg import get_eintritt, Eintritt, Gebiet
+from xwatc.weg import Eintritt, Gebiet
 from xwatc import weg
 from xwatc.nsc import StoryChar, Zeitpunkt, Dialog, NSC, Rückkehr, Malp, DialogFn
+from xwatc.untersystem.menus import Option
 
 eingang_osten = Eintritt("lg:westen", "mitte")
 
@@ -61,7 +62,7 @@ def weiter_huhn(_n: NSC, _mänx: Mänx) -> Rückkehr:
     raise Spielende()
 
 
-def flucht_huhn(nsc: NSC, mänx: Mänx) -> Fortsetzung:
+def flucht_huhn(_nsc: NSC, _mänx: Mänx) -> Fortsetzung:
     from xwatc.lg import mitte
     malp("Du entkommst dem Huhn mühelos.")
     malp("Nach einer Weile kommst du wieder dort an wo du losgelaufen bist.")
@@ -77,6 +78,33 @@ def vergraulen(text: list[str]) -> DialogFn:
         nsc.ort = None
         return Rückkehr.VERLASSEN
     return reden
+
+
+def reden_monsieur(nsc: NSC, mänx: Mänx) -> Rückkehr:
+    malp("Die Züge der Henne froren ein. Die Henne war die Ausdruckslosigkeit in Pers... Huhn.")
+    malp("Das Huhn guckt dich an.")
+    mänx.sleep(1)
+    malp("Das Huhn guckt dir tief in die Augen.")
+    mänx.sleep(3)
+    malp("Das Huhn guckt dir sehr tief in die Augen.")
+    mänx.sleep(5)
+    malp("sehr, sehr tief")
+    mänx.sleep(6)
+    malp("Langsam wird dir übel. Kotzt du einfach hemmungslos oder hältst du es zurück?")
+    leben = mänx.menu([Option("Kotzen", "k"), Option("fliehen", "z")])
+    if leben == "ko":
+        malp("Du erbrichst dich über dem Huhn, brichst den Bann und fliehst.")
+        return Rückkehr.VERLASSEN
+    else:
+        assert leben == "z"
+        malp(
+            "Das Huhn dringt durch die Augen in dich ein und ... verändert dort etwas.")
+        malp("Plötzlich wird dir klar, dass du ein Wurm bist. ")
+        sleep(3)
+        malp("Das Huhn pickt")
+        sleep(3)
+        malp("aua")
+        raise Spielende
 
 
 Huhn = StoryChar("lg:westen:huhn", ("Huhn", "Huhn"), direkt_reden=False, dialoge=[
@@ -100,7 +128,17 @@ Huhn = StoryChar("lg:westen:huhn", ("Huhn", "Huhn"), direkt_reden=False, dialoge
     ])),
     Dialog("schön", "Ja, es ist wirklich sehr schön.", vergraulen([
         '"Ja, findest du nicht auch?" Mit geschwellter Brust watschelt das Huhn davon',
-    ]))
+    ])),
+    Dialog("mad_stein", "Tut mir wirklich sehr leid, Madam "
+           "Henne, aber das ist lediglich ein hässlicher Stein!", vergraulen([
+               "Erst blickt dich das Huhn wütend an, dann verschwindet es.",
+           ])),
+    Dialog("mon_ei", _("Tut mir wirklich sehr leid, Monsieur Henne, aber das ist "
+                       "lediglich ein hässliches Ei!"), reden_monsieur),
+    Dialog("mon_stein", _("Tut mir wirklich sehr leid, Monsieur Henne, aber das ist "
+                          "lediglich ein hässlicher Stein!"), reden_monsieur),
+
+
 ])
 
 
@@ -120,141 +158,94 @@ def reden_fischibischi(nsc: NSC, mänx: Mänx) -> Rückkehr:
     return Rückkehr.VERLASSEN
 
 
-# TODO: Weitere Dialoge des Huhns
-def reden(mänx: Mänx):
-    malp("2: ")
-    malp("3: Tut mir wirklich sehr leid, Monsieur Henne, a"
-         "ber das ist lediglich ein hässliches Ei!")
-    malp("4:OOOkay! Tschüss")
-    malp("5:Bye")
-    malp("7:Reden wir über etwas anderes. Bitte.")
-    malp("8:Tut mir wirklich sehr leid, Monsieur Henne, aber das ist lediglich ein "
-         "hässlicher Stein")
-    malp("9:Tut mir wirklich sehr leid, Madam "
-         "Henne, aber das ist lediglich ein "
-         "hässliches Ei!")
-    malp("10:Tut mir wirklich sehr leid, Madam "
-         "Henne, aber das ist lediglich ein"
-         "hässlicher Stein!")
-    nett = minput(mänx, "Was sagst du? 1/2/3/4/5/6/7/8/9/10",
-                  ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"])
-
-    if nett == "3":
-        malp(
-            "Die Züge der Henne froren ein. Die Henne war die Ausdruckslosigkeit in Pers... Huhn.")
-        malp("Das Huhn guckt dich an.")
-        sleep(1)
-        malp("Das Huhn guckt dir tief in die Augen.")
-        sleep(3)
-        malp("Das Huhn guckt dir sehr tief in die Augen.")
-        sleep(5)
-        malp("sehr, sehr tief")
-        sleep(6)
-        leben = minput(mänx, "Langsam wird dir übel."
-                       "Kotzt du einfach hemmungslos oder hältst du es zurück?"
-                       "(ko/z)", ["ko", "z"])
-        if leben == "ko":
-            malp("Du erbrichst dich über dem Huhn, brichst den Bann und fliehst.")
-        elif leben == "z":
-            malp(
-                "Das Huhn dringt durch die Augen in dich ein und ... verändert dort etwas.")
-            malp("Plötzlich wird dir klar, dass du ein Wurm bist. ")
-            sleep(3)
-            malp("Das Huhn pickt")
-            sleep(3)
-            malp("aua")
-            raise Spielende
-
-    if nett == "4":
-        malp("Den Blick des Huhns auf dir spürend, machst du dich von dannen.")
-
-    elif nett == "5":
-        malp("Du beachtest den verwirrten Blick des Huhns nicht und gehst du davon.")
+@Huhn.dialog_deco("anderes", "Reden wir über etwas anderes. Bitte.")
+def wirklich_reden(nsc: NSC, mänx: Mänx) -> Rückkehr | Fortsetzung:
+    malp('Verwirrt betrachtet dich das Huhn noch einmal eingehend.'
+         '"Ja, worüber willst du denn reden?", fragt es.')
+    cmal = mänx.menu([
+        Option("Wo liegt die nächste menschliche Ansiedlung?[wo]", 1),
+        Option("Wie findest du das Wetter?[wetter]", 2),
+        Option("Kannst du mir irgentetwas beibringen?[beibringen]", 3),
+        Option("Wie kommt es, dass du sprechen kannst?[sprechen]", 4),
+    ], save=nsc)
+    if cmal == 1:
+        malp("Plötzlich wirkt das Huhn sehr verlegen."
+             "Statt dir zu antworten, "
+             "springt es ins Gebüsch und verschwindet.")
+        nsc.ort = None
         return Rückkehr.VERLASSEN
-
-    elif nett == "7":
-        malp('Verwirrt betrachtet dich das Huhn noch einmal eingehend.'
-             '"Ja, worüber willst du denn reden?", fragt es.')
-        malp("1. Wo liegt die nächste menschliche Ansiedlung?")
-        malp("2. Wie findest du das Wetter?")
-        malp("3. Kannst du mir irgentetwas beibringen? ")
-        malp("4. Wie kommt es, dass du sprechen kannst?")
-        cmal = minput(mänx, "1/2/3/4", ["1", "2", "3", "4"])
-        if cmal == "1":
-            malp("Plötzlich wirkt das Huhn sehr verlegen."
-                 "Statt dir zu antworten, "
-                 "springt es ins Gebüsch und verschwindet.")
-        elif cmal == "2":
-            malp('"sehr schön, sehr schön...", murmelt die Henne.'
-                 'Dann springt sie plötzlich auf und schreit in die Welt hinaus:'
-                 '"Bei gutem Wetter sollte man auf Wanderschaft gehen.'
-                 'Kreischend packt sie ihr "Ei" und rennt davon."')
-        elif cmal == "3":
-            malp('"Ja, das kann ich", sprach die Henne.'
-                 'Sie wirkte plötzlich sehr ernst und weise.'
-                 '"Aber dann musst du mich mit Meisterin Kraagkargk ansprechen.')
-            ja = minput(mänx, "Ja Meisterin Kraagkargk/Nein Meis"
-                        "terin Kraagkargk/Ja/nein (jm/nm/j/n)",
-                        ['jm', 'nm', 'n', 'j'])
-            if ja == 'jm':
-                mint('"Gut", sagte Meisterin Kraagkargk')
-                malp("Du musst jetzt leider eine Minute warten.")
-                mänx.sleep(60)
-                malp("Meisterin Kraagkargk huscht in die Nacht davon "
-                     "und du schlägst auf einer Wiese in der Nähe dein Lager auf.")
-                sleep(3)
-                malp('Info: Du hast hast "verrückter Schrei" gelernt!')
-                malp('Jeder der ihn hört, reagiert anders.')
-                malp(
-                    'Manche weinen, manche lachen, manche wiederum erbrechen sich.–')
-                malp(
-                    'Auf jeden Fall verschafft es dir einige Minuten der Ablenkung!')
-            elif ja == 'nm':
-                malp('Meisterin Kraagkargk wurde wütend.'
-                     '"So gehe doch", rief sie theatralisch und ging selbst.')
-            elif ja == 'n':
-                malp("Meisterin Kraagkargk guckt dich kurz an und ging dann.")
-            elif ja == 'j':
-                malp(
-                    'Meisterin Kraagkargk schnaubte und stolzierte beleidigt davon.')
-
-        elif cmal == "4":
-                malp('"Das liegt an meinem Mugel des Sprechens", '
-                     'sagte die Hühnerdame und lief durch deine "dumme" Frage empört davon.')
-
-    elif nett == "8":
-        malp(
-            "Die Züge der Henne wurden starr. Die Henne wurde die Ausdruckslosigkeit in Pers.. Huhn.")
-        malp("Und sie guckt dich an.")
-        sleep(1)
-        malp("Guckt dir tief in die Augen.")
-        sleep(3)
-        malp("tiefer")
-        sleep(5)
-        malp("noch tiefer")
-        sleep(6)
-        leben = minput(mänx, "Dir wird übel."
-                       "Erbrichst du dich du einfach hemmungslos oder hältst du es zurück?"
-                       "(er/z)", ['er', 'z'])
-        if leben == "er":
-            malp(
-                "Du erbrichst dich über dem Huhn, brichst den Bann und fliehst.")
-        elif leben == "z":
-            malp(
-                "Das Huhn kriecht durch deine Augen in dich ein und ... verändert dort etwas.")
-            malp("Plötzlich wird dir klar, dass du ein Wurm bist. ")
+    elif cmal == 2:
+        malp('"sehr schön, sehr schön...", murmelt die Henne.'
+             'Dann springt sie plötzlich auf und schreit in die Welt hinaus:'
+             '"Bei gutem Wetter sollte man auf Wanderschaft gehen.'
+             'Kreischend packt sie ihr "Ei" und rennt davon."')
+        return Rückkehr.VERLASSEN
+    elif cmal == 3:
+        malp('"Ja, das kann ich", sprach die Henne.'
+             'Sie wirkte plötzlich sehr ernst und weise.'
+             '"Aber dann musst du mich mit Meisterin Kraagkargk ansprechen.')
+        ja = minput(mänx, "Ja Meisterin Kraagkargk/Nein Meis"
+                    "terin Kraagkargk/Ja/nein (jm/nm/j/n)",
+                    ['jm', 'nm', 'n', 'j'], save=nsc)
+        if ja == 'jm':
+            mint('"Gut", sagte Meisterin Kraagkargk')
+            malp("Du musst jetzt leider eine Minute warten.")
+            mänx.sleep(60)
+            malp("Meisterin Kraagkargk huscht in die Nacht davon "
+                 "und du schlägst auf einer Wiese in der Nähe dein Lager auf.")
             sleep(3)
-            malp("Das Huhn pickt")
-            sleep(3)
-            malp("aua")
-            raise Spielende
+            mint()
+            malp('Info: Du hast hast "verrückter Schrei" gelernt!')
+            malp('Jeder der ihn hört, reagiert anders.')
+            malp(
+                'Manche weinen, manche lachen, manche wiederum erbrechen sich.–')
+            malp(
+                'Auf jeden Fall verschafft es dir einige Minuten der Ablenkung!')
+            return Rückkehr.VERLASSEN
 
-    elif nett == "9":
-        malp("Die Henne kreischt.")
-        malp("lauter als ein Löwe,")
-        malp("schriller als ein Adler,")
-        mint("todbringender als eine Banshee.")
-        raise Spielende
+        elif ja == 'nm':
+            malp('Meisterin Kraagkargk wurde wütend.'
+                 '"So gehe doch", rief sie theatralisch und ging selbst.')
+            nsc.ort = None
+            return Rückkehr.VERLASSEN
+        elif ja == 'n':
+            malp("Meisterin Kraagkargk guckt dich kurz an und ging dann.")
+            nsc.ort = None
+            return Rückkehr.VERLASSEN
+        elif ja == 'j':
+            malp(
+                'Meisterin Kraagkargk schnaubte und stolzierte beleidigt davon.')
+            nsc.ort = None
+            return Rückkehr.VERLASSEN
+        else:
+            assert False
 
-    elif nett == "10":
-        malp("Erst blickt dich das Huhn wütend an, dann verschwindet es.")
+    elif cmal == 4:
+        malp('"Das liegt an meinem Mugel des Sprechens", '
+             'sagte die Hühnerdame und lief durch deine "dumme" Frage empört davon.')
+        nsc.ort = None
+        return Rückkehr.VERLASSEN
+    else:
+        assert False
+
+
+@Huhn.dialog_deco("tschüss", "OOOkay! Tschüss")
+def reden_tschüss(_nsc, _mänx) -> Rückkehr:
+    malp("Den Blick des Huhns auf dir spürend, machst du dich von dannen.")
+    return Rückkehr.VERLASSEN
+
+
+@Huhn.dialog_deco("bye", "Bye")
+def reden_bye(_nsc, _mänx) -> Rückkehr:
+    malp("Du beachtest den verwirrten Blick des Huhns nicht und gehst du davon.")
+    return Rückkehr.VERLASSEN
+
+
+@Huhn.dialog_deco("mad_ei", "Tut mir wirklich sehr leid, Madam "
+                  "Henne, aber das ist lediglich ein hässliches Ei!")
+def reden_mad_ei(_nsc, _mänx) -> Rückkehr:
+    malp("Die Henne kreischt.")
+    malp("lauter als ein Löwe,")
+    malp("schriller als ein Adler,")
+    mint("todbringender als eine Banshee.")
+    raise Spielende
