@@ -43,6 +43,7 @@ def bezeichnung(val: str | tuple[str, str] | tuple[str, str, str] | Bezeichnung)
             return Bezeichnung(vorname + " " + nachname, art, vorname)
     raise TypeError(f"{val} ist keine Bezeichnung", val)
 
+_warn_items = set[str]()
 
 @define
 class StoryChar:
@@ -74,6 +75,15 @@ class StoryChar:
             CHAR_REGISTER[self.id_] = self
         # if self.ort:
         #    ORTS_CHARE[self.ort].append(self)
+        for item in self.startinventar:
+            if item == "Gold":
+                return
+            try:
+                system.get_item(item)
+            except KeyError:
+                if item not in _warn_items:
+                    _warn_items.add(item)
+                    getLogger("xwatc.item").warn(f"Unbekanntes Item in NSC: {item}")
 
     def zu_nsc(self, nr: int = 0) -> 'NSC':
         """Erzeuge den zugehörigen NSC aus dem Template. Dieser wird

@@ -1,25 +1,28 @@
 # Xwatc-Itemverzeichnis
 
 Accessoire: Ausrüstung
-  Amulett
-  Haarband
-  Tarotkarte
+  Amulett; 54
+  Haarband; 4
+  Ledergürtel; 5
+  Ring; 34
+  Tarotkarte; 12
+  Teddybär; 23
 
 Ausrüstung:
-  Armbanduhr
+  Armbanduhr; 43
 
 Blume:
   Distelblüte; 6
   Gänseblümchen; 3
-  Hahnenfuß
-  Klatschmohn
+  Hahnenfuß; 1
+  Klatschmohn; 1
   Löwenzahn; 2
   Margarite
   Rose; 8
-  Tulpe
+  Tulpe; 7
 
 Brennstoff:
-  Kohle
+  Kohle; 24
 
 Buch:
   Kinderbuch; 23
@@ -45,21 +48,27 @@ Heiliges Tagesei:
   Stein der aussieht wie ein Hühnerei; 350
 
 Holz:
-  Holz
-  Stöckchen
+  Holz; 14
+  Stöckchen; 3
 
 Kleidung:
+  Äntorenmantel; 38
+  Äntorenstiefel; 23
   Anzug; 25
   Einfaches Kleid; 12
   Gürtel; 15
   halber Mantel; 13
   Hose; 10
+  Kappe; 12
   Kapuzenmantel; 30
   Kleid; 48
+  Latzhose; 16
   Lederhose; 16
   Lederschuh; 18
   Lederstiefel; 20
+  Lumpen; 2
   Mantel; 28
+  Matschhose; 21
   Mütze; 12
   Schal; 8
   Schuh; 6
@@ -71,13 +80,13 @@ legendäre Waffe: Waffe
   Höllenschwert; 200
 
 Metall:
-  Bronze
-  Eisen
-  Kupfer
-  Rohgold; 5
-  Silber
-  Zink
-  Zinn
+  Bronze; 45
+  Eisen; 22
+  Kupfer; 34
+  Rohgold; 52
+  Silber; 53
+  Zink; 23
+  Zinn; 23
 
 Mugel:
   Mugel der Draufsicht
@@ -94,6 +103,7 @@ normales Werkzeug:
 
 normale Waffe: Waffe
   vergifteter Dolch; 30
+  Axt; 54
   Messer; 10
   Schwert; 55
   Speer; 50
@@ -110,6 +120,7 @@ Oberbekleidung: Kleidung
   Anzugjacke; 28
   Leinenhemd; 17
   T-Shirt; 18
+  Top; 15
 
 Obst: Nahrung
   Apfel; 3
@@ -142,6 +153,7 @@ Superpapierrohstoff:
 
 Talisman: Ausrüstung
   Talisman der Schreie
+  Talisman des Verstehens
 
 Unterwäsche: Kleidung
   BH; 20
