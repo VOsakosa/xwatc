@@ -455,7 +455,7 @@ class Mänx(InventarBasis):
             self.welt.setze("tutorial:" + art)
 
     def inventar_zugriff(self, inv: InventarBasis,
-                         nimmt: Union[bool, Sequence[str]] = False) -> None:
+                         nimmt: bool | Sequence[str] = False) -> None:
         """Ein Menu, um auf ein anderes Inventar zuzugreifen."""
         # TODO Inventar-Zugriff in ein Untersystem.
         malp(inv.erweitertes_inventar())

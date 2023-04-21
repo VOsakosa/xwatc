@@ -14,7 +14,7 @@ from xwatc.effect import Cooldown
 from xwatc.jtg import eo_nw
 from xwatc.jtg import osten, mitose
 from xwatc.nsc import StoryChar, bezeichnung, NSC, Rückkehr, Malp, Dialog, Zeitpunkt
-from xwatc.scenario import Scenario, ScenarioWegpunkt
+from xwatc.scenario import ScenarioWegpunkt
 from xwatc.system import Mänx, mint, Spielende, InventarBasis, sprich, malp, register
 from xwatc.weg import Eintritt
 from typing_extensions import Self
@@ -42,7 +42,7 @@ def disnayenbum(_mänx: Mänx, gb: weg.Gebiet):
 
 def kampf_in_disnayenbum(nsc: nsc.NSC, mänx: Mänx):
     axtmann_da = False
-    if isinstance(mänx.context, Scenario):
+    if isinstance(mänx.context, ScenarioWegpunkt):
         axtmann_da = mänx.welt.am_leben("jtg:axtmann")
     if axtmann_da:
         malp("Du spürst den Blick des Axtmannes im Rücken.")
@@ -466,7 +466,7 @@ class Kiste:
         return self
 
     def main(self, mänx: Mänx):
-        if isinstance(mänx.context, Scenario) and mänx.welt.am_leben("jtg:lina"):
+        if isinstance(mänx.context, ScenarioWegpunkt) and mänx.welt.am_leben("jtg:lina"):
             self.lina = mänx.welt.obj("jtg:lina")
         else:
             self.lina = None
