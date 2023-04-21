@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2023-04-07 14:09+0200\n"
-"PO-Revision-Date: 2023-04-07 14:10+0200\n"
+"POT-Creation-Date: 2023-04-21 09:27+0200\n"
+"PO-Revision-Date: 2023-04-21 09:30+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: dari\n"
@@ -12,417 +12,480 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 3.1.1\n"
 "X-Poedit-Basepath: ../../../..\n"
-"X-Poedit-KeywordsList: mint;malp\n"
+"X-Poedit-KeywordsList: mint;malp;Malp;Sprich;Option\n"
 "X-Poedit-SearchPath-0: xwatc\n"
 "X-Poedit-SearchPath-1: xwatc_Hauptgeschichte.py\n"
 
-#: xwatc/anzeige.py:139
+#: xwatc/anzeige.py:150
 msgid "Xwatc-Hauptmenü"
 msgstr "Xwatc-Hawpoménú"
 
-#: xwatc/anzeige.py:140 xwatc_Hauptgeschichte.py:18
+#: xwatc/anzeige.py:151 xwatc/terminal.py:179
 msgid "Lade Spielstand"
 msgstr "Pyelethano yu lade"
 
-#: xwatc/anzeige.py:141 xwatc_Hauptgeschichte.py:19
+#: xwatc/anzeige.py:152 xwatc/terminal.py:180
 msgid "Neuer Spielstand"
 msgstr "Pyelethano yu Xoa"
 
-#: xwatc/anzeige.py:156
+#: xwatc/anzeige.py:164
 msgid "Xwatc ist abgestürzt:\n"
 msgstr "Xwatc é bathúrowo:\n"
 
-#: xwatc/anzeige.py:213 xwatc/anzeige.py:219
+#: xwatc/anzeige.py:165 xwatc/anzeige.py:186 xwatc/system.py:435
+msgid "\n"
+msgstr "\n"
+
+#: xwatc/anzeige.py:185
+msgid "Das Laden des Spielstands ist gescheitert:\n"
+msgstr "Pelethano d Lade té xaytado:\n"
+
+#: xwatc/anzeige.py:229 xwatc/anzeige.py:235
 msgid "Weiter"
 msgstr "Vayoa"
 
-#: xwatc/anzeige.py:273 xwatc/anzeige.py:384
-msgid "Ja"
-msgstr "Ja"
-
-#: xwatc/anzeige.py:273 xwatc/anzeige.py:384
-msgid "Nein"
-msgstr "Nayn"
-
-#: xwatc/anzeige.py:322
+#: xwatc/anzeige.py:341
 msgid "Spielstand gespeichert."
 msgstr "Pyacyado."
 
-#: xwatc/anzeige.py:326
+#: xwatc/anzeige.py:345
 msgid "Du kannst hier nicht speichern."
 msgstr "Da in pyacya bu kan."
 
-#: xwatc/anzeige.py:364
+#: xwatc/anzeige.py:384
 msgid "weiter"
 msgstr "vayoa"
 
-#: xwatc/anzeige.py:370
+#: xwatc/anzeige.py:390
 msgid "Unter welchem Namen willst du speichern?"
-msgstr ""
+msgstr "Va Nam myo pyacya yaw bo?"
 
-#: xwatc/anzeige.py:375
+#: xwatc/anzeige.py:395
 msgid "Bereits vergeben sind:"
 msgstr ""
 
-#: xwatc/anzeige.py:383
+#: xwatc/anzeige.py:403
 msgid "Dieser Name ist bereits vergeben. Willst du überschreiben?"
 msgstr ""
 
-#: xwatc/anzeige.py:395
+#: xwatc/anzeige.py:404 xwatc/untersystem/menus.py:38
+msgid "Ja"
+msgstr "Ja"
+
+#: xwatc/anzeige.py:404 xwatc/untersystem/menus.py:39
+msgid "Nein"
+msgstr "Nayn"
+
+#: xwatc/anzeige.py:415
 msgid "Gespeichert."
 msgstr "Pyacyado."
 
-#: xwatc/anzeige.py:519
+#: xwatc/anzeige.py:552
 msgid "Tag {}"
 msgstr "{}te Tage"
 
-#: xwatc/anzeige.py:520
+#: xwatc/anzeige.py:553
 msgid "{:02}:{:02}"
 msgstr "{:02}:{:02}"
 
-#: xwatc/dorf.py:242
-#, python-brace-format
-msgid "Du erreichst {self.name}."
-msgstr ""
-
-#: xwatc/haendler.py:108
+#: xwatc/haendler.py:119
 msgid "Jetzt mal ernsthaft, gib eine positive Anzahl an."
 msgstr ""
 
-#: xwatc/haendler.py:111
+#: xwatc/haendler.py:122
 #, python-brace-format
 msgid "Du hast nicht genug \"{gegenstand}\" zum verkaufen. Versuch \"e\"."
 msgstr ""
 
-#: xwatc/haendler.py:114
+#: xwatc/haendler.py:125
 msgid "So etwas kauft der Händler nicht"
 msgstr ""
 
-#: xwatc/haendler.py:115
+#: xwatc/haendler.py:126
 msgid "Der Händler kauft nur"
 msgstr ""
 
-#: xwatc/haendler.py:117
+#: xwatc/haendler.py:128
 msgid "Der Händler verkauft nur."
 msgstr ""
 
-#: xwatc/haendler.py:122
+#: xwatc/haendler.py:133
 msgid "Der Händler kann dir dafür keinen Preis nennen"
 msgstr ""
 
-#: xwatc/haendler.py:124
+#: xwatc/haendler.py:135
 msgid "Der Händler kann dir nicht so viel davon abkaufen."
 msgstr ""
 
-#: xwatc/haendler.py:127
+#: xwatc/haendler.py:138
 msgid "Verkauft."
 msgstr ""
 
-#: xwatc/haendler.py:137
+#: xwatc/haendler.py:148
 msgid "{item:<{länge}}{anzahl:04}x {preis:3} Gold"
 msgstr ""
 
-#: xwatc/haendler.py:139
+#: xwatc/haendler.py:150
 msgid "Der Händler*in hat nichts mehr zu verkaufen"
 msgstr ""
 
-#: xwatc/haendler.py:168
+#: xwatc/haendler.py:181
 msgid "Der Händler kann den Wert davon nicht einschätzen."
 msgstr ""
 
-#: xwatc/haendler.py:171
+#: xwatc/haendler.py:184
 #, python-brace-format
 msgid "Der Händler ist bereit, dir dafür {preis} Gold zu zahlen."
 msgstr ""
 
-#: xwatc/haendler.py:239
+#: xwatc/haendler.py:277
 msgid "Die restlichen Argumente werden ignoriert."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:29
+#: xwatc/haendler.py:300 xwatc/haendler.py:307
+msgid "Welches Item?"
+msgstr ""
+
+#: xwatc/haendler.py:312
+msgid "Wie viele?"
+msgstr ""
+
+#: xwatc/haendler.py:316
+msgid "Das ist keine Zahl. Abbruch"
+msgstr ""
+
+#: xwatc/jtg/__init__.py:30
 msgid "Es erwartet dich Vogelgezwitscher."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:36
+#: xwatc/jtg/__init__.py:37
 msgid "Du findest Blumen auf der Lichtung."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:38
+#: xwatc/jtg/__init__.py:39
 msgid ""
 "Wenn du genau hinsiehst, erkennst du, dass hier ein Pfad von Norden nach "
 "Süden auf einen von Westen trifft. Im Osten sind nur Büsche."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:185
+#: xwatc/jtg/__init__.py:163
+msgid ""
+"Du rennst weg, als hätte der bloße Anblick des jungen Manns dich verschreckt."
+msgstr ""
+
+#: xwatc/jtg/__init__.py:164
+msgid ""
+"Jetzt denkt der Arme sich bestimmt: \"Bin ich so hässlich oder schrecklich, "
+"dass Leute auf den ersten Blick abhauen?\""
+msgstr ""
+
+#: xwatc/jtg/__init__.py:166
+msgid "Aber dir ist das egal, die unbekannte Gefahr ist abgewehrt."
+msgstr ""
+
+#: xwatc/jtg/__init__.py:181
 msgid "Du schläfst gut, zumindest für ein Skelett."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:186
+#: xwatc/jtg/__init__.py:182
 msgid "Am nächsten Morgen begrüßt dich Leo."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:216
+#: xwatc/jtg/__init__.py:202
+msgid "Er bittet dich an den Tisch und gibt dir einen warmen Punsch."
+msgstr ""
+
+#: xwatc/jtg/__init__.py:214
 msgid "Er wirkt sichtlich überfordert."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:221
+#: xwatc/jtg/__init__.py:219
 msgid "Du hast ihn sichtlich verwirrt."
 msgstr "Dwé iyu sicyolin favya maw."
 
-#: xwatc/jtg/__init__.py:222
+#: xwatc/jtg/__init__.py:220
 msgid ""
 "Er zeigt noch auf ein Gästezimmer, dann geht er vor sich hin brabbelnd in "
 "sein Zimmer"
 msgstr ""
 
-#: xwatc/jtg/__init__.py:224
+#: xwatc/jtg/__init__.py:222
 msgid ""
 "Im Bett denkst du über deinen heutigen Tag nach. Du sinkst in einen "
 "unruhigen Schlaf."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:227
+#: xwatc/jtg/__init__.py:225
 msgid "Früh am Morgen verlässt du eilig das Haus."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:228
+#: xwatc/jtg/__init__.py:226
 msgid "Aber du siehst noch einen Ring auf dem Tisch."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:240
+#: xwatc/jtg/__init__.py:238
 msgid "Er sagt mit einem verschwörerischen Tonfall: \"Ich verstehe.\""
 msgstr ""
 
-#: xwatc/jtg/__init__.py:243
+#: xwatc/jtg/__init__.py:241
 msgid ""
 "Du entschließt dich, mitzumachen. Am nächsten Tag verlässt du schnell das "
 "Haus, bevor der Schwindel auffliegt"
 msgstr ""
 
-#: xwatc/jtg/__init__.py:256 xwatc/jtg/__init__.py:312
+#: xwatc/jtg/__init__.py:254 xwatc/jtg/__init__.py:310
 msgid "Dein erstes Bett in dieser Welt ist schön weich."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:258
+#: xwatc/jtg/__init__.py:256
 msgid "Als du am nächsten Morgen aufwachst, fühlst du dich schwach und kalt."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:259
+#: xwatc/jtg/__init__.py:257
 msgid "Leo steht vor dir."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:320
+#: xwatc/jtg/__init__.py:318
 msgid ""
 "Der Mann spricht einen schnellen Zauberspruch. Dir wird unglaublich kalt."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:322
+#: xwatc/jtg/__init__.py:320
 msgid "Aber du bist stärker."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:323
+#: xwatc/jtg/__init__.py:321
 msgid "Du besiegst den Mann und plünderst sein Haus."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:330
+#: xwatc/jtg/__init__.py:328
 msgid ""
 "Du findest einen Ring. In ihm steht eingraviert: \"Ich hasse dich, Dongmin!\""
 msgstr ""
 
-#: xwatc/jtg/__init__.py:333
+#: xwatc/jtg/__init__.py:331
 msgid "Du entscheidest dich, nach Süden weiter zu gehen."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:336
+#: xwatc/jtg/__init__.py:334
 msgid "Du kannst dich kaum bewegen. Er tritt auf dich drauf."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:338
+#: xwatc/jtg/__init__.py:336
 msgid "Dein Rücken tut weh"
 msgstr ""
 
-#: xwatc/jtg/__init__.py:340
+#: xwatc/jtg/__init__.py:338
 msgid "Aber er zeigt Gnade. "
 msgstr ""
 
-#: xwatc/jtg/__init__.py:343
+#: xwatc/jtg/__init__.py:341
 msgid "Er zieht dich bis auf die Unterhose aus"
 msgstr ""
 
-#: xwatc/jtg/__init__.py:346
+#: xwatc/jtg/__init__.py:344
 msgid ""
 "Er zieht dich aus, verzieht das Gesicht, als er sieht, dass du keine "
 "Unterhose trägst"
 msgstr ""
 
-#: xwatc/jtg/__init__.py:348
+#: xwatc/jtg/__init__.py:346
 msgid " und wirft dich im Süden des Waldes auf den Boden"
 msgstr ""
 
-#: xwatc/jtg/__init__.py:372
+#: xwatc/jtg/__init__.py:370
 msgid "Tobiac spielt erst noch den Satz zu Ende."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:374
+#: xwatc/jtg/__init__.py:372
 msgid "Er spricht mit leiser Stimme."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:396
+#: xwatc/jtg/__init__.py:385
+msgid "Draußen war es bewölkt."
+msgstr ""
+
+#: xwatc/jtg/__init__.py:386
+msgid "Wie lange war Tobiac wohl nicht mehr draußen?"
+msgstr ""
+
+#: xwatc/jtg/__init__.py:394
 msgid ""
 "Er ist so sehr in sein Orgelspiel vertieft, dass er seinen Tod nicht kommen "
 "sieht."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:398
+#: xwatc/jtg/__init__.py:396
 msgid ""
 "Er fällt auf die Klaviatur, und sein letztes Lied endet jäh in einer langen "
 "Dissonanz."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:400
+#: xwatc/jtg/__init__.py:398
 msgid "Er hatte nichts von Wert an sich."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:403
+#: xwatc/jtg/__init__.py:401
 msgid "Du prügelst auf ihn ein, aber er wehrt sich nicht."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:405
+#: xwatc/jtg/__init__.py:403
 msgid "Du schlägst ihn bewusstlos"
 msgstr ""
 
-#: xwatc/jtg/__init__.py:410
+#: xwatc/jtg/__init__.py:408
 msgid ""
 "Tobiac spielt einfach weiter Orgel.\n"
 "Du hast das Gefühl, er hat dich bemerkt, aber er lässt sich nichts anmerken."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:414
+#: xwatc/jtg/__init__.py:412
 msgid "Du gibt dich der Melodie hin."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:434
+#: xwatc/jtg/__init__.py:432
 msgid ""
 "Tobiac ist sofort voll in seinem Element. Dir ist, als wäre er einsam und "
 "froh über deine Gesellschaft."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:436
+#: xwatc/jtg/__init__.py:434
 msgid "Du bleibt einige Tage bei ihm und lernst sein Handwerk."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:438
+#: xwatc/jtg/__init__.py:436
 msgid ""
 "Je länger du übst, desto mehr siehst du, dass er so gut spielt wie kein "
 "anderer."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:446
+#: xwatc/jtg/__init__.py:444
 msgid "Du gibst ihm den Ring des Berndoc"
 msgstr ""
 
-#: xwatc/jtg/__init__.py:491
+#: xwatc/jtg/__init__.py:485
+msgid "Ja."
+msgstr "Ja."
+
+#: xwatc/jtg/__init__.py:487
+msgid "Nein. Warum fragst du?"
+msgstr ""
+
+#: xwatc/jtg/__init__.py:498
 msgid "Sofort eilen Leute zur Hilfe."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:492
+#: xwatc/jtg/__init__.py:499
 msgid "Du siehst dich umzingelt."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:497
+#: xwatc/jtg/__init__.py:504
 msgid ""
 "Du wirst schnell überwältigt, aber weil du zu stark bist, können sie dich "
 "leider nicht lebendig fangen."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:504
+#: xwatc/jtg/__init__.py:511
 msgid "Hier ist niemand, der helfen könnte."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:505
+#: xwatc/jtg/__init__.py:512
 msgid "Du bringst ihn um und plünderst ihn aus."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:587
+#: xwatc/jtg/__init__.py:584 xwatc/lg/norden/norden.py:53
+#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:69
+msgid "Hallo"
+msgstr ""
+
+#: xwatc/jtg/__init__.py:585
+msgid "Bist du der Bruder von Robert?"
+msgstr ""
+
+#: xwatc/jtg/__init__.py:589
+msgid "Robert sucht nach dir."
+msgstr ""
+
+#: xwatc/jtg/__init__.py:602
 msgid "Grö-Kra-krö?"
 msgstr "Geró-Kera-keró?"
 
-#: xwatc/jtg/__init__.py:637
+#: xwatc/jtg/__init__.py:653
 msgid "Am Wegesrand siehst du ein Schild: \"Achtung Monster!\""
 msgstr ""
 
-#: xwatc/jtg/__init__.py:641
+#: xwatc/jtg/__init__.py:657
 msgid ""
 "Plötzlich bemerkst du einen süßen Duft und ein sanftes Leuchten im Wald zu "
 "deiner Rechten."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:643
+#: xwatc/jtg/__init__.py:659
 msgid "Ehe du dich versiehst, bis du vom Weg abgekommen."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:644
+#: xwatc/jtg/__init__.py:660
 msgid "Du hörst eine sanfte Stimme:"
 msgstr ""
 
-#: xwatc/jtg/__init__.py:650
+#: xwatc/jtg/__init__.py:666
 msgid "Du landest an einem vertrauten Ort."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:651
+#: xwatc/jtg/__init__.py:667
 msgid "Es ist der Ort, wo deine Geschichte begonnen hat."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:656
+#: xwatc/jtg/__init__.py:672
 msgid ""
 "Die Stimme verstummt, das Portal schließt sich und der Duft verschwindet."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:658
+#: xwatc/jtg/__init__.py:674
 msgid "Plötzlich bist du im dunklen Wald allein."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:659
+#: xwatc/jtg/__init__.py:675
 msgid "Etwas schweres trifft dich an der Seite und wirft dich zu Boden."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:661
+#: xwatc/jtg/__init__.py:677
 msgid "Dass es ein Stein ist, siehst du im Fallen."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:662
+#: xwatc/jtg/__init__.py:678
 msgid ""
 "Du kannst dich nicht mehr bewegen und du siehst im Augenwinkel einen Bär auf "
 "dich zukommen."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:666
+#: xwatc/jtg/__init__.py:682
 msgid "Ein Pack Wölfe greift dich an."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:667
+#: xwatc/jtg/__init__.py:683
 msgid "Sie haben die umzingelt, bevor du sie bemerkt hast."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:669
+#: xwatc/jtg/__init__.py:685
 msgid "Deine Gefährten sterben nach und nach."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:671
+#: xwatc/jtg/__init__.py:687
 msgid ""
 "Einen Wolf kannst du noch umbringen, aber einer beißt dich von hinten und du "
 "sackst zusammen."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:674
+#: xwatc/jtg/__init__.py:690
 msgid "Du bist den Wölfen wehrlos ausgeliefert."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:677
+#: xwatc/jtg/__init__.py:693
 msgid "Du läufst mitten in einen Hinterhalt der Kobolde."
 msgstr ""
 
-#: xwatc/jtg/__init__.py:678
+#: xwatc/jtg/__init__.py:694
 msgid "Später wird dein Kopf als Schmuck gefunden."
 msgstr ""
 
@@ -491,7 +554,7 @@ msgid ""
 "du dich, steckt ein Messer von hinten in deiner Brust."
 msgstr ""
 
-#: xwatc/jtg/groekrak.py:34
+#: xwatc/jtg/groekrak.py:35
 msgid "Niemand hat dich gesehen."
 msgstr ""
 
@@ -499,401 +562,546 @@ msgstr ""
 msgid "Du hast nicht genug Geld."
 msgstr ""
 
-#: xwatc/jtg/groekrak.py:154
+#: xwatc/jtg/groekrak.py:153
 msgid "Obwohl sie betrunken ist, schafft sie es, dir auszuweichen."
 msgstr ""
 
-#: xwatc/jtg/groekrak.py:157
+#: xwatc/jtg/groekrak.py:156
 msgid "Sie zieht eine Tarotkarte aus ihrer Tasche."
 msgstr ""
 
-#: xwatc/jtg/groekrak.py:159
+#: xwatc/jtg/groekrak.py:158
 msgid "Die Welt vor dir verschwimmt."
 msgstr ""
 
-#: xwatc/jtg/groekrak.py:162
+#: xwatc/jtg/groekrak.py:161
 msgid "Die Welt verschwimmt vor dir."
 msgstr ""
 
-#: xwatc/jtg/groekrak.py:167
+#: xwatc/jtg/groekrak.py:166
 msgid "Canna flieht."
 msgstr ""
 
-#: xwatc/jtg/groekrak.py:204
+#: xwatc/jtg/groekrak.py:175
+msgid "Canna trinkt ein Bier."
+msgstr ""
+
+#: xwatc/jtg/groekrak.py:175
+msgid "Dann noch eins."
+msgstr ""
+
+#: xwatc/jtg/groekrak.py:176
+msgid "Canna schaut wieder weg."
+msgstr ""
+
+#: xwatc/jtg/groekrak.py:198
+msgid "Carlo lässt sich bereitwillig streicheln."
+msgstr ""
+
+#: xwatc/jtg/groekrak.py:203
 #, python-brace-format
 msgid "{n.name} faucht"
 msgstr ""
 
-#: xwatc/jtg/groekrak.py:206
+#: xwatc/jtg/groekrak.py:205
 msgid "Aber er scheint Gefallen an eurem Testkampf zu finden."
 msgstr ""
 
-#: xwatc/jtg/groekrak.py:208
+#: xwatc/jtg/groekrak.py:207
 msgid "Jetzt ist Carlo müde."
 msgstr ""
 
-#: xwatc/jtg/groekrak.py:235
+#: xwatc/jtg/groekrak.py:218
+msgid "Carlo frisst glücklich den Fisch."
+msgstr ""
+
+#: xwatc/jtg/groekrak.py:234
 msgid "Dein Schwert weigert sich, das Klavier zu beschädigen."
 msgstr ""
 
-#: xwatc/jtg/mitose.py:119
+#: xwatc/jtg/groekrak.py:246
+msgid "Die Stimmung in der Taverne hellt sich auf."
+msgstr ""
+
+#: xwatc/jtg/groekrak.py:248
+msgid "Die Melodie klingt durch die Taverne"
+msgstr ""
+
+#: xwatc/jtg/mitose.py:116
 msgid "Der Weg endet an einer Lichtung, die mit Kräutern bewachsen ist."
 msgstr ""
 
-#: xwatc/jtg/mitose.py:127
+#: xwatc/jtg/mitose.py:124
 msgid "Du suchst eine Weile, bis du ihn von einem Kraut verdeckt findest."
 msgstr ""
 
-#: xwatc/jtg/mitose.py:140
+#: xwatc/jtg/mitose.py:137
 msgid "Ein Pack Kiliwölfe greift dich an."
 msgstr ""
 
-#: xwatc/jtg/mitose.py:141
+#: xwatc/jtg/mitose.py:138
 msgid "Kiliwölfe sehen aus wie Wölfe, haben aber Scheren statt Vorderpfoten."
 msgstr ""
 
-#: xwatc/jtg/mitose.py:144
+#: xwatc/jtg/mitose.py:141
 msgid "Du weidest den Kiliwolf aus."
 msgstr ""
 
-#: xwatc/jtg/mitose.py:147
+#: xwatc/jtg/mitose.py:144
 msgid "Die Kiliwölfe zerfleischen dich."
 msgstr ""
 
-#: xwatc/jtg/mitose.py:201
+#: xwatc/jtg/mitose.py:164
+msgid "Am Wegesrand vor dem Dorfeingang siehst du ein Mädchen in Lumpen."
+msgstr ""
+
+#: xwatc/jtg/mitose.py:165
+msgid "Sie scheint zu frieren."
+msgstr ""
+
+#: xwatc/jtg/mitose.py:166
+msgid "Sie verkauft Rosen."
+msgstr ""
+
+#: xwatc/jtg/mitose.py:183
+msgid "Das Mädchen zögert etwas."
+msgstr ""
+
+#: xwatc/jtg/mitose.py:197
 msgid ""
 "Das Mädchen spricht leise und vorsichtig, mit merkbar schlechten Gewissen, "
 "denn eine Rose ist keine 10 Gold wert."
 msgstr ""
 
-#: xwatc/jtg/mitose.py:206
+#: xwatc/jtg/mitose.py:202
 msgid "Sie nickt mit dem Kopf, um dir zu danken."
 msgstr ""
 
-#: xwatc/jtg/mitose.py:263 xwatc/jtg/mitose.py:286
+#: xwatc/jtg/mitose.py:218
+msgid ""
+"\"Nein, ich erkunde hier die Gegend, irgendwann werde ich nach Gibon kommen."
+"\""
+msgstr ""
+
+#: xwatc/jtg/mitose.py:259 xwatc/jtg/mitose.py:282
 msgid "Ihr umarmt euch"
 msgstr ""
 
-#: xwatc/jtg/mitose.py:274
+#: xwatc/jtg/mitose.py:270
 msgid "Du umarmst sie kurz. Sie schaut weg."
 msgstr ""
 
-#: xwatc/jtg/mitose.py:277
+#: xwatc/jtg/mitose.py:273
 msgid "Ihr umarmt euch."
 msgstr ""
 
-#: xwatc/jtg/mitose.py:291
+#: xwatc/jtg/mitose.py:287
 msgid "Sie stößt dich weg."
 msgstr ""
 
-#: xwatc/jtg/mitose.py:296
+#: xwatc/jtg/mitose.py:292
 msgid "Ihr wärmt euch gegenseitig."
 msgstr ""
 
-#: xwatc/jtg/mitose.py:300
+#: xwatc/jtg/mitose.py:296
 msgid "Sie geht davon."
 msgstr ""
 
-#: xwatc/jtg/mitose.py:305
+#: xwatc/jtg/mitose.py:301
 msgid ""
 "Das Mädchen ist schwach. Niemand hindert dich daran, sie auf offener Straße "
 "zu schlagen."
 msgstr ""
 
-#: xwatc/jtg/mitose.py:307
+#: xwatc/jtg/mitose.py:303
 msgid "Sie hat nichts außer ihren Lumpen."
 msgstr ""
 
-#: xwatc/jtg/mitose.py:310
+#: xwatc/jtg/mitose.py:306
 msgid ""
 ", die Blume, die sie dir verkaufen wollte, ist beim Kampf zertreten worden."
 msgstr ""
 
-#: xwatc/jtg/mitose.py:313
+#: xwatc/jtg/mitose.py:309
 msgid "."
 msgstr ""
 
-#: xwatc/jtg/mitose.py:327
+#: xwatc/jtg/mitose.py:323
 msgid ""
 "Das Mädchen ist sichtlich verwirrt, dass du ihr eine Unterhose gegeben hast."
 msgstr ""
 
-#: xwatc/jtg/mitose.py:329
+#: xwatc/jtg/mitose.py:325
 msgid "Es hält sie vor sich und mustert sie. Dann sagt sie artig danke."
 msgstr ""
 
-#: xwatc/jtg/mitose.py:332
+#: xwatc/jtg/mitose.py:328
 msgid "Das Mädchen bedeutet dir, dass sie nur den halben Mantel braucht."
 msgstr ""
 
-#: xwatc/jtg/mitose.py:333
+#: xwatc/jtg/mitose.py:329
 msgid "Du schneidest den Mantel entzwei, und gibst ihr nur die Hälfte."
 msgstr ""
 
-#: xwatc/jtg/mitose.py:338
+#: xwatc/jtg/mitose.py:334
 msgid "Das Mädchen scheint alles an Kleidung zu brauchen."
 msgstr ""
 
-#: xwatc/jtg/mitose.py:345
+#: xwatc/jtg/mitose.py:341
 msgid "Das Mädchen ist dankbar für das Gold."
 msgstr ""
 
-#: xwatc/jtg/nord.py:42
+#: xwatc/jtg/nord.py:48
 msgid "Du spürst den Blick des Axtmannes im Rücken."
 msgstr ""
 
-#: xwatc/jtg/nord.py:45
+#: xwatc/jtg/nord.py:51
 #, python-brace-format
 msgid "Du greifst {nsc.name} an."
 msgstr ""
 
-#: xwatc/jtg/nord.py:47
+#: xwatc/jtg/nord.py:53
 msgid "Aber das ist dem Mann mit der Axt nicht entgangen."
 msgstr ""
 
-#: xwatc/jtg/nord.py:48
+#: xwatc/jtg/nord.py:54
 msgid "Er macht kurzen Prozess aus dir."
 msgstr ""
 
-#: xwatc/jtg/nord.py:50
+#: xwatc/jtg/nord.py:56
 msgid "Ein leichter Kampf."
 msgstr ""
 
-#: xwatc/jtg/nord.py:83
+#: xwatc/jtg/nord.py:89
 #, python-brace-format
 msgid "{nsc.name} wirkt leicht beschämt."
 msgstr ""
 
-#: xwatc/jtg/nord.py:86
+#: xwatc/jtg/nord.py:92
 msgid "Sie ist echt wütend!"
 msgstr ""
 
-#: xwatc/jtg/nord.py:91
+#: xwatc/jtg/nord.py:97
 msgid "Eine große Kuh frisst Gras."
 msgstr ""
 
-#: xwatc/jtg/nord.py:107
+#: xwatc/jtg/nord.py:113
 msgid "Beim Fliehen streift dich eines von NoMuhs Hörnern."
 msgstr ""
 
-#: xwatc/jtg/nord.py:108
+#: xwatc/jtg/nord.py:114
 msgid "Es tut verdammt weh."
 msgstr ""
 
-#: xwatc/jtg/nord.py:110
+#: xwatc/jtg/nord.py:116
 msgid "Du entkommst der wütenden NoMuh"
 msgstr ""
 
-#: xwatc/jtg/nord.py:121
+#: xwatc/jtg/nord.py:128
 msgid "NoMuh frisst das Gras aus deiner Hand"
 msgstr ""
 
-#: xwatc/jtg/nord.py:122
+#: xwatc/jtg/nord.py:129
 msgid "und kaut gelangweilt darauf herum."
 msgstr ""
 
-#: xwatc/jtg/nord.py:124
+#: xwatc/jtg/nord.py:131
 msgid "NoMuh leckt dir die Erbsen schnell aus der Hand."
 msgstr ""
 
-#: xwatc/jtg/nord.py:129
+#: xwatc/jtg/nord.py:136
 msgid "NoMuh beißt in deinen Mantel, dann reißt sie ihn an."
 msgstr ""
 
-#: xwatc/jtg/nord.py:130
+#: xwatc/jtg/nord.py:137
 msgid "Der Mantel ist jetzt unbenutzbar."
 msgstr ""
 
-#: xwatc/jtg/nord.py:134
+#: xwatc/jtg/nord.py:141
 msgid "NoMuh will keine Karotten."
 msgstr ""
 
-#: xwatc/jtg/nord.py:136
+#: xwatc/jtg/nord.py:143
 msgid "NoMuh würdigt dich keinen Blickes."
 msgstr ""
 
-#: xwatc/jtg/nord.py:151
+#: xwatc/jtg/nord.py:158
 msgid "No Muh wurde heute schon gemolken."
 msgstr ""
 
-#: xwatc/jtg/nord.py:154
+#: xwatc/jtg/nord.py:161
 msgid "NoMuh tritt dich ins Gesicht."
 msgstr ""
 
-#: xwatc/jtg/nord.py:158
+#: xwatc/jtg/nord.py:165
 msgid "Ganz miese Idee, dich mit ihm anzulegen."
 msgstr ""
 
-#: xwatc/jtg/nord.py:161
+#: xwatc/jtg/nord.py:168
 msgid ""
 "Das Glück ist auf deiner Seite und in einem anstrengenden Kampf bringst du "
 "ihn um."
 msgstr ""
 
-#: xwatc/jtg/nord.py:164
+#: xwatc/jtg/nord.py:171
 msgid "Du hast Glück"
 msgstr ""
 
-#: xwatc/jtg/nord.py:165
+#: xwatc/jtg/nord.py:172
 msgid ""
 "Nein, du hast nicht gewonnen. Aber du hast es geschafft, so erbärmlich dich "
 "anzustellen, dass er es als Scherz sieht."
 msgstr ""
 
-#: xwatc/jtg/nord.py:169
+#: xwatc/jtg/nord.py:176
 msgid "Ist ja nicht so, dass du nicht gewarnt worden wärst."
 msgstr ""
 
-#: xwatc/jtg/nord.py:170
+#: xwatc/jtg/nord.py:177
 msgid "Als Neuling einen Veteran anzugreifen..."
 msgstr ""
 
-#: xwatc/jtg/nord.py:173
+#: xwatc/jtg/nord.py:180
 msgid "Der Axtmann starrt dich mit hochgezogenen Augenbrauen an."
 msgstr ""
 
-#: xwatc/jtg/nord.py:174
+#: xwatc/jtg/nord.py:181
 msgid ""
 "Seine mächtigen Muskel waren nur für einen kurzen Augenblick angespannt."
 msgstr ""
 
-#: xwatc/jtg/nord.py:204
+#: xwatc/jtg/nord.py:187
 msgid "Brían nickt leicht."
 msgstr ""
 
-#: xwatc/jtg/nord.py:310
+#: xwatc/jtg/nord.py:208
+msgid "Der Mann wirkt ein wenig stolz."
+msgstr ""
+
+#: xwatc/jtg/nord.py:237
+msgid "Also..."
+msgstr ""
+
+#: xwatc/jtg/nord.py:238
+msgid ""
+"Der Weg nach Osten führt nach Tauern, aber du kannst auch nach Scherenfeld "
+"abbiegen."
+msgstr ""
+
+#: xwatc/jtg/nord.py:240
+msgid ""
+"Der Weg nach Süden führt, falls du das nicht schon weißt, nach Grökrakchöl."
+msgstr ""
+
+#: xwatc/jtg/nord.py:242
+msgid "Zuallerletzt gäbe es noch den Weg nach Westen..."
+msgstr ""
+
+#: xwatc/jtg/nord.py:243
+msgid ""
+"Da geht es nach Eo. Ich muss stark davon abraten, dahin zu gehen. Wenn Ihnen "
+"Ihr Leben lieb ist."
+msgstr ""
+
+#: xwatc/jtg/nord.py:297
 #, python-brace-format
 msgid "Du spielst eine Weile mit {n.name}"
 msgstr ""
 
-#: xwatc/jtg/nord.py:319
+#: xwatc/jtg/nord.py:306
 msgid "Kirie zeigt auf den Talisman um ihren Hals."
 msgstr ""
 
-#: xwatc/jtg/nord.py:398
+#: xwatc/jtg/nord.py:322
+msgid "Unzuverlässig"
+msgstr ""
+
+#: xwatc/jtg/nord.py:324
+msgid "Bewahrer des großen Ehrenworts"
+msgstr ""
+
+#: xwatc/jtg/nord.py:403
 msgid "Sie wirft dir einen Blick zu und du wendest schnell den Blick ab."
 msgstr ""
 
-#: xwatc/jtg/nord.py:402
+#: xwatc/jtg/nord.py:407
 msgid "Der Mann mit der Axt stürmt herein und gibt dir eines auf die Mütze."
 msgstr ""
 
-#: xwatc/jtg/nord.py:404
+#: xwatc/jtg/nord.py:409
 msgid "Du wirst ohnmächtig"
 msgstr ""
 
-#: xwatc/jtg/nord.py:407
+#: xwatc/jtg/nord.py:412
 msgid "Du wachst erst am nächsten Tag auf."
 msgstr ""
 
-#: xwatc/jtg/nord.py:421
+#: xwatc/jtg/nord.py:426
 msgid "Du legst dich schlafen."
 msgstr ""
 
-#: xwatc/jtg/nord.py:469
+#: xwatc/jtg/nord.py:479
 msgid "Du stehst vor einer Kiste."
 msgstr ""
 
-#: xwatc/jtg/nord.py:481
+#: xwatc/jtg/nord.py:491
 msgid "Du siehst folgenden Inhalt:"
 msgstr ""
 
-#: xwatc/jtg/nord.py:491
+#: xwatc/jtg/nord.py:501
 msgid "Du machst das Fach brav zu. Lina ist trotzdem wütend."
 msgstr ""
 
-#: xwatc/jtg/nord.py:494
+#: xwatc/jtg/nord.py:504
 msgid "Du tust so, als wäre es Zufall gewesen"
 msgstr ""
 
-#: xwatc/jtg/nord.py:497
+#: xwatc/jtg/nord.py:507
 msgid "Scheint das falsche Fach zu sein."
 msgstr ""
 
-#: xwatc/jtg/nord.py:498
+#: xwatc/jtg/nord.py:508
 msgid "Aber ist ja keiner da."
 msgstr ""
 
-#: xwatc/jtg/nord.py:503
+#: xwatc/jtg/nord.py:513
 msgid "He-ya!"
 msgstr ""
 
-#: xwatc/jtg/nord.py:505
+#: xwatc/jtg/nord.py:515
 msgid "Nur ein Kratzer bleibt auf der Kiste."
 msgstr ""
 
-#: xwatc/jtg/nord.py:507
+#: xwatc/jtg/nord.py:517
 msgid "Deine Faust tut dir weh."
 msgstr ""
 
-#: xwatc/jtg/nord.py:518
+#: xwatc/jtg/nord.py:528
 msgid "Der Axtmann stürmt in das Haus und spaltet deinen Schädel."
 msgstr ""
 
-#: xwatc/jtg/nord.py:519
+#: xwatc/jtg/nord.py:529
 msgid "Ziemlich intolerant gegenüber Verbrechern, diese"
 msgstr ""
 
-#: xwatc/jtg/nord.py:523
+#: xwatc/jtg/nord.py:533
 msgid ""
 "Der Axtmann ist nicht da. Scheint so, als könnte Lina allein dich nicht groß "
 "hindern"
 msgstr ""
 
-#: xwatc/jtg/tauern.py:92
+#: xwatc/jtg/tauern.py:91
 msgid "Das Zollhaus ist leer."
 msgstr ""
 
-#: xwatc/jtg/tauern.py:141
+#: xwatc/jtg/tauern.py:94
+msgid "Der Wächter winkt dich durch."
+msgstr ""
+
+#: xwatc/jtg/tauern.py:98
+#, python-brace-format
+msgid "Das macht dann {kosten} Gold."
+msgstr ""
+
+#: xwatc/jtg/tauern.py:139
+msgid "Ich bin ein Munin, ich will heim."
+msgstr ""
+
+#: xwatc/jtg/tauern.py:142
+msgid "Aber ich kann dich nicht einfach so hineinlassen."
+msgstr ""
+
+#: xwatc/jtg/tauern.py:146
+msgid "Du zeigst ihm etwas von deinen Kurven."
+msgstr ""
+
+#: xwatc/jtg/tauern.py:147
+msgid "Oh, la, la"
+msgstr ""
+
+#: xwatc/jtg/tauern.py:148
+msgid "Äh, das habe ich nie gesagt."
+msgstr ""
+
+#: xwatc/jtg/tauern.py:154
+msgid "Du"
+msgstr ""
+
+#: xwatc/jtg/tauern.py:154
+msgid "Geht doch."
+msgstr ""
+
+#: xwatc/jtg/tauern.py:155
+msgid "Du zwinkerst ihm zu und lächelst verführerisch."
+msgstr ""
+
+#: xwatc/jtg/tauern.py:159
+msgid "Mein Süßer, du wirst doch für mich eine Ausnahme machen."
+msgstr ""
+
+#: xwatc/jtg/tauern.py:160
+msgid "Du zwinkerst ihm zu."
+msgstr ""
+
+#: xwatc/jtg/tauern.py:161
+msgid "Ja, werte Dame."
+msgstr ""
+
+#: xwatc/jtg/tauern.py:162
+msgid ""
+"Wenn ich es besorgen kann, wirst du bei mir fortan keinen Zoll mehr zahlen."
+msgstr ""
+
+#: xwatc/jtg/tauern.py:170
 msgid "Du stürmst auf das Zollhäuschen zu, "
 msgstr ""
 
-#: xwatc/jtg/tauern.py:144
+#: xwatc/jtg/tauern.py:173
 #, python-brace-format
 msgid "mit dem {waffe} in der Hand."
 msgstr "{waffe}yu halon."
 
-#: xwatc/jtg/tauern.py:146
+#: xwatc/jtg/tauern.py:175
 msgid "die Fäuste geballt."
 msgstr ""
 
-#: xwatc/jtg/tauern.py:148
+#: xwatc/jtg/tauern.py:177
 #, python-brace-format
 msgid "{self.name} geht aus dem Zollhäuschen, die Axt erhoben."
 msgstr ""
 
-#: xwatc/jtg/tauern.py:151
+#: xwatc/jtg/tauern.py:180
 msgid "Du weichst seinem ersten Hieb aus."
 msgstr ""
 
-#: xwatc/jtg/tauern.py:153
+#: xwatc/jtg/tauern.py:182
 msgid "Dann streckst du ihn nieder."
 msgstr ""
 
-#: xwatc/jtg/tauern.py:156
+#: xwatc/jtg/tauern.py:185
 msgid "Aber ewig kannst du ihm nicht ausweichen."
 msgstr ""
 
-#: xwatc/jtg/tauern.py:159
+#: xwatc/jtg/tauern.py:188
 #, python-brace-format
 msgid ""
 "Mit seiner enormen Größe hat {self.name} kein Problem deinen Schädel zu "
 "spalten, bevor du ihn erreichst."
 msgstr ""
 
-#: xwatc/jtg/tauern.py:163
+#: xwatc/jtg/tauern.py:192
 msgid "Du erklärst, dass es alles nur ein Scherz war."
 msgstr ""
 
-#: xwatc/jtg/tauern.py:171
+#: xwatc/jtg/tauern.py:200
 msgid "Du schickst dich gerade an, die Waffe herauszuholen..."
 msgstr ""
 
-#: xwatc/jtg/tauern.py:173
+#: xwatc/jtg/tauern.py:202
 msgid "da steckte dir schon eine Axt im Schädel..."
 msgstr ""
 
-#: xwatc/jtg/tauern.py:174
+#: xwatc/jtg/tauern.py:203
 msgid "Muminen sind nicht zu unterschätzen..."
 msgstr ""
 
@@ -991,233 +1199,223 @@ msgstr ""
 msgid "\"Tod?\""
 msgstr "\"Too?\""
 
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:19
-msgid "Du bist nun ein weiteres Mal im Gefängnis."
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:30
+msgid "Du wartest in der Zelle, doch zunächst passiert nichts."
 msgstr ""
 
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:20
-msgid "Es ist noch genauso, wie du es in Erinnerung hast."
-msgstr ""
-
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:23
-msgid "Die selben sterilen Zellen, wie letztes Mal."
-msgstr ""
-
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:25
-msgid ""
-"Aber seltsam, die Zelle, in der du dieses Mal bist, ist sauber, ganz anders "
-"als die vom letzten Mal."
-msgstr ""
-
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:29
-msgid ""
-"Diese Zelle ist aber ekelhaft dreckig. Der Boden unter deinen Füßen fühlt "
-"sich rau an."
-msgstr ""
-
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:31
-msgid ""
-"Wasser tropft von der Decke und die Luft riecht so abgestanden, dass dir "
-"deine letzte Mahlzeit hochkommmt."
-msgstr ""
-
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:34
-msgid "Nun ist die Zelle noch dreckiger als zuvor."
-msgstr ""
-
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:36
-msgid "An diesem ekelhaften Gestank kann man sich einfach nicht gewöhnen."
-msgstr ""
-
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:41
-msgid "Du bist in einer sauberen, ja gar sterilen Kammer eingesperrt."
-msgstr ""
-
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:43
-msgid "Du bist in einer dunklen und feuchten Zelle eingesperrt."
-msgstr ""
-
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:44
-msgid ""
-"Der Boden unter dir besteht aus unbearbeitetem Stein und Essensreste liegen "
-"in der Ecke herum."
-msgstr ""
-
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:46
-msgid "Ein Brechreiz überkommt dich angesichts der stinkenden Luft."
-msgstr ""
-
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:60
-msgid "Die Wache kommt nach dir schauen."
-msgstr ""
-
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:64
-msgid "Du wirst in einen großen Gerichtssaal geführt."
-msgstr ""
-
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:65
-msgid "Die Wände werden von Ritterstatuen geziert."
-msgstr ""
-
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:67
-msgid "Der Richter glubscht dich erstmal lange an."
-msgstr ""
-
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:69
-msgid "Der Richter blickt dich lange an."
-msgstr ""
-
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:70
-msgid "Seine Miene strotzt nur so vor Weisheit und Edelmut."
-msgstr ""
-
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:71
-msgid ""
-"Der Richter blickt auf ein Stück Papier und liest laut deine Verbrechen auf:"
-msgstr ""
-
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:84
-msgid "Plötzlich nimmst die Welt nur noch gedämpft war."
-msgstr ""
-
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:85
-msgid "Da dröhnt in deinem Kopf eine Stimme:"
-msgstr ""
-
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:94
-msgid "Du hast deine Strafe abgesessen."
-msgstr ""
-
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:95
-msgid "Ein Wächter holt dich aus deiner Zelle und führt dich einen "
-msgstr ""
-
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:97
-msgid "langen, weißen "
-msgstr ""
-
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:99
-msgid "langen, dunklen "
-msgstr ""
-
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:100
-msgid ""
-"Korridor entlang, bis du schließlich zu einem kleinen Raum mit mehreren "
-"Knöpfen an der Wand kommst."
-msgstr ""
-
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:102
-msgid ""
-"Der Wächter drückt einen der Knöpfe und eine Sekunde lang hast du das "
-"Gefühl, als wärst du unendlich schwer."
-msgstr ""
-
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:105
-msgid "Dann öffnet der Wächter eine Tür ins Freie."
-msgstr ""
-
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:133
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:38
 msgid "Ein Zettel verkündet: Gefichtsverfahren, mogen."
 msgstr ""
 
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:134
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:39
 msgid ""
 "Seltsamerweise fehlte das r, vom \"Gefichtsverfahren\" ganz zu schweigen. "
 msgstr ""
 
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:138
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:43
 msgid "Irgendwann öffnen sich deine Zellentüren und eine Wache tritt ein."
 msgstr ""
 
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:140
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:45
 msgid ""
 "Du versuchst die Wache anzugreifen, stolperst jedoch über deine Fesseln und "
 "stürzt."
 msgstr ""
 
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:143
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:48
 msgid "Die Wache ignoriert deinen Fluchtversuch und zerrt dich aus der Zelle."
 msgstr ""
 
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:147
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:52
 msgid "Die Wache bedeutet dir, ihr zu folgen."
 msgstr ""
 
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:59
+msgid "Du bist nun ein weiteres Mal im Gefängnis."
+msgstr ""
+
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:60
+msgid "Es ist noch genauso, wie du es in Erinnerung hast."
+msgstr ""
+
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:63
+msgid "Die selben sterilen Zellen, wie letztes Mal."
+msgstr ""
+
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:65
+msgid ""
+"Aber seltsam, die Zelle, in der du dieses Mal bist, ist sauber, ganz anders "
+"als die vom letzten Mal."
+msgstr ""
+
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:69
+msgid ""
+"Diese Zelle ist aber ekelhaft dreckig. Der Boden unter deinen Füßen fühlt "
+"sich rau an."
+msgstr ""
+
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:71
+msgid ""
+"Wasser tropft von der Decke und die Luft riecht so abgestanden, dass dir "
+"deine letzte Mahlzeit hochkommmt."
+msgstr ""
+
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:74
+msgid "Nun ist die Zelle noch dreckiger als zuvor."
+msgstr ""
+
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:76
+msgid "An diesem ekelhaften Gestank kann man sich einfach nicht gewöhnen."
+msgstr ""
+
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:81
+msgid "Du bist in einer sauberen, ja gar sterilen Kammer eingesperrt."
+msgstr ""
+
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:83
+msgid "Du bist in einer dunklen und feuchten Zelle eingesperrt."
+msgstr ""
+
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:84
+msgid ""
+"Der Boden unter dir besteht aus unbearbeitetem Stein und Essensreste liegen "
+"in der Ecke herum."
+msgstr ""
+
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:86
+msgid "Ein Brechreiz überkommt dich angesichts der stinkenden Luft."
+msgstr ""
+
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:100
+msgid "Du wartest auf die Wache."
+msgstr ""
+
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:102
+msgid "Die Wache kommt nach dir schauen."
+msgstr ""
+
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:103
+msgid "nichts tun"
+msgstr ""
+
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:109
+msgid "Du wirst in einen großen Gerichtssaal geführt."
+msgstr ""
+
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:110
+msgid "Die Wände werden von Ritterstatuen geziert."
+msgstr ""
+
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:112
+msgid "Der Richter glubscht dich erstmal lange an."
+msgstr ""
+
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:114
+msgid "Der Richter blickt dich lange an."
+msgstr ""
+
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:115
+msgid "Seine Miene strotzt nur so vor Weisheit und Edelmut."
+msgstr ""
+
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:116
+msgid ""
+"Der Richter blickt auf ein Stück Papier und liest laut deine Verbrechen auf:"
+msgstr ""
+
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:129
+msgid "Plötzlich nimmst die Welt nur noch gedämpft war."
+msgstr ""
+
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:130
+msgid "Da dröhnt in deinem Kopf eine Stimme:"
+msgstr ""
+
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:144
+msgid "Du hast deine Strafe abgesessen."
+msgstr ""
+
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:146
+msgid ""
+"Ein Wächter holt dich aus deiner Zelle und führt dich einen langen, weißen "
+"Korridor entlang, bis du schließlich zu einem kleinen Raum mit mehreren "
+"Knöpfen an der Wand kommst."
+msgstr ""
+
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:150
+msgid ""
+"Ein Wächter holt dich aus deiner Zelle und führt dich einen langen, dunklen "
+"Korridor entlang, bis du schließlich zu einem kleinen Raum mit mehreren "
+"Knöpfen an der Wand kommst."
+msgstr ""
+
 #: xwatc/lg/norden/gefängnis_von_gäfdah.py:153
-msgid "Du wartest in der Zelle, doch zunächst passiert nichts."
+msgid ""
+"Der Wächter drückt einen der Knöpfe und eine Sekunde lang hast du das "
+"Gefühl, als wärst du unendlich schwer."
 msgstr ""
 
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:172
-msgid "Schlafe,"
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:156
+msgid "Dann öffnet der Wächter eine Tür ins Freie."
 msgstr ""
 
-#: xwatc/lg/norden/gefängnis_von_gäfdah.py:177
-msgid "Weil's so schön war, nochmal"
+#: xwatc/lg/norden/gefängnis_von_gäfdah.py:181
+#, python-brace-format
+msgid "Schlafe({zeit}, {zeichen})"
 msgstr ""
 
-#: xwatc/lg/norden/norden.py:27
+#: xwatc/lg/norden/gäfdah.py:80
+msgid ""
+"Du: \"Wie heißt er? Ich melde mich, falls der Lümmel mir über den Weg läuft."
+"\""
+msgstr ""
+
+#: xwatc/lg/norden/gäfdah.py:82
+msgid "Du: \"Ich dachte, er sei entlaufen.\""
+msgstr ""
+
+#: xwatc/lg/norden/norden.py:28
 msgid "Du triffst auf einen Bettler."
 msgstr ""
 
-#: xwatc/lg/norden/norden.py:29
+#: xwatc/lg/norden/norden.py:30
 msgid "Du kannst ihm ein Stück Geld geben oder weitergehen."
 msgstr ""
 
-#: xwatc/lg/norden/norden.py:32
+#: xwatc/lg/norden/norden.py:33
 msgid "Der Bettler blickt dich dankend an."
 msgstr ""
 
-#: xwatc/lg/norden/norden.py:36
+#: xwatc/lg/norden/norden.py:37
 msgid "Du hast leider kein Geld, das du ihm geben könntest."
 msgstr ""
 
-#: xwatc/lg/norden/norden.py:52
-msgid "Hallo"
-msgstr ""
-
-#: xwatc/lg/norden/norden.py:59
+#: xwatc/lg/norden/norden.py:60
 msgid "Du gehst weiter in Richtung Norden, aus dem Dorf hinaus."
 msgstr ""
 
-#: xwatc/lg/nsc/Angestellte.py:29
+#: xwatc/lg/nsc/Angestellte.py:8
+msgid "Das sagt sie, ohne aufzublicken"
+msgstr ""
+
+#: xwatc/lg/nsc/Angestellte.py:11
+msgid "Magd"
+msgstr ""
+
+#: xwatc/lg/nsc/Angestellte.py:15
+msgid "Tag. Was ist?"
+msgstr ""
+
+#: xwatc/lg/nsc/Angestellte.py:20
 msgid "Sie weicht aus."
 msgstr ""
 
-#: xwatc/lg/nsc/Angestellte.py:30
+#: xwatc/lg/nsc/Angestellte.py:21
 msgid "Wer hätte gedacht, dass sie so schnell sein konnte?"
 msgstr ""
 
-#: xwatc/lg/nsc/Angestellte.py:31
+#: xwatc/lg/nsc/Angestellte.py:22
 msgid "Dann schnellt ihr Messer vor und du verendest elendig röchelnd."
-msgstr ""
-
-#: xwatc/lg/nsc/Angestellte.py:36
-msgid "Du tötest sie."
-msgstr ""
-
-#: xwatc/lg/nsc/Angestellte.py:40 xwatc/lg/nsc/Angestellte.py:84
-msgid "\"Was ist?\""
-msgstr ""
-
-#: xwatc/lg/nsc/Angestellte.py:43 xwatc/lg/nsc/Angestellte.py:57
-#: xwatc/lg/nsc/Angestellte.py:98
-msgid "\"Tag. Was ist?\""
-msgstr ""
-
-#: xwatc/lg/nsc/Angestellte.py:46 xwatc/lg/nsc/Angestellte.py:87
-msgid "\"Ja. Warum fragst du?\""
-msgstr ""
-
-#: xwatc/lg/nsc/Angestellte.py:49 xwatc/lg/nsc/Angestellte.py:90
-msgid "\"Was kümnmert dich das?\""
-msgstr ""
-
-#: xwatc/lg/nsc/Angestellte.py:51 xwatc/lg/nsc/Angestellte.py:92
-msgid "\"Gut und hau jetzt ab!\""
-msgstr ""
-
-#: xwatc/lg/nsc/Angestellte.py:54 xwatc/lg/nsc/Angestellte.py:95
-msgid "\"Schön\", sagte sie ohne aufzublicken."
 msgstr ""
 
 #: xwatc/lg/nsc/Bürger_von_Gäfdah.py:14
@@ -1236,301 +1434,327 @@ msgstr ""
 msgid "Doch dann schreit er: "
 msgstr ""
 
-#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:28
-msgid "(ängstlich) \"Was machst du in meinem Haus?!"
-msgstr ""
-
-#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:44 xwatc/lg/nsc/Wachen_von_Gäfdah.py:75
-#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:135
+#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:47 xwatc/lg/nsc/Wachen_von_Gäfdah.py:50
+#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:96
 msgid "Der Wachmann reagiert nicht."
 msgstr ""
 
-#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:46
-#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:137
+#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:49 xwatc/lg/nsc/Wachen_von_Gäfdah.py:98
 msgid "Die Wache seufzt. Ich heiße Mario. Mario Wittenpfäld."
 msgstr ""
 
-#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:50
+#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:53
 msgid "Der Mann entspannte sich. \"Nein\" Siegbert wohnt in Haus Nr.5"
 msgstr ""
 
-#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:53
+#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:56
 msgid "Ängstlich blickte der Mann sich um. \"Schön... "
 msgstr ""
 
-#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:55
-#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:60
-#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:70
+#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:58
+#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:63
+#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:73
 msgid "Kaum rief er war das Haus schon umstellt."
 msgstr ""
 
-#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:58
+#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:61
 msgid "Ängstlich blickte der Mann sich um. \"Gut... "
 msgstr ""
 
-#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:65
+#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:68
 msgid "Und kaum rief er war das Haus schon umstellt."
 msgstr ""
 
-#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:68
+#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:71
 msgid "Unsicher blickte der Mann sich um. \"Gut... "
 msgstr ""
 
-#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:73
+#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:76
 msgid "Still und ängstlich quetschte der Mann sich in eine Ecke seines Hauses."
 msgstr ""
 
-#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:74
+#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:77
 msgid "Was tust du nun?"
 msgstr ""
 
-#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:79
+#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:82
 msgid "Du findest Kleidung, Fisch, Gemüse und Zeug."
 msgstr ""
 
-#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:111
+#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:112
 msgid "!!!?B?Ä?B?Ä?B?Ä?B?Ä?!!!  FEHLERüłþſs"
 msgstr "!!!?B?Ä?B?Ä?B?Ä?B?Ä?!!!  FEHLERüłþſs"
 
-#: xwatc/lg/nsc/Bürger_von_Gäfdah.py:124
-msgid "Martin Portulakk heißt Martin Portulakk und ist Bürger von Gäfdah."
+#: xwatc/lg/nsc/Freiwild.py:44
+msgid "Zwei Männer kommen zufällig herein und erwischen dich."
+msgstr ""
+
+#: xwatc/lg/nsc/Freiwild.py:45 xwatc/lg/nsc/Freiwild.py:46
+#: xwatc/lg/nsc/Freiwild.py:56 xwatc/lg/nsc/Freiwild.py:57
+msgid "Junger Mann"
+msgstr ""
+
+#: xwatc/lg/nsc/Freiwild.py:45
+msgid "He! Was machst du da mit Ruboic?"
+msgstr ""
+
+#: xwatc/lg/nsc/Freiwild.py:46
+msgid "Wachen!"
 msgstr ""
 
 #: xwatc/lg/nsc/Freiwild.py:47
-msgid ""
-"Junger Mann: \"Oh, Verdammt\". Zwei junge Männer stehen eilig von ihren "
-"Stühlen auf."
+msgid "Die Wachen kommen und führen dich ab."
 msgstr ""
 
-#: xwatc/lg/nsc/Freiwild.py:51
+#: xwatc/lg/nsc/Freiwild.py:50
+msgid "Du plünderst schnell den Mann."
+msgstr ""
+
+#: xwatc/lg/nsc/Freiwild.py:52
+msgid "Kaum nachdem du fertig bist, kommen zwei junge Männer hinein."
+msgstr ""
+
+#: xwatc/lg/nsc/Freiwild.py:54
+msgid "OK, dann nicht."
+msgstr ""
+
+#: xwatc/lg/nsc/Freiwild.py:56
+msgid "Oh, Verdammt"
+msgstr ""
+
+#: xwatc/lg/nsc/Freiwild.py:58
+msgid ""
+"Ruboic hat schon wieder einen Anfall! Der Arzt hat ihm zwar gesagt, er soll "
+"mit dem Trinken aufhören, doch was hat er gemacht? Ach Verdammt, dieses Mal "
+"scheints wirklich richtig übel zu sein..."
+msgstr ""
+
+#: xwatc/lg/nsc/Freiwild.py:61
 msgid "Die beiden Männer tragen Hätxrik vorsichtig aus der Taverne."
 msgstr ""
 
-#: xwatc/lg/nsc/Freiwild.py:53
+#: xwatc/lg/nsc/Freiwild.py:64
 msgid ""
 "Du versuchst ihnen zu folgen, doch als du auf die Straße trittst, sind sie "
 "bereits nicht mehr zu sehen."
 msgstr ""
 
-#: xwatc/lg/nsc/Freiwild.py:56
+#: xwatc/lg/nsc/Freiwild.py:67
 msgid "Du gehst zurück in die Taverne"
 msgstr ""
 
-#: xwatc/lg/nsc/Freiwild.py:58
+#: xwatc/lg/nsc/Freiwild.py:70
 msgid "Du bleibst draußen"
 msgstr ""
 
-#: xwatc/lg/nsc/Freiwild.py:65
-msgid "OK, dann nicht."
-msgstr ""
-
-#: xwatc/lg/nsc/Freiwild.py:80
+#: xwatc/lg/nsc/Freiwild.py:86
 msgid "Er drückt ab."
 msgstr ""
 
-#: xwatc/lg/nsc/Freiwild.py:84
+#: xwatc/lg/nsc/Freiwild.py:90
 msgid "Gut..."
 msgstr ""
 
-#: xwatc/lg/nsc/Freiwild.py:89
+#: xwatc/lg/nsc/Freiwild.py:95
 msgid ""
 "Der Mensch, welchen du ansprachest, ist in einen dicken Bärenpelzmantel "
 "gekleidet."
 msgstr ""
 
-#: xwatc/lg/nsc/Freiwild.py:91
+#: xwatc/lg/nsc/Freiwild.py:97
 msgid "Er ist wohl ein Äntor, ein Jäger."
 msgstr ""
 
-#: xwatc/lg/nsc/Freiwild.py:94
+#: xwatc/lg/nsc/Freiwild.py:100
 msgid "Bevor du mit ihm reden konntest, fiel der Mann einfach tot um"
 msgstr ""
 
-#: xwatc/lg/nsc/Freiwild.py:100
+#: xwatc/lg/nsc/Freiwild.py:108
 msgid ""
 "\"makc ja?, ich hatte mall so nen soon.\" Der Mann drückt dir etwas in die "
 "Hand. Dann, ganz plötzlich fällt er um und beginnt röchelnd zu verenden.  "
 msgstr ""
 
-#: xwatc/lg/nsc/Freiwild.py:110
+#: xwatc/lg/nsc/Freiwild.py:118
 msgid ""
 "\"thiersca ja?, du erinnnest mich an men Tochterle. Wisst de?!\" Der Mann "
 "drückt dir etwas in die Hand. Dann, ganz plötzlich fängt er an zu röcheln "
 "und fällt tot um.  "
 msgstr ""
 
-#: xwatc/lg/nsc/Freiwild.py:120
+#: xwatc/lg/nsc/Freiwild.py:128
 msgid "Ares?"
 msgstr "Areu?"
 
-#: xwatc/lg/nsc/Freiwild.py:123
+#: xwatc/lg/nsc/Freiwild.py:131
 msgid "Plötzlich fiel der Mann einfach tot um"
 msgstr "Turan Man é dzyo toon umfalo"
 
-#: xwatc/lg/nsc/Freiwild.py:127
+#: xwatc/lg/nsc/Freiwild.py:135
 msgid "Plötzlich sprach der Mann mit einer monotonen, hölzernen Stimme."
 msgstr ""
 
-#: xwatc/lg/nsc/Freiwild.py:128
+#: xwatc/lg/nsc/Freiwild.py:136
 msgid "\"HALLO;ENTITÄT §===(§\"/F LANGE "
 msgstr "\"Halo, Xyti  §===(§\"/F LANGE yo\" "
 
-#: xwatc/lg/nsc/Freiwild.py:136
+#: xwatc/lg/nsc/Freiwild.py:144
 msgid "NOEL hinterlässt dir eine Nachricht:"
 msgstr ""
 
-#: xwatc/lg/nsc/Freiwild.py:142
+#: xwatc/lg/nsc/Freiwild.py:150
 msgid "Irgendwo schien jemand sich zu freuen."
 msgstr ""
 
-#: xwatc/lg/nsc/Freiwild.py:184
+#: xwatc/lg/nsc/Freiwild.py:192
 msgid "Der Mann stirbt"
 msgstr ""
 
-#: xwatc/lg/nsc/Freiwild.py:190
+#: xwatc/lg/nsc/Freiwild.py:198
 msgid "Der Mann runzelt die Stirn."
 msgstr ""
 
-#: xwatc/lg/nsc/Freiwild.py:191
+#: xwatc/lg/nsc/Freiwild.py:199
 msgid "\"Was willst du?\""
 msgstr ""
 
-#: xwatc/lg/nsc/Freiwild.py:192
+#: xwatc/lg/nsc/Freiwild.py:200
 msgid "Dann weiten sich seine Augen und er rennt davon."
 msgstr ""
 
-#: xwatc/lg/nsc/Freiwild.py:197
+#: xwatc/lg/nsc/Freiwild.py:205
 msgid "..."
 msgstr ""
 
-#: xwatc/lg/nsc/Freiwild.py:198
+#: xwatc/lg/nsc/Freiwild.py:206
 msgid "Der Mann scheint Angst zu haben."
 msgstr ""
 
-#: xwatc/lg/nsc/Freiwild.py:199
+#: xwatc/lg/nsc/Freiwild.py:207
 msgid "Du kannst seine Angst förmlich"
 msgstr ""
 
-#: xwatc/lg/nsc/Freiwild.py:201
+#: xwatc/lg/nsc/Freiwild.py:209
 msgid "Schließlich rennt er weg"
 msgstr ""
 
-#: xwatc/lg/nsc/Freiwild.py:206
+#: xwatc/lg/nsc/Freiwild.py:214
 msgid "Der Mann blickt zu dir hoch"
 msgstr ""
 
-#: xwatc/lg/nsc/Freiwild.py:207
+#: xwatc/lg/nsc/Freiwild.py:215
 msgid "Angst steht in seinen Augen geschrieben."
 msgstr ""
 
-#: xwatc/lg/nsc/Freiwild.py:209
+#: xwatc/lg/nsc/Freiwild.py:217
 msgid "Von der einen Sekunde auf die andere ist er verschwunden."
 msgstr ""
 
-#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:16
-msgid ""
-"Als du Anstalten machtest, deine Waffe zu zücken, schlug Sakca dir mit der "
-"Faust ins Gesicht."
-msgstr ""
-
-#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:18
-msgid "Als du daraufhin zurücktaumelst, schlägt sie dich bewusstlos."
-msgstr ""
-
-#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:22
-msgid "\"Was ist?\", fragt dich die Wache."
-msgstr ""
-
-#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:31
-msgid "Ich heiße Sakca"
-msgstr ""
-
-#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:34 xwatc/lg/osten/karawane.py:37
-#: xwatc/lg/osten/karawane.py:44
+#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:12 xwatc/lg/osten/karawane.py:47
+#: xwatc/lg/osten/karawane.py:54
 msgid "Lass mich in Ruhe!"
 msgstr ""
 
-#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:36
+#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:14
 msgid "Du lässt sie in Ruhe."
 msgstr ""
 
-#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:38
+#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:17
 msgid ""
 "Weil du sie anscheinend nicht in Ruhe lassen willst, schlägt Sakca dir ins "
 "Gesicht und du wist bewusstlos."
 msgstr ""
 
-#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:42
-msgid "\"schön\", sagt Sakca."
+#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:24
+msgid "Wache"
 msgstr ""
 
-#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:44 xwatc/lg/nsc/Wachen_von_Gäfdah.py:79
-msgid "\"gut\", sagte die Wache."
-msgstr ""
-
-#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:45 xwatc/lg/nsc/Wachen_von_Gäfdah.py:80
-#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:120
-msgid "Sie scheint nicht allzu gesprächig zu sein."
-msgstr ""
-
-#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:49
+#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:25
 msgid "Die Wache steht herum und geht ihrer Arbeit nach."
 msgstr ""
 
-#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:59
+#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:28
+msgid "Hallo, wie heißt du?"
+msgstr ""
+
+#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:28
+msgid "Ich heiße Sakca"
+msgstr ""
+
+#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:29
+msgid "\"Du heißt Maria, oder?\""
+msgstr ""
+
+#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:29
+msgid "Lass mich in Ruhe"
+msgstr ""
+
+#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:30
+msgid "\"Wie geht es dir?\""
+msgstr ""
+
+#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:30
+msgid "Gut"
+msgstr ""
+
+#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:31 xwatc/lg/nsc/Wachen_von_Gäfdah.py:54
+#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:76 xwatc/lg/nsc/Wachen_von_Gäfdah.py:109
+msgid "Sie scheint nicht allzu gesprächig zu sein."
+msgstr ""
+
+#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:38
+msgid ""
+"Als du Anstalten machtest, deine Waffe zu zücken, schlug Sakca dir mit der "
+"Faust ins Gesicht."
+msgstr ""
+
+#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:40
+msgid "Als du daraufhin zurücktaumelst, schlägt sie dich bewusstlos."
+msgstr ""
+
+#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:47
+msgid "Handeln"
+msgstr ""
+
+#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:48
+msgid "Die Wache will gerade nicht handeln."
+msgstr ""
+
+#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:52 xwatc/lg/nsc/Wachen_von_Gäfdah.py:107
+msgid "\"schön\", sagte die Wache mürrisch."
+msgstr ""
+
+#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:54 xwatc/lg/nsc/Wachen_von_Gäfdah.py:76
+#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:109
+msgid "\"gut\", sagte die Wache."
+msgstr ""
+
+#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:61
 msgid ""
 "Als du Anstalten machtest, deine Waffe zu zücken, schlug die Wache dir mit "
 "der flachen Seite ihres Schwertes gegen die Schläfe."
 msgstr ""
 
-#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:64
-msgid "Die Wache will gerade nicht handeln."
+#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:74
+msgid "\"Hau ab\", sagte die Wache mürrisch."
 msgstr ""
 
-#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:67
-msgid "\"Was ist?\", fragt die Wache dich."
+#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:78
+msgid "Die Wache steht herum und plaudert mit Maria Fischfrisch."
 msgstr ""
 
-#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:77
-msgid "\"schön\", sagte die Wache mürrisch."
-msgstr ""
-
-#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:88
-msgid ""
-"Die Wache steht herum und geht ernst und dienstbeflissen ihrer Arbeit nach."
-msgstr ""
-
-#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:97
+#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:83
 msgid ""
 "Als du Anstalten machtest, deine Waffe zu zücken, gibt der Wachmann dir eine "
 "so dicke Kopfnuss, dass du ohnmächtig auf das Pflaster sinkst."
 msgstr ""
 
-#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:103
-msgid "\"Hallo\""
+#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:91
+msgid ""
+"Die Wache steht herum und geht ernst und dienstbeflissen ihrer Arbeit nach."
 msgstr ""
 
-#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:112
-msgid "\"Hau ab!\""
-msgstr ""
-
-#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:115
-msgid "Wage es ja nicht wieder mich einen Panti zu nennen!!!"
-msgstr ""
-
-#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:117
-msgid "\"Hau ab\", sagte die Wache mürrisch."
-msgstr ""
-
-#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:119
-msgid "\"Hau ab!\", sagte die Wache."
-msgstr ""
-
-#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:124
-msgid "Die Wache steht herum und plaudert mit Maria Fischfrisch."
-msgstr ""
-
-#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:139
+#: xwatc/lg/nsc/Wachen_von_Gäfdah.py:100
 msgid "Du lässt die Wache in Ruhe."
 msgstr ""
 
@@ -1608,8 +1832,7 @@ msgstr ""
 msgid "Die Schmerzen bringen dich um den Verstand."
 msgstr ""
 
-#: xwatc/lg/osten/osten.py:141 xwatc/lg/süden/süden.py:26
-#: xwatc_Hauptgeschichte.py:92
+#: xwatc/lg/osten/osten.py:141 xwatc/lg/süden/süden.py:26 xwatc/system.py:680
 msgid "Du bist tot"
 msgstr ""
 
@@ -1692,7 +1915,7 @@ msgstr ""
 msgid ""
 "Und bleibst stehen als vor dir das uralte Skelett eines Minotaurus,offenbar "
 "durch böse Magie wiederbelebt,aus dem Schatten trat und dabei seine "
-"anscheinend noch gut erhaltene Steitaxt schwang."
+"anscheinend noch gut erhaltene Streitaxt schwang."
 msgstr ""
 
 #: xwatc/lg/osten/osten.py:214
@@ -1741,6 +1964,147 @@ msgstr ""
 msgid ""
 "Keine Haut mehr an deinem Fleisch, kein Fleisch mehr an deinen Knochen: Du "
 "bist ein Skelett!"
+msgstr ""
+
+#: xwatc/lg/start.py:14
+msgid "Lass uns zunächst deinen Charakter erstellen."
+msgstr ""
+
+#: xwatc/lg/start.py:15
+msgid "Von welcher Rasse soll dein Charakter sein?"
+msgstr ""
+
+#: xwatc/lg/start.py:17
+msgid "Mensch"
+msgstr "Mánu"
+
+#: xwatc/lg/start.py:18
+msgid "Munin"
+msgstr "Munin"
+
+#: xwatc/lg/start.py:19
+msgid "lavaschnecke"
+msgstr "lawanyáke"
+
+#: xwatc/lg/start.py:22
+msgid "Nanu?"
+msgstr ""
+
+#: xwatc/lg/start.py:23
+msgid "Du hast die geheime Rasse Lavaschnecke gefunden."
+msgstr ""
+
+#: xwatc/lg/start.py:24
+msgid ""
+"Dann bist du eben eine seltene Lavaschnecke. Das hast du nun von deinem "
+"Gejammer!"
+msgstr "Na gwo. Dan dué selon d Lawanyáke si. Yama vay xi yo!"
+
+#: xwatc/lg/start.py:26
+msgid ""
+"Eigentlich solltest du jetzt eine richtige Lavaschnecken-Geschichte erleben, "
+"aber diese ist noch nicht geschrieben."
+msgstr ""
+
+#: xwatc/lg/start.py:29 xwatc/lg/start.py:32
+msgid "Gott der Lavaschnecken"
+msgstr "Lawanyáke d Goo"
+
+#: xwatc/lg/start.py:30
+msgid "Dann lass meine Kleine doch die normale Geschichte leben."
+msgstr ""
+
+#: xwatc/lg/start.py:31
+msgid "Aber als Lavaschnecke kann der Charakter doch gar nicht normal leben!"
+msgstr ""
+
+#: xwatc/lg/start.py:33
+msgid "Dann mache ich meiner Kleinen die Form eines Menschen."
+msgstr ""
+
+#: xwatc/lg/start.py:34
+msgid "Du bist dann wohl ein Lavaschnecke in der Form eines Menschen."
+msgstr ""
+
+#: xwatc/lg/start.py:35
+msgid "Apropos Mensch, soll er denn männlich oder weiblich aussehen?"
+msgstr ""
+
+#: xwatc/lg/start.py:37
+msgid "Kommen wir zur einfachsten Frage: Welches Geschlecht willst du haben?"
+msgstr ""
+
+#: xwatc/lg/start.py:38
+msgid ""
+"Menschen und Munin haben in diesem Spiel zwei Geschlechter: männlich und "
+"weiblich."
+msgstr ""
+
+#: xwatc/lg/start.py:40
+msgid "weiblich"
+msgstr ""
+
+#: xwatc/lg/start.py:41
+msgid "männlich"
+msgstr ""
+
+#: xwatc/lg/start.py:44
+msgid "Du wirst nun einem kleinen Persönlichkeitstest unterzogen:"
+msgstr "Du fúa ayn ge kayn d Rengetáco é xoa:"
+
+#: xwatc/lg/start.py:45
+msgid "Du musst nämlich eine von drei Waffen wählen."
+msgstr ""
+
+#: xwatc/lg/start.py:47
+msgid "Wähle zwischen Schwert, Schild und Speer: "
+msgstr ""
+
+#: xwatc/lg/start.py:50
+msgid "Du hast den Speer aufgenommen."
+msgstr "Pyéré yu némo."
+
+#: xwatc/lg/start.py:51
+msgid ""
+"Das ist, soviel kann ich dir verraten, die sicherste aber auch die "
+"langweiligste Wahl."
+msgstr ""
+
+#: xwatc/lg/start.py:54
+msgid ""
+"Du hast den Schild aufgenommen. Das könnte sowohl eine gute als auch eine "
+"schlechte Wahl gewesen sein."
+msgstr "Xylo yu némo. Daé gwo d oda lyecyo d Gódig si kan."
+
+#: xwatc/lg/start.py:57
+msgid ""
+"Jetzt bist du der Besitzer eines Schwertes namens Seralic. Möglicherweise "
+"erweist es sich ja als magisches Schwert."
+msgstr ""
+
+#: xwatc/lg/start.py:61
+msgid "Du wählst nicht? Ok."
+msgstr "Bu vále bo? Da aw gwo."
+
+#: xwatc/lg/start.py:64
+#, python-brace-format
+msgid "Hier liegt kein/e/er \"{waffe}\"!"
+msgstr ""
+
+#: xwatc/lg/start.py:68
+msgid ""
+"Dein Inventar besteht übrigens nicht nur aus der Waffe. Du hast auch ein Set "
+"Kleidung bekommen. "
+msgstr ""
+
+#: xwatc/lg/start.py:70
+msgid "Mit der Taste 'e' kannst du jederzeit dein Inventar überprüfen."
+msgstr ""
+
+#: xwatc/lg/start.py:76
+msgid ""
+"Du darfst dein Inventar behalten und wirst an den ursprünglichen Ort "
+"zurückgesetzt."
 msgstr ""
 
 #: xwatc/lg/süden/süden.py:9
@@ -2229,264 +2593,258 @@ msgstr ""
 msgid "Juheirassa!"
 msgstr ""
 
-#: xwatc/ng/start.py:20
-msgid ""
-"Hallo! Ich bin die Erzählerin und werde dir helfen, deinen Charakter zu "
-"wählen."
-msgstr ""
-
-#: xwatc/ng/start.py:25
-msgid "Jetzt bist du gut gerüstet, um in den Kampf zu ziehen!"
-msgstr ""
-
-#: xwatc/ng/start.py:28
-msgid ""
-"Du wachst auf, völlig allein, in einem fremden Körper und ohne Erinnerung."
-msgstr ""
-
-#: xwatc/ng/start.py:37
-msgid ""
-"Du stehst in einem schmalen Tal mit steilen Wänden, zu steil, um sie zu "
-"erklimmen."
-msgstr ""
-
-#: xwatc/ng/start.py:39
-msgid "Du gehst wieder zurück in das Tal"
-msgstr ""
-
-#: xwatc/ng/start.py:47
-msgid ""
-"Das Tal ist abrupt zu Ende. Mit einem kleinen Wasserfall stürzt ein Bach "
-"hinab."
-msgstr ""
-
-#: xwatc/ng/start.py:48
-msgid "Alle Seiten des Tals sind zu steil. Du kannst nur zurückgehen."
-msgstr ""
-
-#: xwatc/nsc.py:267
+#: xwatc/nsc/__init__.py:273
 #, python-brace-format
 msgid "Dir ist nicht danach, {self.name} anzugreifen."
 msgstr ""
 
-#: xwatc/nsc.py:285
+#: xwatc/nsc/__init__.py:291
 #, python-brace-format
 msgid "{self.name}s Leiche liegt still auf dem Boden."
 msgstr ""
 
-#: xwatc/nsc.py:338
+#: xwatc/nsc/__init__.py:343
 msgid "Du weißt nicht, was du sagen könntest."
 msgstr ""
 
-#: xwatc/nsc.py:340
+#: xwatc/nsc/__init__.py:345
 msgid "Du hast nichts mehr zu sagen."
 msgstr ""
 
-#: xwatc/scenario/__init__.py:317
+#: xwatc/scenario/__init__.py:322
 msgid "Hä? Was is'n 'n"
 msgstr ""
 
-#: xwatc/system.py:340
+#: xwatc/system.py:382
 #, python-brace-format
 msgid "Du erhältst {anzahl} {item}."
 msgstr ""
 
-#: xwatc/system.py:342
+#: xwatc/system.py:384
 msgid "Du zahlst {-anzahl} Gold"
 msgstr ""
 
-#: xwatc/system.py:344
+#: xwatc/system.py:386
 msgid "Du gibst {-anzahl} {item}."
 msgstr ""
 
-#: xwatc/system.py:384
-msgid "\n"
-msgstr ""
-
-#: xwatc/system.py:424 xwatc/system.py:436
+#: xwatc/system.py:479 xwatc/system.py:491
 #, python-brace-format
 msgid "Kein {ding} da."
 msgstr "{ding}é mé."
 
-#: xwatc/system.py:431 xwatc/system.py:455
+#: xwatc/system.py:486 xwatc/system.py:510
 msgid "Gebe eine positive Anzahl an."
 msgstr ""
 
-#: xwatc/system.py:441
+#: xwatc/system.py:496
 msgid "Du kannst hier nichts hereingeben"
 msgstr ""
 
-#: xwatc/system.py:448 xwatc/system.py:461
+#: xwatc/system.py:503 xwatc/system.py:516
 #, python-brace-format
 msgid "Du hast kein {ding}."
 msgstr "Dwé {ding} kawm."
 
-#: xwatc/system.py:472
+#: xwatc/system.py:527
 msgid "Du hast noch keine Gefährten."
 msgstr ""
 
-#: xwatc/terminal.py:143
+#: xwatc/system.py:665
+msgid "Willkommen bei Xwatc"
+msgstr "Xwatc bay Van'ig!"
+
+#: xwatc/system.py:682
+msgid "Du hast folgende Titel erhalten:"
+msgstr "Fogó d Tité yu ahalodo:"
+
+#: xwatc/system.py:683
+msgid "Aber keine Sorge, du wirst wiedergeboren"
+msgstr ""
+
+#: xwatc/system.py:688
+msgid "Hier ist die Geschichte zu Ende."
+msgstr "Da in Guxy é nú."
+
+#: xwatc/terminal.py:144
 #, python-brace-format
 msgid "{sprecher}: »{text}«"
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:40
+#: xwatc/untersystem/menus.py:38
+msgid "ja"
+msgstr ""
+
+#: xwatc/untersystem/menus.py:39
+msgid "nein"
+msgstr ""
+
+#: xwatc/vorlagen/dialoge.py:12
+#, python-brace-format
+msgid "Hallo, ich bin {name}. Freut mich, dich kennenzulernen."
+msgstr ""
+
+#: xwatc/vorlagen/dialoge.py:18
+msgid "Hallo nochmal!"
+msgstr ""
+
+#: xwatc/vorlagen/kampf.py:39
 msgid "Du streckst den armen Typen mit dem Dolch von hinten nieder."
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:42
+#: xwatc/vorlagen/kampf.py:41
 msgid "Das hat hoffentlich keiner gesehen."
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:47
+#: xwatc/vorlagen/kampf.py:46
 msgid "Du wurdest bemerkt!"
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:48
+#: xwatc/vorlagen/kampf.py:47
 msgid "Die anderen Dorfbewohner überwältigen dich."
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:51
+#: xwatc/vorlagen/kampf.py:50
 #, python-brace-format
 msgid "{self.name} war im Dorf sehr beliebt."
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:52
+#: xwatc/vorlagen/kampf.py:51
 msgid "Die Dorfbewohner bestimmen, dich gleich auf der Stelle zu lynchen."
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:56
+#: xwatc/vorlagen/kampf.py:55
 #, python-brace-format
 msgid "So beliebt war {self.name} wohl doch nicht."
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:57
+#: xwatc/vorlagen/kampf.py:56
 msgid "Du wirst den Wachen ausgeliefert."
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:60
+#: xwatc/vorlagen/kampf.py:59
 msgid "Du versteckst schnell die Leiche."
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:69
+#: xwatc/vorlagen/kampf.py:68
 msgid "Aber"
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:71
+#: xwatc/vorlagen/kampf.py:70
 msgid "Du hast keine Chance."
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:75
+#: xwatc/vorlagen/kampf.py:74
 msgid "Sie ruft um Hilfe, "
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:79
+#: xwatc/vorlagen/kampf.py:78
 msgid "Du bringst"
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:92
+#: xwatc/vorlagen/kampf.py:91
 #, python-brace-format
 msgid "{self.name} war vor dir auf der Hut."
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:94
+#: xwatc/vorlagen/kampf.py:93
 #, python-brace-format
 msgid "{self.name} war dir gegenüber bereits argwöhnisch."
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:107
+#: xwatc/vorlagen/kampf.py:106
 #, python-brace-format
 msgid "{self.name} ist echt schnell auf den Beinen!"
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:113
+#: xwatc/vorlagen/kampf.py:112
 #, python-brace-format
 msgid "Keuchend holst du {self.name} ein."
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:126
+#: xwatc/vorlagen/kampf.py:125
 #, python-brace-format
 msgid "Du rennst auf {self.name} zu und schlägst wie wild auf "
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:131
+#: xwatc/vorlagen/kampf.py:130
 msgid ""
 "Er ist erschrocken, schafft es aber, seinen Dolch hervorzuholen und dich zu "
 "erstechen."
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:134
+#: xwatc/vorlagen/kampf.py:133
 msgid "Aber sie zieht ihren Dolch und sticht dich nieder"
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:138
+#: xwatc/vorlagen/kampf.py:137
 msgid "Aber er wehrt sich tödlich."
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:140
+#: xwatc/vorlagen/kampf.py:139
 msgid "Aber sie ist bewaffnet!"
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:146
+#: xwatc/vorlagen/kampf.py:145
 msgid "Sofort kommen Leute, um dich aufzuhalten."
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:147
+#: xwatc/vorlagen/kampf.py:146
 msgid "Sie entschließen sich, dich ins Gefängnis zu schmeißen."
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:151
+#: xwatc/vorlagen/kampf.py:150
 msgid "Irgendwann ist dein Gegner bewusstlos."
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:154
+#: xwatc/vorlagen/kampf.py:153
 msgid ""
 "Irgendwann ist der Arme tot. Du bist ein Mörder. Kaltblütig hast du dich "
 "dafür entschieden einen lebendigen Menschen zu töten."
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:160
+#: xwatc/vorlagen/kampf.py:159
 msgid "Du gehst weg."
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:164
+#: xwatc/vorlagen/kampf.py:163
 msgid "Diesmal bist du es, der unterliegt."
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:167
+#: xwatc/vorlagen/kampf.py:166
 msgid "Als du wieder aufwachst, bist du woanders."
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:171
+#: xwatc/vorlagen/kampf.py:170
 msgid "Er hat dich einfach liegen lassen und nicht ausgeliefert."
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:180
+#: xwatc/vorlagen/kampf.py:178
 msgid "und die kommt."
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:183
+#: xwatc/vorlagen/kampf.py:181
 msgid "Dein Schwert hat Blut geschmeckt."
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:188
+#: xwatc/vorlagen/kampf.py:186
 msgid "Du bist zahlenmäßig unterlegen und verlierst den Kampf."
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:190
+#: xwatc/vorlagen/kampf.py:188
 #, python-brace-format
 msgid "{self.name} ist aufgebracht und will dich auf der Stelle umbringen."
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:199
+#: xwatc/vorlagen/kampf.py:197
 msgid "Ihr liefert euch einen Kampf auf Leben und Tod,"
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:202
+#: xwatc/vorlagen/kampf.py:200
 msgid "den du verlierst."
 msgstr ""
 
-#: xwatc/vorlagen/kampf.py:205
+#: xwatc/vorlagen/kampf.py:203
 msgid "aber du gewinnst."
 msgstr ""
 
@@ -2498,79 +2856,19 @@ msgstr "Lukow cu kom."
 msgid "Du kommst auf eine Wegkreuzung."
 msgstr "Lukow cu kom."
 
-#: xwatc_Hauptgeschichte.py:38
-msgid "Du wirst nun einem kleinen Persönlichkeitstest unterzogen."
-msgstr "Du fúa ayn ge kayn d Rengetáco é xoa."
-
-#: xwatc_Hauptgeschichte.py:40
-msgid "Mensch"
-msgstr "Mánu"
-
-#: xwatc_Hauptgeschichte.py:41
-msgid "Munin"
-msgstr "Munin"
-
-#: xwatc_Hauptgeschichte.py:42
-msgid "Was willst du sein?"
-msgstr "Va si yaw bo?"
-
-#: xwatc_Hauptgeschichte.py:42
-msgid "lavaschnecke"
-msgstr "lawanyáke"
-
-#: xwatc_Hauptgeschichte.py:46
-msgid ""
-"Na gut. Dann bist du eben eine seltene Lavaschnecke. Das hast du nun von "
-"deinem Gejammer!"
-msgstr "Na gwo. Dan dué selon d Lawanyáke si. Yama vay xi yo."
-
-#: xwatc_Hauptgeschichte.py:50
-msgid "Wähle zwischen Schwert, Schild und Speer: "
-msgstr ""
-
-#: xwatc_Hauptgeschichte.py:53
-msgid "Du hast den Speer aufgenommen."
-msgstr "Pyéré yu némo."
-
-#: xwatc_Hauptgeschichte.py:55
-msgid ""
-"Du hast den Schild aufgenommen. Das könnte sowohl eine gute als auch eine "
-"schlechte Wahl gewesen sein."
-msgstr "Xylo yu némo. Daé gwo d oda lyecyo d Gódig si kan."
-
-#: xwatc_Hauptgeschichte.py:58
-msgid ""
-"Jetzt bist du der Besitzer eines Schwertes namens Seralic. Möglicherweise "
-"erweist es sich ja als magisches Schwert."
-msgstr ""
-
-#: xwatc_Hauptgeschichte.py:62
-msgid "Du wählst nicht? Ok."
-msgstr "Bu vále bo? Da aw gwo."
-
-#: xwatc_Hauptgeschichte.py:65
+#: xwatc/weg/_kreuzung.py:361
 #, python-brace-format
-msgid "Hier liegt kein/e/er \"{waffe}\"!"
+msgid "Mit {name} reden"
 msgstr ""
 
-#: xwatc_Hauptgeschichte.py:68
-msgid ""
-"Übrigens, dein Inventar enthält jetzt: {mänx.inventar_zeigen()}. (Mit der "
-"Taste e kannst du dein Inventar überprüfen.)"
+#: xwatc/weg/_kreuzung.py:428
+msgid "Welchen Weg nimmst du?"
 msgstr ""
 
-#: xwatc_Hauptgeschichte.py:76
-msgid "Willkommen bei Xwatc"
-msgstr "Xwatc bay Van'ig!"
-
-#: xwatc_Hauptgeschichte.py:98
-msgid "Hier ist die Geschichte zu Ende."
-msgstr "Da in Guxy é nú."
-
-#: xwatc_Hauptgeschichte.py:100
-msgid "Du hast folgende Titel erhalten:"
-msgstr "Fogó d Tité yu ahalodo:"
-
-#: xwatc_Hauptgeschichte.py:103
-msgid "Aber keine Sorge, du wirst wiedergeboren"
+#: xwatc/weg/dorf.py:86
+#, python-brace-format
+msgid "Du erreichst {self.name}."
 msgstr ""
+
+#~ msgid "Was willst du sein?"
+#~ msgstr "Va si yaw bo?"
