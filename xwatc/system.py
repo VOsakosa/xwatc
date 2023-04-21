@@ -77,7 +77,7 @@ class MissingIDError(Exception):
 
 
 MänxPrädikat: TypeAlias = MänxFkt[bool]
-Fortsetzung: TypeAlias = MänxFkt | HatMain | "weg.Wegpunkt"
+Fortsetzung: TypeAlias = Union[MänxFkt, HatMain, 'weg.Wegpunkt']
 ITEMVERZEICHNIS = lade_itemverzeichnis(Path(__file__).parent / "itemverzeichnis.txt",
                                        Path(__file__).parent / "waffenverzeichnis.yaml")
 ausgabe: Terminal | 'anzeige.XwatcFenster' = Terminal()
@@ -193,7 +193,6 @@ class InventarBasis:
 @define
 class Welt:
     """Speichert den Zustand der Welt, in der sich der Hauptcharakter befindet."""
-    name: str
     tag: float = 0.
     _objekte: dict[str, Any] = field(factory=dict, repr=False)
     _flaggen: set[str] = field(factory=set, repr=False)
@@ -202,7 +201,7 @@ class Welt:
     @classmethod
     def default(cls) -> Self:
         """Erzeuge eine leere Standardwelt, die aus historischen Gründen bliblablux heißt."""
-        return cls(name="Bliblablux")
+        return cls()
 
     def setze(self, name: str) -> None:
         """Setze eine Welt-Variable"""
