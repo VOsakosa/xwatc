@@ -121,9 +121,9 @@ def erzeuge_teil_süd(mänx: Mänx, gb: weg.Gebiet) -> Wegkreuzung:
     vor_hütte.verbinde_mit_weg(nebelwald, 0.25, "o")
     hütte_des_hexers = weg.kreuzung("hütte_des_hexers", immer_fragen=True)
     hütte_des_hexers.verbinde_mit_weg(vor_hütte, 0, "o")
-    hütte_des_hexers.setze_zielname("o", "Hütte verlassen", "zurück")
+    hütte_des_hexers.setze_zielname("o", _("Hütte verlassen[zurück]"))
     mänx.welt.obj("jtg:mitte:leo").ort = hütte_des_hexers
-    vor_hütte.setze_zielname("w", "An die Tür klopfen", "klopfen")
+    vor_hütte.setze_zielname("w", _("An die Tür klopfen[klopfen]"))
 
     vor_hütte.add_beschreibung(
         "Es ist eine einsame, einstöckige Hütte, aus der das Licht kam. "

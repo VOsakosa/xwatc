@@ -49,7 +49,7 @@ def osten(_mänx: Mänx, gb: Gebiet) -> None:
 
     höhle = kreuzung("Höhlenabzweig")
     höhle - höhleneingang
-    höhleneingang.setze_zielname("Höhlenabzweig", "In die Höhle", "höhle")
+    höhleneingang.setze_zielname("Höhlenabzweig", _("In die Höhle[höhle]"))
     höhle.add_beschreibung([
         "In der Höhle ist es dunkel, aber es gibt sauberes Wasser und "
         "hier wachsen essbare Pilze.",

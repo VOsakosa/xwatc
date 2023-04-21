@@ -14,6 +14,7 @@ from xwatc import _
 from xwatc.system import (Mänx, MenuOption, MänxFkt, malp, mint,
                           MänxPrädikat, Welt)
 from xwatc.utils import uartikel, bartikel, adj_endung, UndPred
+from xwatc.untersystem.menus import Option
 from xwatc.weg import Ausgang, Wegpunkt, WegEnde, Weg, Gebiet
 from xwatc.weg import dorf
 
@@ -301,10 +302,11 @@ class Wegkreuzung(Wegpunkt):
         else:
             self._wenn_fn[richtung] = fn
 
-    def setze_zielname(self, richtung: str, ziel_name: str, ziel_kurz: str = "",
-                       typ=Wegtyp.WEG):
+    def setze_zielname(self, richtung: str, ziel_name: str, typ=Wegtyp.WEG):
         """Setze den Zielnamen für eine Richtung. Dieser wird"""
-        ziel_kurz = ziel_kurz or ziel_name.lower()
+        if not ziel_name:
+            raise ValueError("ziel_name darf nicht leer sein.")
+        ziel_kurz = Option(ziel_name, ziel_name)[1]
         if not ziel_kurz or " " in ziel_kurz:
             raise ValueError(
                 "Aus dem Ziel lässt sich keine sinnvolle Option machen.")

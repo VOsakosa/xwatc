@@ -21,6 +21,8 @@ def Option(name: str, wert: T) -> MenuOption[T]:
     name, __, short = _(name).rpartition("[")
     if short:
         short = short.removesuffix("]")
+    else:
+        short = name.split()[0].lower()
     return name, short, wert
 
 
