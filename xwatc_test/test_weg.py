@@ -97,17 +97,17 @@ class TestWeg(unittest.TestCase):
             malp("Effekt eingetreten")
             return WegEnde(ende)
 
-        kr.add_option("Test-Option", "test_opt", effekt)
+        kr.add_option("Test-Option[test]", "test_opt", effekt)
         sys = MockSystem()
-        sys.ein("test_opt")
+        sys.ein("test")
         ans = wegsystem(sys.install(), kr, return_fn=True)
         ende.assert_not_called()
         self.assertIs(ans, ende)
         self.assertListEqual(["Startpunkt", "Welchen Weg nimmst du?", "Effekt eingetreten"],
                              sys.pop_ausgaben())
 
-        kr.add_option("Sprach-Option", "test_sprach", "Hallo")
-        sys.ein("test_sprach")
+        kr.add_option("Sprach-Option[sprach]", "test_sprach", "Hallo")
+        sys.ein("sprach")
         with self.assertRaises(ScriptEnde):
             wegsystem(sys.install(), kr, return_fn=True)
         self.assertListEqual(["Startpunkt", "Welchen Weg nimmst du?", "Hallo",

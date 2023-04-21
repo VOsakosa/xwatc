@@ -1,4 +1,5 @@
-from xwatc.system import Mänx, minput, kursiv, ja_nein, mint, Spielende, malp, Fortsetzung, MänxFkt
+from xwatc.system import (
+    Mänx, minput, kursiv, ja_nein, mint, Spielende, malp, Fortsetzung, MänxFkt, _)
 import random
 from xwatc import jtg
 from xwatc.weg import gebiet, Gebiet, Gebietsende, WegAdapter, kreuzung, WegEnde

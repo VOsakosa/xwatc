@@ -6,7 +6,7 @@ from xwatc import jtg
 from xwatc import nsc
 from xwatc.weg.dorf import ort, Dorf
 from xwatc.effect import Cooldown, NurWenn
-from xwatc.system import Mänx, malp, Welt, malpw, Fortsetzung
+from xwatc.system import Mänx, malp, Welt, malpw, Fortsetzung, _
 from xwatc.untersystem.person import Fähigkeit
 from xwatc.weg import get_eintritt, gebiet, Gebiet, kreuzung, Eintritt, Gebietsende
 
@@ -59,8 +59,8 @@ def grökrak(mänx: Mänx, gb: Gebiet) -> None:
             "Du stehst vor den Toren von Grökrakchöl.")
     vor_stadt.verbinde_mit_weg(wiese, 1 / 24, "so")
     vor_stadt.add_option("Genauer", "genauer", GENAUER)
-    (vor_stadt.ausgang("stadttor", "Stadt betreten", "stadt") - _grökrak(mänx.welt, gb).get_ort(
-        "Stadttor").ausgang("vor_stadt", "Grökrakhöl verlassen", "verlassen"))
+    (vor_stadt.ausgang("stadttor", _("Stadt betreten[stadt]")) - _grökrak(mänx.welt, gb).get_ort(
+        "Stadttor").ausgang("vor_stadt", _("Grökrakhöl verlassen[verlassen]")))
     biegung = kreuzung("Waldeingang", immer_fragen=False).add_beschreibung(
         "Der Weg führt nach Südwesten aus dem Wald heraus.", nur="o"
     ).add_beschreibung(

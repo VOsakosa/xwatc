@@ -21,7 +21,7 @@ def erzeuge_westen(mänx: Mänx, gb: Gebiet) -> None:
         _("Du erreichst das Meer. Sanft schlagen die Wellen an den Strand."),
         _("Da du kein Boot hast, musst du hier wohl abbiegen."),
         _("Ein markanter, großer Findling steht hier am Strand.")
-    ], nur="o").add_option("Am Strand spielen", "strand", [
+    ], nur="o").add_option("Am Strand spielen[strand]", "strand", [
         _("Du spielst mit dem Sand."),
         _("Er eignet sich perfekt für Sandburgen.")
     ]).bschr([

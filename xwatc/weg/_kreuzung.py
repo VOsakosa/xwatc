@@ -123,7 +123,6 @@ class Himmelsrichtung:
 class Richtungsoption:
     """Stellt eine wählbare Richtung an einem Wegpunkt dar."""
     zielname: str = ""
-    name_kurz: str = ""
     typ: Wegtyp = Wegtyp.WEG
 
 
@@ -229,7 +228,7 @@ def kreuzung(
     ans = Wegkreuzung(name, nb, kreuzung_beschreiben=kreuzung_beschreiben,
                       immer_fragen=immer_fragen)
     if gucken:
-        ans.add_option("Umschauen", "gucken", gucken)
+        ans.add_option("Umschauen[gucken]", "gucken", gucken)
     for ausgang in kwargs.values():
         ausgang.verbinde(ans)
     return ans
@@ -306,15 +305,11 @@ class Wegkreuzung(Wegpunkt):
         """Setze den Zielnamen für eine Richtung. Dieser wird"""
         if not ziel_name:
             raise ValueError("ziel_name darf nicht leer sein.")
-        ziel_kurz = Option(ziel_name, ziel_name)[1]
-        if not ziel_kurz or " " in ziel_kurz:
-            raise ValueError(
-                "Aus dem Ziel lässt sich keine sinnvolle Option machen.")
         self._optionen[Himmelsrichtung.from_kurz(richtung)] = (
-            Richtungsoption(ziel_name, ziel_kurz, typ)
+            Richtungsoption(ziel_name, typ)
         )
 
-    def ausgang(self, richtung: str, ziel_name: str, ziel_kurz: str = "",
+    def ausgang(self, richtung: str, ziel_name: str, 
                 typ=Wegtyp.WEG) -> _KreuzungsAusgang:
         """Erzeuge ein Ausgangs-Objekt, um diesen Wegpunkt verbinden zu können.
 
@@ -326,7 +321,7 @@ class Wegkreuzung(Wegpunkt):
         return _KreuzungsAusgang(
             self,
             Himmelsrichtung.from_kurz(richtung),
-            Richtungsoption(ziel_name, ziel_kurz, typ)
+            Richtungsoption(ziel_name, typ)
         )
 
     def beschreibe(self, mänx: Mänx, ri_name: str | Himmelsrichtung | None
@@ -372,7 +367,7 @@ class Wegkreuzung(Wegpunkt):
                     yield ("Umkehren", "f", pt)
             else:
                 if ri.zielname:
-                    yield (ri.zielname, ri.name_kurz or ri.zielname.lower(), pt)
+                    yield Option(ri.zielname, pt, übersetze=False)
                 elif isinstance(himri, Himmelsrichtung):
                     yield (f"Nach {himri}", format(himri).lower(), pt)
                     # ziel = cap(ri.typ.text(True, 4)) + f" nach {himri}"
@@ -452,8 +447,7 @@ class Wegkreuzung(Wegpunkt):
         return anderer
 
     def verbinde(
-        self, anderer: Ausgang, richtung: str, ziel: str = "",
-        kurz: str = "", typ: Wegtyp = Wegtyp.WEG,
+        self, anderer: Ausgang, richtung: str, ziel: str = "", typ: Wegtyp = Wegtyp.WEG,
     ):
         """Verbinde einen Ausgang.
 
@@ -464,7 +458,7 @@ class Wegkreuzung(Wegpunkt):
         anderer.verbinde(self)
         hiri = Himmelsrichtung.from_kurz(richtung)
         self.nachbarn[hiri] = anderer.wegpunkt
-        self._optionen[hiri] = Richtungsoption(ziel, ziel or kurz, typ)
+        self._optionen[hiri] = Richtungsoption(ziel, typ)
 
     def verbinde_mit_weg(self,
                          nach: Wegkreuzung,
@@ -499,21 +493,21 @@ class Wegkreuzung(Wegpunkt):
         weg.p1 = self
         weg.p2 = nach
 
-    def add_option(self, name: str, name_kurz: str,
+    def add_option(self, name: str, id_: str,
                    effekt: Sequence[str] | BeschreibungFn) -> Self:
         """Füge eine Option an dem Wegpunkt hinzu. Beim Wählen wird dann eine Geschichte
         abgespielt."""
         # Die Option wird durch eine Wegkreuzung mit immer_fragen=False abgewickelt.
         effekt_punkt = Wegkreuzung(
-            name=self.name + ":" + name_kurz,
+            name=self.name + ":" + id_,
             nachbarn={_StrAsHimmelsrichtung("zurück"): self},
             immer_fragen=False,  # Nach der Beschreibung wird umgekehrt
             gebiet=self._gebiet,
             beschreibungen=[Beschreibung(effekt, warten=True)]
         )
-        himri = Himmelsrichtung.from_kurz(name_kurz)
+        himri = Himmelsrichtung.from_kurz(id_)
         self.nachbarn[himri] = effekt_punkt
-        self._optionen[himri] = Richtungsoption(name, name_kurz)
+        self._optionen[himri] = Richtungsoption(name)
         return self
 
     def add_sofort_reden(self, char: 'nsc.StoryChar') -> Self:

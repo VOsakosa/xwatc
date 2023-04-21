@@ -15,13 +15,16 @@ T = TypeVar("T")
 MenuOption: TypeAlias = tuple[str, str, Tcov]
 
 
-def Option(name: str, wert: T) -> MenuOption[T]:
+def Option(name: str, wert: T, übersetze: bool = True) -> MenuOption[T]:
     """Eine Option für das Menü. Der erste Teil ist ein Name und wird automatisch übersetzt.
     Ended der Name auf einen Text in eckigen Klammern, so wird dieser als Shortcut genutzt."""
-    name, __, short = _(name).rpartition("[")
-    if short:
+    if übersetze:
+        name = _(name)
+    name, __, short = name.rpartition("[")
+    if name:
         short = short.removesuffix("]")
     else:
+        name = short
         short = name.split()[0].lower()
     return name, short, wert
 
