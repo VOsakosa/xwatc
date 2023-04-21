@@ -253,7 +253,7 @@ class Welt:
 
         :raise MissingID: Wenn das Objekt nicht existiert und nicht registriert ist.
         """
-
+        from xwatc import nsc  # @Reimport
         match name:
             case str(name_str):
                 welt_var = get_welt_var(name_str)  # @UnusedVariable
@@ -267,7 +267,6 @@ class Welt:
                 welt_var = None
         if name_str in self._objekte:
             return self._objekte[name_str]
-        from xwatc import nsc  # @Reimport
         obj: HatMain
         if welt_var:
             obj = welt_var.erzeuger(self)

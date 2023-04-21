@@ -514,6 +514,25 @@ class Wegkreuzung(Wegpunkt):
         self._optionen[himri] = Richtungsoption(name, name_kurz)
         return self
 
+    def add_sofort_reden(self, char: 'nsc.StoryChar') -> Self:
+        """Füge eine Beschreibung hinzu, die folgendes macht: Wenn der char lebendig an diesem
+        Ort ist, wird er sofort aufgerufen."""
+        def beschreibung(mänx: Mänx) -> None | Wegpunkt | WegEnde:
+            if mänx.welt.hat_obj(char):
+                nsc = mänx.welt.obj(char)
+                if not nsc.tot and nsc.ort == self:
+                    mänx_ans = nsc.main(mänx)
+                    match mänx_ans:
+                        case None | Wegpunkt():
+                            return mänx_ans
+                        case _ if callable(mänx_ans):
+                            return WegEnde(mänx_ans)
+                        case _:
+                            return WegEnde(mänx_ans.main)
+            return None
+        self.add_beschreibung(beschreibung)
+        return self
+
     def get_nscs(self, welt: Welt) -> Iterable[nsc.NSC]:
         """Gibt einen Iterator über die NSCs an diesem Ort."""
         for ref in self._menschen:
