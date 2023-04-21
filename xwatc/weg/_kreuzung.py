@@ -507,7 +507,7 @@ class Wegkreuzung(Wegpunkt):
             nachbarn={_StrAsHimmelsrichtung("zurück"): self},
             immer_fragen=False,  # Nach der Beschreibung wird umgekehrt
             gebiet=self._gebiet,
-            beschreibungen=[Beschreibung(effekt)]
+            beschreibungen=[Beschreibung(effekt, warten=True)]
         )
         himri = Himmelsrichtung.from_kurz(name_kurz)
         self.nachbarn[himri] = effekt_punkt

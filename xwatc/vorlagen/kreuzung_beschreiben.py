@@ -4,7 +4,8 @@ genutzt und wird deshalb ausgelagert.
 Created on 02.04.2023
 """
 from collections.abc import Iterable
-from xwatc.weg import Wegkreuzung, Himmelsrichtung, Wegtyp, HIMMELSRICHTUNGEN, cap
+from xwatc.weg import Wegkreuzung, Himmelsrichtung, Wegtyp
+from xwatc.weg._kreuzung import HIMMELSRICHTUNGEN, cap
 from xwatc.system import malp
 import random
 __author__ = "Jasper Ischebeck"
@@ -15,8 +16,12 @@ def slice_richtung(kreuzung: Wegkreuzung, richtung: int = 0) -> Iterable[Wegtyp 
     for nr in range(richtung, richtung + 8):
         hri = Himmelsrichtung.from_nr(nr % 8)
         if hri in kreuzung.nachbarn:
-            yield kreuzung._optionen[hri].typ
-        yield None
+            if hri in kreuzung._optionen:
+                yield kreuzung._optionen[hri].typ
+            else:
+                yield Wegtyp.WEG
+        else:
+            yield None
 
 
 def _finde_texte(kreuzung: Wegkreuzung, richtung: int) -> list[str]:
