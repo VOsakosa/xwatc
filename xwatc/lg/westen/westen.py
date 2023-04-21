@@ -2,7 +2,7 @@ from time import sleep
 from xwatc.system import Mänx, minput, ja_nein, Spielende, mint, malp, Fortsetzung, _
 from xwatc.weg import get_eintritt, Eintritt, Gebiet
 from xwatc import weg
-from xwatc.nsc import StoryChar, Zeitpunkt, Dialog, NSC, Rückkehr
+from xwatc.nsc import StoryChar, Zeitpunkt, Dialog, NSC, Rückkehr, Malp
 
 eingang_osten = Eintritt("lg:westen", "mitte")
 
@@ -32,7 +32,10 @@ def erzeuge_westen(mänx: Mänx, gb: Gebiet) -> None:
     ]).add_option("Anklopfen", "anklopfen", [
         _("Es scheint niemand zu Hause zu sein.")
     ])
-    gb.neuer_punkt((2,2), "Küstenende")
+    gb.neuer_punkt((2,2), "Küstenende").bschr([
+        _("Hier gibt es nichts zu sehen, und du bist diese Küste müde."),
+        _("Du solltest umkehren.")
+    ])
 
 def kampf_huhn(nsc: NSC, mänx: Mänx) -> Rückkehr:
     malp("Du tötest das Huhn und es ist als wäre ein Bann von dir abgefallen. "
@@ -64,16 +67,15 @@ def flucht_huhn(nsc: NSC, mänx: Mänx) -> Fortsetzung:
 Huhn = StoryChar("lg:westen:huhn", ("Huhn", "Huhn"), dialoge=[
     Dialog("k", "Angreifen", kampf_huhn, zeitpunkt=Zeitpunkt.Option),
     Dialog("w", "Weitergehen", weiter_huhn, zeitpunkt=Zeitpunkt.Option),
-    Dialog("f", "Fliehen", flucht_huhn, zeitpunkt=Zeitpunkt.Option)
+    Dialog("f", "Fliehen", flucht_huhn, zeitpunkt=Zeitpunkt.Option),
+    Dialog("aufstein", "Vorstellen", [
+        Malp("Da begegnete dir eine Henne, die auf einem Stein hockt.")
+    ], zeitpunkt=Zeitpunkt.Vorstellen),
 ])
 
 
-def westen(mänx: Mänx) -> Fortsetzung:
-    malp("Da begegnete dir eine Henne, die auf einem Stein hockt.")
 
-
-
-def reden(mänx: Mänx) -> Fortsetzung:
+def reden(mänx: Mänx):
     malp("Erstaunlicherweise kann das Huhn sprechen.")
     malp('"Hallo", sagt das Huhn. Sie dir mein schönes Eierchen an!')
     malp('Du siehst dir das "Ei" an. Und bemerkst, das es einfach nur ein Stein ist. ')
