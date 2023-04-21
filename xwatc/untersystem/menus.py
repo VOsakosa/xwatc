@@ -5,13 +5,23 @@ Created on 16.04.2023
 from xwatc import _
 from attr import define, field
 from collections.abc import Mapping, Sequence
-from typing import Any, Generic, TypeVar
+from typing import Generic, TypeVar
+from typing import Any  # @UnusedImport
 from typing_extensions import TypeAlias
 __author__ = "jasper"
 
 Tcov = TypeVar("Tcov", covariant=True)
 T = TypeVar("T")
 MenuOption: TypeAlias = tuple[str, str, Tcov]
+
+
+def Option(name: str, wert: T) -> MenuOption[T]:
+    """Eine Option für das Menü. Der erste Teil ist ein Name und wird automatisch übersetzt.
+    Ended der Name auf einen Text in eckigen Klammern, so wird dieser als Shortcut genutzt."""
+    name, __, short = _(name).rpartition("[")
+    if short:
+        short = short.removesuffix("]")
+    return name, short, wert
 
 
 @define
