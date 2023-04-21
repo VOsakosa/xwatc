@@ -22,9 +22,10 @@ def himmelsrichtungen(mänx: Mänx, gb: Gebiet) -> Wegkreuzung:
     mitte.verbinde(Gebietsende(None, gb, "norden", "lg:norden", "süden"), "n")
     mitte.verbinde(WegAdapter(süden.süden, "süden", gb), "s")
     mitte.verbinde(Gebietsende(None, gb, "osten", "lg:osten", "start"), "o")
-    mitte.verbinde(WegAdapter(westen.westen, "westen", gb), "w")
+    mitte.verbinde(gb.ende(Eintritt_West, westen.eingang_osten), "w")
     return mitte
 
 
 MITTE = "lg:mitte"
 MITTE_EINTRITT = Eintritt(MITTE)
+Eintritt_West = Eintritt(MITTE, "westen")

@@ -69,6 +69,12 @@ def waffe_wählen(mänx: Mänx) -> Fortsetzung:
          "bekommen. ")
     malp("Mit der Taste 'e' kannst du jederzeit dein Inventar überprüfen.")
     mint()
+    
+    malp("Du wachst auf, liegend, unter einem Morgenhimmel, der sich langsam von rot zu blau färbt.")
+    malp("Du spürst, dass du auf Gras liegst und stehst auf.")
+    malp("Du bist auf einer großen, weiten Ebene. Außer einigen versprengten Büschen ist nichts "
+         "zu sehen. Nur die Position der aufgehenden Sonne verrät dir, wo Osten ist.")
+    mint()
     return mitte.MITTE_EINTRITT
 
 

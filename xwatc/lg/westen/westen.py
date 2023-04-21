@@ -1,92 +1,100 @@
 from time import sleep
-from xwatc.system import Mänx, minput, ja_nein, Spielende, mint, malp, Fortsetzung
-from xwatc.weg import get_eintritt
+from xwatc.system import Mänx, minput, ja_nein, Spielende, mint, malp, Fortsetzung, _
+from xwatc.weg import get_eintritt, Eintritt, Gebiet
+from xwatc import weg
+from xwatc.nsc import StoryChar, Zeitpunkt, Dialog, NSC, Rückkehr
+
+eingang_osten = Eintritt("lg:westen", "mitte")
+
+@weg.gebiet("lg:westen")
+def erzeuge_westen(mänx: Mänx, gb: Gebiet) -> None:
+    """Erzeugt das Gebiet Westen."""
+    from xwatc.lg import mitte
+    huhn_p = gb.neuer_punkt((3, 1), "Huhnort", immer_fragen=True)
+    huhn_p.bschr([
+        "Mit einer kühlen, entgegenkommenden Meeresbrise wanderst du in Richtung Westen."], "o")
+    
+    huhn_p.verbinde(gb.ende(eingang_osten, mitte.Eintritt_West), "o")
+    huhn_p.add_char(mänx.welt, Huhn)
+    gb.neuer_punkt((2,1), "Meereskreuzung").bschr([
+        _("Du erreichst das Meer. Sanft schlagen die Wellen an den Strand."),
+        _("Da du kein Boot hast, musst du hier wohl abbiegen."),
+        _("Ein markanter, großer Findling steht hier am Strand.")
+    ], nur="o").add_option("Am Strand spielen", "strand", [
+        _("Du spielst mit dem Sand."),
+        _("Er eignet sich perfekt für Sandburgen.")
+    ]).bschr([
+        _("Du siehst einen markanten Findling."),
+        _("Vielleicht ist das eine gute Stelle, um in Richtung Inland zu laufen.")
+    ], außer="o")
+    gb.neuer_punkt((2,0), "Hexenhütte").bschr([
+        _("Eine mittelgroße Hütte mit geschlossenen Läden steht am Strand."),
+    ]).add_option("Anklopfen", "anklopfen", [
+        _("Es scheint niemand zu Hause zu sein.")
+    ])
+    gb.neuer_punkt((2,2), "Küstenende")
+
+def kampf_huhn(nsc: NSC, mänx: Mänx) -> Rückkehr:
+    malp("Du tötest das Huhn und es ist als wäre ein Bann von dir abgefallen. "
+         "Plötzlich bist du wieder vergnügt und entspannt.")
+    if ja_nein(mänx, "Durchsuchst du das Huhn?"):
+        mänx.erhalte("Hühnerfleisch", 5)
+        mänx.erhalte("Stein der aussieht wie ein Hühnerei")
+        mänx.erhalte("Mugel des Sprechens")
+    nsc.tot = True
+    return Rückkehr.VERLASSEN
+
+def weiter_huhn(_n: NSC, _mänx: Mänx) -> Rückkehr:
+    malp("Du gehst einfach geradeaus. Du bemerkst erst, dass du den Atem angehalten hast, "
+             "als du in sicherem Abstand zum Huhn ausatmest.")
+    mint()
+    malp("Du gehst einfach weiter, aber das Huhn springt dich von hinten an, "
+         "bohrt seinen Schnabel in deinen Rücken.")
+    mint("Du stirbst.")
+    raise Spielende()
+
+def flucht_huhn(nsc: NSC, mänx: Mänx) -> Fortsetzung:
+    from xwatc.lg import mitte
+    malp("Du entkommst dem Huhn mühelos.")
+    malp("Nach einer Weile kommst du wieder dort an wo du losgelaufen bist.")
+    mint()
+    return mitte.Eintritt_West
+
+
+Huhn = StoryChar("lg:westen:huhn", ("Huhn", "Huhn"), dialoge=[
+    Dialog("k", "Angreifen", kampf_huhn, zeitpunkt=Zeitpunkt.Option),
+    Dialog("w", "Weitergehen", weiter_huhn, zeitpunkt=Zeitpunkt.Option),
+    Dialog("f", "Fliehen", flucht_huhn, zeitpunkt=Zeitpunkt.Option)
+])
 
 
 def westen(mänx: Mänx) -> Fortsetzung:
-    from xwatc.lg.mitte import MITTE
-    malp("Mit einer kühlen, entgegenkommenden Meeresbrise wanderst du in Richtung Westen.")
-    sleep(1)
-    malp("Da begegnete dir eine Henne"
-         ", die auf einem Stein hockt.")
-    moral = minput(mänx, "f/w/k/r (fliehen/weiter/kämpfen/reden)",
-                   ["f", "w", "k", "r"])
-
-    if moral == "w":
-        mint("Du gehst einfach g"
-             "erade heraus. Du b"
-             "emerkst erst das d"
-             "u den Atem angehal"
-             "ten hast, als du i"
-             "n sicherem Abstand"
-             "zum Huhn ausatmest.")
-        malp("Du gehst einfach weiter, aber das Huhn springt dich von hinten an, "
-             "bohrt seinen Schnabel in deinen Rücken.")
-        mint("Du stirbst.")
-        raise Spielende()
-
-    elif moral == "k":
-        malp("Du tötest das Huhn"
-             " und es ist als wä"
-             "re ein Bann von di"
-             "r abgefallen. Plöt"
-             "zlich bist du wied"
-             "er vergnügt und en"
-             "tspannt.")
-        if ja_nein(mänx, "durchsuchst du das Huhn?   "):
-            mänx.inventar["Hühnerfleisch"] += 5
-            mänx.inventar["Stein der aussieht wie ein Hühnerei"] += 1
-            mänx.inventar["Mugel des Sprechens"] += 1
-            mänx.inventar["Verfluchtes Gold"] += 50
-
-        malp("Du hast im Westen nichts mehr zu tun, also drehst du um.")
-        return get_eintritt(mänx, (MITTE, "westen"))
-    elif moral == "r":
-        return reden
-    else:
-        assert moral == "f"
-        malp("Du entkommst dem Huhn mühelos.")
-        sleep(1)
-        malp("Nach einer Weile kommst du wieder dort an wo du losgelaufen bist.")
-
-        return get_eintritt(mänx, (MITTE, "westen"))
+    malp("Da begegnete dir eine Henne, die auf einem Stein hockt.")
 
 
-def reden(mänx: Mänx):
+
+def reden(mänx: Mänx) -> Fortsetzung:
     malp("Erstaunlicherweise kann das Huhn sprechen.")
     malp('"Hallo", sagt das Huhn. Sie dir mein schönes Eierchen an!')
-    sleep(1)
     malp('Du siehst dir das "Ei" an. Und bemerkst, das es einfach nur ein Stein ist. ')
-    sleep(1)
+    mint()
     malp("Was sagst du?")
-    sleep(1)
     malp("1: Ahäm. Das ist kein Ei")
-    sleep(1)
     malp("2: Plopp. Ich bin ein hässliches kleines Fischibischi (Kbörg)")
-    sleep(1)
-    malp("3: Tut mir wirklich sehr leid, missiör Henne, a"
+    malp("3: Tut mir wirklich sehr leid, Monsieur Henne, a"
          "ber das ist lediglich ein hässliches Ei!")
-    sleep(1)
     malp("4:OOOkay! Tschüss")
-    sleep(1)
     malp("5:Bye")
-    sleep(1)
     malp("6:Ja, es ist wirklich sehr schön.")
-    sleep(1)
     malp("7:Reden wir über etwas anderes. Bitte.")
-    sleep(1)
-    malp("8:Tut mir wirklich sehr leid, mi"
-         "ssiör(Monsieur) Henne, aber das "
-         "ist lediglich ein hässlicher Stein")
-    sleep(1)
+    malp("8:Tut mir wirklich sehr leid, Monsieur Henne, aber das ist lediglich ein "
+         "hässlicher Stein")
     malp("9:Tut mir wirklich sehr leid, Madam "
          "Henne, aber das ist lediglich ein "
          "hässliches Ei!")
-    sleep(1)
     malp("10:Tut mir wirklich sehr leid, Madam "
          "Henne, aber das ist lediglich ein"
          "hässlicher Stein!")
-    sleep(1)
     nett = minput(mänx, "Was sagst du? 1/2/3/4/5/6/7/8/9/10",
                   ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"])
 
@@ -102,9 +110,9 @@ def reden(mänx: Mänx):
              ', und gibt dir eine seltsame Kugel, "das Hühnerei" und etwas Geld.'
              'Danach krähte und gackerte sie noch etwas,'
              'doch du konntest sie nicht mehr verstehen. ')
-        mänx.inventar["Stein der aussieht wie ein Hühnerei"] += 1
-        mänx.inventar["Mugel des Sprechens"] += 1
-        mänx.inventar["Gold"] += 50
+        mänx.erhalte("Stein der aussieht wie ein Hühnerei")
+        mänx.erhalte("Mugel des Sprechens")
+        mänx.erhalte("Gold", 50)
 
     if nett == "3":
         malp(

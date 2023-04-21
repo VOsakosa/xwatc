@@ -18,7 +18,7 @@ from xwatc.scenario import ScenarioWegpunkt
 from xwatc.system import Mänx, mint, Spielende, InventarBasis, sprich, malp, register
 from xwatc.weg import Eintritt
 from typing_extensions import Self
-from xwatc.untersystem.variablen import Variable
+from xwatc.untersystem.variablen import Variable, MethodSave
 
 
 
@@ -477,7 +477,7 @@ class Kiste:
             ("reden", "r", self.reden),
             ("zurück", "f", lambda m: Rückkehr.VERLASSEN)]
         mint("Du stehst vor einer Kiste.")
-        while mänx.menu(opts)(mänx) == Rückkehr.WEITER_REDEN:
+        while mänx.menu(opts, save=MethodSave(self.main))(mänx) == Rückkehr.WEITER_REDEN:
             pass
 
     def öffne_fach1(self, mänx: Mänx) -> Rückkehr:
