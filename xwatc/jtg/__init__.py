@@ -143,7 +143,7 @@ def erzeuge_teil_süd(mänx: Mänx, gb: weg.Gebiet) -> Wegkreuzung:
     # ("Den Weg nach Süden zur Hauptstadt", "hauptstadt", hauptstadt_weg),
     # ("Den Weg nach Norden nach Tauern", "tauern", tauern_ww_süd)
     süddorf.verbinde(gb.ende(süd_dorf_west, groekrak.zugang_südost), "grökrakchöl",
-                     "Den Weg nach Westen nach Grökrakchöl", "grökrakchöl")
+                     "Den Weg nach Westen nach Grökrakchöl[grökrakchöl]")
     süddorf.verbinde(gb.ende(süd_dorf_ost, osten.no_süd),
                      "Osten nach Tauern", "osten")
     gb.eintrittspunkte["wald"] = süddorf

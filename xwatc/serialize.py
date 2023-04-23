@@ -173,6 +173,8 @@ def unstructure_punkt(punkt: 'system.Speicherpunkt') -> Any:
             raise ValueError("NSC außerhalb eines Ortes kann nicht gespeichert werden.")
         case scenario.ScenarioWegpunkt():
             return {"gebiet": punkt.gebiet.name, "ort": punkt.name}
+        case _ if callable(punkt):
+            raise TypeError("Savepunkt ist zwar callable, aber keine Funktion mit Namen.")
         case _:
             assert_never(punkt)
 
