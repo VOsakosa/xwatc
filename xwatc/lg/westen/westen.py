@@ -72,8 +72,7 @@ def flucht_huhn(_nsc: NSC, _mänx: Mänx) -> Fortsetzung:
 
 def vergraulen(text: list[str]) -> DialogFn:
     def reden(nsc: NSC, _m: Mänx) -> Rückkehr:
-        for part in text:
-            malp(part)  # TODO: Doppelte Übersetzung möglich
+        malp(*text, sep="\n")
         mint()
         nsc.ort = None
         return Rückkehr.VERLASSEN
