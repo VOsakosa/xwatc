@@ -292,7 +292,7 @@ class Wegkreuzung(Wegpunkt):
     add_effekt = add_beschreibung
     bschr = add_beschreibung
 
-    def wenn(self, richtung: str, fn: MänxPrädikat) -> None:
+    def wenn(self, richtung: str, fn: MänxPrädikat) -> Self:
         """Erlaube eine Richtung nur, wenn die folgende Funktion wahr ist.
         Mehrere Funktionen werden verundet.
         """
@@ -300,6 +300,7 @@ class Wegkreuzung(Wegpunkt):
             self._wenn_fn[richtung] = UndPred(self._wenn_fn[richtung], fn)
         else:
             self._wenn_fn[richtung] = fn
+        return self
 
     def setze_zielname(self, richtung: str, ziel_name: str, typ=Wegtyp.WEG):
         """Setze den Zielnamen für eine Richtung. Dieser wird"""
@@ -309,7 +310,7 @@ class Wegkreuzung(Wegpunkt):
             Richtungsoption(ziel_name, typ)
         )
 
-    def ausgang(self, richtung: str, ziel_name: str, 
+    def ausgang(self, richtung: str, ziel_name: str,
                 typ=Wegtyp.WEG) -> _KreuzungsAusgang:
         """Erzeuge ein Ausgangs-Objekt, um diesen Wegpunkt verbinden zu können.
 

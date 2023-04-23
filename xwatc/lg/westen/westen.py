@@ -2,8 +2,9 @@ from time import sleep
 from xwatc.system import Mänx, minput, ja_nein, Spielende, mint, malp, Fortsetzung, _
 from xwatc.weg import Eintritt, Gebiet
 from xwatc import weg
-from xwatc.nsc import StoryChar, Zeitpunkt, Dialog, NSC, Rückkehr, Malp, DialogFn
+from xwatc.nsc import StoryChar, Zeitpunkt, Dialog, NSC, Rückkehr, Malp, DialogFn, Kennt
 from xwatc.untersystem.menus import Option
+from xwatc.untersystem.person import Person
 
 eingang_osten = Eintritt("lg:westen", "mitte")
 
@@ -33,7 +34,8 @@ def erzeuge_westen(mänx: Mänx, gb: Gebiet) -> None:
         _("Eine mittelgroße Hütte mit geschlossenen Läden steht am Strand."),
     ]).add_option("Anklopfen", "anklopfen", [
         _("Es scheint niemand zu Hause zu sein.")
-    ])
+    ]).add_option("Steine werfen", "steine", steine_werfen
+                  ).wenn("steine", Kennt(Butler))
     gb.neuer_punkt((2, 2), "Küstenende").bschr([
         _("Hier gibt es nichts zu sehen, und du bist diese Küste müde."),
         _("Du solltest umkehren.")
@@ -248,3 +250,21 @@ def reden_mad_ei(_nsc, _mänx) -> Rückkehr:
     malp("schriller als ein Adler,")
     mint("todbringender als eine Banshee.")
     raise Spielende
+
+
+def steine_werfen(mänx: Mänx) -> None:
+    malp("Du nimmst dir einen großen Stein und wirfst ihn gegen eine der Fensterläden.")
+    malp("Es macht einen Riesenlärm.")
+    mänx.welt.obj(Butler).sprich("Lassen Sie das!", wie="wütend")
+    mänx.welt.obj(Butler).sprich(
+        "Sie können nicht einfach Steine gegen das Haus werfen!", wie="wütend")
+
+
+Butler = StoryChar("lg:westen:butler", ("Weɐnɐ", "Fri:drɪɕ", "Hausdiener"), Person("m"), dialoge=[
+    Dialog("termin", "Ich habe einen Termin", _(
+           "Nee-nee-nee.\n"
+           "Das kann nicht sein.\n"
+           "Ich verwalte alle Termine meiner Herrin und für Sie ist keiner drin.")),
+    Dialog("wiener", "Sie Wiener Würstchen!", [_("Weɐnɐ, ich heiße Weɐnɐ! Nicht Wiener!")]),
+    Dialog("sohn", "Sie Sohn einer Mutter!", [_("Wage es ja nicht, meine Mutter zu beleidigen!")]),
+])
