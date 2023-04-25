@@ -1,24 +1,24 @@
 """Ein NSC-System, das das Template (bei Kompilierzeit erstellt, im Code) und den
 gespeicherten Teil trennt. Bei Erstellung soll alles einen eindeutigen Namen haben.
 """
-from xwatc.weg import dorf
-from xwatc import system
-from xwatc import weg
-from xwatc.serialize import converter
-from xwatc.system import Fortsetzung, Inventar, MenuOption, malp, mint, schiebe_inventar, MissingIDError
-from xwatc.untersystem.person import Rasse, Person
-
-from attrs import define, field, Factory
-import attrs
-import cattrs
-
 from collections import defaultdict
 from collections.abc import Mapping, Iterator, Sequence, Callable
 from enum import Enum
 from logging import getLogger
 from typing import Any, Literal
+
+from attrs import define, field, Factory
+import attrs
+import cattrs
+
+from xwatc import system, _
+from xwatc import weg
 from xwatc.nsc._dialog import (Dialog, DialogFn, DialogErzeugerFn, DialogGeschichte, Rückkehr,
                                RunType, VorList, Zeitpunkt, Malp, Sprich)
+from xwatc.serialize import converter
+from xwatc.system import Fortsetzung, Inventar, MenuOption, malp, mint, schiebe_inventar, MissingIDError
+from xwatc.untersystem.person import Rasse, Person
+from xwatc.weg import dorf
 
 
 @define(frozen=True)
@@ -271,21 +271,15 @@ class NSC(system.InventarBasis):
         return Rückkehr.VERLASSEN
 
     def dialog_optionen(self, mänx: system.Mänx) -> Iterator[MenuOption[Dialog]]:
-        """Hole die Dialoge, die der Mänx einleitet."""
+        """Hole die Rede-Dialoge, die der Mänx einleitet."""
         for d in self.template.dialoge:
             if d.zeitpunkt == Zeitpunkt.Reden and d.verfügbar(self, mänx):
                 yield d.zu_option()
 
-    def direkte_dialoge(self, mänx: system.Mänx) -> Iterator[Dialog]:
-        """Hole die Dialoge, die direkt beim Ansprechen abgespielt werden."""
-        for d in self.template.dialoge:
-            if d.zeitpunkt == Zeitpunkt.Ansprechen and d.verfügbar(self, mänx):
-                yield d
-
     def main(self, mänx: system.Mänx) -> Fortsetzung | None:
         """Starte die Interaktion mit dem NSC."""
         if self.tot:
-            mint(f"{self.name}s Leiche liegt still auf dem Boden.")
+            mint(_("Die Leiche von {self.name} liegt still auf dem Boden.").format(self=self))
             return None
         vorstellung = self.vorstellen(mänx)
         # intermediäre variable wegen
@@ -301,13 +295,6 @@ class NSC(system.InventarBasis):
 
     def _main(self, mänx: system.Mänx) -> Fortsetzung | None:
         """Das Hauptmenu, möglicherweise ist Reden direkt an."""
-        for dia in self.direkte_dialoge(mänx):
-            ans = self._run(dia, mänx)
-            if ans != Rückkehr.WEITER_REDEN:
-                if isinstance(ans, Rückkehr):
-                    return None
-                else:
-                    return ans
         while True:
             opts = list[MenuOption[RunType]]()
             if self.template.direkt_reden:
@@ -328,10 +315,12 @@ class NSC(system.InventarBasis):
             self.kennt_spieler = True
         ans: Rückkehr | Fortsetzung = Rückkehr.WEITER_REDEN
         start = True
-        for dia in self.direkte_dialoge(mänx):
-            ans = self._run(dia, mänx)
-            if ans != Rückkehr.WEITER_REDEN:
-                return ans
+        # Ansprechen
+        for dialog in self.template.dialoge:
+            if dialog.zeitpunkt == Zeitpunkt.Ansprechen and dialog.verfügbar(self, mänx):
+                ans = self._run(dialog, mänx)
+                if ans != Rückkehr.WEITER_REDEN:
+                    return ans
         while ans == Rückkehr.WEITER_REDEN:
             optionen: list[MenuOption[Dialog | Rückkehr]]
             optionen = list(self.dialog_optionen(mänx))
