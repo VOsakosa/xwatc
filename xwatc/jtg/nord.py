@@ -243,10 +243,9 @@ fred = StoryChar(
 fred.kampf(kampf_in_disnayenbum)
 
 
-def gebe_nagel(n, m):
+def gebe_nagel(n: NSC, m: Mänx) -> None:
     n.sprich("Immer gern.")
-    n.inventar["Nagel"] -= 1
-    m.erhalte("Nagel", 1)
+    m.erhalte("Nagel", 1, von=n)
 
 
 mieko = StoryChar(
@@ -256,12 +255,12 @@ mieko = StoryChar(
     startinventar=dict(
         Banane=1,
         Hering=4,
-        Karabiner=11,
-        Dübel=13,
-        Schraubenzieher=2,
+        # Karabiner=11,
+        # Dübel=13,
+        # Schraubenzieher=2,
         Nagel=500,
         Schraube=12,
-        Werkzeugkasten=1,
+        # Werkzeugkasten=1,
         Latzhose=1,
         Unterhose=1,
         Gold=14
