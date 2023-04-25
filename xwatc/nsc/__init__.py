@@ -377,7 +377,7 @@ class NSC(system.InventarBasis):
             else:
                 ans = ans2
         else:
-            self._call_inner(geschichte, erzähler, True)
+            self._call_inner(geschichte, erzähler)
 
         if effekt:
             ans3 = effekt(self, mänx)
@@ -385,8 +385,7 @@ class NSC(system.InventarBasis):
                 ans = ans3
         return ans
 
-    def _call_inner(self, text: Sequence[str | Malp | Sprich], erzähler: bool,
-                    warte: bool = True):
+    def _call_inner(self, text: Sequence[str | Malp | Sprich], erzähler: bool) -> None:
         """Führe einen Text des Dialoges aus."""
         if isinstance(text, str):
             if erzähler:
@@ -404,8 +403,6 @@ class NSC(system.InventarBasis):
                     self.sprich(g.text, wie=g.wie)
                 else:
                     self.sprich(g)
-            if warte:
-                mint()
 
     def sprich(self, text: str | Sequence[str | Malp], *args, **kwargs) -> None:
         """Minte mit vorgestelltem Namen"""
