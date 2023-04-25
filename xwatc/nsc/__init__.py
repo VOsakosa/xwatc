@@ -43,7 +43,9 @@ def bezeichnung(val: str | tuple[str, str] | tuple[str, str, str] | Bezeichnung)
             return Bezeichnung(vorname + " " + nachname, art, vorname)
     raise TypeError(f"{val} ist keine Bezeichnung", val)
 
+
 _warn_items = set[str]()
+
 
 @define
 class StoryChar:
@@ -176,23 +178,6 @@ class StoryChar:
         return story_char_base_unstructure(self)
 
 
-converter.register_structure_hook(StoryChar, StoryChar.structure)
-story_char_base_structure = cattrs.gen.make_dict_structure_fn(
-    StoryChar, converter)
-story_char_base_unstructure = cattrs.gen.make_dict_unstructure_fn(
-    StoryChar, converter)
-converter.register_unstructure_hook(StoryChar, StoryChar._unstructure)
-
-
-def structure_geschichte(base, typ) -> DialogGeschichte | None:
-    if base is None:
-        return None
-    return converter.structure(base, Sequence[str | Malp | Sprich])  # type: ignore
-
-
-converter.register_structure_hook(DialogGeschichte | None, structure_geschichte)
-
-
 def _copy_inventar(old: Mapping[str, int]) -> defaultdict[str, int]:
     return defaultdict(int, old)
 
@@ -220,10 +205,12 @@ class NSC(system.InventarBasis):
 
     @property
     def name(self) -> str:
+        """Der volle Name des NSC."""
         return self.bezeichnung.name
 
     @property
     def art(self) -> str:
+        """Die Art / Klasse des NSC, die nach dem Namen angezeigt wird."""
         return self.bezeichnung.art
 
     @property
@@ -361,7 +348,7 @@ class NSC(system.InventarBasis):
 
     def _run(self, option: RunType,
              mänx: system.Mänx) -> Rückkehr | Fortsetzung:
-        """Führe eine Option aus."""
+        """Führe eine Option aus. Das kann ein Dialog, eine Fortsetzung oder eine Rückkehr sein."""
         if isinstance(option, Dialog):
             getLogger("xwatc.nsc").info(
                 f"Starte Dialog {option.name} von {self.name}")
@@ -370,8 +357,7 @@ class NSC(system.InventarBasis):
             ans = self._call_geschichte(mänx, dlg.geschichte, dlg.effekt)
             dlg_anzahl[dlg.name] = dlg_anzahl.setdefault(dlg.name, 0) + 1
             if dlg.gruppe:
-                dlg_anzahl[dlg.gruppe] = dlg_anzahl.setdefault(
-                    dlg.gruppe, 0) + 1
+                dlg_anzahl[dlg.gruppe] = dlg_anzahl.setdefault(dlg.gruppe, 0) + 1
             self.kennt_spieler = True
             return ans
         elif isinstance(option, Rückkehr):
@@ -452,12 +438,12 @@ class NSC(system.InventarBasis):
             self.freundlich = min(grenze, wert + self.freundlich)
         else:
             self.freundlich = max(grenze, wert + self.freundlich)
-    
+
     def ist(self, variable: str) -> bool:
         """Prüfe, ob eine Variable gesetzt ist."""
         return variable in self.variablen
-    
-    def setze(self, variable: str, zu: bool =True) -> None:
+
+    def setze(self, variable: str, zu: bool = True) -> None:
         """Setze eine Variable an diesem NSC."""
         if zu:
             self.variablen.add(variable)
@@ -486,11 +472,28 @@ def mache_monster(
     return wrapper
 
 
+converter.register_structure_hook(StoryChar, StoryChar.structure)
+story_char_base_structure = cattrs.gen.make_dict_structure_fn(
+    StoryChar, converter)
+story_char_base_unstructure = cattrs.gen.make_dict_unstructure_fn(
+    StoryChar, converter)
+converter.register_unstructure_hook(StoryChar, StoryChar._unstructure)
+
+
+def structure_geschichte(base, typ) -> DialogGeschichte | None:
+    if base is None:
+        return None
+    return converter.structure(base, Sequence[str | Malp | Sprich])  # type: ignore
+
+
+converter.register_structure_hook(DialogGeschichte | None, structure_geschichte)
+
+
 @define
 class Kennt:
     """Prädikat, um zu testen, ob ein Mänx einen StoryChar kennt."""
     char: StoryChar
-    
+
     def __call__(self, mänx: system.Mänx) -> bool:
         return mänx.welt.hat_obj(self.char) and mänx.welt.obj(self.char).kennt_spieler
 

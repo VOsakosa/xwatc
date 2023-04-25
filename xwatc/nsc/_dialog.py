@@ -5,7 +5,7 @@ import attrs
 from attrs import define, field
 from enum import Enum
 from collections.abc import Sequence, Callable, Iterable
-from typing import List, Tuple, Union, TypeAlias
+from typing import Protocol, Tuple, Union, TypeAlias
 from typing import TYPE_CHECKING
 from typing_extensions import Self
 from dataclasses import dataclass
@@ -75,8 +75,18 @@ class Zeitpunkt(Enum):
     Option = 3
 
 
-DialogFn = Callable[["nsc.NSC", system.Mänx],
-                    Rückkehr | Fortsetzung | None | bool]
+class DialogFn(Protocol):
+    def __call__(self, der_nsc: "nsc.NSC", mänx: system.Mänx, /) -> Rückkehr | Fortsetzung | None | bool:
+        """Rufe die Dialog-Funktion auf.
+
+        :param der_nsc: Der NSC, für den der Dialog abgespielt wird.
+        :param mänx: Zugriff auf das System von Xwatc.
+        :return:
+            Bei None, False oder Rückkehr.WEITER wird das Menü fortgesetzt.
+            Bei True, 
+            Bei einer Fortsetzung wird sofort der NSC und sein Ort verlassen und die Fortsetzung
+            gespielt.
+        """
 
 
 def _vorherige_converter(value: VorList | str) -> VorList:
@@ -138,7 +148,7 @@ class Dialog:
         """Dieser Dialog soll nur aufrufbar sein, wenn die Weltvariable
         gesetzt ist."""
         return self.wenn(lambda _n, m: all(m.welt.ist(v) for v in welt_variabeln))
-    
+
     def wenn_mänx(self, fn: system.MänxPrädikat) -> Self:
         return self.wenn(lambda _n, m: fn(m))
 
