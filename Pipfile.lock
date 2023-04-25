@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "589219471a00a3a22c1ece533d0d48329fbea4795272e248101208a9a190f4ac"
+            "sha256": "f212eba44228df40e9a66d4ad6a3b73ca6a86c1bddde005c1262e8aae3e15477"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -30,6 +30,14 @@
             "index": "pypi",
             "version": "==22.2.0"
         },
+        "exceptiongroup": {
+            "hashes": [
+                "sha256:232c37c63e4f682982c8b6459f33a8981039e5fb8756b2074364e5055c498c9e",
+                "sha256:d484c3090ba2889ae2928419117447a14daf3c1231d5e30d0aae34f354f01785"
+            ],
+            "index": "pypi",
+            "version": "==1.1.1"
+        },
         "pycairo": {
             "hashes": [
                 "sha256:1a6d8e0f353062ad92954784e33dbbaf66c880c9c30e947996c542ed9748aaaf",
@@ -44,7 +52,7 @@
                 "sha256:e7cde633986435d87a86b6118b7b6109c384266fd719ef959883e2729f6eafae",
                 "sha256:ec305fc7f2f0299df78aadec0eaf6eb9accb90eda242b5d3492544d3f2b28027"
             ],
-            "markers": "python_version >= '3.7'",
+            "index": "pypi",
             "version": "==1.23.0"
         },
         "pygobject": {
@@ -108,14 +116,6 @@
             "index": "pypi",
             "version": "==6.0"
         },
-        "types-pyyaml": {
-            "hashes": [
-                "sha256:5aed5aa66bd2d2e158f75dda22b059570ede988559f030cf294871d3b647e3e8",
-                "sha256:c51b1bd6d99ddf0aa2884a7a328810ebf70a4262c292195d3f4f9a0005f9eeb6"
-            ],
-            "index": "pypi",
-            "version": "==6.0.12.9"
-        },
         "typing-extensions": {
             "hashes": [
                 "sha256:5cb5f4a79139d699607b3ef622a1dedafa84e115ab0024e0d9c044a9479ca7cb",
@@ -172,6 +172,14 @@
             ],
             "index": "pypi",
             "version": "==2.6.0"
+        },
+        "types-pyyaml": {
+            "hashes": [
+                "sha256:5aed5aa66bd2d2e158f75dda22b059570ede988559f030cf294871d3b647e3e8",
+                "sha256:c51b1bd6d99ddf0aa2884a7a328810ebf70a4262c292195d3f4f9a0005f9eeb6"
+            ],
+            "index": "pypi",
+            "version": "==6.0.12.9"
         },
         "typing-extensions": {
             "hashes": [

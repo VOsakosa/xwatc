@@ -10,6 +10,8 @@ attrs = "*"
 cattrs = "*"
 pyyaml = "*"
 typing-extensions = "*"
+pycairo = "*"
+exceptiongroup = "*"
 
 [dev-packages]
 PyGObject-stubs = "*"

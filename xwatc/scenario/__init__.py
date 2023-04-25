@@ -365,6 +365,9 @@ class ScenarioWegpunkt(weg.Wegpunkt):
         for ziel in self.ziele.values():
             ziel.verbinde(self)
 
+    def __str__(self) -> str:
+        return f"ScenarioWegpunkt({self.gebiet.name}:{self.name})"
+
     def get_nachbarn(self) -> list[weg.Wegpunkt]:
         return [a.wegpunkt for a in self.ziele.values()]
 
@@ -384,4 +387,3 @@ if __name__ == '__main__':
     from xwatc.anzeige import main
     from xwatc.jtg import nord
     main(nord.eintritt_süd)  # type: ignore
-
