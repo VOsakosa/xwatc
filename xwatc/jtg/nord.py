@@ -13,15 +13,12 @@ from xwatc import nsc
 from xwatc.effect import Cooldown
 from xwatc.jtg import eo_nw
 from xwatc.jtg import osten, mitose
-from xwatc.nsc import StoryChar, bezeichnung, NSC, Rückkehr, Malp, Dialog, Zeitpunkt
+from xwatc.nsc import StoryChar, bezeichnung, NSC, Rückkehr, Malp, Dialog, Zeitpunkt, AmLeben
 from xwatc.scenario import ScenarioWegpunkt
 from xwatc.system import Mänx, mint, Spielende, InventarBasis, sprich, malp, register
 from xwatc.weg import Eintritt
 from typing_extensions import Self
 from xwatc.untersystem.variablen import Variable, MethodSave
-
-
-
 
 
 __author__ = "jasper"
@@ -344,7 +341,7 @@ def kirie_dlg() -> Iterable[Dialog]:
     yield Dialog("talismanzurück", 'Talisman zurückgeben', talisman_zurück).wenn_mänx(
         lambda m: m.hat_item("Talisman des Verstehens"))
     yield Dialog("axtmann", '"Wie heißt der Mann mit der Axt?"', axtmann_r).wenn_mänx(
-        lambda m: m.welt.am_leben("jtg:axtmann"))
+        AmLeben(brian))
 
 
 kirie = StoryChar("jtg:kirie", ("Kirie", "Fórmayr", "Kind"),
@@ -441,7 +438,7 @@ class Kiste:
     fach1: InventarBasis
     fach2: InventarBasis
     lina: NSC | None = None
-    
+
     @classmethod
     def erzeuge(cls, _mänx: 'Mänx', /) -> Self:
         self = cls(InventarBasis(), InventarBasis())

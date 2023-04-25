@@ -479,12 +479,42 @@ converter.register_structure_hook(DialogGeschichte | None, structure_geschichte)
 
 
 @define
-class Kennt:
+class Kennt(system.MänxPrädikat):
     """Prädikat, um zu testen, ob ein Mänx einen StoryChar kennt."""
     char: StoryChar
 
     def __call__(self, mänx: system.Mänx) -> bool:
         return mänx.welt.hat_obj(self.char) and mänx.welt.obj(self.char).kennt_spieler
+
+
+@define
+class AmLeben(system.MänxPrädikat):
+    """Prädikat, um zu testen, ob ein StoryChar generiert und am Leben ist."""
+    char: StoryChar
+
+    def __call__(self, mänx: system.Mänx) -> bool:
+        return mänx.welt.hat_obj(self.char) and not mänx.welt.obj(self.char).tot
+
+
+@define
+class Bewege(system.MänxFkt[None]):
+    """Effekt, das einen StoryChar, an einen Ort (standardmäßig den momentanen des Spielers)
+    bewegt."""
+    char: StoryChar
+    ziel: tuple[str, str] | None = None
+
+    def __call__(self, mänx: system.Mänx) -> None:
+        from xwatc.weg import get_gebiet, Wegkreuzung
+        der_nsc = mänx.welt.obj(self.char)
+        if self.ziel is None:
+            assert isinstance(mänx.context, weg.Wegkreuzung)
+            der_nsc.ort = mänx.context
+        else:
+            kreuzung = get_gebiet(mänx, self.ziel[0]).finde_kreuzung(self.ziel[1])
+            if not kreuzung:
+                getLogger("xwatc.nsc").warn(
+                    "Kann NSC nicht nach Kreuzung {self.ziel[0]}:{self.ziel[1]} bewegen.")
+            der_nsc.ort = kreuzung
 
 
 CHAR_REGISTER: dict[str, StoryChar] = {}

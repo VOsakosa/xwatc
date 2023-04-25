@@ -1,10 +1,13 @@
 from time import sleep
-from xwatc.system import Mänx, minput, ja_nein, Spielende, mint, malp, Fortsetzung, _
-from xwatc.weg import Eintritt, Gebiet
 from xwatc import weg
-from xwatc.nsc import StoryChar, Zeitpunkt, Dialog, NSC, Rückkehr, Malp, DialogFn, Kennt
+from xwatc.effect import NurWenn, in_folge
+from xwatc.nsc import StoryChar, Zeitpunkt, Dialog, NSC, Rückkehr, Malp, DialogFn, Kennt, AmLeben,\
+    Bewege, Sprich
+from xwatc.system import Mänx, minput, ja_nein, Spielende, mint, malp, Fortsetzung, _
 from xwatc.untersystem.menus import Option
 from xwatc.untersystem.person import Person
+from xwatc.weg import Eintritt, Gebiet
+
 
 eingang_osten = Eintritt("lg:westen", "mitte")
 
@@ -32,10 +35,18 @@ def erzeuge_westen(mänx: Mänx, gb: Gebiet) -> None:
     ], außer="o")
     gb.neuer_punkt((2, 0), "Hexenhütte").bschr([
         _("Eine mittelgroße Hütte mit geschlossenen Läden steht am Strand."),
-    ]).add_option("Anklopfen", "anklopfen", [
-        _("Es scheint niemand zu Hause zu sein.")
-    ]).add_option("Steine werfen", "steine", steine_werfen
-                  ).wenn("steine", Kennt(Butler))
+    ]).add_option("Anklopfen", "anklopfen", NurWenn(
+        AmLeben(Butler),
+        in_folge([  # type: ignore
+            _("Ein schlecht gelaunter Hausdiener öffnet dir die Tür.")
+        ], Bewege(Butler, (gb.name, "Hexenhütte"))),
+        [
+            _("Es scheint niemand zu Hause zu sein.")
+        ])
+    ).add_option("Steine werfen", "steine", steine_werfen).wenn(
+        "steine", Kennt(Butler)
+    )
+    mänx.welt.obj(Butler)
     gb.neuer_punkt((2, 2), "Küstenende").bschr([
         _("Hier gibt es nichts zu sehen, und du bist diese Küste müde."),
         _("Du solltest umkehren.")
@@ -260,11 +271,23 @@ def steine_werfen(mänx: Mänx) -> None:
         "Sie können nicht einfach Steine gegen das Haus werfen!", wie="wütend")
 
 
+def tür_zu(nsc: NSC, mänx: Mänx) -> Rückkehr:
+    nsc.ort = None
+    return Rückkehr.VERLASSEN
+
+
 Butler = StoryChar("lg:westen:butler", ("Weɐnɐ", "Fri:drɪɕ", "Hausdiener"), Person("m"), dialoge=[
+    Dialog("herrin", "Ist die Herrin da?", [
+        Sprich("Nein."),
+        Malp("Der Hausdiener schließt die Tür."),
+    ], effekt=tür_zu),
     Dialog("termin", "Ich habe einen Termin", _(
            "Nee-nee-nee.\n"
            "Das kann nicht sein.\n"
-           "Ich verwalte alle Termine meiner Herrin und für Sie ist keiner drin.")),
-    Dialog("wiener", "Sie Wiener Würstchen!", [_("Weɐnɐ, ich heiße Weɐnɐ! Nicht Wiener!")]),
-    Dialog("sohn", "Sie Sohn einer Mutter!", [_("Wage es ja nicht, meine Mutter zu beleidigen!")]),
+           "Ich verwalte alle Termine meiner Herrin und für Sie habe ich keinen eingetragen."),
+           "herrin", effekt=tür_zu),
+    Dialog("wiener", "Sie Wiener Würstchen!", [
+           _("Weɐnɐ, ich heiße Weɐnɐ! Nicht Wiener!")], "termin"),
+    Dialog("sohn", "Sie Sohn einer Mutter!", [_("Wage es ja nicht, meine Mutter zu beleidigen!")],
+           "termin"),
 ])
