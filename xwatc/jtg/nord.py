@@ -19,6 +19,7 @@ from xwatc.system import Mänx, mint, Spielende, InventarBasis, sprich, malp, re
 from xwatc.weg import Eintritt
 from typing_extensions import Self
 from xwatc.untersystem.variablen import Variable, MethodSave
+from xwatc.vorlagen.dialoge import HalloDialoge
 
 
 __author__ = "jasper"
@@ -265,6 +266,7 @@ mieko = StoryChar(
         Unterhose=1,
         Gold=14
     ), dialoge=[
+        *HalloDialoge,
         Dialog("nagel", '"Kannst du mir einen Nagel geben?"', gebe_nagel, "hallo"
                ).wiederhole(5),
         Dialog("haus", '"Du hast aber ein schönes Haus."', [
@@ -280,7 +282,6 @@ mieko = StoryChar(
             "Und du warst plötzlich hier?",
             "Das ist aber interessant.",
         ]).wenn_var("jtg:flimmern")
-
     ]
 )
 mieko.kampf(kampf_in_disnayenbum)
@@ -378,7 +379,7 @@ lina = StoryChar("jtg:lina", ("Lína", "Fórmayr", "Bäuerin"),
 lina.kampf(kampf_in_disnayenbum)
 
 
-def lina_hallo(n, m):
+def lina_hallo(n: NSC, m: Mänx) -> None:
     if n.freundlich > -1:
         n.sprich("Hallo! Ich bin Lina.")
         n.sprich("Du kannst dich hier gerne für die Nacht ausruhen, "
@@ -393,10 +394,11 @@ def lina_hallo(n, m):
 lina.dialog("hallo", '"Hallo!"', lina_hallo)
 
 
-def starren(n, m: Mänx):
+def starren(n: NSC, m: Mänx) -> Rückkehr:
     if n.freundlich >= 0:
         n.freundlich -= 1
         malp("Sie wirft dir einen Blick zu und du wendest schnell den Blick ab.")
+        return Rückkehr.WEITER_REDEN
     elif "wurde_bestarrt" in n.variablen:
         n.sprich("BRíAN!")
         m.welt.setze("kennt:jtg:axtmann")
@@ -411,10 +413,11 @@ def starren(n, m: Mänx):
         m.welt.setze("kennt:jtg:axtmann")
         n.sprich("Freundchen, hör damit auf oder ich rufe Brían.")
         n.variablen.add("wurde_bestarrt")
+        return Rückkehr.WEITER_REDEN
 
 
-lina.dialog("brüste", 'auf die Brüste starren', starren).wenn(
-    lambda n, m: "Perversling" in m.titel)
+lina.dialog("brüste", 'auf die Brüste starren', starren).wenn_mänx(
+    lambda m: "Perversling" in m.titel)
 
 
 def übernachten(n, m):
