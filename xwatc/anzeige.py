@@ -19,7 +19,7 @@ from logging import getLogger
 import queue
 import threading
 import exceptiongroup
-from typing import (Tuple, Optional as Opt, Mapping,
+from typing import (Optional as Opt, Mapping,
                     Protocol, Sequence, Any, TypeVar, Callable,
                     ClassVar, NamedTuple)
 from typing_extensions import Self
@@ -92,8 +92,10 @@ class XwatcFenster:
     def __init__(self, app: Gtk.Application, startpunkt: Opt[Fortsetzung] = None):
         style_provider = Gtk.CssProvider()
         style_provider.load_from_path(str(Path(__file__).parent / 'style.css'))
+        screen = Gdk.Screen.get_default()
+        assert screen
         Gtk.StyleContext.add_provider_for_screen(
-            Gdk.Screen.get_default(),
+            screen,
             style_provider,
             Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
         win = Gtk.ApplicationWindow()
@@ -167,7 +169,7 @@ class XwatcFenster:
                     else:
                         next_ = "h"
                 elif next_ == "l":  # Lademenü
-                    SPEICHER_VERZEICHNIS.mkdir(exist_ok=True, parents=True)
+                    SPEICHER_VERZEICHNIS.mkdir(exist_ok=True, parents=True)  # @UndefinedVariable
                     mgn2: Menu[Path | None] = Menu([
                         (path.stem, path.name.lower(), path) for path in
                         SPEICHER_VERZEICHNIS.iterdir()  # @UndefinedVariable
@@ -300,8 +302,10 @@ class XwatcFenster:
         self.choice_action = action
         for name, antwort, *short in mgn:
             button = Gtk.Button(label=name, visible=True, hexpand=True)
-            button.get_child().set_line_wrap(Gtk.WrapMode.WORD_CHAR)
-            button.get_child().set_max_width_chars(70)
+            child = button.get_child()
+            assert isinstance(child, Gtk.Label)
+            child.set_line_wrap(Gtk.WrapMode.WORD_CHAR)  # type: ignore
+            child.set_max_width_chars(70)
             button.connect("clicked", self.button_clicked, antwort)
             self.grid.add(button)
             if short:
@@ -322,13 +326,16 @@ class XwatcFenster:
             widget = daten.erzeuge_widget(self)
             widget.set_visible(True)
             self.anzeigen[typ] = widget
-            self.show_grid.add(widget)
+            self.show_grid.insert_row(0)
+            self.show_grid.attach(widget, 0, 0, 1, 1)
         self.sichtbare_anzeigen.add(typ)
 
     def key_pressed(self, _widget, event: Gdk.EventKey) -> bool:
         """Ausgeführt, wenn eine Taste gedrückt wird."""
         control = Gdk.ModifierType.CONTROL_MASK & event.state
         taste = Gdk.keyval_name(event.keyval)
+        if not taste:
+            return False
         if control:
             if taste == "q":
                 self._deactivate_choices()

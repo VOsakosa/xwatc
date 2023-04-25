@@ -12,6 +12,7 @@ pyyaml = "*"
 typing-extensions = "*"
 pycairo = "*"
 exceptiongroup = "*"
+pygobject-stubs = "*"
 
 [dev-packages]
 PyGObject-stubs = "*"

@@ -1,12 +1,14 @@
 """
 Die Anzeige für ein Scenario.
 """
-from typing import Sequence
-__author__ = "jasper"
-import gi
 import cairo
+import gi
 gi.require_foreign("cairo")
 from gi.repository import Gtk
+from typing import Sequence
+
+
+__author__ = "jasper"
 
 
 class PixelArtDrawingArea(Gtk.DrawingArea):
@@ -67,15 +69,3 @@ class PixelArtDrawingArea(Gtk.DrawingArea):
         self.header = other.header
         self.set_size_request(self.get_preferred_width()[0], self.get_preferred_height()[0])
         self.queue_resize()
-
-
-if __name__ == '__main__':
-    from xwatc.scenario import Scenario, SCENARIO_ORT
-    sc = Scenario.laden(SCENARIO_ORT + "/disnajenbun.txt")
-    window = Gtk.Window()
-    area = PixelArtDrawingArea(sc.anzeigename, sc.feld)
-    window.add(area)
-    window.set_default_size(area.get_preferred_width()[0], area.get_preferred_height()[0])
-    window.show_all()
-    window.connect("destroy", lambda *_args: Gtk.main_quit())
-    Gtk.main()
