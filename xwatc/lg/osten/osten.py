@@ -1,23 +1,33 @@
 from xwatc.system import (
-    Mänx, minput, kursiv, ja_nein, mint, Spielende, malp, Fortsetzung, MänxFkt, _)
+    Mänx, minput, kursiv, ja_nein, mint, Spielende, malp, MänxFkt, _)
 import random
 from xwatc import jtg
-from xwatc.weg import gebiet, Gebiet, Gebietsende, WegAdapter, kreuzung, WegEnde
-from xwatc.effect import Einmalig, NurWenn, Zufällig, Warten, TextGeschichte, in_folge
+from xwatc.weg import gebiet, Gebiet, Gebietsende, WegAdapter, kreuzung, WegEnde, Eintritt
+from xwatc.effect import Einmalig, NurWenn, Zufällig, Warten, TextGeschichte, in_folge, Gilt
 from xwatc.untersystem.person import Rasse
+
+T2 = Eintritt("lg:osten", "t2")
 
 
 @gebiet("lg:osten")
 def osten(_mänx: Mänx, gb: Gebiet) -> None:
     treffpunkt = gb.neuer_punkt((0, 1), "treffpunkt")
-    treffpunkt.add_beschreibung([
+    treffpunkt.add_beschreibung(_(
         "Du wanderst lange, lange in Richtung Osten, "
         "dein Proviant ist aufgebraucht, dein Mund trocken und"
-        " dein Magen knurrt.",
+        " dein Magen knurrt.\n"
         "Es ist heiß, höllisch heiß. Im Süden in der Ferne siehst du einen Höhleneingang."
         "In der anderen Richtung"
-        " siehst du etwas das wie eine Oase aussieht."
-    ], nur="w")
+        " siehst du etwas, das wie eine Oase aussieht."
+    ), nur="w").bschr(
+        NurWenn(Gilt(variablen="lg:osten:oase_besucht"), _(
+            "Du siehst im Norden die zwei Türen."
+        ), _(
+            "Im Norden siehst du etwas, das wie eine Oase aussieht."
+        )), außer="w"
+    ).bschr(_(
+            "Im Süden in der Ferne siehst du einen Höhleneingang."
+            ), außer="w")
     treffpunkt.verbinde(Gebietsende(
         None, gb, "start", "lg:mitte", "osten"), "w")
 
@@ -29,9 +39,15 @@ def osten(_mänx: Mänx, gb: Gebiet) -> None:
         "die andre zu nem andren Ort."
     ], [
         "Die beiden Türen sind noch da."
-    ]))
+    ]), außer="t2")
+    oase.add_beschreibung(TextGeschichte([_(
+        "Du landest in einem Stück Wüste. In dem zwei Türen stehen.\n"
+        "Durch die rechte bist du gekommen. Auf der Tür verkündet eine Inschrift, dass eine "
+        "der Türen in den Tod führt, wahrscheinlich die linke, aus der du nicht gekommen bist."
+    )], variablen=("lg:osten:oase_besucht", "jtg:rückkehrer")), nur="t2")
     oase.verbinde(WegAdapter(t1), "Linke Tür")
-    oase.verbinde(WegAdapter(t2), "Rechte Tür")
+    oase.verbinde(gb.ende(T2, jtg.EintrittT2), "t2", _("Rechte Tür[rechts]"))
+
     oase.add_option("Osten", "osten", TextGeschichte([
         "Du wanderst weiter und weiter.",
         Warten(3),
@@ -155,13 +171,6 @@ def schimmernde_mauer(mänx: Mänx) -> None:
 def t1(_mänx: Mänx):
     malp("Du spürst instinktiv, dass das die falsche Entscheidung war.")
     raise Spielende
-
-
-def t2(mänx: Mänx) -> Fortsetzung:
-    malp("Hinter der Tür ist es warm und sonnig.")
-    mänx.sleep(1)
-    mänx.welt.setze("jtg:t2")
-    return jtg.t2
 
 
 def osten_alt(mänx: Mänx):

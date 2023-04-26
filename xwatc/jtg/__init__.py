@@ -6,6 +6,7 @@ from xwatc import scenario
 from xwatc import system
 from xwatc import weg
 from xwatc.weg.dorf import Dorf, ort
+from xwatc.lg.osten import osten as lg_osten
 from xwatc.jtg import groekrak, see, nord, osten, mitose, eo_nw
 from xwatc.jtg.groekrak import zugang_südost
 from xwatc.jtg.ressourcen import zufälliger_name
@@ -23,12 +24,11 @@ from collections import defaultdict
 from typing import List, Tuple, cast
 from xwatc.vorlagen.dialoge import HalloDialoge
 from xwatc.lg.norden import gäfdah
+from xwatc.effect import NurWenn, TextGeschichte, Warten
 
 
-def t2(mänx: Mänx) -> Fortsetzung:
-    """Jaspers Teilgeschichte"""
-    malp("Es erwartet dich Vogelgezwitscher.")
-    return weg.wegsystem(mänx, "jtg:mitte", return_fn=True)
+EintrittT2 = Eintritt("jtg:mitte", "start")
+EintrittWest = Eintritt("jtg:mitte", "west")
 
 
 def lichtung_gucken(mänx: Mänx):
@@ -42,9 +42,8 @@ def lichtung_gucken(mänx: Mänx):
 
 
 @weg.gebiet("jtg:mitte")
-def erzeuge_mitte(mänx: Mänx, gebiet: weg.Gebiet) -> 'weg.Wegpunkt':
-    westw = weg.Weg(2, weg.WegAdapter(
-        groekrak.zugang_ost, "west", gebiet), None)
+def erzeuge_mitte(mänx: Mänx, gebiet: weg.Gebiet) -> None:
+    westw = weg.Weg(2, gebiet.ende(groekrak.zugang_ost, EintrittWest), None)
     bogen = weg.kreuzung("bogen", w=westw)
     bogen.add_beschreibung("Der Weg macht nach einer Weile eine Biegung "
                            "nach rechts.", nur="n")
@@ -81,22 +80,38 @@ def erzeuge_mitte(mänx: Mänx, gebiet: weg.Gebiet) -> 'weg.Wegpunkt':
     lichtung.verbinde_mit_weg(süd, 3, "s", typ=weg.Wegtyp.PFAD)
     lichtung.verbinde_mit_weg(nordk, 3, "n", typ=weg.Wegtyp.PFAD)
     lichtung.verbinde_mit_weg(west, 4, "w", typ=weg.Wegtyp.TRAMPELPFAD)
+    lichtung.add_beschreibung(TextGeschichte((
+        _("Hinter der Tür ist es warm und sonnig."),
+        _("Es erwartet dich Vogelgezwitscher."),
+        Warten(2),
+        _("Du befindest sich auf einer Lichtung in einem Wald."),
+    ), variablen=("jtg:t2",)), nur="t2")
     lichtung.add_beschreibung(
-        "Du befindest sich auf einer Lichtung in einem Wald.", nur=[None])
-    lichtung.add_beschreibung(
-        "Du kommst auf eine Lichtung.", außer=[None, "o"])
+        "Du kommst auf eine Lichtung.", außer=["t2", "o"])
     lichtung.add_beschreibung((
         "Die Lichtung ist ungewöhnlich rund, mit einem Radius von 5 Metern.",
         "Daran schließt sich ein Mischwald an, weder besonders dicht noch licht."
     ))
+    lichtung.add_beschreibung(NurWenn(ist_vollmondnacht, (
+        "Genau in der Mitte der Lichtung ist eine schimmernde Tür."
+    )))
     lichtung.add_beschreibung((
         "Ein schmaler Pfad führt nach Norden.",
         "Im Osten ist Dickicht.",
         "Im Westen und Süden ist nichts besonderes."
     ))
+    lichtung.verbinde(gebiet.ende(EintrittT2, lg_osten.T2), "t2", _("Durch die Tür gehen[tür]"))
 
     osten.verbinde_mit_weg(lichtung, 0, "w", typ=weg.Wegtyp.TRAMPELPFAD)
-    return lichtung
+
+
+def ist_vollmondnacht(mänx: Mänx) -> bool:
+    stunde = mänx.welt.uhrzeit()[0]
+    if stunde <= 2:
+        return mänx.welt.get_tag() % 30 == 15
+    if stunde >= 22:
+        return mänx.welt.get_tag() % 30 == 14
+    return False
 
 
 def erzeuge_teil_süd(mänx: Mänx, gb: weg.Gebiet) -> Wegkreuzung:
@@ -194,6 +209,7 @@ def hexer_skelett(leo: NSC, mänx: Mänx) -> Fortsetzung:
         return nord.eintritt_süd  # @MissingImport
     else:
         return ende_des_waldes
+
 
 hexer_skelett.wenn_mänx(lambda m: m.rasse == Rasse.Skelett)
 
@@ -415,10 +431,10 @@ def zuhören(self, _mänx: Mänx) -> None:
 @tobi.dialog_deco("orgel", '"Warum spielst du Orgel? Es ist doch nicht Gottesdienst gerade?"')
 def reden_orgel(self: NSC, mänx: Mänx) -> None:
     self.sprich("Ich spiele gerne Orgel. "
-           "Es beruhigt mich ungemein.")
+                "Es beruhigt mich ungemein.")
     self.sprich("Wenn nur mein Sohn auch so gerne wie ich spielen würde.")
     self.sprich("Ich bin nie zu Hause und spiele lieber Orgel. "
-           "Und mein Sohn spielt lieber bei den Nachbarn nebenan.")
+                "Und mein Sohn spielt lieber bei den Nachbarn nebenan.")
     if ja_nein(mänx, self.name + ": Ich bin ein schlechter Vater, nicht?"):
         mänx.titel.add("Respektloser")
         sprich(self.name, "Es tut irgendwie doch weh, es so zu hören.")
@@ -586,6 +602,7 @@ gaa.dialog("bruder", _("Bist du der Bruder von Robert?"), [
     "Ja, kennst du Robert?"
 ], "hallo").wenn_mänx(lambda m: Kennt(gäfdah.rob)(m))
 
+
 @gaa.dialog_deco("robert", _("Robert sucht nach dir."), "bruder")
 def suche_robert(nsc: NSC, mänx: Mänx):
     nsc.sprich("Wo ist Robert? Weißt du etwa, wie ich zu Robert zurückkomme?")
@@ -697,4 +714,4 @@ def hauptstadt_weg(mänx: Mänx):
 
 if __name__ == '__main__':
     from xwatc.anzeige import main
-    main(t2)
+    main(EintrittT2)

@@ -86,6 +86,22 @@ class NurWenn(Generic[F]):
 
 
 @define
+class Gilt(MänxPrädikat):
+    """Prüft verschiedene Eigenschaften des Mänxen und der Welt."""
+    variablen: Sequence[str] = field(converter=seq_str_converter, kw_only=True, default=())
+    titel: Sequence[str] = field(converter=seq_str_converter, kw_only=True, default=())
+
+    def __call__(self, mänx: Mänx) -> bool:
+        for variable in self.variablen:
+            if not mänx.welt.ist(variable):
+                return False
+        for titel in self.titel:
+            if titel not in mänx.titel:
+                return False
+        return True
+
+
+@define
 class Cooldown:
     """Ein Prädikat, das wahr ist, wenn es nicht in der letzten Zeit schon aktiviert wurde.
     Unter id_ wird dafür eine Variable angelegt.
