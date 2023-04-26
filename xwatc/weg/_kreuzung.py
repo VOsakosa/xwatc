@@ -17,6 +17,7 @@ from xwatc.utils import uartikel, bartikel, adj_endung, UndPred
 from xwatc.untersystem.menus import Option
 from xwatc.weg import Ausgang, Wegpunkt, WegEnde, Weg, Gebiet
 from xwatc.weg import dorf
+from xwatc.effect import TextGeschichte
 
 
 if TYPE_CHECKING:
@@ -153,11 +154,13 @@ class _KreuzungsAusgang(Ausgang):
         return self.kreuzung
 
 
-def _geschichte(geschichte: Sequence[str] | BeschreibungFn) -> Sequence[str] | BeschreibungFn:
+def _geschichte(geschichte: Sequence[str] | BeschreibungFn) -> BeschreibungFn:
     """Converter for `Beschreibung.geschichte`, um Strings als Liste aus einem String zu behandeln.
     """
     if isinstance(geschichte, str):
-        return (geschichte,)
+        return TextGeschichte([geschichte])
+    elif isinstance(geschichte, Sequence):
+        return TextGeschichte(geschichte)
     return geschichte
 
 
@@ -177,7 +180,7 @@ class Beschreibung:
     Wenn der Mänx den Wegpunkt aus einer der genannten Richtungen betritt, wird
     die Beschreibung abgespielt.
     """
-    geschichte: Sequence[str] | BeschreibungFn = field(converter=_geschichte)
+    geschichte: BeschreibungFn = field(converter=_geschichte)
     nur: Sequence[str | None] = field(converter=_nur, default=())
     außer: Sequence[str | None] = field(converter=_nur, default=())
     warten: bool = field(default=False)
@@ -192,15 +195,10 @@ class Beschreibung:
         """Führe die Beschreibung aus."""
         if (not self.nur or von in self.nur) and (
                 not self.außer or von not in self.außer):
-            if callable(self.geschichte):
-                return self.geschichte(mänx)
-            else:
-                for g in self.geschichte[:-1]:
-                    malp(g)
-                if self.warten:
-                    mint(self.geschichte[-1])
-                else:
-                    malp(self.geschichte[-1])
+            ans = self.geschichte(mänx)
+            if self.warten:
+                mint()
+            return ans
         return None
 
 
