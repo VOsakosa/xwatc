@@ -9,17 +9,17 @@ def süden(mänx: Mänx) -> Fortsetzung:
     malp("Du wanderst durch fruchtbare Wiesen und Täler.Seltsam - warum siedelt hier niemand? "
          "Ein Monster beantwortet deine Frage. ")
     sleep(1)
-    malp("Es sieht aus wie eine riesige Schnecke.Sie brüllt.")
-    mut = minput(mänx, "Kämpfst du oder fliehst du(k/f)", ["k", "f"])
+    malp("Es sieht aus wie eine riesige Schnecke. Sie brüllt.")
+    mut = minput(mänx, "Kämpfst du oder fliehst du?", ["k", "f"])
     if mut == "k":
         if mänx.hat_item("Speer"):
-            aa = minput(mänx, "Wirfst du deinen Speer oder versuchst du, deinen Speer in sie hineinzubohren?"
-                        " f/n(Fernkampf/Nahkampf)", ["f", "n"])
+            malp("Wirfst du deinen Speer oder versuchst du, deinen Speer in sie hineinzubohren?")
+            aa = mänx.minput("Fernkampf[f] oder Nahkampf[n]?", ["f", "n"])
             if aa == "f":
                 malp("Du wirfst deinen Speer. Die Schnecke brüllte, als der Speer in sie eindrang. "
                      "Doch außer das die Schnecke nun auf dich zuschleimt, hat es nichts bewirkt.")
-                mänx.inventar["Speer"] -= 1
-                mut = minput(mänx, "rennst du weg oder hebst du schützend "
+                mänx.erhalte("Speer", -1)
+                mut = minput(mänx, "Rennst du weg oder hebst du schützend "
                              "deine Arme über dem Kopf f/v(flucht/verteidigung)", ["f", "v"])
                 if mut == "v":
                     malp("Die Schnecke fraß dich auf, wie eine normale Schnecke Salat")
@@ -27,8 +27,8 @@ def süden(mänx: Mänx) -> Fortsetzung:
                     raise Spielende()
                 else:
                     assert mut == "f"
-                    malp(
-                        "Du rennst weg. Zum Glück ist die Schnecke immer noch eine Schnecke und du entkommst.")
+                    malp("Du rennst weg. Zum Glück ist die Schnecke immer noch eine Schnecke "
+                         "und du entkommst.")
                     return rückweg
             else:
                 malp("Du rennst auf die Schnecke zu und schlitzt sie auf. Du wirfst dich förmlich"
