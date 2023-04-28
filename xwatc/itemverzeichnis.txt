@@ -164,6 +164,7 @@ Unterwäsche: Kleidung
   Windel; 3
 
 Werkzeug:
+  Angel; 42
   Nagel; 1
 
 Zauberzutat:

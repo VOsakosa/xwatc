@@ -1,9 +1,9 @@
 from time import sleep
 from xwatc import weg
-from xwatc.effect import NurWenn, in_folge
+from xwatc.effect import NurWenn, in_folge, TextGeschichte, Zufällig, Warten
 from xwatc.nsc import StoryChar, Zeitpunkt, Dialog, NSC, Rückkehr, Malp, DialogFn, Kennt, AmLeben,\
     Bewege, Sprich
-from xwatc.system import Mänx, minput, ja_nein, Spielende, mint, malp, Fortsetzung, _
+from xwatc.system import Mänx, minput, ja_nein, Spielende, mint, malp, Fortsetzung, _, MänxFkt
 from xwatc.untersystem.menus import Option
 from xwatc.untersystem.person import Person
 from xwatc.weg import Eintritt, Gebiet
@@ -32,7 +32,8 @@ def erzeuge_westen(mänx: Mänx, gb: Gebiet) -> None:
     ]).bschr([
         _("Du siehst einen markanten Findling."),
         _("Vielleicht ist das eine gute Stelle, um in Richtung Inland zu laufen.")
-    ], außer="o")
+    ], außer="o").add_option("Angeln", "angeln", angel_fn(),
+                             wenn=lambda m: m.hat_item("Angel"))
     gb.neuer_punkt((2, 0), "Hexenhütte").bschr([
         _("Eine mittelgroße Hütte mit geschlossenen Läden steht am Strand."),
     ]).add_option("Anklopfen", "anklopfen", NurWenn(
@@ -51,6 +52,33 @@ def erzeuge_westen(mänx: Mänx, gb: Gebiet) -> None:
         _("Hier gibt es nichts zu sehen, und du bist diese Küste müde."),
         _("Du solltest umkehren.")
     ])
+
+
+def angel_fn() -> MänxFkt[None]:
+    """Erzeuge die Funktion, die aufgerufen wird, wenn geangelt wird."""
+    belohnung = Zufällig.gleichmäßig(
+        TextGeschichte(
+            (_("Es beißt nichts an."),),
+        ),
+        TextGeschichte(
+            (_("Du fängst eine Scholle."),),
+            schatz={"Scholle": 1}
+        ),
+        TextGeschichte(
+            (_("Du fängst eine Sardine."),),
+            schatz={"Sardine": 1}
+        )
+    )
+    return in_folge(
+        _("Du wirfst die Angel aus und wartest."),
+        Zufällig.gleichmäßig(
+            Warten(3),
+            Warten(6),
+            Warten(8),
+            Warten(8),
+        ),
+        belohnung
+    )
 
 
 def kampf_huhn(nsc: NSC, mänx: Mänx) -> Rückkehr:

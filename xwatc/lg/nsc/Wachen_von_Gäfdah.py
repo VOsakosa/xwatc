@@ -89,7 +89,7 @@ def OrfGrouundt_kampf(_nsc, _mänx) -> Fortsetzung:
 mario = StoryChar("nsc:Wachen_von_Gäfdah:MarioWittenpfäld", ("Mario", "Wittenpfäld", "Wache"),
                   Person("m"), WACHEN_INVENTAR,
                   vorstellen_fn=_("Die Wache steht herum und geht ernst und dienstbeflissen "
-                                 "ihrer Arbeit nach."))
+                                  "ihrer Arbeit nach."))
 
 
 def hallo_mario(_nsc, mänx: Mänx):
@@ -100,13 +100,27 @@ def hallo_mario(_nsc, mänx: Mänx):
         mint("Du lässt die Wache in Ruhe.")
 
 
-mario.dialog("bist", '"Hallo, Wer bist du?"', hallo_mario)
-mario.dialog("tom", '"Du heißt Tom, oder?"',
-             kursiv("nein!") + "     Ich heiße Mario, Mario Wittenpfäld!")
-mario.dialog("wetter", '"Wie findest du das Wetter heute?"',
+mario.dialog("bist", 'Hallo, wer bist du?', hallo_mario)
+mario.dialog("tom", 'Du heißt Tom, oder?',
+             (kursiv("Nein!"), "Ich heiße Mario, Mario Wittenpfäld!"))
+mario.dialog("wetter", 'Wie findest du das Wetter heute?',
              [Malp('"schön", sagte die Wache mürrisch.')])
-mario.dialog("geht", '"Hey, wie geht es dir?"',
+mario.dialog("geht", "Hey, wie geht es dir?",
              [Malp('"gut", sagte die Wache.'), Malp('Sie scheint nicht allzu gesprächig zu sein.')])
+mario.dialog("mürrisch", "Warum bist du so mürrisch?", [
+    "Ich habe gerade keine Lust auf die Arbeit"
+], "geht", wiederhole=1)
+mario.dialog("machen", "Was würdest du denn lieber machen?", [
+    "Ich würde jetzt liebend gerne fischen gehen.",
+    "Die Ruhe und die Wellen genießen."
+], "mürrisch", wiederhole=1)
+mario.dialog("ruhe", "Dann gebe ich dir besser Ruhe.", ["Ja, mach das."], "machen")
+mario.dialog("angeln", "Ich will auch mal angeln", [
+    _("Ach ja."),
+    _("Angeln ist wirklich sehr schön. Ich freue mich für jeden, der meine Leidenschaft teilt."),
+    _("Du hast noch keine Angelrute? Ich gebe dir eine alte."),
+    _("Über schon einmal für mich."),
+], "machen", effekt=lambda n, m: m.erhalte("Angel"), wiederhole=1)
 
 mario_kampf = ("Als du Anstalten machtest, deine Waffe zu zücken, "
                "schlug die Wache dir mit der flachen Seite ihres Schwertes gegen die Schläfe.")

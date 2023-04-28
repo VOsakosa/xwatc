@@ -493,7 +493,8 @@ class Wegkreuzung(Wegpunkt):
         weg.p2 = nach
 
     def add_option(self, name: str, id_: str,
-                   effekt: Sequence[str] | BeschreibungFn) -> Self:
+                   effekt: Sequence[str] | BeschreibungFn,
+                   wenn: None | MänxPrädikat = None) -> Self:
         """Füge eine Option an dem Wegpunkt hinzu. Beim Wählen wird dann eine Geschichte
         abgespielt."""
         # Die Option wird durch eine Wegkreuzung mit immer_fragen=False abgewickelt.
@@ -507,6 +508,8 @@ class Wegkreuzung(Wegpunkt):
         himri = Himmelsrichtung.from_kurz(id_)
         self.nachbarn[himri] = effekt_punkt
         self._optionen[himri] = Richtungsoption(name)
+        if wenn is not None:
+            self._wenn_fn[str(himri)] = wenn
         return self
 
     def add_sofort_reden(self, char: 'nsc.StoryChar') -> Self:

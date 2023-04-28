@@ -22,6 +22,9 @@ class Warten:
     """Signalisiert statt Text Warten für *length* Sekunden."""
     length: float
 
+    def __call__(self, mänx: Mänx) -> None:
+        mänx.sleep(self.length)
+
 
 def seq_str_converter(maybe_string: Sequence[str]) -> Sequence[str]:
     if isinstance(maybe_string, str):

@@ -52,7 +52,7 @@ def sgh(nsc: NSC, mänx: Mänx) -> Rückkehr | Fortsetzung:
             malp("Kaum nachdem du fertig bist, kommen zwei junge Männer hinein.")
     else:
         mint("OK, dann nicht.")
-            
+
     sprich(_("Junger Mann"), _("Oh, Verdammt"))
     sprich(_("Junger Mann"), _(
         'Ruboic hat schon wieder einen Anfall! Der Arzt hat ihm zwar gesagt, '
@@ -155,7 +155,7 @@ def ruboic_reden_ares(self: NSC, mänx: Mänx) -> Rückkehr | Fortsetzung:
                 elif b == 2:
                     return mitte.MITTE_EINTRITT
                 else:
-                    return jtg.t2
+                    return jtg.EintrittT2
             else:
                 mint("", kursiv("Das"), "wirst du bereuen.")
                 raise Spielende
