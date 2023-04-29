@@ -11,7 +11,7 @@ from typing_extensions import assert_never
 
 from importlib import import_module
 from logging import getLogger
-from types import FunctionType, MethodType
+from types import FunctionType
 from typing import Any, Final, TYPE_CHECKING
 
 

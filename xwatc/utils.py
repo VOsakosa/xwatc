@@ -3,30 +3,32 @@ Generelles, um Text zusammenzubauen.
 Created on 23.10.2020
 """
 from __future__ import annotations
-from typing import Sequence, Generic, TypeVar, Callable, cast
+from typing import ParamSpec, Generic, Callable
+from typing_extensions import Self
 __author__ = "jasper"
 
-Pred = TypeVar("Pred", bound=Callable, covariant=True)
+P = ParamSpec("P")
 
-class UndPred(Generic[Pred]):
+
+class UndPred(Generic[P]):
     """Verunde Prädikate."""
-    def __init__(self, *prädikate: Pred):
-        self.prädikate: list[Pred] = []
+
+    def __init__(self, *prädikate: Callable[P, bool]):
+        self.prädikate: list[Callable[P, bool]] = []
         for p in prädikate:
             if isinstance(p, UndPred):
                 self.prädikate.extend(p.prädikate)
             else:
                 self.prädikate.append(p)
-    
-    def __call__(self, *args, **kwargs) ->  bool:
+
+    def __call__(self, *args: P.args, **kwargs: P.kwargs) -> bool:
         return all(p(*args, **kwargs) for p in self.prädikate)
-    
-    def __and__(self, other):
-        return type(self)(cast(Pred, self), other)
-    
+
+    def __and__(self, other: Callable[P, bool]) -> Self:
+        return type(self)(self, other)
 
 
-def uartikel(geschlecht: str, fall: int = 1):
+def uartikel(geschlecht: str, fall: int = 1) -> str:
     """Der unbestimmte Artikel"""
     if geschlecht == "p":
         return ""
@@ -38,7 +40,7 @@ def uartikel(geschlecht: str, fall: int = 1):
         return "einer"
 
 
-def bartikel(geschlecht: str, fall: int = 1):
+def bartikel(geschlecht: str, fall: int = 1) -> str:
     if geschlecht == "n":
         return ["dem", "das", "des"][fall % 3]
     elif geschlecht == "m":
@@ -51,7 +53,7 @@ def bartikel(geschlecht: str, fall: int = 1):
         return "den"
 
 
-def adj_endung(schwach: int, geschlecht: str, fall: int = 1):
+def adj_endung(schwach: int, geschlecht: str, fall: int = 1) -> str:
     if fall == 2 or fall == 3 or geschlecht == "p":
         return "en"
     elif geschlecht == "m":
