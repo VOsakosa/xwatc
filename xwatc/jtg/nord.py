@@ -13,7 +13,8 @@ from xwatc import nsc
 from xwatc.effect import Cooldown
 from xwatc.jtg import eo_nw
 from xwatc.jtg import osten, mitose
-from xwatc.nsc import StoryChar, bezeichnung, NSC, Rückkehr, Malp, Dialog, Zeitpunkt, AmLeben
+from xwatc.nsc import StoryChar, bezeichnung, NSC, Rückkehr, Malp, Dialog, Zeitpunkt, AmLeben,\
+    Sprich
 from xwatc.scenario import ScenarioWegpunkt
 from xwatc.system import Mänx, mint, Spielende, InventarBasis, sprich, malp, register
 from xwatc.weg import Eintritt
@@ -267,13 +268,13 @@ mieko = StoryChar(
         Gold=14
     ), dialoge=[
         *HalloDialoge,
-        Dialog("nagel", '"Kannst du mir einen Nagel geben?"', gebe_nagel, "hallo"
+        Dialog("nagel", _('Kannst du mir einen Nagel geben?'), gebe_nagel, "hallo"
                ).wiederhole(5),
-        Dialog("haus", '"Du hast aber ein schönes Haus."', [
+        Dialog("haus", _('Du hast aber ein schönes Haus.'), [
             "Danke! Ich habe es selbst gebaut.",
             "Genau genommen habe ich alle Häuser hier gebaut.",
-            "Vielleicht baue ich dir später, wenn du willst, auch ein Haus!"]),
-        Dialog("tür", 'von der magischen Tür erzählen', [
+            "Vielleicht baue ich dir später, wenn du willst, auch ein Haus!"], wiederhole=0),
+        Dialog("tür", _('von der magischen Tür erzählen'), [
             "Das ist aber interessant.",
             "Vielleicht finde ich einen Magier, und wir gründen gemeinsam ein Geschäft:",
             "Ich mache die Türen, und er macht sie magisch.",
@@ -281,7 +282,11 @@ mieko = StoryChar(
         Dialog("flimmern", "vom der Höhle erzählen", [
             "Und du warst plötzlich hier?",
             "Das ist aber interessant.",
-        ]).wenn_var("jtg:flimmern")
+        ]).wenn_var("jtg:flimmern"),
+        Dialog("mag", "Ich mach Männer, die etwas draufhaben.", [
+            Sprich("Danke für das Kompliment", wie="errötet")
+        ], "haus"),
+
     ]
 )
 mieko.kampf(kampf_in_disnayenbum)
