@@ -43,7 +43,7 @@ def lichtung_gucken(mänx: Mänx):
 
 @weg.gebiet("jtg:mitte")
 def erzeuge_mitte(mänx: Mänx, gebiet: weg.Gebiet) -> None:
-    westw = weg.Weg(2, gebiet.ende(groekrak.zugang_ost, EintrittWest), None)
+    westw = weg.Weg(2, gebiet.ende(EintrittWest, groekrak.zugang_ost), None)
     bogen = weg.kreuzung("bogen", w=westw)
     bogen.add_beschreibung("Der Weg macht nach einer Weile eine Biegung "
                            "nach rechts.", nur="n")
