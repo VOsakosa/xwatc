@@ -188,11 +188,17 @@ class InventarBasis:
         """Lasse den Menschen Ausrüstung zurück in sein Inventar legen."""
         self._ausgerüstet.discard(item)
 
-    def get_waffe(self) -> None | Item:
-        """Hole die ausgerüstete Waffe"""
+    def ist_ausgerüstet(self, item: str) -> bool:
+        """Prüfe, ob ein Item ausgerüstet ist."""
+        return item in self._ausgerüstet
 
-    def bekleidungslevel(self) -> Bekleidetheit:
+    def get_waffe(self) -> None | Item:
+        """Hole die ausgerüstete Haupt-Waffe"""
+
+    @property
+    def bekleidetheit(self) -> Bekleidetheit:
         """Wie sehr gekleidet er ist."""
+        return Bekleidetheit.BEKLEIDET
 
     def erhalte(self, item: str, anzahl: int = 1,
                 von: Optional[InventarBasis] = None) -> None:
@@ -406,7 +412,11 @@ class Mänx(InventarBasis):
         super().__init__()
 
     def __attrs_post_init__(self) -> None:
-        self.gebe_startinventar()
+        if not hasattr(self, "person"):
+            super().__attrs_post_init__()
+            return
+        if not self.inventar:
+            self.gebe_startinventar()
 
     def hat_fähigkeit(self, name: Fähigkeit) -> bool:
         return name in self.fähigkeiten
@@ -429,6 +439,7 @@ class Mänx(InventarBasis):
         """Töte den Menschen, leere sein Inventar und entlasse
         seine Gefährten."""
         self.inventar.clear()
+        self._ausgerüstet.clear()
         # self.titel.clear()
         self.gefährten.clear()
         self.gebe_startinventar()
