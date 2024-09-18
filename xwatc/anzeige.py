@@ -2,30 +2,29 @@
 Anzeige für Xvatc mit GTK.
 """
 from __future__ import annotations
-from xwatc.system import (Fortsetzung, SPEICHER_VERZEICHNIS,
-                          Menu, Mänx)
-from xwatc import system
-from xwatc import _
-from typing_extensions import Self
-from typing import (Optional as Opt, Mapping,
-                    Protocol, Sequence, Any, TypeVar, Callable,
-                    ClassVar, NamedTuple)
-import exceptiongroup
-import threading
-import queue
+
+from collections.abc import Iterator
+from contextlib import contextmanager
+from functools import wraps
+from itertools import islice
 from logging import getLogger
 from pathlib import Path
-from functools import wraps
-from contextlib import contextmanager
-from gi.repository import Gtk, GLib, Gdk
+import queue
+import sys
+import threading
+from typing import Any, Callable, ClassVar, Mapping, NamedTuple
+from typing import Optional as Opt
+from typing import Protocol, Sequence, TypeVar
 
 from attrs import define
-from collections.abc import Iterator
-from itertools import islice
-
+import exceptiongroup
 import gi
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
+from gi.repository import Gdk, GLib, Gtk  # noqa
+from typing_extensions import Self  # noqa
 
+from xwatc import _, system  # noqa
+from xwatc.system import SPEICHER_VERZEICHNIS, Fortsetzung, Menu, Mänx  # noqa
 
 if False:
     from xwatc.system import Speicherpunkt
@@ -92,16 +91,14 @@ class XwatcFenster:
     def __init__(self, app: Gtk.Application, startpunkt: Opt[Fortsetzung] = None):
         style_provider = Gtk.CssProvider()
         style_provider.load_from_path(str(Path(__file__).parent / 'style.css'))
-        screen = Gdk.Screen.get_default()
-        assert screen
-        Gtk.StyleContext.add_provider_for_screen(
-            screen,
-            style_provider,
-            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        display = Gdk.Display.get_default()
+        assert display
+        Gtk.StyleContext.add_provider_for_display(
+            display, style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
         win = Gtk.ApplicationWindow()
         app.add_window(win)
         textview = Gtk.TextView(hexpand=True, vexpand=True, editable=False)
-        textview.get_style_context().add_class("main_text_view")
+        textview.add_css_class("main_text_view")
         textview.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
         self.buffer = textview.get_buffer()
 
@@ -112,20 +109,21 @@ class XwatcFenster:
         self.anzeigen: dict[type, Gtk.Widget] = {}
         self.sichtbare_anzeigen: set[type] = set()
         self.choice_action: Opt[Callable[[Any], Any]] = None
-        self.speicherpunkt: Speicherpunkt | None = None
+        self.speicherpunkt: system.Speicherpunkt | None = None
 
         self.info_widget: InfoWidget = InfoWidget.create()
         self._stack: list[_StackItem] = []
-        self.main_grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
-        self.show_grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
-        self.main_grid.add(self.info_widget.widget)
-        self.main_grid.add(self.show_grid)
-        self.show_grid.add(Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=textview))
-        self.grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
-        self.main_grid.add(self.grid)
+        self.main_grid = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.show_grid = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.main_grid.append(self.info_widget.widget)
+        self.main_grid.append(self.show_grid)
+        self.show_grid.append(Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=textview))
+        self.grid = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.main_grid.append(self.grid)
         win.connect("destroy", self.fenster_schließt)
-        win.connect("key-press-event", self.key_pressed)
-        win.add(self.main_grid)
+        # TODO EventControllerKey
+        # win.connect("key-press-event", self.key_pressed)
+        win.set_child(self.main_grid)
         win.set_default_size(400, 500)
         win.set_title("Xwatc")
         # Spiel beginnen
@@ -134,7 +132,7 @@ class XwatcFenster:
         system.ausgabe = self
         threading.Thread(target=self._xwatc_thread, args=(startpunkt,),
                          name="Xwatc-Geschichte", daemon=True).start()
-        win.show_all()
+        win.present()
 
     def _xwatc_thread(self, startpunkt: Fortsetzung | None):
         # Das nächste, was passiert. None für Abbruch, die Buchstaben stehen für interne Menüs
@@ -271,7 +269,7 @@ class XwatcFenster:
         self.choice_action = action
         entry = Gtk.Entry(visible=True)
         entry.connect("activate", self.entry_activated)
-        self.grid.add(entry)
+        self.grid.append(entry)
         entry.grab_focus()
 
     def menu(self,
@@ -288,7 +286,7 @@ class XwatcFenster:
     @_idle_wrapper
     def auswahl(self, mgn: Sequence[tuple[str, T] | tuple[str, T, str]],
                 versteckt: Mapping[str, T] | None = None,
-                save: Speicherpunkt | None = None,
+                save: system.Speicherpunkt | None = None,
                 action: Callable[[T], Any] | None = None) -> None:
         """Zeige Auswahlmöglichkeiten unten an.
 
@@ -304,10 +302,10 @@ class XwatcFenster:
             button = Gtk.Button(label=name, visible=True, hexpand=True)
             child = button.get_child()
             assert isinstance(child, Gtk.Label)
-            child.set_line_wrap(Gtk.WrapMode.WORD_CHAR)  # type: ignore
+            child.set_wrap(True)
             child.set_max_width_chars(70)
             button.connect("clicked", self.button_clicked, antwort)
-            self.grid.add(button)
+            self.grid.append(button)
             if short:
                 name = short[0]
             self.mgn[name.casefold()] = antwort
@@ -326,11 +324,10 @@ class XwatcFenster:
             widget = daten.erzeuge_widget(self)
             widget.set_visible(True)
             self.anzeigen[typ] = widget
-            self.show_grid.insert_row(0)
-            self.show_grid.attach(widget, 0, 0, 1, 1)
+            self.show_grid.prepend(widget)
         self.sichtbare_anzeigen.add(typ)
 
-    def key_pressed(self, _widget, event: Gdk.EventKey) -> bool:
+    def key_pressed(self, _widget, event) -> bool:
         """Ausgeführt, wenn eine Taste gedrückt wird."""
         control = Gdk.ModifierType.CONTROL_MASK & event.state
         taste = Gdk.keyval_name(event.keyval)
@@ -424,8 +421,8 @@ class XwatcFenster:
     def _remove_choices(self):
         """Entferne die Auswahlen. Das wird immer vor dem Hinzufügen der neuen Auswahlen
         eingefügt."""
-        for _i in range(len(self.grid.get_children())):
-            self.grid.remove_row(0)
+        while child := self.grid.get_first_child():
+            self.grid.remove(child)
         for typ, anzeige in self.anzeigen.items():
             if typ not in self.sichtbare_anzeigen:
                 anzeige.set_visible(False)
@@ -436,7 +433,7 @@ class XwatcFenster:
         """Graue die Auswahlen aus und lösche den Text."""
         self.mgn.clear()
         self.buffer.set_text("")
-        for child in self.grid.get_children():
+        for child in get_children(self.grid):
             if isinstance(child, (Gtk.Button, Gtk.Entry)):
                 child.set_sensitive(False)
         self.sichtbare_anzeigen.clear()
@@ -459,7 +456,9 @@ class XwatcFenster:
 
     def xwatc_ended(self):
         """"""
-        self.main_grid.get_toplevel().destroy()
+        root = self.main_grid.get_root()
+        if isinstance(root, Gtk.Window):
+            root.close()
 
     def kursiv(self, text: str) -> Text:
         return f"*{text}*"
@@ -472,10 +471,10 @@ class XwatcFenster:
             self.anzeigen.copy(),
             self.sichtbare_anzeigen,
             self.choice_action,
-            self.grid.get_children(),
+            list(get_children(self.grid)),
             self.buffer,
             self.speicherpunkt))
-        for child in self.show_grid.get_children():
+        for child in get_children(self.show_grid):
             if isinstance(child, Gtk.TextView):
                 self.buffer = Gtk.TextBuffer()
                 child.set_buffer(self.buffer)
@@ -489,10 +488,10 @@ class XwatcFenster:
          self.sichtbare_anzeigen, self.choice_action,
          controls, self.buffer, self.speicherpunkt] = self._stack.pop()
         for control in controls:
-            self.grid.add(control)
+            self.grid.append(control)
             if isinstance(control, (Gtk.Button, Gtk.Entry)):
                 control.set_sensitive(True)
-        for child in self.show_grid.get_children():
+        for child in get_children(self.show_grid):
             if isinstance(child, Gtk.TextView):
                 child.set_buffer(self.buffer)
 
@@ -549,9 +548,9 @@ class InfoWidget:
         can_save_label = Gtk.Label()
         tag_label = Gtk.Label()
         zeit_label = Gtk.Label()
-        grid.add(can_save_label)
-        grid.add(tag_label)
-        grid.add(zeit_label)
+        grid.append(can_save_label)
+        grid.append(tag_label)
+        grid.append(zeit_label)
         return cls(grid, tag_label, zeit_label, can_save_label)
 
     def update(self, mänx: Mänx, can_save: bool) -> None:
@@ -572,4 +571,15 @@ def main(startpunkt: Fortsetzung | None = None) -> None:
     app = Gtk.Application()
     app.connect("activate", XwatcFenster, startpunkt)
     _main_thread = threading.main_thread()
-    app.run()
+    app.run(sys.argv)
+
+
+def get_children(box: Gtk.Widget) -> Iterator[Gtk.Widget]:
+    """Get all children of a widget. Tries to get the next sibling before yielding an item, to allow
+    removing while iterating.
+    """
+    start = box.get_first_child()
+    while start:
+        new_start = start.get_next_sibling()
+        yield start
+        start = new_start
