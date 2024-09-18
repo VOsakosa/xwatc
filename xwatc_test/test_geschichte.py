@@ -14,12 +14,13 @@ class TestLG(unittest.TestCase):
         self.system = MockSystem()
         self.mänx = self.system.install()
 
+
 class TestSpeichernLaden(unittest.TestCase):
     def test_speichern(self) -> None:
-        with tempfile.NamedTemporaryFile() as obj:
-            MockSystem().install().save(waffe_wählen, Path(obj.name))
+        with tempfile.TemporaryDirectory() as temp_dir:
+            MockSystem().install().save(waffe_wählen, Path(temp_dir) / "test")
 
 
 if __name__ == "__main__":
-    #import sys;sys.argv = ['', 'Test.testName']
+    # import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

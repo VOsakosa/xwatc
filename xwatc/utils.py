@@ -13,8 +13,8 @@ P = ParamSpec("P")
 class UndPred(Generic[P]):
     """Verunde Prädikate."""
 
-    def __init__(self, *prädikate: Callable[P, bool]):
-        self.prädikate: list[Callable[P, bool]] = []
+    def __init__(self, *prädikate: Callable[P, object]):
+        self.prädikate: list[Callable[P, object]] = []
         for p in prädikate:
             if isinstance(p, UndPred):
                 self.prädikate.extend(p.prädikate)

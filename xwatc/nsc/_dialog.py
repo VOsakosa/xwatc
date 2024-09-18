@@ -189,4 +189,4 @@ DialogGeschichte = Union[Sequence[Malp | Sprich | str], DialogFn]
 DialogErzeugerFn = Callable[[], Iterable[Dialog]]
 RunType = MänxFkt | Rückkehr | Dialog
 
-from xwatc import nsc, weg  # @Reimport @UnusedImport
+from xwatc import nsc, weg  # noqa @Reimport @UnusedImport

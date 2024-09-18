@@ -7,11 +7,12 @@ from unittest.mock import MagicMock
 
 from xwatc import nsc
 from xwatc import system
+from xwatc.untersystem.person import Geschlecht
 from xwatc.weg import dorf
 from xwatc.nsc import Dialog, Zeitpunkt
 from xwatc.effect import Zufällig
 from xwatc.haendler import mache_händler, InventarMenu, InventarOption, GewählteOption
-from xwatc.nsc import StoryChar, Person, Rasse, Geschlecht, NSC, bezeichnung, Bezeichnung
+from xwatc.nsc import StoryChar, Person, Rasse, NSC, bezeichnung, Bezeichnung
 from xwatc.serialize import converter
 from xwatc.system import Welt, Speicherpunkt, Mänx
 from xwatc_test.mock_system import MockSystem, UnpassendeEingabe
@@ -65,7 +66,7 @@ class TestNSC(unittest.TestCase):
                          Person("m"), {"Klavier": 1}, randomize_fn=rd)
         self.assertEqual(toro.id_, "jtg:toro")
 
-        welt = Welt("Winkel")
+        welt = Welt()
         toro_nsc = welt.obj("jtg:toro")
         rd.assert_called_once_with(toro_nsc)
         rd.reset_mock()
@@ -169,7 +170,7 @@ class TestHändler(unittest.TestCase):
         self.assertEqual(mx.gold - gold_start, gold_mantel)
 
     def inventar_menu(self, menu: InventarMenu, eingaben: list[str], ausgaben: list[str],
-                      terminal: bool=True,
+                      terminal: bool = True,
                       ) -> GewählteOption:
         """Simuliert das InventarMenu gegen eine Liste von Eingaben und prüft die Ausgaben,"""
         ans = MockSystem(terminal=terminal).test_mänx_fn(
@@ -205,18 +206,20 @@ class TestHändler(unittest.TestCase):
         menu = InventarMenu(["k", InventarOption("p", None)], ">", "")
         ans = self.inventar_menu(menu, ["p 3 Hut"], [">"])
         self.assertEqual(ans, GewählteOption("p", "Hut", 3))
-    
+
     def test_inventar_menu_anzeige(self):
         menu = InventarMenu(["k", InventarOption("p", None)], ">", "")
         ans = self.inventar_menu(menu, ["p", "Hut"], ["Welches Item?"], terminal=False)
         self.assertEqual(ans, GewählteOption("p", "Hut", 1))
-    
-        menu = InventarMenu(["k", InventarOption("p", {"Hut": 3, "Müll": 10, "Wesen": 11})], ">", "")
+
+        menu = InventarMenu(["k", InventarOption(
+            "p", {"Hut": 3, "Müll": 10, "Wesen": 11})], ">", "")
         ans = self.inventar_menu(menu, ["p", "Hut"], ["Welches Item?"], terminal=False)
         self.assertEqual(ans, GewählteOption("p", "Hut", 1))
-        
+
         with self.assertRaises(UnpassendeEingabe):
             self.inventar_menu(menu, ["p", "Wesel"], ["Welches Item?"], terminal=False)
+
 
 class TestEffect(unittest.TestCase):
 
@@ -258,5 +261,5 @@ class TestEffect(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    #import sys;sys.argv = ['', 'Test.testName']
+    # import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

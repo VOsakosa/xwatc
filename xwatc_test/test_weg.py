@@ -103,14 +103,14 @@ class TestWeg(unittest.TestCase):
         ans = wegsystem(sys.install(), kr, return_fn=True)
         ende.assert_not_called()
         self.assertIs(ans, ende)
-        self.assertListEqual(["Startpunkt", "Welchen Weg nimmst du?", "Effekt eingetreten"],
+        self.assertListEqual(["Startpunkt", "Welchen Weg nimmst du?", "Effekt eingetreten", ""],
                              sys.pop_ausgaben())
 
         kr.add_option("Sprach-Option[sprach]", "test_sprach", "Hallo")
         sys.ein("sprach")
         with self.assertRaises(ScriptEnde):
             wegsystem(sys.install(), kr, return_fn=True)
-        self.assertListEqual(["Startpunkt", "Welchen Weg nimmst du?", "Hallo",
+        self.assertListEqual(["Startpunkt", "Welchen Weg nimmst du?", "Hallo", "",
                               "Startpunkt", "Welchen Weg nimmst du?"
                               ], sys.pop_ausgaben())
 
@@ -159,5 +159,5 @@ class TestIntegration(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    #import sys;sys.argv = ['', 'Test.testName']
+    # import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

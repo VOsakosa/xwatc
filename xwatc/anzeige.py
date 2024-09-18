@@ -20,7 +20,7 @@ from attrs import define
 import exceptiongroup
 import gi
 gi.require_version("Gtk", "4.0")
-from gi.repository import Gdk, GLib, Gtk  # noqa
+from gi.repository import Gdk, GLib, Gtk  # type: ignore # noqa
 from typing_extensions import Self  # noqa
 
 from xwatc import _, system  # noqa
