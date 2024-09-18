@@ -19,8 +19,7 @@ from attrs import define
 import exceptiongroup
 import gi
 gi.require_version("Gtk", "4.0")
-gi.require_version("Gdk", "4.0")
-from gi.repository import Gdk, GLib, Gtk  # noqa
+from gi.repository import Gtk, Gdk, GLib  # noqa
 from typing_extensions import Self  # noqa
 
 from xwatc import _, system  # noqa
@@ -98,7 +97,7 @@ class XwatcFenster:
         win = Gtk.ApplicationWindow()
         app.add_window(win)
         textview = Gtk.TextView(hexpand=True, vexpand=True, editable=False)
-        textview.get_style_context().add_class("main_text_view")
+        textview.add_css_class("main_text_view")
         textview.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
         self.buffer = textview.get_buffer()
 
@@ -121,7 +120,8 @@ class XwatcFenster:
         self.grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
         self.main_grid.append(self.grid)
         win.connect("destroy", self.fenster_schließt)
-        win.connect("key-press-event", self.key_pressed)
+        # TODO EventControllerKey
+        # win.connect("key-press-event", self.key_pressed)
         win.set_child(self.main_grid)
         win.set_default_size(400, 500)
         win.set_title("Xwatc")
@@ -421,8 +421,8 @@ class XwatcFenster:
     def _remove_choices(self):
         """Entferne die Auswahlen. Das wird immer vor dem Hinzufügen der neuen Auswahlen
         eingefügt."""
-        for _i in range(len(self.grid.get_children())):
-            self.grid.remove_row(0)
+        while child := self.grid.get_first_child():
+            self.grid.remove(child)
         for typ, anzeige in self.anzeigen.items():
             if typ not in self.sichtbare_anzeigen:
                 anzeige.set_visible(False)
@@ -433,7 +433,7 @@ class XwatcFenster:
         """Graue die Auswahlen aus und lösche den Text."""
         self.mgn.clear()
         self.buffer.set_text("")
-        for child in self.grid.get_children():
+        for child in get_children(self.grid):
             if isinstance(child, (Gtk.Button, Gtk.Entry)):
                 child.set_sensitive(False)
         self.sichtbare_anzeigen.clear()
@@ -469,10 +469,10 @@ class XwatcFenster:
             self.anzeigen.copy(),
             self.sichtbare_anzeigen,
             self.choice_action,
-            self.grid.get_children(),
+            get_children(self.grid),
             self.buffer,
             self.speicherpunkt))
-        for child in self.show_grid.get_children():
+        for child in get_children(self.show_grid):
             if isinstance(child, Gtk.TextView):
                 self.buffer = Gtk.TextBuffer()
                 child.set_buffer(self.buffer)
@@ -489,7 +489,7 @@ class XwatcFenster:
             self.grid.append(control)
             if isinstance(control, (Gtk.Button, Gtk.Entry)):
                 control.set_sensitive(True)
-        for child in self.show_grid.get_children():
+        for child in get_children(self.show_grid):
             if isinstance(child, Gtk.TextView):
                 child.set_buffer(self.buffer)
 
@@ -570,6 +570,17 @@ def main(startpunkt: Fortsetzung | None = None) -> None:
     app.connect("activate", XwatcFenster, startpunkt)
     _main_thread = threading.main_thread()
     app.run()
+
+
+def get_children(box: Gtk.Widget) -> Iterator[Gtk.Widget]:
+    """Get all children of a widget. Tries to get the next sibling before yielding an item, to allow
+    removing while iterating.
+    """
+    start = box.get_first_child()
+    while start:
+        new_start = start.get_next_sibling()
+        yield start
+        start = new_start
 
 
 if __name__ == '__main__':
