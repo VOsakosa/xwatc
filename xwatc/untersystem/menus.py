@@ -39,6 +39,7 @@ class Menu(Generic[Tcov]):
     @classmethod
     def ja_nein(cls: "type[Menu[T]] | type[Menu[Any]]", ja: T, nein: T, frage: str = ""
                 ) -> "Menu[T]":
+        """Ein neues Menü aus nur ja und nein."""
         return cls([
             (_("Ja"), _("ja"), ja),
             (_("Nein"), _("nein"), nein)
@@ -46,11 +47,13 @@ class Menu(Generic[Tcov]):
 
     @classmethod
     def ja_nein_bool(cls: "type[Menu[bool]] | type[Menu[Any]]", frage: str = "") -> "Menu[bool]":
+        """Ein neues Menü aus nur ja und nein, das einen bool zurückgibt."""
         return cls.ja_nein(True, False, frage)
 
     @classmethod
     def minput(cls: 'type[Menu[str]] | type[Menu[Any]]', options: Sequence[str], frage: str = ""
                ) -> 'Menu[str]':
+        """Ein neues Menü, mit Kompabilität zu dem älteren Minput."""
         assert options, "Leere Menge an Optionen"
         return cls([(option, option.lower(), option.lower()) for option in options], frage=frage)
 

@@ -250,7 +250,7 @@ class XwatcFenster:
 
     def minput(self, _mänx, frage: str,
                lower=True,
-               save: Speicherpunkt | None = None) -> str:
+               save: system.Speicherpunkt | None = None) -> str:
         self.malp(frage)
         self.speicherpunkt = save
         self.eingabe(prompt=None)
