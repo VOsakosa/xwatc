@@ -15,6 +15,7 @@ NAME := "[\w ]+"
 Created on 25.10.2020
 """
 from __future__ import annotations
+from collections.abc import Sequence
 import locale
 from os import PathLike
 from collections import defaultdict
@@ -38,6 +39,34 @@ def get_items(name: str) -> list[str]:
 
 
 ItemKlasse: EnumMeta = Enum("ItemKlasse", get_items("ItemKlasse"))  # type: ignore
+
+
+class Ausrüstungsslot(Enum):
+    KOPF = auto()
+    OBEN = auto()
+    UNTEN = auto()
+    FUSS_LINKS = auto()
+    FUSS_RECHTS = auto()
+    HAND_LINKS = auto()
+    HAND_RECHTS = auto()
+
+
+class Ausrüstungsdicke(Enum):
+    ANLIEGEND = auto()
+    INNEN = auto()
+    AUSSEN = auto()
+    RÜSTUNG = auto()
+    FLATTERN = auto()
+    ACCESSOIRE = auto()  # davon kann man mehrere haben!
+
+
+class Waffenhand(Enum):
+    HAUPTHAND = 1
+    ZWEITHAND = 2
+    BEIDHÄNDIG = 3
+
+
+Ausrüstungstyp = Waffenhand | tuple[Ausrüstungsslot, Ausrüstungsdicke]
 
 
 class Effekt(Enum):
@@ -77,9 +106,10 @@ class Item:
     name: str
     gold: int
     beschreibung: str = field(default="?")
-    item_typ: list[ItemKlasse] = field(factory=list)
+    item_typ: 'list[ItemKlasse]' = field(factory=list)  # type: ignore
     stapelbar: bool = field(default=True)
     fähigkeiten: list[Fähigkeit] = field(factory=list)
+    ausrüstungsklasse: None | Ausrüstungstyp = field(default=None)
 
     def __str__(self):
         return "{} [{}]".format(self.name, self.item_typ[0].name)

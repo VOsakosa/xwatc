@@ -1,19 +1,23 @@
 from __future__ import annotations
 
-from attrs import define, field
-from collections import defaultdict
-from collections.abc import Sequence, Iterator, Mapping
-from logging import getLogger
+import enum
 import logging
+import types  # @UnusedImport
+import typing
+from collections import defaultdict
+from collections.abc import Collection, Iterator, Mapping, Sequence
+from logging import getLogger
 from pathlib import Path
 from time import sleep
-import types  # @UnusedImport
-from typing import TypeVar, Any, Protocol
-from typing import (List, Union, Optional, TypeAlias, overload)
-from typing_extensions import Self, assert_never
-import typing
+from typing import (Any, List, Optional, Protocol, TypeAlias, TypeVar, Union,
+                    overload)
+
 import yaml
+from attrs import define, field
+from typing_extensions import Self, assert_never
+
 from xwatc.untersystem.menus import Menu, MenuOption
+
 try:
     from yaml import CSafeDumper as SafeDumper
 except ImportError:
@@ -23,14 +27,15 @@ from xwatc import _
 from xwatc.serialize import mache_converter, unstructure_punkt
 from xwatc.terminal import Terminal
 from xwatc.untersystem import hilfe
-from xwatc.untersystem.itemverzeichnis import lade_itemverzeichnis, Item
-from xwatc.untersystem.variablen import WeltVariable, VT, get_welt_var
-from xwatc.untersystem.variablen import register, Variable, MethodSave  # @UnusedImport
+from xwatc.untersystem.itemverzeichnis import (Ausrüstungsslot, Ausrüstungstyp,
+                                               Item, lade_itemverzeichnis)
+from xwatc.untersystem.person import Fähigkeit, Person, Rasse
+from xwatc.untersystem.variablen import (VT, MethodSave, WeltVariable,
+                                         get_welt_var)
 from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
-from xwatc.untersystem.person import Rasse, Fähigkeit, Person
 
 if typing.TYPE_CHECKING:
-    from xwatc import anzeige, weg, nsc, scenario  # @UnusedImport
+    from xwatc import anzeige, nsc, scenario, weg  # @UnusedImport
 
 SPEICHER_VERZEICHNIS = Path(__file__).parent.parent / "xwatc_saves"
 getLogger("xwatc").addHandler(logging.StreamHandler())
@@ -117,6 +122,13 @@ _null_func = int
 #     hilfsbereischaft: int = 0
 #     mut: int = 0
 
+class Bekleidetheit(enum.IntEnum):
+    NACKT = 0
+    OBERKÖRPERFREI = 1
+    IN_UNTERWÄSCHE = 2
+    BEKLEIDET = 3
+
+
 def _inventar_converter(eingabe: Mapping[str, int]) -> Inventar:
     """Konvertiert eine Eingabe in den konkreten Inventartyp."""
     return defaultdict(int, eingabe)
@@ -124,9 +136,63 @@ def _inventar_converter(eingabe: Mapping[str, int]) -> Inventar:
 
 @define
 class InventarBasis:
-    """Ein Ding mit Inventar"""
+    """Ein Ding mit Inventar
+
+    :var inventar: Ein dict str zu int. Da int auch 0 sein kann, sollte mit
+    :py:func:`InventarBasis.items` über die items iteriert werden.
+    """
     inventar: Inventar = field(factory=lambda: defaultdict(int), kw_only=True,
                                converter=_inventar_converter)
+    _ausgerüstet: set[str] = field(factory=set, kw_only=True)
+    _slots: Collection[Ausrüstungsslot] = field(default=set(Ausrüstungsslot), kw_only=True)
+
+    def __attrs_post_init__(self) -> None:
+        self.auto_ausrüsten()
+
+    def auto_ausrüsten(self) -> None:
+        """Lasse den Mänxen alles ausrüsten, was er kann."""
+        # Fixe zuerst die Ausrüstung.
+        for item in list(self._ausgerüstet):
+            if not self.hat_item(item):
+                getLogger("xwatc.system").warning("Item %s ausgerüstet, ohne in Inventar zu sein.",
+                                                  item)
+            self._ausgerüstet.remove(item)
+        blockiert = self._blockierte_ausrüstungsklassen()
+        for item in self.items():
+            try:
+                item_obj = get_item(item)
+            except KeyError:
+                continue
+            if item_obj.ausrüstungsklasse not in blockiert:
+                self._ausgerüstet.add(item)
+
+    def _blockierte_ausrüstungsklassen(self) -> set[Ausrüstungstyp]:
+        blockiert = set()
+        for item in self._ausgerüstet:
+            klasse = get_item(item).ausrüstungsklasse
+            if not klasse:
+                getLogger("xwatc.system").warning(
+                    "Item %s ausgerüstet, dass keinen Slot hat?", item)
+                continue
+            if isinstance(klasse, tuple) and klasse[1].name == "ACCESSOIRE":
+                continue
+            blockiert.add(klasse)
+        return blockiert
+
+    def ausrüsten(self, item: str) -> None:
+        """Lasse den Menschen etwas aus seinem Inventar ausrüsten. Etwaige Ausrüstung am
+        selben und an sich gegenseitig ausschließenden Slots wird abgelegt."""
+        klasse = get_item(item).ausrüstungsklasse
+
+    def ablegen(self, item: str) -> None:
+        """Lasse den Menschen Ausrüstung zurück in sein Inventar legen."""
+        self._ausgerüstet.discard(item)
+
+    def get_waffe(self) -> None | Item:
+        """Hole die ausgerüstete Waffe"""
+
+    def bekleidungslevel(self) -> Bekleidetheit:
+        """Wie sehr gekleidet er ist."""
 
     def erhalte(self, item: str, anzahl: int = 1,
                 von: Optional[InventarBasis] = None) -> None:
@@ -137,8 +203,12 @@ class InventarBasis:
         if not anzahl:
             return
         self.inventar[item] += anzahl
+        if not self.inventar[item] and item in self._ausgerüstet:
+            self._ausgerüstet.remove(item)
         if von:
             von.inventar[item] -= anzahl
+            if not von.inventar[item] and item in von._ausgerüstet:
+                von._ausgerüstet.remove(item)
 
     def inventar_zeigen(self) -> str:
         """Repräsentation des Inventars als Strings."""
@@ -200,7 +270,7 @@ class Welt:
 
     @classmethod
     def default(cls) -> Self:
-        """Erzeuge eine leere Standardwelt, die aus historischen Gründen bliblablux heißt."""
+        """Erzeuge eine leere Standardwelt"""
         return cls()
 
     def setze(self, name: str) -> None:
@@ -351,6 +421,9 @@ class Mänx(InventarBasis):
         self.inventar["Socke"] = 2
         self.inventar["Turnschuh"] = 2
         self.inventar["Mütze"] = 1
+        if self.person.geschlecht.name == "Weiblich":
+            self.inventar["BH"] = 1
+        self.auto_ausrüsten()
 
     def inventar_leeren(self) -> None:
         """Töte den Menschen, leere sein Inventar und entlasse
@@ -687,7 +760,8 @@ def main_loop(mänx: Mänx, punkt: Fortsetzung | None = None) -> None:
             punkt = respawn
 
 
-from xwatc import anzeige, nsc, weg, scenario  # @UnusedImport @Reimport
+from xwatc import anzeige, nsc, scenario, weg  # @UnusedImport @Reimport
+
 Speicherpunkt: TypeAlias = (MänxFkt[Fortsetzung] | nsc.NSC
                             | weg.Wegkreuzung | scenario.ScenarioWegpunkt | MethodSave)
 if __debug__:
