@@ -245,4 +245,4 @@ def monster(mänx: Mänx):
         mint("Keine Haut mehr an deinem Fleisch, "
              "kein Fleisch mehr an deinen Knochen: "
              "Du bist ein Skelett!")
-        mänx.rasse = Rasse.Skelett
+        mänx.person.rasse = Rasse.Skelett

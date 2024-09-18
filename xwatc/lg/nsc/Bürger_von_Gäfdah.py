@@ -118,5 +118,5 @@ def martin_reden(self: NSC, mänx: Mänx) -> Rückkehr | Fortsetzung:
         mänx.erhalte("Erbse", 438)
         mänx.erhalte("Truthahnfleisch", 50)
         mänx.erhalte("JOEL@þ", 1)
-        return jtg.t2
+        return jtg.EintrittT2
     return Rückkehr.VERLASSEN
