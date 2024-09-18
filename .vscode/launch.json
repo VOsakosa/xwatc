@@ -8,7 +8,7 @@
             "name": "Python-Debugger: Modul",
             "type": "debugpy",
             "request": "launch",
-            "module": "xwatc.anzeige"
+            "module": "xwatc"
         }
     ]
 }

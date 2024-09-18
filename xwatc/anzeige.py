@@ -2,6 +2,22 @@
 Anzeige für Xvatc mit GTK.
 """
 from __future__ import annotations
+from xwatc.system import (Fortsetzung, SPEICHER_VERZEICHNIS,
+                          Menu, Mänx)
+from xwatc import system
+from xwatc import _
+from typing_extensions import Self
+from typing import (Optional as Opt, Mapping,
+                    Protocol, Sequence, Any, TypeVar, Callable,
+                    ClassVar, NamedTuple)
+import exceptiongroup
+import threading
+import queue
+from logging import getLogger
+from pathlib import Path
+from functools import wraps
+from contextlib import contextmanager
+from gi.repository import Gtk, GLib, Gdk
 
 from attrs import define
 from collections.abc import Iterator
@@ -9,24 +25,8 @@ from itertools import islice
 
 import gi
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GLib, Gdk
 
 
-from contextlib import contextmanager
-from functools import wraps
-from pathlib import Path
-from logging import getLogger
-import queue
-import threading
-import exceptiongroup
-from typing import (Optional as Opt, Mapping,
-                    Protocol, Sequence, Any, TypeVar, Callable,
-                    ClassVar, NamedTuple)
-from typing_extensions import Self
-from xwatc import _
-from xwatc import system
-from xwatc.system import (Fortsetzung, SPEICHER_VERZEICHNIS,
-                          Menu, Mänx)
 if False:
     from xwatc.system import Speicherpunkt
 __author__ = "jasper"
@@ -573,7 +573,3 @@ def main(startpunkt: Fortsetzung | None = None) -> None:
     app.connect("activate", XwatcFenster, startpunkt)
     _main_thread = threading.main_thread()
     app.run()
-
-
-if __name__ == '__main__':
-    main()
