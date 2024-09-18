@@ -3,30 +3,30 @@ Anzeige für Xvatc mit GTK.
 """
 from __future__ import annotations
 
-from attrs import define
-from collections.abc import Iterator
-from itertools import islice
-
-import gi
-gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GLib, Gdk
-
-
-from contextlib import contextmanager
-from functools import wraps
-from pathlib import Path
-from logging import getLogger
 import queue
 import threading
+from collections.abc import Iterator
+from contextlib import contextmanager
+from functools import wraps
+from itertools import islice
+from logging import getLogger
+from pathlib import Path
+from typing import Any, Callable, ClassVar, Mapping, NamedTuple
+from typing import Optional as Opt
+from typing import Protocol, Sequence, TypeVar
+
+from attrs import define
 import exceptiongroup
-from typing import (Optional as Opt, Mapping,
-                    Protocol, Sequence, Any, TypeVar, Callable,
-                    ClassVar, NamedTuple)
-from typing_extensions import Self
-from xwatc import _
-from xwatc import system
-from xwatc.system import (Fortsetzung, SPEICHER_VERZEICHNIS,
-                          Menu, Mänx)
+import gi
+gi.require_version("Gtk", "4.0")
+gi.require_version("Gdk", "4.0")
+from gi.repository import Gdk, GLib, Gtk  # noqa
+from typing_extensions import Self  # noqa
+
+from xwatc import _, system  # noqa
+from xwatc.system import SPEICHER_VERZEICHNIS, Fortsetzung, Menu, Mänx  # noqa
+
+
 if False:
     from xwatc.system import Speicherpunkt
 __author__ = "jasper"
@@ -92,12 +92,9 @@ class XwatcFenster:
     def __init__(self, app: Gtk.Application, startpunkt: Opt[Fortsetzung] = None):
         style_provider = Gtk.CssProvider()
         style_provider.load_from_path(str(Path(__file__).parent / 'style.css'))
-        screen = Gdk.Screen.get_default()
-        assert screen
-        Gtk.StyleContext.add_provider_for_screen(
-            screen,
-            style_provider,
-            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        display = Gdk.Display.get_default()
+        Gtk.StyleContext.add_provider_for_display(
+            display, style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
         win = Gtk.ApplicationWindow()
         app.add_window(win)
         textview = Gtk.TextView(hexpand=True, vexpand=True, editable=False)
@@ -112,20 +109,20 @@ class XwatcFenster:
         self.anzeigen: dict[type, Gtk.Widget] = {}
         self.sichtbare_anzeigen: set[type] = set()
         self.choice_action: Opt[Callable[[Any], Any]] = None
-        self.speicherpunkt: Speicherpunkt | None = None
+        self.speicherpunkt: system.Speicherpunkt | None = None
 
         self.info_widget: InfoWidget = InfoWidget.create()
         self._stack: list[_StackItem] = []
-        self.main_grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
-        self.show_grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
-        self.main_grid.add(self.info_widget.widget)
-        self.main_grid.add(self.show_grid)
-        self.show_grid.add(Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=textview))
+        self.main_grid = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.show_grid = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.main_grid.append(self.info_widget.widget)
+        self.main_grid.append(self.show_grid)
+        self.show_grid.append(Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=textview))
         self.grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
-        self.main_grid.add(self.grid)
+        self.main_grid.append(self.grid)
         win.connect("destroy", self.fenster_schließt)
         win.connect("key-press-event", self.key_pressed)
-        win.add(self.main_grid)
+        win.set_child(self.main_grid)
         win.set_default_size(400, 500)
         win.set_title("Xwatc")
         # Spiel beginnen
@@ -271,7 +268,7 @@ class XwatcFenster:
         self.choice_action = action
         entry = Gtk.Entry(visible=True)
         entry.connect("activate", self.entry_activated)
-        self.grid.add(entry)
+        self.grid.append(entry)
         entry.grab_focus()
 
     def menu(self,
@@ -307,7 +304,7 @@ class XwatcFenster:
             child.set_line_wrap(Gtk.WrapMode.WORD_CHAR)  # type: ignore
             child.set_max_width_chars(70)
             button.connect("clicked", self.button_clicked, antwort)
-            self.grid.add(button)
+            self.grid.append(button)
             if short:
                 name = short[0]
             self.mgn[name.casefold()] = antwort
@@ -489,7 +486,7 @@ class XwatcFenster:
          self.sichtbare_anzeigen, self.choice_action,
          controls, self.buffer, self.speicherpunkt] = self._stack.pop()
         for control in controls:
-            self.grid.add(control)
+            self.grid.append(control)
             if isinstance(control, (Gtk.Button, Gtk.Entry)):
                 control.set_sensitive(True)
         for child in self.show_grid.get_children():
@@ -549,9 +546,9 @@ class InfoWidget:
         can_save_label = Gtk.Label()
         tag_label = Gtk.Label()
         zeit_label = Gtk.Label()
-        grid.add(can_save_label)
-        grid.add(tag_label)
-        grid.add(zeit_label)
+        grid.append(can_save_label)
+        grid.append(tag_label)
+        grid.append(zeit_label)
         return cls(grid, tag_label, zeit_label, can_save_label)
 
     def update(self, mänx: Mänx, can_save: bool) -> None:
