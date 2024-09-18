@@ -1,0 +1,238 @@
+# Xwatc-Itemverzeichni
+---
+Accessoire: Ausrüstung
+Fisch: Nahrung
+Fleisch: Nahrung
+Gemüse: Nahrung
+legendäre Waffe: Waffe
+mächtige Waffe: Waffe
+normale Waffe: Waffe
+Oberbekleidung: Kleidung
+Obst: Nahrung
+Ring: Ausrüstung
+Rüstungsgegenstand: Ausrüstung
+Talisman: Ausrüstung
+Unterwäsche: Kleidung
+Zauberstab: Waffe
+---
+- Accessoire:
+    - Amulett:
+      preis: 54
+      ausrüstung: kopf accessoire
+    - Haarband:
+      preis: 4
+      ausrüstung: kopf accessoire
+    - Ledergürtel:
+      preis: 5
+      ausrüstung: unten accessoire
+    - Tarotkarte; 12
+    - Teddybär; 23
+- Ausrüstung:
+    - Armbanduhr:
+      preis: 43
+      ausrüstung: hand accessoire
+- Blume:
+    - Distelblüte; 6
+    - Gänseblümchen; 3
+    - Hahnenfuß; 1
+    - Klatschmohn; 1
+    - Löwenzahn; 2
+    - Margarite
+    - Rose; 8
+    - Tulpe; 7
+- Brennstoff:
+    - Kohle; 24
+- Buch:
+    - Kinderbuch; 23
+    - Sachbuch; 44
+- Fisch:
+    - Hering; 5
+    - Lachs; 7
+    - Sardine; 5
+    - Scholle; 4
+- Fleisch:
+    - Hühnerfleisch; 10
+    - Riesenschneckenfleisch; 21
+    - Wolffleisch; 15
+- Gemüse:
+    - Bohne; 2
+    - Erbse; 1
+    - Karotte; 3
+- Heiliges Tagesei:
+    - Stein der aussieht wie ein Hühnerei; 350
+- Holz:
+    - Holz; 14
+    - Stöckchen; 3
+- Kleidung:
+    - Äntorenmantel:
+      preis: 38
+      ausrüstung: oben flattern
+    - Äntorenstiefel:
+      preis: 23
+      ausrüstung: fuss aussen
+    - Anzug:
+      preis: 25
+      ausrüstung: obenunten innen
+    - Einfaches Kleid:
+      preis: 12
+      ausrüstung: obenunten aussen
+    - Gürtel:
+      preis: 15
+      ausrüstung: unten accessoire
+    - halber Mantel:
+      preis: 13
+      ausrüstung: oben flattern
+    - Hose:
+      preis: 10
+      ausrüstung: unten aussen
+    - Kappe:
+      preis: 12
+      ausrüstung: kopf aussen
+    - Kapuzenmantel:
+      preis: 36
+      ausrüstung: oben flattern
+    - Kleid:
+      preis: 48
+      ausrüstung: obenunten aussen
+    - Latzhose:
+      preis: 16
+      ausrüstung: unten aussen
+    - Lederhose:
+      preis: 16
+      ausrüstung: unten aussen
+    - Lederschuh:
+      preis: 18
+      ausrüstung: fuss aussen
+    - Lederstiefel:
+      preis: 20
+      ausrüstung: fuss aussen
+    - Lumpen:
+      preis: 2
+      ausrüstung: obenunten innen
+    - Mantel:
+      preis: 28
+      ausrüstung: oben flattern
+    - Matschhose:
+      preis: 21
+      ausrüstung: unten aussen
+    - Mütze:
+      preis: 12
+      ausrüstung: kopf innen
+    - Schal:
+      preis: 8
+      ausrüstung: hals flattern
+    - Schuh:
+      preis: 6
+      ausrüstung: fuss aussen
+    - Schürze:
+      preis: 12
+      ausrüstung: oben flattern
+    - Socke:
+      preis: 3
+      ausrüstung: fuss anliegend
+    - Turnschuh:
+      preis: 5
+      ausrüstung: fuss aussen
+- legendäre Waffe:
+    - Höllenschwert; 200
+- Metall:
+    - Bronze; 45
+    - Eisen; 22
+    - Kupfer; 34
+    - Rohgold; 52
+    - Silber; 53
+    - Zink; 23
+    - Zinn; 23
+- Mugel:
+    - Mugel der Draufsicht
+    - Mugel des Geschmacks
+    - Mugel des Sprechens
+- Nahrung:
+    - Pausenbrot; 9
+    - Reisportion; 4
+- normales Werkzeug:
+    - Spitzhacke; 50
+    - Tablett; 2
+- normale Waffe:
+    - vergifteter Dolch; 30
+    - Axt; 54
+    - Messer; 10
+    - Schwert; 55
+    - Speer; 50
+- mächtige Waffe:
+    - Morgenstern; 300
+    - mächtige Axt; 300
+    - Stahlhandschuh; 260
+- Oberbekleidung:
+    - Anzugjacke:
+      preis: 28
+      ausrüstung: oben aussen
+    - Leinenhemd:
+      preis: 17
+      ausrüstung: oben innen
+    - T-Shirt:
+      preis: 18
+      ausrüstung: oben innen
+    - Top:
+      preis: 15
+      ausrüstung: oben innen
+- Obst:
+    - Apfel; 3
+    - Aprikose; 4
+    - Banane; 12
+    - Beere; 1
+    - Mandarine; 6
+    - Tomate; 3
+    - Zwetschge; 5
+- Ring:
+    - Ehering:
+      preis: 52
+      ausrüstung: hand accessoire
+    - Ring:
+      preis: 34
+      ausrüstung: hand accessoire
+    - Ring des Berndoc:
+      preis: 130
+      ausrüstung: hand accessoire
+    - Schnöder Ehering:
+      preis: 32
+      ausrüstung: hand accessoire
+- Rüstungsgegenstand:
+    - Schild; 48
+- Scherz-Item:
+    - Leere; 3000
+- Stein:
+    - Stein; 0
+- Superfolienrohstoff:
+    - Schneckenschleim; 80
+- Superpapierrohstoff:
+    - Riesenschneckeninnereien; 40
+- Talisman:
+    - Talisman der Schreie
+    - Talisman des Verstehens
+- Unterwäsche:
+    - BH:
+      preis: 20
+      ausrüstung: unten anliegend
+    - Brokat-Unterhose:
+      preis: 68
+      ausrüstung: unten anliegend
+    - Dicke Unterhose:
+      preis: 18
+      ausrüstung: unten anliegend
+    - Großer BH:
+      preis: 38
+      ausrüstung: oben anliegend
+    - Unterhose:
+      preis: 10
+      ausrüstung: unten anliegend
+    - Windel:
+      preis: 3
+      ausrüstung: unten anliegend
+- Werkzeug:
+    - Angel; 42
+    - Nagel; 1
+- Zauberstab:
+    - Flammenstab; 150
+- Zauberzutat:
+    - Menschenskelett; 100

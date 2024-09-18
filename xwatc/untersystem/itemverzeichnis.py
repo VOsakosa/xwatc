@@ -49,6 +49,7 @@ class Ausrüstungsslot(Enum):
     FUSS_RECHTS = auto()
     HAND_LINKS = auto()
     HAND_RECHTS = auto()
+    HALS = auto()
 
 
 class Ausrüstungsdicke(Enum):
@@ -144,19 +145,18 @@ def lade_itemverzeichnis(pfad: str | PathLike, waffenpfad: str | PathLike) -> di
             splits = re.split(r"\s*:\s*", line)
             if len(splits) == 1:
                 # Item
-                if klasse:
-                    item, *fields = re.split("\s*;\s*", splits[0])
-                    items[item] = klasse
-                    if fields:
-                        try:
-                            if fields[0] != "-":
-                                preise[item] = int(fields[0])
-                        except ValueError:
-                            raise ValueError("Die erste Spalte ist der Preis, "
-                                             f"war aber {fields[0]}") from None
-                else:
-                    raise ValueError(f"{item} sollte zu einer Klasse gehören!",
-                                     lineno)
+                if not klasse:
+                    raise ValueError(f"{item} sollte zu einer Klasse gehören!", lineno)
+                item, *fields = re.split("\s*;\s*", splits[0])
+                items[item] = klasse
+                if not fields:
+                    continue
+                try:
+                    if fields[0] != "-":
+                        preise[item] = int(fields[0])
+                except ValueError:
+                    raise ValueError("Die erste Spalte ist der Preis, "
+                                     f"war aber {fields[0]}") from None
             elif len(splits) == 2:
                 # Klassendefinition
                 klasse, ober = splits
@@ -169,8 +169,9 @@ def lade_itemverzeichnis(pfad: str | PathLike, waffenpfad: str | PathLike) -> di
     for item_name, item_class in items.items():
         item = Item(name=item_name, gold=(preise[item_name] if item_name in preise else 0))
         item.add_typ(item_class)
-        if item_class in classes:
-            item.add_typ(classes[item_class])
+        while item_class in classes:
+            item_class = classes[item_class]
+            item.add_typ(item_class)
         item_verzeichnis[item_name] = item
 
     with open(waffenpfad, "r") as file:
