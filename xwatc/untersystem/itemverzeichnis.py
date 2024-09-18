@@ -15,7 +15,7 @@ NAME := "[\w ]+"
 Created on 25.10.2020
 """
 from __future__ import annotations
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
 import locale
 from os import PathLike
 from collections import defaultdict
@@ -111,22 +111,22 @@ class Item:
     fähigkeiten: list[Fähigkeit] = field(factory=list)
     ausrüstungsklasse: None | Ausrüstungstyp = field(default=None)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "{} [{}]".format(self.name, self.item_typ[0].name)
 
-    def __format__(self, format_spec):
+    def __format__(self, format_spec: str) -> str:
         return format(str(self), format_spec)
 
-    def get_preis(self):
+    def get_preis(self) -> int:
         return self.gold
 
-    def yield_classes(self):
+    def yield_classes(self) -> Iterator[ItemKlasse]:
         return iter(self.item_typ)
 
-    def add_fähigkeit(self, fähigkeit: Fähigkeit):
+    def add_fähigkeit(self, fähigkeit: Fähigkeit) -> None:
         self.fähigkeiten.append(fähigkeit)
 
-    def add_typ(self, klasse: str):
+    def add_typ(self, klasse: str) -> None:
         self.item_typ.append(ItemKlasse[klasse])
 
 
