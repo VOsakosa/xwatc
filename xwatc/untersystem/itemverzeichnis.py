@@ -162,13 +162,14 @@ def lade_itemverzeichnis(pfad: str | PathLike, waffenpfad: str | PathLike) -> di
     item_verzeichnis: dict[str, Item] = {}
     classes: dict[str, str] = {}
     for klassen_name, items in data.items():
-        if not hasattr(items[0], "name"):  # Class data
+        if isinstance(items[0], dict) and not hasattr(items[0], "name"):  # Class data
             klasse: dict = items[0]
             if "parent" in klasse:
                 classes[klassen_name] = klasse.pop("parent")
             start = 1
+            common: dict[str, Any] = klasse.get("common") or {}
         else:
-            klasse = {}
+            common = {}
             start = 0
         for item_dict in items[start:]:
             if isinstance(item_dict, str):
@@ -179,13 +180,13 @@ def lade_itemverzeichnis(pfad: str | PathLike, waffenpfad: str | PathLike) -> di
                     preis = int(fields[0])
                 else:
                     preis = 0
-                item_verzeichnis[item_name] = Item(item_name, preis, item_typ=[klassen_name])
+                item_obj = Item.from_dict(common | {"name": item_name, "preis": preis})
             elif isinstance(item_dict, dict):
-                item_obj = Item.from_dict(item_dict)
-                item_obj.add_typ(klassen_name)
-                item_verzeichnis[item_obj.name] = item_obj
+                item_obj = Item.from_dict(common | item_dict)
             else:
                 raise ValueError(f"Unerwarteter Typ als Item in {klassen_name}")
+            item_obj.add_typ(klassen_name)
+            item_verzeichnis[item_obj.name] = item_obj
 
     for item_obj in item_verzeichnis.values():
         item_class = item_obj.item_typ[0]

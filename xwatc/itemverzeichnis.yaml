@@ -235,6 +235,8 @@ mächtige Waffe:
   - Stahlhandschuh; 260
 normale Waffe:
   - parent: Waffe
+    common:
+      ausrüstung: haupthand
   - vergifteter Dolch; 30
   - Axt; 54
   - Messer; 10
