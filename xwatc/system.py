@@ -182,7 +182,11 @@ class InventarBasis:
     def ausrüsten(self, item: str) -> None:
         """Lasse den Menschen etwas aus seinem Inventar ausrüsten. Etwaige Ausrüstung am
         selben und an sich gegenseitig ausschließenden Slots wird abgelegt."""
+        if item in self._ausgerüstet:
+            return
         klasse = get_item(item).ausrüstungsklasse
+        if klasse not in self._blockierte_ausrüstungsklassen():
+            self._ausgerüstet.add(item)
 
     def ablegen(self, item: str) -> None:
         """Lasse den Menschen Ausrüstung zurück in sein Inventar legen."""
@@ -464,8 +468,12 @@ class Mänx(InventarBasis):
         else:
             malp(f"Du gibst {-anzahl} {item}.")
         self.inventar[item] += anzahl
+        if not self.inventar[item] and item in self._ausgerüstet:
+            self._ausgerüstet.remove(item)
         if von:
             von.inventar[item] -= anzahl
+            if not von.inventar[item] and item in von._ausgerüstet:
+                von._ausgerüstet.remove(item)
 
     def minput(self, frage: str, möglichkeiten: Sequence[str] | None = None, lower: bool = True,
                save: 'Speicherpunkt | None' = None) -> str:
