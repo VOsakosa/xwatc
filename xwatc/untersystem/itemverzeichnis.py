@@ -189,7 +189,7 @@ def lade_itemverzeichnis(pfad: str | PathLike, waffenpfad: str | PathLike) -> di
             item_verzeichnis[item_obj.name] = item_obj
 
     for item_obj in item_verzeichnis.values():
-        item_class = item_obj.item_typ[0]
+        item_class = item_obj.item_typ[0].name
         while item_class in classes:
             item_class = classes[item_class]
             item_obj.add_typ(item_class)
