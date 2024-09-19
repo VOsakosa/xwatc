@@ -94,6 +94,9 @@ Kleidung:
   - ausrüstung: fuss aussen
     name: Lederstiefel
     preis: 20
+  - ausrüstung: unten innen
+    name: Leggings
+    preis: 8
   - ausrüstung: unten flattern
     name: Lendenschurz
     preis: 12
@@ -227,9 +230,13 @@ Zauberzutat:
   - Menschenskelett; 100
 legendäre Waffe:
   - parent: Waffe
+    common:
+      ausrüstung: beidhändig
   - Höllenschwert; 200
 mächtige Waffe:
   - parent: Waffe
+    common:
+      ausrüstung: beidhändig
   - Morgenstern; 300
   - mächtige Axt; 300
   - Stahlhandschuh; 260
