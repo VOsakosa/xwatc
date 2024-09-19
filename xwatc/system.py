@@ -30,8 +30,8 @@ from xwatc.untersystem import hilfe
 from xwatc.untersystem.itemverzeichnis import (Ausrüstungsslot, Ausrüstungstyp,
                                                Item, lade_itemverzeichnis)
 from xwatc.untersystem.person import Fähigkeit, Person, Rasse
-from xwatc.untersystem.variablen import (VT, MethodSave, WeltVariable,
-                                         get_welt_var)
+from xwatc.untersystem.variablen import (VT, MethodSave, WeltVariable, get_welt_var)
+from xwatc.untersystem.variablen import register
 from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
 
 if typing.TYPE_CHECKING:
@@ -83,7 +83,7 @@ class MissingIDError(Exception):
 
 MänxPrädikat: TypeAlias = MänxFkt[bool]
 Fortsetzung: TypeAlias = Union[MänxFkt, HatMain, 'weg.Wegpunkt']
-ITEMVERZEICHNIS = lade_itemverzeichnis(Path(__file__).parent / "itemverzeichnis.txt",
+ITEMVERZEICHNIS = lade_itemverzeichnis(Path(__file__).parent / "itemverzeichnis.yaml",
                                        Path(__file__).parent / "waffenverzeichnis.yaml")
 ausgabe: Terminal | 'anzeige.XwatcFenster' = Terminal()
 

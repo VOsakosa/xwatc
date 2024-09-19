@@ -4,6 +4,6 @@ Enums: [ Verfluchen, Selbstentwaffnung, Blocken, Selbstverwirrung, Entflammung ]
 ---
 doc_name: ItemKlasse
 Enums: [ Accessoire, Ausrüstung, Blume, Brennstoff, Buch, Fisch, Fleisch, Gemüse, Heiliges Tagesei, Holz, Kleidung,
-         Metall, Mugel, Nahrung, Oberbekleidung, Obst, Ring, Rüstungsgegenstand, Scherz-Item, Stein,
+         Metall, Mugel, Nahrung, Oberbekleidung, Obst, Ring, Rüstung, Rüstungsgegenstand, Scherz-Item, Stein,
          Superfolienrohstoff, Superpapierrohstoff, Talisman, Unterwäsche, Waffe, Werkzeug, Zauberstab, Zauberzutat,
          legendäre Waffe, mächtige Waffe, normale Waffe, normales Werkzeug ]

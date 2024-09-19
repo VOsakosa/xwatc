@@ -24,7 +24,7 @@ import yaml
 import pathlib
 from enum import Enum, EnumMeta, auto
 from attrs import define, field
-from typing import Dict, Optional as Opt, List, DefaultDict
+from typing import Any, Dict, Optional as Opt, List, DefaultDict, Self
 
 __author__ = "jasper"
 
@@ -45,10 +45,9 @@ class Ausrüstungsslot(Enum):
     KOPF = auto()
     OBEN = auto()
     UNTEN = auto()
-    FUSS_LINKS = auto()
-    FUSS_RECHTS = auto()
-    HAND_LINKS = auto()
-    HAND_RECHTS = auto()
+    OBENUNTEN = auto()
+    FUSS = auto()
+    HAND = auto()
     HALS = auto()
 
 
@@ -68,6 +67,16 @@ class Waffenhand(Enum):
 
 
 Ausrüstungstyp = Waffenhand | tuple[Ausrüstungsslot, Ausrüstungsdicke]
+
+
+def parse_ausrüstungstyp(name: str) -> Ausrüstungstyp:
+    name = name.upper()
+    try:
+        return Waffenhand[name]
+    except KeyError:
+        pass
+    name1, name2 = name.split()
+    return Ausrüstungsslot[name1], Ausrüstungsdicke[name2]
 
 
 class Effekt(Enum):
@@ -112,6 +121,21 @@ class Item:
     fähigkeiten: list[Fähigkeit] = field(factory=list)
     ausrüstungsklasse: None | Ausrüstungstyp = field(default=None)
 
+    @staticmethod
+    def from_dict(dct: dict[str, Any]) -> 'Item':
+        name = dct.pop("name")
+        gold = dct.pop("preis", 0)
+        kwargs = {}
+        if "ausrüstungsklasse" in dct:
+            raise TypeError(f"Item {name}: ausrüstungsklasse darf nicht gegeben werden.")
+        if "ausrüstung" in dct:
+            kwargs["ausrüstungsklasse"] = parse_ausrüstungstyp(dct.pop("ausrüstung"))
+        if "beschreibung" in dct:
+            kwargs["beschreibung"] = dct["beschreibung"]
+        if dct:
+            raise TypeError("Unknown keys left")
+        return Item(name, gold, **kwargs)  # type: ignore
+
     def __str__(self) -> str:
         return "{} [{}]".format(self.name, self.item_typ[0].name)
 
@@ -133,46 +157,41 @@ class Item:
 
 def lade_itemverzeichnis(pfad: str | PathLike, waffenpfad: str | PathLike) -> dict[str, Item]:
     """Lädt das Itemverzeichnis bei Pfad."""
-    items = {}
-    classes = {}
-    preise = {}
-    klasse: Opt[str] = None
-    with open(pfad, "r") as file:
-        for lineno, line in enumerate(file):
-            line = line.strip()
-            if not line or line.startswith("#"):
-                continue
-            splits = re.split(r"\s*:\s*", line)
-            if len(splits) == 1:
-                # Item
-                if not klasse:
-                    raise ValueError(f"{item} sollte zu einer Klasse gehören!", lineno)
-                item, *fields = re.split("\s*;\s*", splits[0])
-                items[item] = klasse
-                if not fields:
-                    continue
-                try:
-                    if fields[0] != "-":
-                        preise[item] = int(fields[0])
-                except ValueError:
-                    raise ValueError("Die erste Spalte ist der Preis, "
-                                     f"war aber {fields[0]}") from None
-            elif len(splits) == 2:
-                # Klassendefinition
-                klasse, ober = splits
-                if ober:
-                    classes[klasse] = ober
+    with open(pfad, "r", encoding="utf-8") as file:
+        data = yaml.safe_load(file)
+    item_verzeichnis: dict[str, Item] = {}
+    classes: dict[str, str] = {}
+    for klassen_name, items in data.items():
+        if not hasattr(items[0], "name"):  # Class data
+            klasse: dict = items[0]
+            if "parent" in klasse:
+                classes[klassen_name] = klasse.pop("parent")
+            start = 1
+        else:
+            klasse = {}
+            start = 0
+        for item_dict in items[start:]:
+            if isinstance(item_dict, str):
+                item_name, *fields = re.split("\s*;\s*", item_dict)
+                if len(fields) > 1:
+                    raise ValueError(f"Unerwartet viele Semikolons für {item_name}")
+                if fields and fields[0] != "-":
+                    preis = int(fields[0])
+                else:
+                    preis = 0
+                item_verzeichnis[item_name] = Item(item_name, preis, item_typ=[klassen_name])
+            elif isinstance(item_dict, dict):
+                item_obj = Item.from_dict(item_dict)
+                item_obj.add_typ(klassen_name)
+                item_verzeichnis[item_obj.name] = item_obj
             else:
-                raise ValueError(f"Mehrere Doppelpunkte in einer Linie: {line}",
-                                 lineno)
-    item_verzeichnis = {}
-    for item_name, item_class in items.items():
-        item = Item(name=item_name, gold=(preise[item_name] if item_name in preise else 0))
-        item.add_typ(item_class)
+                raise ValueError(f"Unerwarteter Typ als Item in {klassen_name}")
+
+    for item_obj in item_verzeichnis.values():
+        item_class = item_obj.item_typ[0]
         while item_class in classes:
             item_class = classes[item_class]
-            item.add_typ(item_class)
-        item_verzeichnis[item_name] = item
+            item_obj.add_typ(item_class)
 
     with open(waffenpfad, "r") as file:
         doc = yaml.safe_load(file)
@@ -233,7 +252,7 @@ if __name__ == '__main__':
     from xwatc import system
     import pathlib
 
-    verzeichnis = pathlib.Path(__file__).absolute().parents[1] / "itemverzeichnis.txt"
+    verzeichnis = pathlib.Path(__file__).absolute().parents[1] / "itemverzeichnis.yaml"
     waffenverzeichnis = pathlib.Path(__file__).absolute().parents[1] / 'waffenverzeichnis.yaml'
 
     lade_itemverzeichnis(verzeichnis, waffenverzeichnis)
