@@ -408,15 +408,12 @@ class Mänx(InventarBasis):
     _geladen_von: Fortsetzung | None = None
     speicherdatei_name: str | None = None
 
-    def __attrs_pre_init__(self) -> None:
-        super().__init__()
-
     def __attrs_post_init__(self) -> None:
-        if not hasattr(self, "person"):
-            super().__attrs_post_init__()
-            return
+        # Ruft super().__attrs_post_init__ nicht auf.
         if not self.inventar:
             self.gebe_startinventar()
+        else:
+            self.auto_ausrüsten()
 
     def hat_fähigkeit(self, name: Fähigkeit) -> bool:
         return name in self.fähigkeiten

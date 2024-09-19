@@ -15,6 +15,7 @@ class TestInventar(unittest.TestCase):
 
     def test_auto_ausrüsten(self) -> None:
         mänx = Mänx(inventar={"Schwert": 1})
+        self.assertTrue(mänx.hat_item("Schwert"))
         self.assertTrue(mänx.ist_ausgerüstet("Schwert"))
         self.assertEqual(self.assert_(mänx.get_waffe()).name, "Schwert")
 

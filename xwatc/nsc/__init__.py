@@ -200,6 +200,7 @@ class NSC(system.InventarBasis):
     nr: int = 0
 
     def __attrs_post_init__(self):
+        super().__attrs_post_init__()
         if self._ort:
             self._ort.add_nsc(self)
 
