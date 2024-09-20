@@ -123,6 +123,11 @@ _null_func = int
 #     mut: int = 0
 
 class Bekleidetheit(enum.IntEnum):
+    """Stellt die Bekleidetheit eines Charakters dar. Trägt der Charakter nichts über dem Schnitt,
+    ist er NACKT. Trägt er nichts über dem Oberkörper, ist er maximal OBERKöRPERFREI. Trägt er
+    nichts außer Unterwäsche an Ober- oder Unterkörper, ist er IN_UNTERWÄSCHE. Ansonsten ist er
+    BEKLEIDET.
+    """
     NACKT = 0
     OBERKÖRPERFREI = 1
     IN_UNTERWÄSCHE = 2
@@ -166,27 +171,47 @@ class InventarBasis:
             if item_obj.ausrüstungsklasse not in blockiert:
                 self._ausgerüstet.add(item)
 
-    def _blockierte_ausrüstungsklassen(self) -> set[Ausrüstungstyp]:
-        blockiert = set()
+    def _blockierte_ausrüstungsklassen(self) -> dict[Ausrüstungstyp, list[str]]:
+        blockiert = defaultdict[Ausrüstungstyp, list[str]](list)
         for item in self._ausgerüstet:
             klasse = get_item(item).ausrüstungsklasse
             if not klasse:
                 getLogger("xwatc.system").warning(
                     "Item %s ausgerüstet, dass keinen Slot hat?", item)
                 continue
-            if isinstance(klasse, tuple) and klasse[1].name == "ACCESSOIRE":
-                continue
-            blockiert.add(klasse)
+            if isinstance(klasse, tuple):
+                if klasse[1].name == "ACCESSOIRE":
+                    continue
+                if klasse[0].name in ("OBEN", "UNTEN"):
+                    blockiert[Ausrüstungsslot.OBENUNTEN, klasse[1]].append(item)
+                elif klasse[0].name == "OBENUNTEN":
+                    blockiert[Ausrüstungsslot.OBEN, klasse[1]].append(item)
+                    blockiert[Ausrüstungsslot.UNTEN, klasse[1]].append(item)
+            elif klasse == Waffenhand.BEIDHÄNDIG:
+                blockiert[Waffenhand.ZWEITHAND].append(item)
+                blockiert[Waffenhand.HAUPTHAND].append(item)
+            elif isinstance(klasse, Waffenhand):
+                blockiert[Waffenhand.BEIDHÄNDIG].append(item)
+            blockiert[klasse].append(item)
         return blockiert
 
     def ausrüsten(self, item: str) -> None:
         """Lasse den Menschen etwas aus seinem Inventar ausrüsten. Etwaige Ausrüstung am
-        selben und an sich gegenseitig ausschließenden Slots wird abgelegt."""
+        selben und an sich gegenseitig ausschließenden Slots wird abgelegt.
+
+        :raises KeyError: Wenn das Item nicht bekannt ist.
+        :raises ValueError: Wenn das Item keine Ausrüstung oder nicht im Inventar ist
+        """
+        if not self.hat_item(item):
+            raise ValueError("Item {item} ist nicht im Inventar, kann nicht ausgerüstet werden.")
         if item in self._ausgerüstet:
             return
+        self._ausgerüstet.add(item)
         klasse = get_item(item).ausrüstungsklasse
-        if klasse not in self._blockierte_ausrüstungsklassen():
-            self._ausgerüstet.add(item)
+        if not klasse:
+            raise ValueError("Item {item} kann nicht ausgerüstet werden.")
+        for konflikt in self._blockierte_ausrüstungsklassen()[klasse]:
+            self._ausgerüstet.remove(konflikt)
 
     def ablegen(self, item: str) -> None:
         """Lasse den Menschen Ausrüstung zurück in sein Inventar legen."""
@@ -210,8 +235,37 @@ class InventarBasis:
 
     @property
     def bekleidetheit(self) -> Bekleidetheit:
-        """Wie sehr gekleidet er ist."""
-        return Bekleidetheit.BEKLEIDET
+        """Wie sehr gekleidet er ist. Siehe :py:class:`Bekleidetheit` für die Kriterien."""
+        unten = 0
+        oben = 0
+        for item in self.ausrüstung:
+            klasse = get_item(item).ausrüstungsklasse
+            assert klasse
+            if not isinstance(klasse, tuple):
+                continue
+            ort, dicke = klasse
+            if ort.name in ("UNTEN", "OBENUNTEN") and dicke.name not in ("FLATTERN", "ACCESSOIRE"):
+                if dicke.name == "ANLIEGEND":
+                    unten = min(unten, 1)
+                else:
+                    unten = 2
+            if ort.name in ("OBEN", "OBENUNTEN") and dicke.name not in ("FLATTERN", "ACCESSOIRE"):
+                if dicke.name == "ANLIEGEND":
+                    oben = min(oben, 1)
+                else:
+                    oben = 2
+        if not unten:
+            return Bekleidetheit.NACKT
+        if not oben:
+            return Bekleidetheit.OBERKÖRPERFREI
+        if unten == 2 and oben == 2:
+            return Bekleidetheit.BEKLEIDET
+        return Bekleidetheit.IN_UNTERWÄSCHE
+
+    @property
+    def ausrüstung(self) -> Iterator[str]:
+        """Alle ausgerüsteten Items, inklusive Waffen."""
+        return iter(self._ausgerüstet)
 
     def erhalte(self, item: str, anzahl: int = 1,
                 von: Optional[InventarBasis] = None) -> None:

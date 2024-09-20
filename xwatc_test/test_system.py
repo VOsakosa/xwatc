@@ -76,7 +76,7 @@ class TestInventar(unittest.TestCase):
         def strips(start, then, do=True):
             if isinstance(start, str):
                 start = start,
-            mänx = Mänx(inventar={key: 1 for key in start})
+            mänx = Mänx(inventar={key: 1 for key in (*start, then)})
             for item in start:
                 self.assertTrue(mänx.ist_ausgerüstet(item), msg=f"{
                                 item} wurde nicht auto-ausgerüstet")
