@@ -6,6 +6,14 @@ from xwatc.system import Bekleidetheit, Mänx, get_item
 T = TypeVar("T")
 
 
+class TestItems(unittest.TestCase):
+    """Testet Items und das Itemverzeichnis"""
+
+    def test_load_items(self):
+        # TODO
+        pass
+
+
 class TestInventar(unittest.TestCase):
     """Testet die Inventar-Funktionen."""
 

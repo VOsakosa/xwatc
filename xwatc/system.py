@@ -27,7 +27,7 @@ from xwatc import _
 from xwatc.serialize import mache_converter, unstructure_punkt
 from xwatc.terminal import Terminal
 from xwatc.untersystem import hilfe
-from xwatc.untersystem.itemverzeichnis import (Ausrüstungsslot, Ausrüstungstyp,
+from xwatc.untersystem.itemverzeichnis import (Waffenhand, Ausrüstungsslot, Ausrüstungstyp,
                                                Item, lade_itemverzeichnis)
 from xwatc.untersystem.person import Fähigkeit, Person, Rasse
 from xwatc.untersystem.variablen import (VT, MethodSave, WeltVariable, get_welt_var)
@@ -198,6 +198,15 @@ class InventarBasis:
 
     def get_waffe(self) -> None | Item:
         """Hole die ausgerüstete Haupt-Waffe"""
+        kandidat = None
+        for waffe in self._ausgerüstet:
+            item = get_item(waffe)
+            klasse = item.ausrüstungsklasse
+            if klasse in (Waffenhand.HAUPTHAND, Waffenhand.BEIDHÄNDIG):
+                return item
+            elif klasse == Waffenhand.ZWEITHAND:
+                kandidat = item
+        return kandidat
 
     @property
     def bekleidetheit(self) -> Bekleidetheit:
