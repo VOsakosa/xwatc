@@ -27,7 +27,7 @@ from xwatc import _
 from xwatc.serialize import mache_converter, unstructure_punkt
 from xwatc.terminal import Terminal
 from xwatc.untersystem import hilfe
-from xwatc.untersystem.itemverzeichnis import (Waffenhand, Ausrüstungsslot, Ausrüstungstyp,
+from xwatc.untersystem.itemverzeichnis import (Kleidungsslot, Waffenhand, Ausrüstungsort, Ausrüstungstyp,
                                                Item, lade_itemverzeichnis)
 from xwatc.untersystem.person import Fähigkeit, Person, Rasse
 from xwatc.untersystem.variablen import (VT, MethodSave, WeltVariable, get_welt_var)
@@ -149,7 +149,7 @@ class InventarBasis:
     inventar: Inventar = field(factory=lambda: defaultdict(int), kw_only=True,
                                converter=_inventar_converter)
     _ausgerüstet: set[str] = field(factory=set, kw_only=True)
-    _slots: Collection[Ausrüstungsslot] = field(default=set(Ausrüstungsslot), kw_only=True)
+    _slots: Collection[Ausrüstungsort] = field(default=set(Ausrüstungsort), kw_only=True)
 
     def __attrs_post_init__(self) -> None:
         self.auto_ausrüsten()
@@ -162,42 +162,36 @@ class InventarBasis:
                 getLogger("xwatc.system").warning("Item %s ausgerüstet, ohne in Inventar zu sein.",
                                                   item)
             self._ausgerüstet.remove(item)
-        blockiert = self._blockierte_ausrüstungsklassen()
         for item in self.items():
             try:
-                item_obj = get_item(item)
+                self.ausrüsten(item, andere_ablegen=False)
             except KeyError:
                 continue
-            if item_obj.ausrüstungsklasse not in blockiert:
-                self._ausgerüstet.add(item)
-
-    def _blockierte_ausrüstungsklassen(self) -> dict[Ausrüstungstyp, list[str]]:
-        blockiert = defaultdict[Ausrüstungstyp, list[str]](list)
-        for item in self._ausgerüstet:
-            klasse = get_item(item).ausrüstungsklasse
-            if not klasse:
-                getLogger("xwatc.system").warning(
-                    "Item %s ausgerüstet, dass keinen Slot hat?", item)
+            except ValueError:
                 continue
-            if isinstance(klasse, tuple):
-                if klasse[1].name == "ACCESSOIRE":
-                    continue
-                if klasse[0].name in ("OBEN", "UNTEN"):
-                    blockiert[Ausrüstungsslot.OBENUNTEN, klasse[1]].append(item)
-                elif klasse[0].name == "OBENUNTEN":
-                    blockiert[Ausrüstungsslot.OBEN, klasse[1]].append(item)
-                    blockiert[Ausrüstungsslot.UNTEN, klasse[1]].append(item)
-            elif klasse == Waffenhand.BEIDHÄNDIG:
-                blockiert[Waffenhand.NEBENHAND].append(item)
-                blockiert[Waffenhand.HAUPTHAND].append(item)
-            elif isinstance(klasse, Waffenhand):
-                blockiert[Waffenhand.BEIDHÄNDIG].append(item)
-            blockiert[klasse].append(item)
+
+    def _blockierende_ausrüstung(self, klasse: Ausrüstungstyp) -> list[str]:
+        """Finde Ausrüstung, die einen bestimmten Ausrüstungstyp blockiert."""
+        geblockte_klassen = klasse.conflicting()
+        if not geblockte_klassen:
+            return []
+        blockiert = []
+        for item in self._ausgerüstet:
+            item_klasse = get_item(item).ausrüstungsklasse
+            if not item_klasse:
+                getLogger("xwatc.system").warning(
+                    "Item %s ausgerüstet, obwohl es keine Ausrüstung ist?", item)
+                continue
+            if item_klasse in geblockte_klassen:
+                blockiert.append(item)
         return blockiert
 
-    def ausrüsten(self, item: str) -> None:
+    def ausrüsten(self, item: str, andere_ablegen: bool = True) -> None:
         """Lasse den Menschen etwas aus seinem Inventar ausrüsten. Etwaige Ausrüstung am
         selben und an sich gegenseitig ausschließenden Slots wird abgelegt.
+
+        :param andere_ablegen: Wenn wahr (Standard) wird bei Konflikten die andere Ausrüstung
+        abgelegt. Wenn falsch, wird die neue Ausrüstung nicht angelegt.
 
         :raises KeyError: Wenn das Item nicht bekannt ist.
         :raises ValueError: Wenn das Item keine Ausrüstung oder nicht im Inventar ist
@@ -209,9 +203,13 @@ class InventarBasis:
         klasse = get_item(item).ausrüstungsklasse
         if not klasse:
             raise ValueError(f"Item {item} kann nicht ausgerüstet werden.")
-        for konflikt in self._blockierte_ausrüstungsklassen()[klasse]:
-            self._ausgerüstet.remove(konflikt)
-        self._ausgerüstet.add(item)
+        konflikte = self._blockierende_ausrüstung(klasse)
+        if andere_ablegen:
+            for konflikt in konflikte:
+                self._ausgerüstet.remove(konflikt)
+            self._ausgerüstet.add(item)
+        elif not konflikte:
+            self._ausgerüstet.add(item)
 
     def ablegen(self, item: str) -> None:
         """Lasse den Menschen Ausrüstung zurück in sein Inventar legen."""
@@ -241,9 +239,10 @@ class InventarBasis:
         for item in self.ausrüstung:
             klasse = get_item(item).ausrüstungsklasse
             assert klasse
-            if not isinstance(klasse, tuple):
+            if not isinstance(klasse, Kleidungsslot):
                 continue
-            ort, dicke = klasse
+            ort = klasse.ort
+            dicke = klasse.dicke
             if ort.name in ("UNTEN", "OBENUNTEN") and dicke.name not in ("FLATTERN", "ACCESSOIRE"):
                 if dicke.name == "ANLIEGEND":
                     unten = max(unten, 1)

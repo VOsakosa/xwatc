@@ -75,27 +75,39 @@ class TestInventar(unittest.TestCase):
         oben = "T-Shirt"
         ou = "Lumpen"
         unten = "Leggings"
-        assert get_item(oben).ausrüstungsklasse[0].name == "OBEN"  # type: ignore
-        assert get_item(ou).ausrüstungsklasse[0].name == "OBENUNTEN"  # type: ignore
-        assert get_item(unten).ausrüstungsklasse[0].name == "UNTEN"  # type: ignore
+        assert get_item(oben).ausrüstungsklasse.ort.name == "OBEN"  # type: ignore
+        assert get_item(ou).ausrüstungsklasse.ort.name == "OBENUNTEN"  # type: ignore
+        assert get_item(unten).ausrüstungsklasse.ort.name == "UNTEN"  # type: ignore
         for item in (oben, ou, unten):
-            assert get_item(item).ausrüstungsklasse[1].name == "INNEN"  # type: ignore
+            assert get_item(item).ausrüstungsklasse.dicke.name == "INNEN"  # type: ignore
 
-        def strips(start, then, do=True):
+        # Auto-Ausrüsten
+        mänx = Mänx(inventar={oben: 1, ou: 1})
+        self.assertNotEqual(mänx.ist_ausgerüstet(oben), mänx.ist_ausgerüstet(ou))
+
+        mänx = Mänx(inventar={unten: 1, ou: 1})
+        self.assertNotEqual(mänx.ist_ausgerüstet(unten), mänx.ist_ausgerüstet(ou))
+
+        mänx = Mänx(inventar={unten: 1, oben: 1})
+        self.assertTrue(mänx.ist_ausgerüstet(unten))
+        self.assertTrue(mänx.ist_ausgerüstet(oben))
+
+        def strips(start, then, do_strip=True):
             if isinstance(start, str):
                 start = start,
-            mänx = Mänx(inventar={key: 1 for key in (*start, then)})
+            mänx = Mänx(inventar={key: 1 for key in start})
             for item in start:
                 self.assertTrue(mänx.ist_ausgerüstet(item),
                                 msg=f"{item} wurde nicht auto-ausgerüstet")
+            mänx.erhalte(then)
             mänx.ausrüsten(then)
             self.assertTrue(mänx.ist_ausgerüstet(then), "Neues Item nicht ausgerüstet")
-            if do:
+            if do_strip:
                 for item in start:
-                    self.assertTrue(mänx.ist_ausgerüstet(item), msg=f"{item} wurde nicht abgelegt")
+                    self.assertFalse(mänx.ist_ausgerüstet(item), msg=f"{item} wurde nicht abgelegt")
             else:
                 for item in start:
-                    self.assertFalse(mänx.ist_ausgerüstet(item), msg=f"{item} wurde abgelegt")
+                    self.assertTrue(mänx.ist_ausgerüstet(item), msg=f"{item} wurde abgelegt")
 
         # obenunten entfernt oben
         strips(oben, ou)
@@ -108,9 +120,9 @@ class TestInventar(unittest.TestCase):
         # oben entfernt obenunten
         strips(ou, oben)
         # oben entfernt unten nicht
-        strips(unten, oben, do=False)
+        strips(unten, oben, do_strip=False)
         # unten entfernt oben nicht
-        strips(oben, unten, do=False)
+        strips(oben, unten, do_strip=False)
 
     def test_bekleidet(self) -> None:
         mänx = Mänx()

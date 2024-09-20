@@ -15,7 +15,7 @@ NAME := "[\w ]+"
 Created on 25.10.2020
 """
 from __future__ import annotations
-from collections.abc import Iterator, Sequence
+from collections.abc import Collection, Iterator, Sequence
 import locale
 from os import PathLike
 from collections import defaultdict
@@ -23,8 +23,8 @@ import re
 import yaml
 import pathlib
 from enum import Enum, EnumMeta, auto
-from attrs import define, field
-from typing import Any, Dict, Optional as Opt, List, DefaultDict, Self
+from attrs import astuple, define, field
+from typing import Any, Dict, Optional as Opt, List, DefaultDict, Self, assert_never
 
 __author__ = "jasper"
 
@@ -41,7 +41,7 @@ def get_items(name: str) -> list[str]:
 ItemKlasse: EnumMeta = Enum("ItemKlasse", get_items("ItemKlasse"))  # type: ignore
 
 
-class Ausrüstungsslot(Enum):
+class Ausrüstungsort(Enum):
     KOPF = auto()
     OBEN = auto()
     UNTEN = auto()
@@ -60,13 +60,49 @@ class Ausrüstungsdicke(Enum):
     ACCESSOIRE = auto()  # davon kann man mehrere haben!
 
 
+@define(frozen=True)
+class Kleidungsslot:
+    """Ein bestimmter Typ von Kleidung, festgelegt durch Ort und Dicke."""
+    ort: Ausrüstungsort
+    dicke: Ausrüstungsdicke
+
+    def as_tuple(self) -> tuple[Ausrüstungsort, Ausrüstungsdicke]:
+        return astuple(self)
+
+    def __str__(self) -> str:
+        return self.ort.name.lower() + " " + self.dicke.name.lower()
+
+    def conflicting(self) -> Collection[Kleidungsslot]:
+        """Die Liste von Kleidungsslots, die mit diesem kollidieren."""
+        if self.dicke == Ausrüstungsdicke.ACCESSOIRE:
+            return ()
+        if self.ort in (Ausrüstungsort.OBEN, Ausrüstungsort.UNTEN):
+            return (self, Kleidungsslot(Ausrüstungsort.OBENUNTEN, self.dicke))
+        elif self.ort == Ausrüstungsort.OBENUNTEN:
+            return (self,
+                    Kleidungsslot(Ausrüstungsort.OBEN, self.dicke),
+                    Kleidungsslot(Ausrüstungsort.UNTEN, self.dicke))
+        return (self,)
+
+
 class Waffenhand(Enum):
     HAUPTHAND = 1
     NEBENHAND = 2
     BEIDHÄNDIG = 3
 
+    def conflicting(self) -> Collection[Waffenhand]:
+        """Die Liste von Waffenhänden, die mit dieser kollidieren
+        (nur Haupt- und Nebenhand kollidieren nicht)"""
+        if self == Waffenhand.BEIDHÄNDIG:
+            return list(Waffenhand)
+        elif self == Waffenhand.NEBENHAND:
+            return (Waffenhand.BEIDHÄNDIG, Waffenhand.NEBENHAND)
+        elif self == Waffenhand.HAUPTHAND:
+            return (Waffenhand.BEIDHÄNDIG, Waffenhand.HAUPTHAND)
+        assert_never(self)
 
-Ausrüstungstyp = Waffenhand | tuple[Ausrüstungsslot, Ausrüstungsdicke]
+
+Ausrüstungstyp = Waffenhand | Kleidungsslot
 
 
 def parse_ausrüstungstyp(name: str) -> Ausrüstungstyp:
@@ -76,7 +112,7 @@ def parse_ausrüstungstyp(name: str) -> Ausrüstungstyp:
     except KeyError:
         pass
     name1, name2 = name.split()
-    return Ausrüstungsslot[name1], Ausrüstungsdicke[name2]
+    return Kleidungsslot(Ausrüstungsort[name1], Ausrüstungsdicke[name2])
 
 
 class Effekt(Enum):
