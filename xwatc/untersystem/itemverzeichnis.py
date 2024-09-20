@@ -62,7 +62,7 @@ class Ausrüstungsdicke(Enum):
 
 class Waffenhand(Enum):
     HAUPTHAND = 1
-    ZWEITHAND = 2
+    NEBENHAND = 2
     BEIDHÄNDIG = 3
 
 

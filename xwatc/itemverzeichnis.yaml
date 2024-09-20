@@ -187,6 +187,8 @@ Rüstung:
     preis: 76
 Rüstungsgegenstand:
   - parent: Ausrüstung
+    common:
+      ausrüstung: nebenhand
   - Schild; 48
 Scherz-Item:
   - Leere; 3000

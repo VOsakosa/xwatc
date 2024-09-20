@@ -44,6 +44,8 @@ class TestInventar(unittest.TestCase):
 
     def test_waffen_ausrüsten(self) -> None:
         mänx = Mänx()
+        with self.assertRaisesRegex(ValueError, "Schwert.*ist nicht im Inventar"):
+            mänx.ausrüsten("Schwert")
         mänx.erhalte("Schwert")
         self.assertFalse(mänx.ist_ausgerüstet("Schwert"))
         mänx.ausrüsten("Schwert")
@@ -63,6 +65,12 @@ class TestInventar(unittest.TestCase):
         mänx.ablegen("mächtige Axt")
         self.assertFalse(mänx.ist_ausgerüstet("mächtige Axt"))
 
+    def test_ausrüsten2(self) -> None:
+        mänx = Mänx()
+        mänx.erhalte("Speisekarte")
+        with self.assertRaisesRegex(ValueError, "Speisekarte.*kann nicht ausgerüstet werden"):
+            mänx.ausrüsten("Speisekarte")
+
     def test_obenunten(self) -> None:
         oben = "T-Shirt"
         ou = "Lumpen"
@@ -78,8 +86,8 @@ class TestInventar(unittest.TestCase):
                 start = start,
             mänx = Mänx(inventar={key: 1 for key in (*start, then)})
             for item in start:
-                self.assertTrue(mänx.ist_ausgerüstet(item), msg=f"{
-                                item} wurde nicht auto-ausgerüstet")
+                self.assertTrue(mänx.ist_ausgerüstet(item),
+                                msg=f"{item} wurde nicht auto-ausgerüstet")
             mänx.ausrüsten(then)
             self.assertTrue(mänx.ist_ausgerüstet(then), "Neues Item nicht ausgerüstet")
             if do:
@@ -109,3 +117,5 @@ class TestInventar(unittest.TestCase):
         self.assertEqual(mänx.bekleidetheit, Bekleidetheit.BEKLEIDET)
         mänx = Mänx(inventar={"Schwert": 1})
         self.assertEqual(mänx.bekleidetheit, Bekleidetheit.NACKT)
+        mänx = Mänx(inventar={"BH": 1, "Unterhose": 1})
+        self.assertEqual(mänx.bekleidetheit, Bekleidetheit.IN_UNTERWÄSCHE)

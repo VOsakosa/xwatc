@@ -188,7 +188,7 @@ class InventarBasis:
                     blockiert[Ausrüstungsslot.OBEN, klasse[1]].append(item)
                     blockiert[Ausrüstungsslot.UNTEN, klasse[1]].append(item)
             elif klasse == Waffenhand.BEIDHÄNDIG:
-                blockiert[Waffenhand.ZWEITHAND].append(item)
+                blockiert[Waffenhand.NEBENHAND].append(item)
                 blockiert[Waffenhand.HAUPTHAND].append(item)
             elif isinstance(klasse, Waffenhand):
                 blockiert[Waffenhand.BEIDHÄNDIG].append(item)
@@ -203,15 +203,15 @@ class InventarBasis:
         :raises ValueError: Wenn das Item keine Ausrüstung oder nicht im Inventar ist
         """
         if not self.hat_item(item):
-            raise ValueError("Item {item} ist nicht im Inventar, kann nicht ausgerüstet werden.")
+            raise ValueError(f"Item {item} ist nicht im Inventar, kann nicht ausgerüstet werden.")
         if item in self._ausgerüstet:
             return
-        self._ausgerüstet.add(item)
         klasse = get_item(item).ausrüstungsklasse
         if not klasse:
-            raise ValueError("Item {item} kann nicht ausgerüstet werden.")
+            raise ValueError(f"Item {item} kann nicht ausgerüstet werden.")
         for konflikt in self._blockierte_ausrüstungsklassen()[klasse]:
             self._ausgerüstet.remove(konflikt)
+        self._ausgerüstet.add(item)
 
     def ablegen(self, item: str) -> None:
         """Lasse den Menschen Ausrüstung zurück in sein Inventar legen."""
@@ -229,7 +229,7 @@ class InventarBasis:
             klasse = item.ausrüstungsklasse
             if klasse in (Waffenhand.HAUPTHAND, Waffenhand.BEIDHÄNDIG):
                 return item
-            elif klasse == Waffenhand.ZWEITHAND:
+            elif klasse == Waffenhand.NEBENHAND:
                 kandidat = item
         return kandidat
 
