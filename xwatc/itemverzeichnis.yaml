@@ -204,7 +204,7 @@ Talisman:
   - Talisman des Verstehens
 Unterwäsche:
   - parent: Kleidung
-  - ausrüstung: unten anliegend
+  - ausrüstung: oben anliegend
     name: BH
     preis: 20
   - ausrüstung: unten anliegend

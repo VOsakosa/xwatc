@@ -246,12 +246,12 @@ class InventarBasis:
             ort, dicke = klasse
             if ort.name in ("UNTEN", "OBENUNTEN") and dicke.name not in ("FLATTERN", "ACCESSOIRE"):
                 if dicke.name == "ANLIEGEND":
-                    unten = min(unten, 1)
+                    unten = max(unten, 1)
                 else:
                     unten = 2
             if ort.name in ("OBEN", "OBENUNTEN") and dicke.name not in ("FLATTERN", "ACCESSOIRE"):
                 if dicke.name == "ANLIEGEND":
-                    oben = min(oben, 1)
+                    oben = max(oben, 1)
                 else:
                     oben = 2
         if not unten:
