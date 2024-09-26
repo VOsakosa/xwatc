@@ -33,6 +33,9 @@ HILFEN = {
     "scenario": SCENARIO,
     "handel": HANDELSMENU,
     "inventar_zugriff": INVENTAR_ZUGRIFF,
+    "sterben": "Bring dich selbst um",
+    "spielende": "Beendet das Spiel, ohne zu speichern",
+    "speichern": "Speichere das Spiel. Als Argument kann ein Speicherstand genannt werden.",
 }
 ITEM_HILFEN = {
     "leere": LEERE

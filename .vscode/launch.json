@@ -9,6 +9,15 @@
             "type": "debugpy",
             "request": "launch",
             "module": "xwatc"
+        },
+        {
+            "name": "Xwatc (Terminal)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "xwatc",
+            "args": [
+                "-t"
+            ]
         }
     ]
 }

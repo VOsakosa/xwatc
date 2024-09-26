@@ -96,7 +96,7 @@ class Terminal:
             print("Tag {}, {:02}:{:02} Uhr".format(
                 mänx.welt.get_tag() + 1, *mänx.welt.uhrzeit()))
         elif taste == "hilfe":
-            print("Entkomme mit 'sofort sterben'. Nebeneffekt: Tod.")
+            print("Entkomme mit 'spielende'. Nebeneffekt: Tod.")
             print("Wenn du einfach nur Hilfe zu irgendwas haben willst, schreibe"
                   " 'hilfe [frage]'.")
         elif taste == "speichern" or taste.startswith("speichern "):
@@ -123,7 +123,7 @@ class Terminal:
                         print(line)
             else:
                 print("Keine Hilfe für", args, "gefunden.")
-        elif taste == "sofort sterben":
+        elif taste == "spielende":
             raise ZumHauptmenu()
         elif taste == "sterben":
             raise Spielende()
