@@ -9,6 +9,8 @@ Accessoire:
   - ausrüstung: unten accessoire
     name: Ledergürtel
     preis: 5
+    beschreibung: Ein einfacher Gürtel aus Leder. Keine Sorge, deine Hose rutscht auch ohne ihn
+      nicht.
   - Speisekarte; 0
   - Tarotkarte; 12
   - Teddybär; 23

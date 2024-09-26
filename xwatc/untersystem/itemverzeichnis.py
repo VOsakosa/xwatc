@@ -167,7 +167,7 @@ class Item:
         if "ausrüstung" in dct:
             kwargs["ausrüstungsklasse"] = parse_ausrüstungstyp(dct.pop("ausrüstung"))
         if "beschreibung" in dct:
-            kwargs["beschreibung"] = dct["beschreibung"]
+            kwargs["beschreibung"] = dct.pop("beschreibung")
         if dct:
             raise TypeError("Unknown keys left")
         return Item(name, gold, **kwargs)  # type: ignore
