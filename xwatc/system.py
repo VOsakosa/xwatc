@@ -562,19 +562,17 @@ class Mänx(InventarBasis):
 
         >>> Mänx().menu([("Nach Hause gehen", "hause", 1), ("Weitergehen", "weiter", 12)])
 
-        erlaubt Eingaben 1, hau, hause für "Nach Hause gehen".
-
+        erlaubt Eingaben 1, hau, hause für "Nach Hause gehen" auf dem Terminal.
+        Auf der Anzeige wird ein Knopf "Nach Hause gehen" und einer "Weitergehen" gezeigt, die
+        kurzen Bezeichnungen tauchen nicht auf.
         """
         self._reset_laden(save)
         return self.ausgabe.menu(self, Menu(optionen, frage, versteckt or {}), save)
 
-    def call_menu(self, menu: Menu[T], save: 'Speicherpunkt | None') -> T:
-        return self.ausgabe.menu(self, menu, save)
-
     def genauer(self, text: Sequence[str]) -> None:
         """Frage nach, ob der Spieler etwas genauer erfahren will.
         Es kann sich um viel Text handeln."""
-        if isinstance(self.ausgabe, Terminal):
+        if self.ausgabe.terminal:
             t = self.minput("Genauer? (Schreibe irgendwas für ja)")
             if t and t not in ("nein", "n"):
                 for block in text:
@@ -583,7 +581,7 @@ class Mänx(InventarBasis):
             if self.menu([("Genauer", "", True), ("Weiter", "", False)]):
                 self.ausgabe.malp("\n".join(text))
 
-    def sleep(self, länge: float, pausenzeichen=".", stunden: float | None = None):
+    def sleep(self, länge: float, pausenzeichen: str = ".", stunden: float | None = None):
         """Lasse den Spieler warten und zeige nur in regelmäßigen Abständen Pausenzeichen."""
         for _i in range(int(länge / 0.5)):
             if self.ausgabe.terminal:
@@ -603,8 +601,7 @@ class Mänx(InventarBasis):
                 malp(zeile)
             self.welt.setze("tutorial:" + art)
 
-    def inventar_zugriff(self, inv: InventarBasis,
-                         nimmt: bool | Sequence[str] = False) -> None:
+    def inventar_zugriff(self, inv: InventarBasis, nimmt: bool | Sequence[str] = False) -> None:
         """Ein Menu, um auf ein anderes Inventar zuzugreifen."""
         # TODO Inventar-Zugriff in ein Untersystem.
         malp(inv.erweitertes_inventar())
@@ -670,6 +667,7 @@ class Mänx(InventarBasis):
         self.gefährten.append(gefährte)
 
     def rede_mit_gefährten(self) -> None:
+        """Unterbrechung, in der der Mänx mit seinen Gefährten redet."""
         opts: list[MenuOption[nsc.NSC | None]] = [
             (f"Mit {g.name} reden", g.bezeichnung.kurz_name.lower(), g) for g in self.gefährten]
         if not opts:

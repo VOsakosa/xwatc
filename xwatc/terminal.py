@@ -171,13 +171,14 @@ class Terminal:
         """Packt text so, dass es kursiv ausgedruckt wird."""
         return "\x1b[3m" + text + "\x1b[0m"
 
+
 def hauptmenu() -> None:
     """Das Hauptmenu von Xwatc, erlaubt Laden und neues Spiel starten.
     (Nur Terminal-Modus)"""
     from xwatc import system
     while True:
         if system.ausgabe.menu(None, Menu([(_("Lade Spielstand"), "lade", False),
-                (_("Neuer Spielstand"), "neu", True)])):
+                                           (_("Neuer Spielstand"), "neu", True)])):
             system.main_loop(system.Mänx())
             return
         mgn2 = Menu([
