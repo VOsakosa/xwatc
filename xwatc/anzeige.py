@@ -122,8 +122,9 @@ class XwatcFenster:
         self.grid = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.main_grid.append(self.grid)
         win.connect("destroy", self.fenster_schließt)
-        # TODO EventControllerKey
-        # win.connect("key-press-event", self.key_pressed)
+        controller = Gtk.EventControllerKey()
+        controller.connect("key-pressed", self.key_pressed)
+        win.add_controller(controller)
         win.set_child(self.main_grid)
         win.set_default_size(400, 500)
         win.set_title("Xwatc")
@@ -328,10 +329,10 @@ class XwatcFenster:
             self.show_grid.prepend(widget)
         self.sichtbare_anzeigen.add(typ)
 
-    def key_pressed(self, _widget, event) -> bool:
+    def key_pressed(self, _controller, keyval, _keycode, state) -> bool:
         """Ausgeführt, wenn eine Taste gedrückt wird."""
-        control = Gdk.ModifierType.CONTROL_MASK & event.state
-        taste = Gdk.keyval_name(event.keyval)
+        control = Gdk.ModifierType.CONTROL_MASK & state
+        taste = Gdk.keyval_name(keyval)
         if not taste:
             return False
         if control:
