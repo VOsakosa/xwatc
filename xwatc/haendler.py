@@ -98,10 +98,10 @@ class HandelsFn:
                 self._verkaufen_hook(nsc, mänx, name, preis, anzahl)
             return True
         return False
-    
+
     def get_verkauf_inventar(self, nsc: NSC) -> Mapping[str, int]:
         return {item: anzahl for item, anzahl in nsc.inventar.items() if item in self.verkauft}
-    
+
     def get_ankauf_inventar(self, mänx: Mänx) -> Mapping[str, int]:
         return {item: anzahl for item, anzahl in mänx.inventar.items() if self.kann_kaufen(item)}
 
@@ -306,8 +306,11 @@ class InventarMenu():
         else:
             malp("Welches Item?")
             item = mänx.menu([("mehrere", "", None),
-                             *((item, item, item) for item in option.inventar)])
-            if item is None:
+                             *((item, item, item) for item in option.inventar),
+                             ("zurück", "", "")])
+            if not item:
+                return 0, None
+            elif item is None:
                 item = mänx.menu([(item, item, item) for item in option.inventar])
                 anzahl_str = mänx.minput(_("Wie viele?"))
                 try:
