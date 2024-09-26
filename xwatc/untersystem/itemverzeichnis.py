@@ -1,4 +1,4 @@
-"""
+r"""
 Schreibt und liest das Xwatc-Itemverzeichnis.
 
 Die Grammatik des Itemverzeichnisses ist wie folgt:
@@ -24,7 +24,7 @@ import yaml
 import pathlib
 from enum import Enum, EnumMeta, auto
 from attrs import astuple, define, field
-from typing import Any, Dict, Optional as Opt, List, DefaultDict, Self, assert_never
+from typing import Any, DefaultDict, TypeAlias, assert_never
 
 __author__ = "jasper"
 
@@ -42,6 +42,7 @@ ItemKlasse: EnumMeta = Enum("ItemKlasse", get_items("ItemKlasse"))  # type: igno
 
 
 class Ausrüstungsort(Enum):
+    """Der Körperteil, an dem eine Ausrüstung getragen wird."""
     KOPF = auto()
     OBEN = auto()
     UNTEN = auto()
@@ -52,6 +53,8 @@ class Ausrüstungsort(Enum):
 
 
 class Ausrüstungsdicke(Enum):
+    """Wie eng anliegend Kleidung ist. Kleidung, die unterschiedlich eng ist, kann übereinander
+    getragen werden."""
     ANLIEGEND = auto()
     INNEN = auto()
     AUSSEN = auto()
@@ -86,6 +89,7 @@ class Kleidungsslot:
 
 
 class Waffenhand(Enum):
+    """In welcher Hand die Waffe gehalten wird. (nur Haupt- und Nebenhand kollidieren nicht)"""
     HAUPTHAND = 1
     NEBENHAND = 2
     BEIDHÄNDIG = 3
@@ -102,10 +106,17 @@ class Waffenhand(Enum):
         assert_never(self)
 
 
-Ausrüstungstyp = Waffenhand | Kleidungsslot
+Ausrüstungstyp: TypeAlias = Waffenhand | Kleidungsslot
 
 
 def parse_ausrüstungstyp(name: str) -> Ausrüstungstyp:
+    """Parse einen Ausrüstungstyp aus einem String.
+
+    >>> parse_ausrüstungstyp("nebenhand")
+    <Waffenhand.NEBENHAND: 2>
+    >>> parse_ausrüstungstyp("oben anliegend")
+    Kleidungsslot(ort=<Ausrüstungsort.OBEN: 2>, dicke=<Ausrüstungsdicke.ANLIEGEND: 1>)
+    """
     name = name.upper()
     try:
         return Waffenhand[name]
@@ -209,7 +220,7 @@ def lade_itemverzeichnis(pfad: str | PathLike, waffenpfad: str | PathLike) -> di
             start = 0
         for item_dict in items[start:]:
             if isinstance(item_dict, str):
-                item_name, *fields = re.split("\s*;\s*", item_dict)
+                item_name, *fields = re.split(r"\s*;\s*", item_dict)
                 if len(fields) > 1:
                     raise ValueError(f"Unerwartet viele Semikolons für {item_name}")
                 if fields and fields[0] != "-":
@@ -253,11 +264,11 @@ def lade_itemverzeichnis(pfad: str | PathLike, waffenpfad: str | PathLike) -> di
     return item_verzeichnis
 
 
-def schreibe_itemverzeichnis(pfad, items: Dict[str, str],
-                             classes: Dict[str, str],
+def schreibe_itemverzeichnis(pfad, items: dict[str, str],
+                             classes: dict[str, str],
                              preise: dict[str, int]) -> None:
     """Schreibe das Itemverzeichnis, schön sortiert, in die Datei pfad"""
-    klassen: DefaultDict[str, List[str]] = defaultdict(list)
+    klassen: DefaultDict[str, list[str]] = defaultdict(list)
     for unter, ober in classes.items():
         klassen[unter]  # pylint: disable=pointless-statement
     for item, klasse in items.items():

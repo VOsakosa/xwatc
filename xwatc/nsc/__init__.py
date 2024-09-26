@@ -146,10 +146,11 @@ class StoryChar:
 
     def vorstellen(self, fn: DialogGeschichte) -> DialogGeschichte:
         """Dekorator, um die Vorstellen-Funktion zu setzen
-        >>>hans = StoryChar("test:hans", "Hans", Person("m","Spinner"), {})
-        ...@vorstellen
-        ...def hans_vorstellen(nsc, mänx):
-        ...   malp("Ein junger Mann schaut dich neugierig an.") 
+
+        >>> hans = StoryChar("test:hans", "Hans", Person("m","Spinner"), {})
+        ... @vorstellen
+        ... def hans_vorstellen(nsc, mänx):
+        ...   malp("Ein junger Mann schaut dich neugierig an.")
         """
         self.vorstellen_fn = fn
         return fn

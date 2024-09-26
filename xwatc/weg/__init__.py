@@ -9,21 +9,16 @@ Created on 17.10.2020
 from __future__ import annotations
 
 from attrs import define, field
-from collections.abc import Collection, Callable, Iterable, Iterator, Sequence
+from collections.abc import Callable
 from dataclasses import dataclass
-import enum
 from functools import wraps
 from logging import getLogger
-import random
-from typing import (ClassVar, NewType, TYPE_CHECKING, runtime_checkable,
-                    Protocol, TypeAlias, TypeVar)
+from typing import TYPE_CHECKING, runtime_checkable, Protocol, TypeAlias, TypeVar
 import typing
 from typing_extensions import Self
 
 from xwatc import _
-from xwatc.system import (Fortsetzung, Mänx, MenuOption, MänxFkt, malp, mint,
-                          MänxPrädikat, Welt, MissingID, MissingIDError)
-from xwatc.utils import uartikel, bartikel, adj_endung, UndPred
+from xwatc.system import Fortsetzung, Mänx, MänxFkt, MänxPrädikat, MissingID, MissingIDError
 from itertools import repeat
 
 
@@ -168,6 +163,7 @@ class Weg(_Strecke):
         else:
             assert self.p1, "Loses Ende!"
             return self.p1
+
 
 @runtime_checkable
 class BenannterWegpunkt(Wegpunkt, Protocol):
@@ -518,8 +514,8 @@ GebietsFn: TypeAlias = Callable[[Mänx, Gebiet], Wegpunkt | None]
 def gebiet(name: str) -> Callable[[GebietsFn], MänxFkt[Gebiet]]:
     """Dekorator für Gebietserzeugungsfunktionen.
 
-    >>>@gebiet("jtg:banane")
-    >>>def erzeuge_banane(mänx: Mänx, gebiet: weg.Gebiet) -> Wegpunkt:
+    >>> @gebiet("jtg:banane")
+    >>> def erzeuge_banane(mänx: Mänx, gebiet: weg.Gebiet) -> Wegpunkt:
     >>>    ...
     """
     def wrapper(funk: GebietsFn) -> MänxFkt[Gebiet]:
