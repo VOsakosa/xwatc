@@ -12,20 +12,22 @@ from pathlib import Path
 import queue
 import sys
 import threading
-from typing import Any, Callable, ClassVar, Mapping, NamedTuple
+from typing import Any, Callable, ClassVar, Mapping, NamedTuple, TypeAlias
 from typing import Optional as Opt
 from typing import Protocol, Sequence, TypeVar
 
 from attrs import define
 import exceptiongroup
 import gi
+
+from xwatc.untersystem.itemverzeichnis import Item
 gi.require_version("Gdk", "4.0")
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gdk, GLib, Gtk  # type: ignore # noqa
 from typing_extensions import Self  # noqa
 
 from xwatc import _, system  # noqa
-from xwatc.system import SPEICHER_VERZEICHNIS, Fortsetzung, Menu, Mänx  # noqa
+from xwatc.system import SPEICHER_VERZEICHNIS, Fortsetzung, Inventar, Menu, Mänx  # noqa
 
 if False:
     from xwatc.system import Speicherpunkt
@@ -34,6 +36,7 @@ __author__ = "jasper"
 
 Text = str
 
+#: Aus dieser Queue werden Antworten an den Xwatc-Thread gelegt.
 _minput_return: queue.Queue[Any] = queue.Queue(1)
 _main_thread: threading.Thread
 
@@ -350,8 +353,7 @@ class XwatcFenster:
                     else:
                         self.malp_stack(_("Du kannst hier nicht speichern."))
                 elif taste == "g":
-                    _minput_return.put(Unterbrechung(
-                        system.Mänx.rede_mit_gefährten))
+                    _minput_return.put(Unterbrechung(system.Mänx.rede_mit_gefährten))
         # KEIN STRG: Auswahl der Option
         elif not self.mgn:
             return False
@@ -570,15 +572,74 @@ class InventarFenster:
     """Eine Anzeige des Inventars des Menschen, auf der er seine Ausrüstung ändern kann.
     """
     _mänx: Mänx
-    _on_close: Callable[[], object]
+    _widget: InventarAnzeige
 
     @classmethod
     def create(cls, mänx: Mänx, on_close: Callable[[], object]) -> Self:
         """Erzeuge das Inventar-Fenster neu."""
+        widget = InventarAnzeige()
+        widget.add_button("Weiter", on_close)
+        return cls(mänx, widget=widget)
 
     @property
     def widget(self) -> Gtk.Widget:
         """Das Widget des Fensters."""
+        return self._widget
+
+
+ItemAction: TypeAlias = tuple[str, Callable[[Item], object], Callable[[Item], object]]
+
+
+@Gtk.Template(string="""
+<interface>
+  <template class="InventarAnzeige" parent="GtkBox">
+    <property name="orientation">vertical</property>
+    <child>
+      <object class="GtkLabel" id="top_line">
+      </object>
+    </child>
+    <child>
+      <object class="GtkListBox" id="inventar_box">
+        <style><class name="sidebar"/></style>
+        <property name="selection_mode">0</property>
+      </object>  
+    </child>
+    <child>
+      <object class="GtkListBox" id="button_box">
+        <style><class name="data-table"/></style>
+        <property name="selection_mode">0</property>
+      </object>  
+    </child>
+  </template>
+</interface>
+""")
+class InventarAnzeige(Gtk.Box):
+    """Allgemeine Anzeige eines Inventars, die nach Items Optionen in Form von Knöpfen einblendet.
+    """
+    __gtype_name__ = "InventarAnzeige"
+    top_line: Gtk.Label = Gtk.Template.Child()  # type: ignore
+    button_box: Gtk.ListBox = Gtk.Template.Child()  # type: ignore
+    inventar_box: Gtk.ListBox = Gtk.Template.Child()  # type: ignore
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._item_str_template = "{anzahl:>4}x {item} ({item.preis:>3}G)"
+        self.init_template()
+
+    def add_button(self, text: str, callback: Callable[[], object]) -> None:
+        """Add a control button to the bottom."""
+        button = Gtk.Button(label=text)
+        button.connect("clicked", lambda *args: callback() and None)
+        self.button_box.append(button)
+
+    def set_actions(self, actions: list[ItemAction]) -> None:
+        """Setze die Liste von Aktionen, die an einem Item sein sollen."""
+
+    def set_item_str_template(self, text: str) -> None:
+        """Set a new item string template."""
+
+    def set_inventar(self, inventar: Inventar) -> None:
+        """"""
 
 
 def main(startpunkt: Fortsetzung | None = None) -> None:
