@@ -565,6 +565,22 @@ class InfoWidget:
             self.can_save_label.set_markup('<span color="#AAAAAA">S</span>')
 
 
+@define
+class InventarFenster:
+    """Eine Anzeige des Inventars des Menschen, auf der er seine Ausrüstung ändern kann.
+    """
+    _mänx: Mänx
+    _on_close: Callable[[], object]
+
+    @classmethod
+    def create(cls, mänx: Mänx, on_close: Callable[[], object]) -> Self:
+        """Erzeuge das Inventar-Fenster neu."""
+
+    @property
+    def widget(self) -> Gtk.Widget:
+        """Das Widget des Fensters."""
+
+
 def main(startpunkt: Fortsetzung | None = None) -> None:
     """Lasse xwatc.anzeige laufen."""
     global _main_thread

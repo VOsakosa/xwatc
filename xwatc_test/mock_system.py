@@ -1,6 +1,9 @@
 """
 Ein Mock für das Aus-/Eingabesystem, um Geschichten ordentlich testen zu können.
 
+>>> mänx = MockSystem().install(); mänx
+Mänx(...)
+
 Created on 25.03.2023
 """
 from attrs import define
