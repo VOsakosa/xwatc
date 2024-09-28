@@ -1,11 +1,12 @@
 """Karvapedo: Ein Geschichts-Spiel"""
 from __future__ import annotations
+from collections.abc import Iterator
 import os
 from typing import Tuple, List, Optional as Opt, TextIO, Protocol, Sequence
 
 import gi
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk
 
 SPEICHER_VERZEICHNIS = os.path.join(os.path.dirname(__file__), "..", "saves")
@@ -19,6 +20,7 @@ Text = Tuple[TextInhalt, Möglichkeiten]
 class Geschichte(Protocol):
     """Eine Geschichte in Karvapedo ist die Einheit eines Spiels und hält
     alle Information spezifisch für die Geschichte.(Welttags)"""
+
     def save(self, _file: TextIO):
         """Speichert die Geschichte"""
 
@@ -29,7 +31,7 @@ class Geschichte(Protocol):
 
     def finde_text(self, textid: TextId) -> Text:
         """Führe einen Text aus."""
-    
+
     def starts(self) -> Möglichkeiten:
         """"""
         return []
@@ -48,14 +50,14 @@ class Karvapedo:
         textview = Gtk.TextView(hexpand=True, vexpand=True, editable=False)
         textview.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
         self.buffer = textview.get_buffer()
-        self.grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
-        self.grid.add(textview)
+        self.grid = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.grid.append(textview)
         win.connect("delete-event", self.fenster_schließt)
-        win.add(self.grid)
+        win.set_child(self.grid)
         win.set_default_size(300, 300)
         win.set_title("Karvapedo")
         self.text("0")
-        win.show_all()
+        win.present()
 
     def text(self, name: TextId):
         """Lade und zeige den Text *name*."""
@@ -63,13 +65,13 @@ class Karvapedo:
         self.momentan = name
         self.buffer.set_text(inhalt)
         # entferne buttons
-        for child in self.grid.get_children():
+        for child in get_children(self.grid):
             if isinstance(child, Gtk.Button):
                 self.grid.remove(child)
         for name, text in möglichkeiten:
             button = Gtk.Button(label=name, visible=True)
             button.connect("clicked", self.button_clicked, text)
-            self.grid.add(button)
+            self.grid.append(button)
 
     def button_clicked(self, _button: Gtk.Button, text: TextId):
         from karvapedo.parse import GeladeneGeschichte
@@ -104,7 +106,6 @@ class Karvapedo:
             file.write(self.momentan)
         return False
 
-
     def finde_text(self, name: TextId) -> Text:
         if name == "hauptmenu":
             return hauptmenu()
@@ -115,24 +116,24 @@ class Karvapedo:
         elif name == "0":
             return ("Karvapedo ist eine Sammlung von Geschichten, bei denen du meist geringen und teils "
                     "gewaltigen Einfluss auf das Geschehen hast."), [("weiter", "hauptmenu")]
-    
+
         elif name == "1":
             return "Blub. Blub. Ich bin ein... Fisch? ", [("weiter", "2"), ("zurück zum Hauptmenu", "hauptmenu")]
-    
+
         elif name == "2":
             return "Was tat der einarmige Herdazianer dem Mann an, der ihn an die Wand klebte? ", [("Auflösung", "3")]
-    
+
         elif name == "3":
             return "Gar nichts. Er war 'armlos ", [("zurück", "1")]
         elif self.geschichte:
             return self.geschichte.finde_text(name)
         else:
             raise KeyError(f"Unbekannte Geschichte: {name}")
-    
+
     def neu(self) -> Text:
         from karvapedo.parse import GeladeneGeschichte
         geschichten = [GeladeneGeschichte()]
-        return "",[(a, "!neu" + b) for g in geschichten for a,b in g.starts()]
+        return "", [(a, "!neu" + b) for g in geschichten for a, b in g.starts()]
 
 
 def hauptmenu() -> Text:
@@ -152,9 +153,21 @@ def lade() -> Text:
 
 
 def main():
+    import sys
     app = Gtk.Application()
     app.connect("activate", Karvapedo)
-    app.run()
+    app.run(sys.argv)
+
+
+def get_children(box: Gtk.Widget) -> Iterator[Gtk.Widget]:
+    """Get all children of a widget. Tries to get the next sibling before yielding an item, to allow
+    removing while iterating.
+    """
+    start = box.get_first_child()
+    while start:
+        new_start = start.get_next_sibling()
+        yield start
+        start = new_start
 
 
 if __name__ == '__main__':
