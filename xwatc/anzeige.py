@@ -529,12 +529,17 @@ class XwatcFenster:
         self._stack.append(_StackItem(
             self.auswahlwidget._mgn.copy(),
             self.auswahlwidget._mgn_hidden_count,
-            self.anzeigen.copy(),
+            self.anzeigen,
             self.sichtbare_anzeigen,
             self.choice_action,
             list(get_children(self.auswahlwidget)),
             self.buffer,
             self.speicherpunkt))
+        self.sichtbare_anzeigen = set()
+        self.buffer = Gtk.TextBuffer()
+        for child in get_children(self.show_grid):
+            if isinstance(child, Gtk.TextView):
+                child.set_buffer(self.buffer)
         for child in get_children(self.show_grid):
             if isinstance(child, Gtk.TextView):
                 self.buffer = Gtk.TextBuffer()
@@ -549,6 +554,8 @@ class XwatcFenster:
         [self.auswahlwidget._mgn, self.auswahlwidget._mgn_hidden_count, self.anzeigen,
          self.sichtbare_anzeigen, self.choice_action,
          controls, self.buffer, self.speicherpunkt] = self._stack.pop()
+        for anzeige_typ, anzeige in self.anzeigen.items():
+            anzeige.set_visible(anzeige_typ in self.sichtbare_anzeigen)
         for control in controls:
             self.auswahlwidget.append(control)
             if isinstance(control, (Gtk.Button, Gtk.Entry)):
