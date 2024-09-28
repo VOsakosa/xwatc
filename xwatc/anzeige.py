@@ -12,7 +12,7 @@ from pathlib import Path
 import queue
 import sys
 import threading
-from typing import Any, Callable, ClassVar, Mapping, NamedTuple, TypeAlias, assert_never
+from typing import Any, Callable, ClassVar, Mapping, NamedTuple, TypeAlias, assert_never, cast
 from typing import Optional as Opt
 from typing import Protocol, Sequence, TypeVar
 
@@ -470,8 +470,7 @@ class XwatcFenster:
                     _minput_return.put(Unterbrechung(system.Mänx.rede_mit_gefährten))
         # KEIN STRG: Auswahl der Option
         elif taste == "e" and self.mänx and self.choice_action is None:
-            self.auswahlwidget.wähle(Unterbrechung(
-                lambda m: system.malp(m.erweitertes_inventar(), warte=True)))
+            self.auswahlwidget.wähle(Unterbrechung(InventarFenster.run))
         return self.auswahlwidget.key_pressed(taste)
 
     def malp_stack(self, nachricht: str) -> None:
@@ -588,9 +587,12 @@ class AnzeigeDaten(Protocol):
     Beispielimplementation: xwatc.scenario.anzeige.PixelArtDrawingArea"""
 
     def erzeuge_widget(self, _fenster: XwatcFenster) -> Gtk.Widget:
-        """Erzeugt das Anzeige-Widget für die Daten."""
+        """Erzeugt das Anzeige-Widget für die Daten.
 
-    def update_widget(self, widget: Gtk.Widget, _fenster: XwatcFenster) -> Any:
+        Bemerke, dass nach dem erzeugen nicht `update_widget` aufgerufen wird.
+        """
+
+    def update_widget(self, widget: Gtk.Widget, _fenster: XwatcFenster) -> object:
         """Aktualisiert das Anzeige-Widget mit den Daten."""
 
 
@@ -627,18 +629,29 @@ class InfoWidget:
 
 
 @define
-class InventarFenster:
+class InventarFenster(AnzeigeDaten):
     """Eine Anzeige des Inventars des Menschen, auf der er seine Ausrüstung ändern kann.
     """
     _mänx: Mänx
-    _widget: InventarAnzeige
+    _response_fn: Callable[[tuple[Item, str]], object] | None = None
 
-    @classmethod
-    def create(cls, mänx: Mänx, on_close: Callable[[], object]) -> Self:
-        """Erzeuge das Inventar-Fenster neu."""
+    @staticmethod
+    def run(mänx: Mänx) -> None:
+        """Lasse das Inventar-Fenster laufen"""
+        daten = InventarFenster(mänx)
+        cast(XwatcFenster, mänx.ausgabe).show(daten)
+        mänx.menu([("Weiter", "weiter", None)])
+
+    def erzeuge_widget(self, fenster: XwatcFenster) -> Gtk.Widget:
+        """Erzeugt das Anzeige-Widget für die Daten."""
         widget = InventarAnzeige()
-        widget.add_button("Weiter", on_close)
-        match mänx.bekleidetheit:
+        self.update_widget(widget, fenster)
+        return widget
+
+    def update_widget(self, widget: Gtk.Widget, _fenster: XwatcFenster) -> None:
+        """Aktualisiert das Anzeige-Widget mit den Daten."""
+        assert isinstance(widget, InventarAnzeige)
+        match self._mänx.bekleidetheit:
             case Bekleidetheit.NACKT:
                 nackt = _(" [NACKT!]")
             case Bekleidetheit.IN_UNTERWÄSCHE:
@@ -649,13 +662,8 @@ class InventarFenster:
                 nackt = ""
             case other:
                 assert_never(other)
-        widget.set_top_line("{} Gold{}".format(mänx.inventar["Gold"], nackt))
-        return cls(mänx, widget=widget)
-
-    @property
-    def widget(self) -> Gtk.Widget:
-        """Das Widget des Fensters."""
-        return self._widget
+        widget.set_top_line("{} Gold{}".format(self._mänx.inventar["Gold"], nackt))
+        widget.set_inventar(self._mänx.inventar)
 
 
 ItemAction: TypeAlias = tuple[str, Callable[[Item], object], Callable[[Item], object]]
@@ -675,12 +683,6 @@ ItemAction: TypeAlias = tuple[str, Callable[[Item], object], Callable[[Item], ob
         <property name="selection_mode">0</property>
       </object>  
     </child>
-    <child>
-      <object class="GtkListBox" id="button_box">
-        <style><class name="data-table"/></style>
-        <property name="selection_mode">0</property>
-      </object>  
-    </child>
   </template>
 </interface>
 """)
@@ -689,28 +691,24 @@ class InventarAnzeige(Gtk.Box):
     """
     __gtype_name__ = "InventarAnzeige"
     top_line: Gtk.Label = Gtk.Template.Child()  # type: ignore
-    button_box: Gtk.ListBox = Gtk.Template.Child()  # type: ignore
     inventar_box: Gtk.ListBox = Gtk.Template.Child()  # type: ignore
+    _item_str_template: str
 
     def __init__(self) -> None:
         super().__init__()
         self._item_str_template = "{anzahl:>4}x {item} ({item.preis:>3}G)"
         self.init_template()
 
-    def add_button(self, text: str, callback: Callable[[], object]) -> None:
-        """Add a control button to the bottom."""
-        button = Gtk.Button(label=text)
-        button.connect("clicked", lambda *args: callback() and None)
-        self.button_box.append(button)
-
     def set_actions(self, actions: list[ItemAction]) -> None:
         """Setze die Liste von Aktionen, die an einem Item sein sollen."""
 
     def set_item_str_template(self, text: str) -> None:
         """Set a new item string template."""
+        self._item_str_template = text
 
     def set_inventar(self, inventar: Inventar) -> None:
         """"""
+        self.inventar_box.remove_all()
 
     def set_top_line(self, text: str) -> None:
         self.top_line.set_text(text)
