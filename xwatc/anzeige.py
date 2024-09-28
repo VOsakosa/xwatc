@@ -27,7 +27,7 @@ from gi.repository import Gdk, GObject, GLib, Gtk  # type: ignore # noqa
 from typing_extensions import Self  # noqa
 
 from xwatc import _, system  # noqa
-from xwatc.system import SPEICHER_VERZEICHNIS, Bekleidetheit, Fortsetzung, Inventar, Menu, Mänx  # noqa
+from xwatc.system import SPEICHER_VERZEICHNIS, Bekleidetheit, Fortsetzung, Inventar, Menu, Mänx, get_item_or_dummy  # noqa
 
 if False:
     from xwatc.system import Speicherpunkt
@@ -673,16 +673,21 @@ ItemAction: TypeAlias = tuple[str, Callable[[Item], object], Callable[[Item], ob
 <interface>
   <template class="InventarAnzeige" parent="GtkBox">
     <property name="orientation">vertical</property>
+    <property name="vexpand">1</property>
     <child>
       <object class="GtkLabel" id="top_line">
       </object>
     </child>
-    <child>
-      <object class="GtkListBox" id="inventar_box">
-        <style><class name="sidebar"/></style>
-        <property name="selection_mode">0</property>
-      </object>  
-    </child>
+    <!--<child>
+      <object class="GtkScrolledWindow">-->
+        <child>
+          <object class="GtkListBox" id="inventar_box">
+            <style><class name="sidebar"/><class name="eingerückt"/></style>
+            <property name="selection_mode">0</property>
+          </object>
+        </child>
+      <!--</object>
+    </child>-->
   </template>
 </interface>
 """)
@@ -696,7 +701,7 @@ class InventarAnzeige(Gtk.Box):
 
     def __init__(self) -> None:
         super().__init__()
-        self._item_str_template = "{anzahl:>4}x {item} ({item.preis:>3}G)"
+        self._item_str_template = '{anzahl:>4}x {item} (<span color="#504000">{item.gold:>3}G</span>)'
         self.init_template()
 
     def set_actions(self, actions: list[ItemAction]) -> None:
@@ -709,6 +714,15 @@ class InventarAnzeige(Gtk.Box):
     def set_inventar(self, inventar: Inventar) -> None:
         """"""
         self.inventar_box.remove_all()
+        for item, anzahl in inventar.items():
+            if item == "Gold":
+                continue
+            item_obj = get_item_or_dummy(item)
+            item_zeile = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+            item_zeile.append(
+                Gtk.Label(label=self._item_str_template.format(item=item_obj, anzahl=anzahl),
+                          use_markup=True))
+            self.inventar_box.append(item_zeile)
 
     def set_top_line(self, text: str) -> None:
         self.top_line.set_text(text)

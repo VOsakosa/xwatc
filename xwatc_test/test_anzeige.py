@@ -23,7 +23,7 @@ class TestStacks(unittest.TestCase):
     def test_init_and_close_inventar(self) -> None:
         mänx = MockSystem().install()
         close_mock = Mock()
-        fenster = InventarFenster.create(mänx, on_close=close_mock)
+        fenster = InventarFenster(mänx).erzeuge_widget(None)
         self.assertIsInstance(fenster, InventarFenster)
         widget = fenster.widget
         self.assertIsInstance(widget, Gtk.Widget)

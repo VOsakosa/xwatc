@@ -27,7 +27,7 @@ from xwatc import _
 from xwatc.serialize import mache_converter, unstructure_punkt
 from xwatc.terminal import Terminal
 from xwatc.untersystem import hilfe
-from xwatc.untersystem.itemverzeichnis import (Kleidungsslot, Waffenhand, Ausrüstungsort, Ausrüstungstyp,
+from xwatc.untersystem.itemverzeichnis import (ItemKlasse, Kleidungsslot, Waffenhand, Ausrüstungsort, Ausrüstungstyp,
                                                Item, lade_itemverzeichnis)
 from xwatc.untersystem.person import Fähigkeit, Person, Rasse
 from xwatc.untersystem.variablen import (VT, MethodSave, WeltVariable, get_welt_var)
@@ -105,6 +105,15 @@ def get_item(item_name: str) -> Item:
         return ITEMVERZEICHNIS[item_name]
     except KeyError:
         raise KeyError(f"Unbekanntes Item {item_name}") from None
+
+
+def get_item_or_dummy(item_name: str) -> Item:
+    """Hole die Item-Klasse von dem Namen des Items, oder einfach eine leere neue, wenn das Item
+    nicht existiert."""
+    try:
+        return ITEMVERZEICHNIS[item_name]
+    except KeyError:
+        return Item(item_name, 0, item_typ=[ItemKlasse.Unbekannt])  # type: ignore
 
 
 T = TypeVar("T")
