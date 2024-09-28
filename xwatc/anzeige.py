@@ -12,7 +12,7 @@ from pathlib import Path
 import queue
 import sys
 import threading
-from typing import Any, Callable, ClassVar, Mapping, NamedTuple, TypeAlias
+from typing import Any, Callable, ClassVar, Mapping, NamedTuple, TypeAlias, assert_never
 from typing import Optional as Opt
 from typing import Protocol, Sequence, TypeVar
 
@@ -23,11 +23,11 @@ import gi
 from xwatc.untersystem.itemverzeichnis import Item
 gi.require_version("Gdk", "4.0")
 gi.require_version("Gtk", "4.0")
-from gi.repository import Gdk, GLib, Gtk  # type: ignore # noqa
+from gi.repository import Gdk, GObject, GLib, Gtk  # type: ignore # noqa
 from typing_extensions import Self  # noqa
 
 from xwatc import _, system  # noqa
-from xwatc.system import SPEICHER_VERZEICHNIS, Fortsetzung, Inventar, Menu, Mänx  # noqa
+from xwatc.system import SPEICHER_VERZEICHNIS, Bekleidetheit, Fortsetzung, Inventar, Menu, Mänx  # noqa
 
 if False:
     from xwatc.system import Speicherpunkt
@@ -41,7 +41,7 @@ _minput_return: queue.Queue[Any] = queue.Queue(1)
 _main_thread: threading.Thread
 
 # Abkürzungen für häufige Optionen
-KURZ_CODES = {
+KURZ_CODES: dict[str, Sequence[str]] = {
     "f": ("fliehen", "zurück"),
     "r": ("reden",),
     "k": ("kämpfen",),
@@ -85,6 +85,115 @@ class Unterbrechung:
     fkt: system.MänxFkt
 
 
+@Gtk.Template(string="""
+<interface>
+  <template class="Auswahlswidget" parent="GtkBox">
+    <property name="orientation">vertical</property>
+  </template>
+</interface>
+""")
+class Auswahlswidget(Gtk.Box):
+    """Eine Box von Buttons"""
+    __gtype_name__: ClassVar[str] = "Auswahlswidget"
+
+    def __init__(self, action: Callable[[object], object]) -> None:
+        super().__init__()
+        # Optionen
+        self._mgn: dict[str, object] = {}
+        #: Die Anzahl der nicht versteckten Optionen
+        self._mgn_hidden_count: int = 0
+        self.action: Callable[[object], object] = action
+
+    @_idle_wrapper
+    def auswahl(self, mgn: Sequence[tuple[str, T] | tuple[str, T, str]],
+                versteckt: Mapping[str, T] | None = None) -> None:
+        """Zeige Auswahlmöglichkeiten unten an.
+
+        :param action:
+            Die Aktion, die ausgeführt wird, wenn die Auswahl getroffen wird.
+            Standardmäßig wird die gewählte Option an den Xwatc-Thread weitergegeben.
+        """
+        self._remove_choices()
+        self._mgn_hidden_count = len(mgn)
+
+        for name, antwort, *short in mgn:
+            button = Gtk.Button(label=name, visible=True, hexpand=True)
+            child = button.get_child()
+            assert isinstance(child, Gtk.Label)
+            child.set_wrap(True)
+            child.set_max_width_chars(70)
+            button.connect("clicked", self._button_clicked, antwort)
+            self.append(button)
+            if short:
+                name = short[0]
+            self._mgn[name.casefold()] = antwort
+        if versteckt:
+            for name, antwort in versteckt.items():
+                self._mgn[name[:1]] = antwort
+
+    def eingabe(self, action: Callable[[Any], Any] | None) -> None:
+        self._remove_choices()
+        self.choice_action = action
+        entry = Gtk.Entry(visible=True)
+        entry.connect("activate", self.entry_activated)
+        self.append(entry)
+        entry.grab_focus()
+
+    def _remove_choices(self):
+        """Entferne die Auswahlen. Das wird immer vor dem Hinzufügen der neuen Auswahlen
+        eingefügt."""
+        while child := self.get_first_child():
+            self.remove(child)
+
+    def deactivate_choices(self) -> None:
+        """Graue die Auswahlen aus. Passiert nach jeder Auswahl."""
+        self._mgn.clear()
+        for child in get_children(self):
+            if isinstance(child, (Gtk.Button, Gtk.Entry)):
+                child.set_sensitive(False)
+
+    def wähle(self, ans: object) -> None:
+        """Wähle programmatisch eine Option."""
+        self._button_clicked(None, ans)
+
+    def _button_clicked(self, _button: object, text: object) -> None:
+        """Beantwortet die gestellte Frage mit *text*."""
+        self.deactivate_choices()
+        self.action(text)
+
+    def entry_activated(self, entry: Gtk.Entry) -> None:
+        self._button_clicked(entry, entry.get_text())
+
+    def key_pressed(self, taste: str) -> bool:
+        """Finde die richtige Aktion mithilfe der Taste."""
+        if not self._mgn:
+            return False
+        elif taste in self._mgn:
+            self._button_clicked(None, self._mgn[taste])
+            return True
+        elif taste in KURZ_CODES:
+            for t in KURZ_CODES[taste]:
+                if t in self._mgn:
+                    self._button_clicked(None, t)
+                    return True
+
+        if taste == 'Return' and len(self._mgn) == 1:
+            self._button_clicked(None, next(iter(self._mgn.values())))
+        elif len(taste) == 1 and ord('0') <= ord(taste) <= ord('9'):
+            nr = int(taste)
+            if nr == 0:
+                nr = 10
+            # Versteckte dürfen nicht durch Nummer aktiviert werden.
+            if nr <= self._mgn_hidden_count:
+                try:
+                    self._button_clicked(None, next(
+                        islice(self._mgn.values(), nr - 1, None)))
+                    return True
+                except StopIteration:
+                    pass
+        return False
+
+
 class XwatcFenster:
     """Ein Fenster, um Xwatc zu spielen. Es funktioniert als eigene Ausgabe. Die Anzeige
     funktioniert auf Basis eines Stacks, sodass aus geöffneten Menus auf vorherige Stufen
@@ -92,7 +201,7 @@ class XwatcFenster:
     von Buttons am Ende des Fensters eingeholt."""
     terminal: ClassVar[bool] = False
 
-    def __init__(self, app: Gtk.Application, startpunkt: Opt[Fortsetzung] = None):
+    def __init__(self, app: Gtk.Application, startpunkt: None | Fortsetzung = None):
         style_provider = Gtk.CssProvider()
         style_provider.load_from_path(str(Path(__file__).parent / 'style.css'))
         display = Gdk.Display.get_default()
@@ -101,18 +210,16 @@ class XwatcFenster:
             display, style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
         win = Gtk.ApplicationWindow()
         app.add_window(win)
+
+        # Eigenschaften des Stacks(?)
         textview = Gtk.TextView(hexpand=True, vexpand=True, editable=False)
         textview.add_css_class("main_text_view")
         textview.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
         self.buffer = textview.get_buffer()
-
-        # Optionen
-        self.mgn: dict[str, Any] = {}
-        # Die Anzahl der nicht versteckten Optionen
-        self.mgn_hidden_count: int = 0
         self.anzeigen: dict[type, Gtk.Widget] = {}
         self.sichtbare_anzeigen: set[type] = set()
-        self.choice_action: Opt[Callable[[Any], Any]] = None
+        #: Das wird gemacht, statt an den Xvatc-Thread zurückzugeben.
+        self.choice_action: None | Callable[[Any], Any] = None
         self.speicherpunkt: system.Speicherpunkt | None = None
 
         self.info_widget: InfoWidget = InfoWidget.create()
@@ -122,8 +229,8 @@ class XwatcFenster:
         self.main_grid.append(self.info_widget.widget)
         self.main_grid.append(self.show_grid)
         self.show_grid.append(Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=textview))
-        self.grid = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.main_grid.append(self.grid)
+        self.auswahlwidget = Auswahlswidget(action=self._auswahl_action)
+        self.main_grid.append(self.auswahlwidget)
         win.connect("destroy", self.fenster_schließt)
         controller = Gtk.EventControllerKey()
         controller.connect("key-pressed", self.key_pressed)
@@ -199,6 +306,16 @@ class XwatcFenster:
         finally:
             GLib.idle_add(self.xwatc_ended)
 
+    def _auswahl_action(self, ans: object) -> None:
+        """Wird ausgeführt, wenn eine Wahl getroffen wurde."""
+        if self.choice_action is None:
+            _minput_return.put(ans)
+        else:
+            self.choice_action(ans)
+        # Der Text wird dann entfernt
+        self.buffer.set_text("")
+        self.sichtbare_anzeigen.clear()
+
     def get_minput_return(self) -> Any:
         """Hole ein Item aus der Rückgabequeue für Usereingaben.
         Hat der User aber eine Unterbrechung (wie z.B. das Betrachten des Inventars etc.)
@@ -227,6 +344,16 @@ class XwatcFenster:
                 case _:
                     return ans
 
+    def _update_status(self) -> None:
+        """Update den Status im Info-Widget und verstecke ungenutzte Extra-Anzeigen.
+        Ausgeführt vor der Anzeige neuer Optionen.
+        """
+        for typ, anzeige in self.anzeigen.items():
+            if typ not in self.sichtbare_anzeigen:
+                anzeige.set_visible(False)
+        if self.mänx:
+            self.info_widget.update(self.mänx, can_save=self.speicherpunkt is not None)
+
     def malp(self, *text, sep=" ", end='\n', warte=False) -> None:
         """Zeigt *text* zusätzlich an."""
         self.add_text(sep.join(map(str, text)) + end)
@@ -245,7 +372,7 @@ class XwatcFenster:
             sprecher += f"({wie})"
         self.add_text(f'{sprecher}: »{text}«\n')
         if warte:
-            self.auswahl([("weiter", None)])
+            self.auswahl([("Weiter", None)])
             self.get_minput_return()
 
     @_idle_wrapper
@@ -265,30 +392,6 @@ class XwatcFenster:
         return ans
 
     @_idle_wrapper
-    def eingabe(self, prompt: str | None,
-                action: Callable[[str], Any] | None = None) -> None:
-        """Zeigt ein Eingabefeld unten an."""
-        if prompt:
-            self.malp(prompt)
-        self._remove_choices()
-        self.choice_action = action
-        entry = Gtk.Entry(visible=True)
-        entry.connect("activate", self.entry_activated)
-        self.grid.append(entry)
-        entry.grab_focus()
-
-    def menu(self,
-             _mänx,
-             menu: Menu[T],
-             save: system.Speicherpunkt | None = None) -> T:
-        if menu.frage:
-            self.malp(menu.frage)
-        self.auswahl([(name, value, shorthand)
-                      for name, shorthand, value in menu.optionen], menu.versteckt, save=save)
-        ans = self.get_minput_return()
-        return ans
-
-    @_idle_wrapper
     def auswahl(self, mgn: Sequence[tuple[str, T] | tuple[str, T, str]],
                 versteckt: Mapping[str, T] | None = None,
                 save: system.Speicherpunkt | None = None,
@@ -300,23 +403,33 @@ class XwatcFenster:
             Standardmäßig wird die gewählte Option an den Xwatc-Thread weitergegeben.
         """
         self.speicherpunkt = save
-        self._remove_choices()
-        self.mgn_hidden_count = len(mgn)
         self.choice_action = action
-        for name, antwort, *short in mgn:
-            button = Gtk.Button(label=name, visible=True, hexpand=True)
-            child = button.get_child()
-            assert isinstance(child, Gtk.Label)
-            child.set_wrap(True)
-            child.set_max_width_chars(70)
-            button.connect("clicked", self.button_clicked, antwort)
-            self.grid.append(button)
-            if short:
-                name = short[0]
-            self.mgn[name.casefold()] = antwort
-        if versteckt:
-            for name, antwort in versteckt.items():
-                self.mgn[name[:1]] = antwort
+        self._update_status()
+        self.auswahlwidget.auswahl(mgn, versteckt)
+
+    @_idle_wrapper
+    def eingabe(self, prompt: str | None,
+                action: Callable[[str], Any] | None = None,
+                save: system.Speicherpunkt | None = None) -> None:
+        """Zeigt ein Eingabefeld unten an."""
+        if prompt:
+            self.malp(prompt)
+        self.choice_action = action
+        self.save = save
+        self._update_status()
+        self.auswahlwidget.eingabe(action)
+
+    def menu(self,
+             _mänx,
+             menu: Menu[T],
+             save: system.Speicherpunkt | None = None) -> T:
+        if menu.frage:
+            self.malp(menu.frage)
+        self.auswahl(
+            [(name, value, shorthand) for name, shorthand, value in menu.optionen],
+            menu.versteckt, save=save)
+        ans = self.get_minput_return()
+        return ans
 
     @_idle_wrapper
     def show(self, daten: AnzeigeDaten) -> None:
@@ -340,8 +453,9 @@ class XwatcFenster:
             return False
         if control:
             if taste == "q":
-                self._deactivate_choices()
-                _minput_return.put(system.ZumHauptmenu())
+                # Legt ZumHauptmenü in die Minput-Schleife
+                self.choice_action = None
+                self.auswahlwidget.wähle(system.ZumHauptmenu())
             if self.mänx:
                 if taste == 's' or taste == 'S':
                     if self.speicherpunkt:
@@ -355,35 +469,10 @@ class XwatcFenster:
                 elif taste == "g":
                     _minput_return.put(Unterbrechung(system.Mänx.rede_mit_gefährten))
         # KEIN STRG: Auswahl der Option
-        elif not self.mgn:
-            return False
-        elif taste in self.mgn:
-            self.button_clicked(None, self.mgn[taste])
-            return True
-        elif taste in KURZ_CODES:
-            for t in KURZ_CODES[taste]:
-                if t in self.mgn:
-                    self.button_clicked(None, t)
-                    return True
-
-        if taste == 'Return' and len(self.mgn) == 1:
-            self.button_clicked(None, next(iter(self.mgn.values())))
-        elif len(taste) == 1 and ord('0') <= ord(taste) <= ord('9'):
-            nr = int(taste)
-            if nr == 0:
-                nr = 10
-            # Versteckte dürfen nicht durch Nummer aktiviert werden.
-            if nr <= self.mgn_hidden_count:
-                try:
-                    self.button_clicked(None, next(
-                        islice(self.mgn.values(), nr - 1, None)))
-                    return True
-                except StopIteration:
-                    pass
-        elif taste == "e" and self.mänx:
-            _minput_return.put(Unterbrechung(
+        elif taste == "e" and self.mänx and self.choice_action is None:
+            self.auswahlwidget.wähle(Unterbrechung(
                 lambda m: system.malp(m.erweitertes_inventar(), warte=True)))
-        return False
+        return self.auswahlwidget.key_pressed(taste)
 
     def malp_stack(self, nachricht: str) -> None:
         """Lege eine Nachricht auf den Stack -- Zeige diese und mache dann weiter."""
@@ -422,37 +511,6 @@ class XwatcFenster:
         if name:
             self.malp_stack(_("Gespeichert."))
 
-    def _remove_choices(self):
-        """Entferne die Auswahlen. Das wird immer vor dem Hinzufügen der neuen Auswahlen
-        eingefügt."""
-        while child := self.grid.get_first_child():
-            self.grid.remove(child)
-        for typ, anzeige in self.anzeigen.items():
-            if typ not in self.sichtbare_anzeigen:
-                anzeige.set_visible(False)
-        if self.mänx:
-            self.info_widget.update(self.mänx, can_save=self.speicherpunkt is not None)
-
-    def _deactivate_choices(self) -> None:
-        """Graue die Auswahlen aus und lösche den Text."""
-        self.mgn.clear()
-        self.buffer.set_text("")
-        for child in get_children(self.grid):
-            if isinstance(child, (Gtk.Button, Gtk.Entry)):
-                child.set_sensitive(False)
-        self.sichtbare_anzeigen.clear()
-
-    def button_clicked(self, _button: Any, text: Any) -> None:
-        """Beantwortet die gestellte Frage mit *text*."""
-        self._deactivate_choices()
-        if self.choice_action is None:
-            _minput_return.put(text)
-        else:
-            self.choice_action(text)
-
-    def entry_activated(self, entry: Gtk.Entry) -> None:
-        self.button_clicked(entry, entry.get_text())
-
     def fenster_schließt(self, _window: Gtk.Window) -> bool:
         # xwatc-thread umbringen
         _minput_return.put(AnzeigeSpielEnde())
@@ -470,12 +528,12 @@ class XwatcFenster:
     def push_stack(self) -> None:
         """Legt ein neues Fenster auf den Stack."""
         self._stack.append(_StackItem(
-            self.mgn.copy(),
-            self.mgn_hidden_count,
+            self.auswahlwidget._mgn.copy(),
+            self.auswahlwidget._mgn_hidden_count,
             self.anzeigen.copy(),
             self.sichtbare_anzeigen,
             self.choice_action,
-            list(get_children(self.grid)),
+            list(get_children(self.auswahlwidget)),
             self.buffer,
             self.speicherpunkt))
         for child in get_children(self.show_grid):
@@ -483,16 +541,17 @@ class XwatcFenster:
                 self.buffer = Gtk.TextBuffer()
                 child.set_buffer(self.buffer)
                 break
-        self._deactivate_choices()
+        self.auswahlwidget.deactivate_choices()
 
     def pop_stack(self) -> None:
         """Entfernt ein Fenster vom Stack."""
-        self._remove_choices()
-        [self.mgn, self.mgn_hidden_count, self.anzeigen,
+        # kein Update von gezeigten Anzeigen
+        self.auswahlwidget._remove_choices()
+        [self.auswahlwidget._mgn, self.auswahlwidget._mgn_hidden_count, self.anzeigen,
          self.sichtbare_anzeigen, self.choice_action,
          controls, self.buffer, self.speicherpunkt] = self._stack.pop()
         for control in controls:
-            self.grid.append(control)
+            self.auswahlwidget.append(control)
             if isinstance(control, (Gtk.Button, Gtk.Entry)):
                 control.set_sensitive(True)
         for child in get_children(self.show_grid):
@@ -516,7 +575,7 @@ class _StackItem(NamedTuple):
     mgn_hidden_count: int
     anzeigen: dict[type, Gtk.Widget]
     sichtbare_anzeigen: set[type]
-    choice_action: Opt[Callable[[Any], Any]]
+    choice_action: None | Callable[[Any], Any]
     controls: list[Gtk.Widget]
     buffer: Gtk.TextBuffer
     savepoint: 'system.Speicherpunkt | None'
@@ -579,6 +638,18 @@ class InventarFenster:
         """Erzeuge das Inventar-Fenster neu."""
         widget = InventarAnzeige()
         widget.add_button("Weiter", on_close)
+        match mänx.bekleidetheit:
+            case Bekleidetheit.NACKT:
+                nackt = _(" [NACKT!]")
+            case Bekleidetheit.IN_UNTERWÄSCHE:
+                nackt = _(" [in Unterwäsche]")
+            case Bekleidetheit.OBERKÖRPERFREI:
+                nackt = _(" [oberkörperfrei]")
+            case Bekleidetheit.BEKLEIDET:
+                nackt = ""
+            case other:
+                assert_never(other)
+        widget.set_top_line("{} Gold{}".format(mänx.inventar["Gold"], nackt))
         return cls(mänx, widget=widget)
 
     @property
@@ -640,6 +711,9 @@ class InventarAnzeige(Gtk.Box):
 
     def set_inventar(self, inventar: Inventar) -> None:
         """"""
+
+    def set_top_line(self, text: str) -> None:
+        self.top_line.set_text(text)
 
 
 def main(startpunkt: Fortsetzung | None = None) -> None:
