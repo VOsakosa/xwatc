@@ -158,7 +158,7 @@ class InventarBasis:
     inventar: Inventar = field(factory=lambda: defaultdict(int), kw_only=True,
                                converter=_inventar_converter)
     _ausgerüstet: set[str] = field(factory=set, kw_only=True)
-    _slots: Collection[Ausrüstungsort] = field(default=set(Ausrüstungsort), kw_only=True)
+    # _slots: Collection[Ausrüstungsort] = field(default=set(Ausrüstungsort), kw_only=True)
 
     def __attrs_post_init__(self) -> None:
         self.auto_ausrüsten()

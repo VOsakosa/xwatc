@@ -1,4 +1,5 @@
 from collections.abc import Iterator
+from typing import Any
 import unittest
 from unittest.mock import Mock
 
@@ -22,19 +23,17 @@ def iter_widgets(widget: Gtk.Widget) -> Iterator[Gtk.Widget]:
 class TestStacks(unittest.TestCase):
     def test_init_and_close_inventar(self) -> None:
         mänx = MockSystem().install()
-        close_mock = Mock()
-        fenster = InventarFenster(mänx).erzeuge_widget(None)
+        fenster = InventarFenster(mänx)
         self.assertIsInstance(fenster, InventarFenster)
-        widget = fenster.widget
+        xwatc_fenster: Any = None
+        widget = fenster.erzeuge_widget(xwatc_fenster)
         self.assertIsInstance(widget, Gtk.Widget)
         for subwidget in iter_widgets(widget):
             print(subwidget)
-            if isinstance(subwidget, Gtk.Button):
+            if isinstance(subwidget, Gtk.Label):
                 label = subwidget.get_label()
                 print(label)
-                if label and label.lower() in ("weiter", "zurück"):
-                    subwidget.emit("clicked")
+                if label and "mantel" in label.lower():
                     break
         else:
-            self.fail('Kein Knopf mit "weiter" oder "zurück" gefunden')
-        close_mock.assert_called_once_with()
+            self.fail('Kein "Mantel" gefunden.')
