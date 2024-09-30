@@ -538,8 +538,7 @@ class XwatcFenster:
             self.sichtbare_anzeigen,
             self.choice_action,
             list(get_children(self.auswahlwidget)),
-            self.buffer,
-            self.speicherpunkt))
+            self.buffer))
         self.sichtbare_anzeigen = set()
         self.buffer = Gtk.TextBuffer()
         for child in get_children(self.show_grid):
@@ -558,7 +557,7 @@ class XwatcFenster:
         self.auswahlwidget._remove_choices()
         [self.auswahlwidget._mgn, self.auswahlwidget._mgn_hidden_count, self.anzeigen,
          self.sichtbare_anzeigen, self.choice_action,
-         controls, self.buffer, self.speicherpunkt] = self._stack.pop()
+         controls, self.buffer] = self._stack.pop()
         for anzeige_typ, anzeige in self.anzeigen.items():
             anzeige.set_visible(anzeige_typ in self.sichtbare_anzeigen)
         for control in controls:
@@ -589,7 +588,6 @@ class _StackItem(NamedTuple):
     choice_action: None | Callable[[Any], Any]
     controls: list[Gtk.Widget]
     buffer: Gtk.TextBuffer
-    savepoint: 'system.Speicherpunkt | None'
 
 
 class AnzeigeDaten(Protocol):
