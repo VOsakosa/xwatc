@@ -259,7 +259,7 @@ class XwatcFenster:
             # Next speichert den Zustand (Hauptmenü, Spiel, Lademenü, etc.)
             while next_ is not None:
                 if next_ == "h":  # hauptmenu
-                    self.malp("Xwatc-Hauptmenü")
+                    self.malp(_("Xwatc-Hauptmenü"))
                     if self.menu(None, Menu([(_("Lade Spielstand"), "lade", False),
                                              (_("Neuer Spielstand"), "neu", True)])):
                         self.mänx = system.Mänx(self)
@@ -280,10 +280,15 @@ class XwatcFenster:
                         next_ = "h"
                 elif next_ == "l":  # Lademenü
                     SPEICHER_VERZEICHNIS.mkdir(exist_ok=True, parents=True)  # @UndefinedVariable
-                    mgn2: Menu[Path | None] = Menu([
+                    options = [
                         (path.stem, path.name.lower(), path) for path in
                         SPEICHER_VERZEICHNIS.iterdir()  # @UndefinedVariable
-                    ] + [("Zurück", "zurück", None)])
+                    ]
+                    if not options:
+                        self.malp(_("Keine Speicherstände verfügbar."))
+                    else:
+                        self.malp(_("Wähle einen Speicherstand zum Laden."))
+                    mgn2: Menu[Path | None] = Menu(options + [("Zurück", "zurück", None)])
                     wahl: Path | None = self.menu(None, mgn2)
                     if wahl:
                         next_ = wahl
