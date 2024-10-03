@@ -26,7 +26,7 @@ gi.require_version("Gtk", "4.0")
 from gi.repository import Gdk, GObject, GLib, Gtk  # type: ignore # noqa
 from typing_extensions import Self  # noqa
 
-from xwatc import _, system  # noqa
+from xwatc import XWATC_PATH, _, system  # noqa
 from xwatc.system import SPEICHER_VERZEICHNIS, Bekleidetheit, Fortsetzung, Inventar, Menu, Mänx, get_item_or_dummy  # noqa
 
 if False:
@@ -203,7 +203,7 @@ class XwatcFenster:
 
     def __init__(self, app: Gtk.Application, startpunkt: None | Fortsetzung = None):
         style_provider = Gtk.CssProvider()
-        style_provider.load_from_path(str(Path(__file__).parent / 'style.css'))
+        style_provider.load_from_path(str(XWATC_PATH / 'style.css'))
         display = Gdk.Display.get_default()
         assert display
         Gtk.StyleContext.add_provider_for_display(
@@ -655,6 +655,15 @@ class InventarFenster(AnzeigeDaten):
     def erzeuge_widget(self, fenster: XwatcFenster) -> Gtk.Widget:
         """Erzeugt das Anzeige-Widget für die Daten."""
         widget = InventarAnzeige()
+        widget.set_actions([
+            ItemAction("abrüsten", icon="remove-equipment",
+                       visible=lambda item: self._mänx.ist_ausgerüstet(item.name),
+                       action=lambda item: self._mänx.ablegen(item.name)),
+            ItemAction("anlegen", icon="add-equipment",
+                       visible=lambda item: item.ausrüstungsklasse and
+                       not self._mänx.ist_ausgerüstet(item.name),
+                       action=lambda item: self._mänx.ausrüsten(item.name)),
+        ])
         self.update_widget(widget, fenster)
         return widget
 
@@ -676,7 +685,12 @@ class InventarFenster(AnzeigeDaten):
         widget.set_inventar(self._mänx.inventar)
 
 
-ItemAction: TypeAlias = tuple[str, Callable[[Item], object], Callable[[Item], object]]
+@define
+class ItemAction:
+    name: str
+    visible: Callable[[Item], object]
+    action: Callable[[Item], object]
+    icon: str
 
 
 @Gtk.Template(string="""
@@ -707,23 +721,29 @@ class InventarAnzeige(Gtk.Box):
     __gtype_name__ = "InventarAnzeige"
     top_line: Gtk.Label = Gtk.Template.Child()  # type: ignore
     inventar_box: Gtk.ListBox = Gtk.Template.Child()  # type: ignore
+    _action_list: list[ItemAction]
     _item_str_template: str
+    _buttons: dict[tuple[str, str], Gtk.Button]
 
     def __init__(self) -> None:
         super().__init__()
         self._item_str_template = '{anzahl:>4}x {item} (<span color="#504000">{item.gold:>3}G</span>)'
+        self._action_list = []
+        self._buttons = {}
         self.init_template()
 
-    def set_actions(self, actions: list[ItemAction]) -> None:
+    def set_actions(self, actions: Sequence[ItemAction]) -> None:
         """Setze die Liste von Aktionen, die an einem Item sein sollen."""
+        self._action_list[:] = actions
 
     def set_item_str_template(self, text: str) -> None:
         """Set a new item string template."""
         self._item_str_template = text
 
     def set_inventar(self, inventar: Inventar) -> None:
-        """"""
+        """Setze das zugehörige Inventar und baue das Widget auf."""
         self.inventar_box.remove_all()
+        self._buttons = {}
         for item, anzahl in inventar.items():
             if item == "Gold":
                 continue
@@ -732,10 +752,25 @@ class InventarAnzeige(Gtk.Box):
             item_zeile.append(
                 Gtk.Label(label=self._item_str_template.format(item=item_obj, anzahl=anzahl),
                           use_markup=True))
+            for action in self._action_list:
+                button = Gtk.Button(icon_name=action.icon, has_frame=False)
+                self._buttons[item, action.name] = button
+                button.connect("clicked", lambda button, args: self.run_action(*args),
+                               (action.name, item))
+                button.set_visible(bool(action.visible(item_obj)))
+                item_zeile.append(button)
             self.inventar_box.append(item_zeile)
 
     def set_top_line(self, text: str) -> None:
         self.top_line.set_text(text)
+
+    def run_action(self, name: str, item: str) -> None:
+        """Führe eine Aktion auf einem Item aus."""
+        actions_dict = {action.name: action for action in self._action_list}
+        actions_dict[name].action(get_item_or_dummy(item))
+        for (item_name, action_name), button in self._buttons.items():
+            button.set_visible(
+                bool(actions_dict[action_name].visible(get_item_or_dummy(item_name))))
 
 
 def main(startpunkt: Fortsetzung | None = None) -> None:
@@ -743,7 +778,12 @@ def main(startpunkt: Fortsetzung | None = None) -> None:
     global _main_thread
     import logging
     getLogger("xwatc").setLevel(logging.INFO)
-    app = Gtk.Application()
+    display = Gdk.Display.get_default()
+    assert display
+    icon_theme = Gtk.IconTheme.get_for_display(display)
+    icon_theme.add_search_path(str(XWATC_PATH / ".." / "share" / "icons"))
+    assert "add-equipment" in icon_theme.get_icon_names()
+    app = Gtk.Application(application_id="com.github.vosakosa.xwatc")
     app.connect("activate", XwatcFenster, startpunkt)
     _main_thread = threading.main_thread()
     app.run(sys.argv)

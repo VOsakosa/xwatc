@@ -3,7 +3,7 @@ from typing import Any
 import unittest
 from unittest.mock import Mock
 
-from xwatc.anzeige import InventarFenster
+from xwatc.anzeige import InventarAnzeige, InventarFenster
 from xwatc_test.mock_system import MockSystem
 
 from gi.repository import Gtk  # type: ignore # isort: skip
@@ -37,3 +37,14 @@ class TestStacks(unittest.TestCase):
                     break
         else:
             self.fail('Kein "Mantel" gefunden.')
+
+    def test_ausrüsten(self) -> None:
+        mänx = MockSystem().install()
+        fenster = InventarFenster(mänx)
+        xwatc_fenster: Any = None
+        widget = fenster.erzeuge_widget(xwatc_fenster)
+        assert isinstance(widget, InventarAnzeige)
+        with self.assertRaisesRegex(KeyError, "blubb"):
+            widget.run_action("blubb", "Unterhose")
+        widget.run_action("abrüsten", "Unterhose")
+        self.assertFalse(mänx.ist_ausgerüstet("Unterhose"))

@@ -3,6 +3,7 @@
 from pathlib import Path
 import gettext as gettext_module
 
+XWATC_PATH = Path(__file__).parent.absolute()
 try:
     translations: gettext_module.NullTranslations = gettext_module.translation(
         "xwatc", Path(__file__).parent / "locales",
