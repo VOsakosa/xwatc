@@ -49,7 +49,8 @@ _warn_items = set[str]()
 
 @define
 class StoryChar:
-    """Ein weltweit einzigartiger Charakter, mit eigenen Geschichten.
+    """Ein weltweit einzigartiger Charakter, mit eigenen Geschichten. Mehrere NSCs können den
+    gleichen StoryChar haben.
 
     Diese Klasse ist dazu gedacht, direkt auf Modul-Ebene erzeugt zu werden. Sie registriert
     sich dann von alleine und kann wie durch den Objekt-Cache aufgerufen werden und den spezifischen
@@ -185,7 +186,7 @@ def _copy_inventar(old: Mapping[str, int]) -> defaultdict[str, int]:
 
 @define
 class NSC(system.InventarBasis):
-    """Ein NSC, mit dem der Spieler interagieren kann. Alles konkretes ist in template und
+    """Ein NSC, mit dem der Spieler interagieren kann. Alles konkrete ist in template und
     der Rest der Datenstruktur beschäftigt sich mit dem momentanen Status dieses NSCs in der
     Welt."""
     template: StoryChar

@@ -31,6 +31,7 @@ from xwatc.system import SPEICHER_VERZEICHNIS, Bekleidetheit, Fortsetzung, Inven
 
 if False:
     from xwatc.system import Speicherpunkt
+
 __author__ = "jasper"
 
 
@@ -540,7 +541,6 @@ class XwatcFenster:
             list(get_children(self.auswahlwidget)),
             self.buffer))
         self.sichtbare_anzeigen = set()
-        self.buffer = Gtk.TextBuffer()
         for child in get_children(self.show_grid):
             if isinstance(child, Gtk.TextView):
                 child.set_buffer(self.buffer)

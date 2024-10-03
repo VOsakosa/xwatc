@@ -7,3 +7,5 @@ __pycache__
 /saves/
 /xwatc_saves/
 /.pytest_cache/
+.coverage
+coverage.xml

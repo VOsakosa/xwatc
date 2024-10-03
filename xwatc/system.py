@@ -47,7 +47,7 @@ class HatMain(typing.Protocol):
     ausgeführt werden können. Das können Menschen, aber auch Wegpunkte
     und Pflanzen sein."""
 
-    def main(self, mänx: 'Mänx', /):
+    def main(self, mänx: 'Mänx', /) -> Fortsetzung | None:
         """Lasse den Mänxen mit dem Objekt interagieren."""
 
 
@@ -239,6 +239,14 @@ class InventarBasis:
             elif klasse == Waffenhand.NEBENHAND:
                 kandidat = item
         return kandidat
+
+    def get_waffen(self) -> Iterator[Item]:
+        """Hole alle ausgerüsteten Waffen."""
+        for waffe in self._ausgerüstet:
+            item = get_item(waffe)
+            klasse = item.ausrüstungsklasse
+            if isinstance(klasse, Waffenhand):
+                yield item
 
     @property
     def bekleidetheit(self) -> Bekleidetheit:

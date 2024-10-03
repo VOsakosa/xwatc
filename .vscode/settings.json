@@ -1,6 +1,7 @@
 {
     "python.testing.pytestArgs": [
-        "xwatc_test"
+        "xwatc_test",
+        "--doctest-modules"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true
