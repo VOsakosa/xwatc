@@ -6,6 +6,7 @@ Mänx(...)
 
 Created on 25.03.2023
 """
+import re
 from attrs import define
 from collections.abc import Sequence
 from typing import TypeVar
@@ -33,7 +34,18 @@ T = TypeVar("T")
 
 @define
 class MockSystem:
-    """Ausgaben über das Terminal"""
+    """Stellt ein Test-System bereit, dass die Aus- und Eingaben von Xwatc mockt.
+
+    >>> system = MockSystem()
+    >>> mänx = system.install()
+    >>> system.ein("ja")
+    >>> mänx.ja_nein("Willst du mich heiraten?")
+    True
+    >>> system.aus_regex(r"Willst du mich .*\?")
+    >>> mänx.ja_nein("Wirklich?")
+    Traceback (most recent call last):
+    xwatc_test.mock_system.ScriptEnde
+    """
     terminal: bool = True
     ausgaben: list[str] = Factory(list)
     eingaben: list[str] = Factory(list)
@@ -42,8 +54,15 @@ class MockSystem:
         system.ausgabe = self  # type: ignore
         return system.Mänx(self)  # type: ignore
 
-    def ein(self, txt: str):
+    def ein(self, txt: str) -> None:
         self.eingaben.append(txt)
+
+    def aus_regex(self, regex: str) -> None:
+        if not self.ausgaben:
+            raise AssertionError(f"Es gab keine Ausgabe. Erwartet: {regex}")
+        ausgabe = self.ausgaben.pop(0)
+        if not re.fullmatch(regex, ausgabe):
+            raise AssertionError(f"Ausgabe {ausgabe!r} passt nicht auf {regex}.")
 
     def pop_ausgaben(self) -> list[str]:
         ans = list(self.ausgaben)
