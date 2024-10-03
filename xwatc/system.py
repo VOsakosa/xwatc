@@ -47,7 +47,7 @@ class HatMain(typing.Protocol):
     ausgeführt werden können. Das können Menschen, aber auch Wegpunkte
     und Pflanzen sein."""
 
-    def main(self, mänx: 'Mänx', /):
+    def main(self, mänx: 'Mänx', /) -> Fortsetzung | None:
         """Lasse den Mänxen mit dem Objekt interagieren."""
 
 

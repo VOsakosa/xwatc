@@ -1,86 +1,99 @@
 """
 Beim Kampfsystem schlagen zwei Leute aufeinander ein.
 """
-from __future__ import annotations
 import random
-from typing import Union, Sequence, List, Tuple
+from typing import Self, TypeAlias, Union, Sequence, List, Tuple
+
+from attrs import define
 import xwatc
-from xwatc.system import Mänx, Spielende, malp
+from xwatc import _
+from xwatc.nsc import NSC
+from xwatc.system import HatMain, Mänx, Spielende, malp
 import enum
 __author__ = "jasper"
 
 
-Kämpfer = Union['MänxAlsKämpfer', 'NSCKämpfer']
+@define(frozen=True)
+class MänxController:
+    """Stellt eine Kontroller durch den Spieler dar."""
 
-
-class MänxAlsKämpfer:
-    def __init__(self, mänx: Mänx):
-        self.mänx = mänx
-        self.seite = 1
-        self.name = "Du"
-
-    def attacken(self) -> Sequence[Attacke]:
-        ans = []
-        mänx = self.mänx
-        if not mänx.hat_klasse("Waffe"):
-            ans.append(Attacke("Faustschlag", 5))
-        elif mänx.hat_klasse("legendäre Waffe"):
-            ans.append(Attacke("normale Attacke", 50))
-        else:
-            ans.append(Attacke("normale Attacke", 40))
-        return ans
-
-    def wähle_attacke(self, kampf: Kampf) -> Tuple[Attacke, Sequence['Kämpfer']]:
-        att = self.mänx.menu([(a.name, a.name.lower(), a) for a in self.attacken()],
-                             frage="kampf>")
-        gegner = [a for a in kampf.teilnehmer if a.seite != self.seite]
-        if att.zieltyp == Zieltyp.Einzel:
-            gegner = [self.mänx.menu([(a.name, a.name.lower(), a) for a in gegner],
-                                     frage="Wen?")]
+    def wähle_attacke(self, kampf: 'Kampf', idx: int) -> tuple['Attacke', Sequence['Kämpfer']]:
+        kämpfer = kampf.kämpfer[idx]
+        att = kampf._mänx.menu([(a.name, a.name.lower(), a) for a in kämpfer.get_attacken()],
+                               frage=_("kampf>"))
+        gegner = [a for a in kampf.kämpfer if a.seite != kämpfer.seite]
+        if att.zieltyp == Zieltyp.Einzel and len(gegner) != 1:
+            gegner = [kampf._mänx.menu([(a.name, a.name.lower(), a) for a in gegner],
+                                       frage=_("Wen?"))]
         return att, gegner
 
+
+@define
+class AIController:
+    """Stellt eine Kontrolle durch den Computer dar."""
+
+    def wähle_attacke(self, kampf: 'Kampf', idx: int) -> tuple['Attacke', Sequence['Kämpfer']]:
+        """Wählt die Attacke, die die AI durchführt."""
+
+
+Controller: TypeAlias = MänxController | AIController
+
+
+@define
+class KämpferAnzeige:
+    """Die Anzeigedaten eines Kämpfers, sein Bild etc."""
+    name: str
+
+
+@define
+class Kämpfer:
+    """Ein Teilnehmer des Kampfes, mit LP."""
+    lp: int
+    max_lp: int
+    seite: int
+    controller: Controller
+    anzeige: KämpferAnzeige
+    _nsc: NSC | Mänx
+
+    @classmethod
+    def aus_mänx(cls, mänx: Mänx) -> Self:
+        """Erzeugt einen Kämpfer auf Basis des Spielers."""
+        lp = 100
+        return cls(lp=lp, max_lp=lp, seite=1, controller=MänxController(),
+                   anzeige=KämpferAnzeige(_("Du")), nsc=mänx)
+
+    @classmethod
+    def aus_nsc(cls, nsc: NSC) -> Self:
+        """Erzeugt einen Kämpfer auf Basis eines NSCs, als Feind."""
+        lp = 100
+        return cls(lp=lp, max_lp=lp, seite=2, controller=AIController(),
+                   anzeige=KämpferAnzeige(nsc.name), nsc=nsc)
+
+    @classmethod
+    def aus_gefährte(cls, nsc: NSC) -> Self:
+        """Erzeugt einen Kämpfer auf Basis eines NSCs, als Gefährte."""
+        lp = 100
+        return cls(lp=lp, max_lp=lp, seite=1, controller=MänxController(),
+                   anzeige=KämpferAnzeige(nsc.name), nsc=nsc)
+
     @property
-    def tot(self):
-        return self._tot
-
-    @tot.setter
-    def tot(self, ja: bool):
-        self._tot = ja
-        if ja:
-            raise Spielende
-
-    def schade(self, anzahl: int):
-        self.mänx.lebenspunkte -= anzahl
-        if self.mänx.lebenspunkte < 0:
-            self.tot = True
-
-
-class NSCKämpfer:
-    def __init__(self, basis: xwatc.nsc.NSC, seite: int) -> None:
-        self.basis = basis
-        self.lebenspunkte = basis.max_lp
-        self.max_lp = basis.max_lp
-        self.seite = seite
+    def name(self) -> str:
+        return self.anzeige.name
 
     @property
-    def name(self):
-        return self.basis.name
+    def tot(self) -> bool:
+        return not self.lp
+
+    def schade(self, schaden: float) -> None:
+        """Füge dem Kämpfer `schaden` an Schaden zu."""
+
+    def get_attacken(self) -> Sequence['Attacke']:
+        """Gebe die Liste von Attacken aus, die der Kämpfer gerade zur Verfügung hat."""
 
     @property
-    def tot(self):
-        return self.basis.tot
-
-    @tot.setter
-    def tot(self, ja: bool):
-        self.basis.tot = ja
-
-    def schade(self, anzahl: int):
-        if anzahl < 0:
-            self.lebenspunkte = min(self.max_lp, self.lebenspunkte - anzahl)
-        else:
-            self.lebenspunkte -= anzahl
-            if self.lebenspunkte < 0:
-                self.tot = True
+    def nsc(self) -> NSC | Mänx:
+        """Hole den NSC / Mänx aus der Basis"""
+        return self._nsc
 
 
 class Zieltyp(enum.Enum):
@@ -88,17 +101,16 @@ class Zieltyp(enum.Enum):
     Einzel = enum.auto()
 
 
+@define
 class Attacke:
     """Eine Art von Angriff, die ein Kämpfer besitzt."""
-    name: str  # z.B. normaler Angriff
-    zieltyp: Zieltyp
+    name: str  #: z.B. normaler Angriff
+    name_kurz: str  # : z.B. normal
+    schaden: int  # die Menge an Schaden in LP
+    zieltyp: Zieltyp = Zieltyp.Einzel
 
-    def __init__(self, name: str, schaden: int):
-        self.name = name
-        self.schaden = schaden
-        self.zieltyp = Zieltyp.Einzel
-
-    def text(self, angreifer, verteidiger_liste: Sequence[Kämpfer]):
+    def text(self, angreifer: Kämpfer, verteidiger_liste: Sequence[Kämpfer]) -> str:
+        """Der Text, wenn die Attacke eingesetzt wird."""
         verteidiger = [(a.name if a.name != "Du" else "dich")
                        for a in verteidiger_liste]
         if len(verteidiger) == 1:
@@ -106,40 +118,51 @@ class Attacke:
         else:
             vers = ", ".join(verteidiger[:-1]) + " und " + verteidiger[-1]
 
-        return (f"{angreifer.name} setzt {self.name} gegen "
-                f"{vers} ein.")
+        return (f"{angreifer.name} setzt {self.name} gegen {vers} ein.")
 
 
-class Kampf:
-    def __init__(self, mänx: Mänx, teilnehmer: Sequence['Kämpfer']):
-        self.teilnehmer: List['Kämpfer'] = [MänxAlsKämpfer(mänx)]
-        self.teilnehmer.extend(teilnehmer)
+@define
+class Kampf(HatMain):
+    kämpfer: list[Kämpfer]
+    _mänx: Mänx
+
+    @staticmethod
+    def neu_gegen(mänx: Mänx, gegner: list[NSC]) -> 'Kampf':
+        """Erzeuge einen neuen Kampf vom Mänxen gegen eine Liste von Gegnern, mit seinen
+        Gefährten als Allierte."""
+
+    def main(self, mänx: Mänx) -> None:
         self.runde = 0
-
-    def main(self):
-        self.runde = 0
-        while len({a.seite for a in self.teilnehmer}) > 2:
+        while len({a.seite for a in self.kämpfer}) > 2:
             self.runde += 1
-            for teilnehmer in self.teilnehmer[:]:
-                if teilnehmer.tot:
+            for i, kämpfer in enumerate(self.kämpfer[:]):
+                if kämpfer.tot:
                     pass
-                self._attacke_ausführen(
-                    teilnehmer, *teilnehmer.wähle_attacke(self))
+                attacke = kämpfer.controller.wähle_attacke(self, i)
+                self._attacke_ausführen(kämpfer, *attacke)
 
-    def neuer_teilnehmer(self, kämpfer: Kämpfer):
-        self.teilnehmer.append(kämpfer)
+    def neuer_teilnehmer(self, kämpfer: Kämpfer) -> None:
+        self.kämpfer.append(kämpfer)
 
     def _attacke_ausführen(self, angreifer: Kämpfer,
-                           attacke: Attacke, ziele: Sequence['Kämpfer']):
+                           attacke: Attacke, ziele: Sequence['Kämpfer']) -> None:
         for ziel in ziele:
             ziel.schade(attacke.schaden)
         malp(attacke.text(angreifer, ziele))
 
 
+class Kampfausgang(enum.Enum):
+    """Der Ausgang des Kampfes. Man kann fliehen, sterben, gewinnen oder sterben und gewinnen."""
+    Flucht = 0
+    Sieg = 1
+    Niederlage = 2
+    Gleichstand = 3
+
+
 def start_einzel_kampf(
         mänx: Mänx,
         gegner: xwatc.nsc.NSC  # NSC durch KampfEigenschaft oder so ersetzen
-) -> bool:
+) -> Kampfausgang:
     """Führt einen Kampf gegen einen einzigen Gegner aus.
     Die Konsequenzen des Kampfes werden vom Aufrufenden festgelegt, diese Funktion gibt
     also lediglich zurück, wie der Kampf ausgegangen ist.
