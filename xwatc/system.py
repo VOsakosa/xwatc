@@ -240,6 +240,14 @@ class InventarBasis:
                 kandidat = item
         return kandidat
 
+    def get_waffen(self) -> Iterator[Item]:
+        """Hole alle ausgerüsteten Waffen."""
+        for waffe in self._ausgerüstet:
+            item = get_item(waffe)
+            klasse = item.ausrüstungsklasse
+            if isinstance(klasse, Waffenhand):
+                yield item
+
     @property
     def bekleidetheit(self) -> Bekleidetheit:
         """Wie sehr gekleidet er ist. Siehe :py:class:`Bekleidetheit` für die Kriterien."""

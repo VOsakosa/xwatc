@@ -10,6 +10,8 @@ from xwatc import _
 from xwatc.nsc import NSC
 from xwatc.system import HatMain, Mänx, Spielende, malp
 import enum
+
+from xwatc.untersystem.itemverzeichnis import Fähigkeit
 __author__ = "jasper"
 
 
@@ -19,7 +21,7 @@ class MänxController:
 
     def wähle_attacke(self, kampf: 'Kampf', idx: int) -> tuple['Attacke', Sequence['Kämpfer']]:
         kämpfer = kampf.kämpfer[idx]
-        att = kampf._mänx.menu([(a.name, a.name.lower(), a) for a in kämpfer.get_attacken()],
+        att = kampf._mänx.menu([(a.name, a.name_kurz, a) for a in kämpfer.get_attacken()],
                                frage=_("kampf>"))
         gegner = [a for a in kampf.kämpfer if a.seite != kämpfer.seite]
         if att.zieltyp == Zieltyp.Einzel and len(gegner) != 1:
@@ -34,6 +36,13 @@ class AIController:
 
     def wähle_attacke(self, kampf: 'Kampf', idx: int) -> tuple['Attacke', Sequence['Kämpfer']]:
         """Wählt die Attacke, die die AI durchführt."""
+        # Stand jetzt rein zufällig.
+        kämpfer = kampf.kämpfer[idx]
+        att = random.choice(kämpfer.get_attacken())
+        gegner = [a for a in kampf.kämpfer if a.seite != kämpfer.seite]
+        if att.zieltyp == Zieltyp.Einzel and len(gegner) != 1:
+            gegner = [random.choice(gegner)]
+        return att, gegner
 
 
 Controller: TypeAlias = MänxController | AIController
@@ -86,9 +95,23 @@ class Kämpfer:
 
     def schade(self, schaden: float) -> None:
         """Füge dem Kämpfer `schaden` an Schaden zu."""
+        self.lp -= round(schaden)
+        if self.lp < 0:
+            self.lp = 0
+        if self.lp > self.max_lp:
+            self.lp = self.max_lp
+        # TODO Notification event!
 
     def get_attacken(self) -> Sequence['Attacke']:
         """Gebe die Liste von Attacken aus, die der Kämpfer gerade zur Verfügung hat."""
+        waffen = list(self.nsc.get_waffen())
+        if not waffen:
+            return [Attacke("Faustschlag", "faust", 6)]
+        attacken = []
+        for waffe in waffen:
+            for fähigkeit in waffe.fähigkeiten:
+                attacken.append(Attacke.aus_fähigkeit(fähigkeit))
+        return attacken
 
     @property
     def nsc(self) -> NSC | Mänx:
@@ -109,6 +132,10 @@ class Attacke:
     schaden: int  # die Menge an Schaden in LP
     zieltyp: Zieltyp = Zieltyp.Einzel
 
+    @classmethod
+    def aus_fähigkeit(cls, fähigkeit: Fähigkeit) -> Self:
+        return cls(fähigkeit.name, fähigkeit.name.lower(), fähigkeit.schaden)
+
     def text(self, angreifer: Kämpfer, verteidiger_liste: Sequence[Kämpfer]) -> str:
         """Der Text, wenn die Attacke eingesetzt wird."""
         verteidiger = [(a.name if a.name != "Du" else "dich")
@@ -122,30 +149,48 @@ class Attacke:
 
 
 @define
-class Kampf(HatMain):
+class Kampf:
     kämpfer: list[Kämpfer]
     _mänx: Mänx
+    runde: int = 0
 
     @staticmethod
     def neu_gegen(mänx: Mänx, gegner: list[NSC]) -> 'Kampf':
         """Erzeuge einen neuen Kampf vom Mänxen gegen eine Liste von Gegnern, mit seinen
         Gefährten als Allierte."""
+        kämpfer = [Kämpfer.aus_mänx(mänx)]
+        for gefährte in mänx.gefährten:
+            kämpfer.append(Kämpfer.aus_gefährte(gefährte))
+        for n_gegner in gegner:
+            kämpfer.append(Kämpfer.aus_nsc(n_gegner))
+        return Kampf(kämpfer, mänx)
 
-    def main(self, mänx: Mänx) -> None:
+    def main(self, mänx: Mänx) -> 'Kampfausgang':
         self.runde = 0
-        while len({a.seite for a in self.kämpfer}) > 2:
+        while len({a.seite for a in self.kämpfer if not a.tot}) > 2:
             self.runde += 1
             for i, kämpfer in enumerate(self.kämpfer[:]):
                 if kämpfer.tot:
                     pass
                 attacke = kämpfer.controller.wähle_attacke(self, i)
                 self._attacke_ausführen(kämpfer, *attacke)
+        alive = {a.seite for a in self.kämpfer if not a.tot}
+        if 1 in alive:
+            return Kampfausgang.Sieg
+        if 2 in alive:
+            return Kampfausgang.Niederlage
+        else:
+            return Kampfausgang.Gleichstand
 
     def neuer_teilnehmer(self, kämpfer: Kämpfer) -> None:
         self.kämpfer.append(kämpfer)
 
     def _attacke_ausführen(self, angreifer: Kämpfer,
                            attacke: Attacke, ziele: Sequence['Kämpfer']) -> None:
+        if attacke.zieltyp == Zieltyp.Einzel:
+            assert len(ziele) == 1
+        else:
+            assert ziele
         for ziel in ziele:
             ziel.schade(attacke.schaden)
         malp(attacke.text(angreifer, ziele))
@@ -169,11 +214,4 @@ def start_einzel_kampf(
 
     :return: Ob der Kampf gewonnen wurde.
     """
-    # Platzhalter, bitte durch echten Kampf ersetzen.
-    xwatc.system.mint("Du kämpfst.")
-    if random.random() < 0.3:
-        malp("Du verlierst den Kampf.")
-        return False
-    else:
-        malp("Du gewinnst")
-        return True
+    return Kampf.neu_gegen(mänx, [gegner]).main(mänx)

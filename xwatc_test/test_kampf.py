@@ -19,7 +19,7 @@ class TestKampf(unittest.TestCase):
         controller = kampf.kämpfer[0].controller
         self.assertIsInstance(controller, MänxController)
 
-        system.ein("a")
+        # system.ein("a")
         system.ein("faust")
         controller.wähle_attacke(kampf, 0)
         ausgaben = system.pop_ausgaben()
