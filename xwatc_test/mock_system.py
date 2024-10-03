@@ -57,6 +57,13 @@ class MockSystem:
     def ein(self, txt: str) -> None:
         self.eingaben.append(txt)
 
+    def aus(self, text: str) -> None:
+        if not self.ausgaben:
+            raise AssertionError(f"Es gab keine Ausgabe. Erwartet: {text}")
+        ausgabe = self.ausgaben.pop(0)
+        if ausgabe != text:
+            raise AssertionError(f"Ausgabe {ausgabe!r} ist nicht {text}.")
+
     def aus_regex(self, regex: str) -> None:
         if not self.ausgaben:
             raise AssertionError(f"Es gab keine Ausgabe. Erwartet: {regex}")

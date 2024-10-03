@@ -155,7 +155,7 @@ class Kampf:
     runde: int = 0
 
     @staticmethod
-    def neu_gegen(mänx: Mänx, gegner: list[NSC]) -> 'Kampf':
+    def neu_gegen(mänx: Mänx, gegner: Sequence[NSC]) -> 'Kampf':
         """Erzeuge einen neuen Kampf vom Mänxen gegen eine Liste von Gegnern, mit seinen
         Gefährten als Allierte."""
         kämpfer = [Kämpfer.aus_mänx(mänx)]
@@ -204,9 +204,9 @@ class Kampfausgang(enum.Enum):
     Gleichstand = 3
 
 
-def start_einzel_kampf(
+def start_kampf(
         mänx: Mänx,
-        gegner: xwatc.nsc.NSC  # NSC durch KampfEigenschaft oder so ersetzen
+        gegner: NSC | Sequence[NSC]
 ) -> Kampfausgang:
     """Führt einen Kampf gegen einen einzigen Gegner aus.
     Die Konsequenzen des Kampfes werden vom Aufrufenden festgelegt, diese Funktion gibt
@@ -214,4 +214,6 @@ def start_einzel_kampf(
 
     :return: Ob der Kampf gewonnen wurde.
     """
-    return Kampf.neu_gegen(mänx, [gegner]).main(mänx)
+    if isinstance(gegner, NSC):
+        gegner = [gegner]
+    return Kampf.neu_gegen(mänx, gegner).main(mänx)
