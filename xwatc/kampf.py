@@ -1,17 +1,17 @@
 """
 Beim Kampfsystem schlagen zwei Leute aufeinander ein.
 """
+import enum
 import random
-from typing import Self, TypeAlias, Union, Sequence, List, Tuple
+from typing import Self, Sequence, TypeAlias
 
 from attrs import define
-import xwatc
+
 from xwatc import _
 from xwatc.nsc import NSC
-from xwatc.system import HatMain, Mänx, Spielende, malp
-import enum
-
+from xwatc.system import Mänx, malp
 from xwatc.untersystem.itemverzeichnis import Fähigkeit
+
 __author__ = "jasper"
 
 
