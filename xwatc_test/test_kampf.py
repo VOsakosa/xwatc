@@ -3,9 +3,10 @@ import unittest
 from typing import Any
 
 import pytest
-from xwatc.kampf import AIController, Kampf, Zieltyp, Kämpfer, MänxController, start_kampf
+from xwatc.kampf import AIController, Kampf, Kämpfer, MänxController, start_kampf
 from xwatc.nsc import NSC, StoryChar
 from xwatc.system import Mänx, get_item
+from xwatc.untersystem.attacken import Zieltyp
 from xwatc.untersystem.person import Person, Rasse
 from xwatc_test.mock_system import MockSystem
 

@@ -10,7 +10,8 @@ from attrs import define
 from xwatc import _
 from xwatc.nsc import NSC
 from xwatc.system import Mänx, malp
-from xwatc.untersystem.itemverzeichnis import Fähigkeit
+from xwatc.untersystem.attacken import Fertigkeit, Schadenstyp
+from xwatc.untersystem.attacken import Zieltyp
 
 __author__ = "jasper"
 
@@ -19,7 +20,7 @@ __author__ = "jasper"
 class MänxController:
     """Stellt eine Kontroller durch den Spieler dar."""
 
-    def wähle_attacke(self, kampf: 'Kampf', idx: int) -> tuple['Attacke', Sequence['Kämpfer']]:
+    def wähle_attacke(self, kampf: 'Kampf', idx: int) -> tuple['Fertigkeit', Sequence['Kämpfer']]:
         kämpfer = kampf.kämpfer[idx]
         att = kampf._mänx.menu([(a.name, a.name_kurz, a) for a in kämpfer.get_attacken()],
                                frage=_("kampf>"))
@@ -34,7 +35,7 @@ class MänxController:
 class AIController:
     """Stellt eine Kontrolle durch den Computer dar."""
 
-    def wähle_attacke(self, kampf: 'Kampf', idx: int) -> tuple['Attacke', Sequence['Kämpfer']]:
+    def wähle_attacke(self, kampf: 'Kampf', idx: int) -> tuple['Fertigkeit', Sequence['Kämpfer']]:
         """Wählt die Attacke, die die AI durchführt."""
         # Stand jetzt rein zufällig.
         kämpfer = kampf.kämpfer[idx]
@@ -102,50 +103,21 @@ class Kämpfer:
             self.lp = self.max_lp
         # TODO Notification event!
 
-    def get_attacken(self) -> Sequence['Attacke']:
+    def get_attacken(self) -> Sequence['Fertigkeit']:
         """Gebe die Liste von Attacken aus, die der Kämpfer gerade zur Verfügung hat."""
         waffen = list(self.nsc.get_waffen())
         if not waffen:
-            return [Attacke("Faustschlag", "faust", 6)]
+            return [Fertigkeit("Faustschlag", "faust", 6, [Schadenstyp.Wucht])]
         attacken = []
         for waffe in waffen:
             for fähigkeit in waffe.fähigkeiten:
-                attacken.append(Attacke.aus_fähigkeit(fähigkeit))
+                attacken.append(Fertigkeit.aus_fähigkeit(fähigkeit))
         return attacken
 
     @property
     def nsc(self) -> NSC | Mänx:
         """Hole den NSC / Mänx aus der Basis"""
         return self._nsc
-
-
-class Zieltyp(enum.Enum):
-    Alle = enum.auto()
-    Einzel = enum.auto()
-
-
-@define
-class Attacke:
-    """Eine Art von Angriff, die ein Kämpfer besitzt."""
-    name: str  #: z.B. normaler Angriff
-    name_kurz: str  # : z.B. normal
-    schaden: int  # die Menge an Schaden in LP
-    zieltyp: Zieltyp = Zieltyp.Einzel
-
-    @classmethod
-    def aus_fähigkeit(cls, fähigkeit: Fähigkeit) -> Self:
-        return cls(fähigkeit.name, fähigkeit.name.lower(), fähigkeit.schaden)
-
-    def text(self, angreifer: Kämpfer, verteidiger_liste: Sequence[Kämpfer]) -> str:
-        """Der Text, wenn die Attacke eingesetzt wird."""
-        verteidiger = [(a.name if a.name != "Du" else "dich")
-                       for a in verteidiger_liste]
-        if len(verteidiger) == 1:
-            vers, = verteidiger
-        else:
-            vers = ", ".join(verteidiger[:-1]) + " und " + verteidiger[-1]
-
-        return (f"{angreifer.name} setzt {self.name} gegen {vers} ein.")
 
 
 @define
@@ -186,7 +158,7 @@ class Kampf:
         self.kämpfer.append(kämpfer)
 
     def _attacke_ausführen(self, angreifer: Kämpfer,
-                           attacke: Attacke, ziele: Sequence['Kämpfer']) -> None:
+                           attacke: Fertigkeit, ziele: Sequence['Kämpfer']) -> None:
         if attacke.zieltyp == Zieltyp.Einzel:
             assert len(ziele) == 1
         else:
