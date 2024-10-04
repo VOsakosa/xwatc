@@ -202,13 +202,7 @@ class XwatcFenster:
     von Buttons am Ende des Fensters eingeholt."""
     terminal: ClassVar[bool] = False
 
-    def __init__(self, app: Gtk.Application, startpunkt: None | Fortsetzung = None):
-        style_provider = Gtk.CssProvider()
-        style_provider.load_from_path(str(XWATC_PATH / 'style.css'))
-        display = Gdk.Display.get_default()
-        assert display
-        Gtk.StyleContext.add_provider_for_display(
-            display, style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+    def __init__(self, app: Gtk.Application):
         win = Gtk.ApplicationWindow()
         app.add_window(win)
 
@@ -242,10 +236,12 @@ class XwatcFenster:
         # Spiel beginnen
         self.mänx: system.Mänx | None = None
         self.unterbrochen = False
+
+    def run(self, startpunkt: None | Fortsetzung = None) -> None:
         system.ausgabe = self
         threading.Thread(target=self._xwatc_thread, args=(startpunkt,),
                          name="Xwatc-Geschichte", daemon=True).start()
-        win.present()
+        cast(Gtk.Window, self.main_grid.get_parent()).present()
 
     def _xwatc_thread(self, startpunkt: Fortsetzung | None):
         # Das nächste, was passiert. None für Abbruch, die Buchstaben stehen für interne Menüs
@@ -773,18 +769,27 @@ class InventarAnzeige(Gtk.Box):
                 bool(actions_dict[action_name].visible(get_item_or_dummy(item_name))))
 
 
-def main(startpunkt: Fortsetzung | None = None) -> None:
-    """Lasse xwatc.anzeige laufen."""
-    global _main_thread
-    import logging
-    getLogger("xwatc").setLevel(logging.INFO)
+def _setup_gtk() -> None:
     display = Gdk.Display.get_default()
     assert display
     icon_theme = Gtk.IconTheme.get_for_display(display)
     icon_theme.add_search_path(str(XWATC_PATH / ".." / "share" / "icons"))
     assert "add-equipment" in icon_theme.get_icon_names()
+    style_provider = Gtk.CssProvider()
+    style_provider.load_from_path(str(XWATC_PATH / 'style.css'))
+    Gtk.StyleContext.add_provider_for_display(
+        display, style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
+
+def main(startpunkt: Fortsetzung | None = None) -> None:
+    """Lasse xwatc.anzeige laufen."""
+    global _main_thread
+    import logging
+    getLogger("xwatc").setLevel(logging.INFO)
+
+    _setup_gtk()
     app = Gtk.Application(application_id="com.github.vosakosa.xwatc")
-    app.connect("activate", XwatcFenster, startpunkt)
+    app.connect("activate", lambda app: XwatcFenster(app).run(startpunkt))
     _main_thread = threading.main_thread()
     app.run(sys.argv)
 
