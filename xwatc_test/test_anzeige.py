@@ -1,9 +1,13 @@
 from collections.abc import Iterator
+import threading
 from typing import Any
 import unittest
 from unittest.mock import Mock
 
-from xwatc.anzeige import InventarAnzeige, InventarFenster
+import pytest
+
+import xwatc.anzeige
+from xwatc.anzeige import InventarAnzeige, InventarFenster, XwatcFenster
 from xwatc_test.mock_system import MockSystem
 
 from gi.repository import Gtk  # type: ignore # isort: skip
@@ -20,6 +24,7 @@ def iter_widgets(widget: Gtk.Widget) -> Iterator[Gtk.Widget]:
         yield widget
 
 
+@pytest.mark.usefixtures("xwatc_fenster")
 class TestStacks(unittest.TestCase):
     def test_init_and_close_inventar(self) -> None:
         mänx = MockSystem().install()
@@ -48,3 +53,33 @@ class TestStacks(unittest.TestCase):
             widget.run_action("blubb", "Unterhose")
         widget.run_action("abrüsten", "Unterhose")
         self.assertFalse(mänx.ist_ausgerüstet("Unterhose"))
+
+
+class TestAnzeige:
+    def test_malp_stack(self, xwatc_fenster: XwatcFenster):
+        xwatc_fenster.add_text("Unterer Stack")
+        xwatc_fenster.auswahl([("Weiter", None)])
+        assert xwatc_fenster.buffer.props.text == "Unterer Stack"
+        text = xwatc_fenster.show_grid.get_first_child().get_child()  # type: ignore
+        assert isinstance(text, Gtk.TextView)
+        assert text.get_buffer() is xwatc_fenster.buffer
+        xwatc_fenster.malp_stack("Das ist die neue Nachricht.")
+        assert xwatc_fenster.buffer.props.text.strip() == "Das ist die neue Nachricht."
+
+        text = xwatc_fenster.show_grid.get_first_child().get_child()  # type: ignore
+        assert isinstance(text, Gtk.TextView)
+        assert text.get_buffer() is xwatc_fenster.buffer is xwatc_fenster.text_view.get_buffer()
+        assert xwatc_fenster._stack[0].buffer.props.text == "Unterer Stack"
+
+        assert list(xwatc_fenster.auswahlwidget._mgn) == ["weiter"]
+        xwatc_fenster.auswahlwidget.wähle(None)  # Hier wird der Stack gepoppt
+
+        assert text.get_buffer() is xwatc_fenster.buffer is xwatc_fenster.text_view.get_buffer()
+        assert xwatc_fenster.buffer.props.text == "Unterer Stack"
+
+
+@pytest.fixture
+def xwatc_fenster():
+    app = Gtk.Application()
+    xwatc.anzeige._main_thread = threading.main_thread()
+    return XwatcFenster(app)

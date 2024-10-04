@@ -207,10 +207,10 @@ class XwatcFenster:
         app.add_window(win)
 
         # Eigenschaften des Stacks(?)
-        textview = Gtk.TextView(hexpand=True, vexpand=True, editable=False)
-        textview.add_css_class("main_text_view")
-        textview.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
-        self.buffer = textview.get_buffer()
+        self.text_view = Gtk.TextView(hexpand=True, vexpand=True, editable=False)
+        self.text_view.add_css_class("main_text_view")
+        self.text_view.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
+        self.buffer = self.text_view.get_buffer()
         self.anzeigen: dict[type, Gtk.Widget] = {}
         self.sichtbare_anzeigen: set[type] = set()
         #: Das wird gemacht, statt an den Xvatc-Thread zurückzugeben.
@@ -223,7 +223,7 @@ class XwatcFenster:
         self.show_grid = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.main_grid.append(self.info_widget.widget)
         self.main_grid.append(self.show_grid)
-        self.show_grid.append(Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=textview))
+        self.show_grid.append(Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=self.text_view))
         self.auswahlwidget = Auswahlswidget(action=self._auswahl_action)
         self.main_grid.append(self.auswahlwidget)
         win.connect("destroy", self.fenster_schließt)
@@ -310,13 +310,14 @@ class XwatcFenster:
 
     def _auswahl_action(self, ans: object) -> None:
         """Wird ausgeführt, wenn eine Wahl getroffen wurde."""
+        # Der Text wird erst entfernt
+        self.buffer.set_text("")
+        self.sichtbare_anzeigen.clear()
+        # Dann kommen die Aktionen
         if self.choice_action is None:
             _minput_return.put(ans)
         else:
             self.choice_action(ans)
-        # Der Text wird dann entfernt
-        self.buffer.set_text("")
-        self.sichtbare_anzeigen.clear()
 
     def get_minput_return(self) -> Any:
         """Hole ein Item aus der Rückgabequeue für Usereingaben.
@@ -537,14 +538,8 @@ class XwatcFenster:
             list(get_children(self.auswahlwidget)),
             self.buffer))
         self.sichtbare_anzeigen = set()
-        for child in get_children(self.show_grid):
-            if isinstance(child, Gtk.TextView):
-                child.set_buffer(self.buffer)
-        for child in get_children(self.show_grid):
-            if isinstance(child, Gtk.TextView):
-                self.buffer = Gtk.TextBuffer()
-                child.set_buffer(self.buffer)
-                break
+        self.buffer = Gtk.TextBuffer()
+        self.text_view.set_buffer(self.buffer)
         self.auswahlwidget.deactivate_choices()
 
     def pop_stack(self) -> None:
@@ -560,9 +555,7 @@ class XwatcFenster:
             self.auswahlwidget.append(control)
             if isinstance(control, (Gtk.Button, Gtk.Entry)):
                 control.set_sensitive(True)
-        for child in get_children(self.show_grid):
-            if isinstance(child, Gtk.TextView):
-                child.set_buffer(self.buffer)
+        self.text_view.set_buffer(self.buffer)
 
     @contextmanager
     def stack(self) -> Iterator[None]:
