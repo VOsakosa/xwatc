@@ -2,77 +2,77 @@ doc_name: Waffen
 
 Morgenstern:
   - name: dreschen
-    Schaden: 25
-    Abklingzeit: 2
+    schaden: 25
+    abklingzeit: 2
   - name: Ballerina
-    Schaden: 75
+    schaden: 75
     Stamina: 40
-    Abklingzeit: 6
+    abklingzeit: 6
 
 Stahlhandschuh:
   - name: boxen
-    Schaden: 16
+    schaden: 16
   - name: Handkantenschlag
-    Schaden: 25
-    Abklingzeit: 3
+    schaden: 25
+    abklingzeit: 3
     Stamina: 10
 
 mächtige Axt:
   - name: Holzspalten
-    Schaden: 18
+    schaden: 18
   - name: Überkopfschlag
-    Schaden: 50
+    schaden: 50
     Stamina: 30
-    Abklingzeit: 4
+    abklingzeit: 4
 
 Höllenschwert:
   - name: Schlag
-    Schaden: 10
+    schaden: 10
     Effekt: [ Verfluchen ]
   - name: schwerer Hieb
-    Schaden: 25
+    schaden: 25
     Stamina: 15
-    Abklingzeit: 2
+    abklingzeit: 2
     Effekt: [ Verfluchen ]
 
 vergifteter Dolch:
   - name: stechen
-    Schaden: 5
+    schaden: 5
     Effekt: [ Vergiften ]
   - name: Dolchwurf
-    Schaden: 0
+    schaden: 0
     Effekt: [ Selbstentwaffnung, Vergiften ]
 
 Schwert:
   - name: Schlag
-    Schaden: 10
+    schaden: 10
   - name: schwerer Hieb
-    Schaden: 25
+    schaden: 25
     Stamina: 15
-    Abklingzeit: 2
+    abklingzeit: 2
 
 Schild:
   - name: blocken
-    Schaden: 0
+    schaden: 0
     Effekt: [ Blocken ]
   - name: stoßen
-    Schaden: 12
-    Abklingzeit: 3
+    schaden: 12
+    abklingzeit: 3
 
 Speer:
   - name: pieksen
-    Schaden: 8
+    schaden: 8
   - name: Ansturm
-    Schaden: 30
-    Abklingzeit: 5
+    schaden: 30
+    abklingzeit: 5
     Effekt: [ Selbstverwirrung ]
 
 Flammenstab:
   - name: Feuerball
-    Schaden: 20
+    schaden: 20
     Mana: 8
   - name: Inferno
-    Schaden: 60
+    schaden: 60
     Mana: 60
     Effekt: [ Entflammung ]
 

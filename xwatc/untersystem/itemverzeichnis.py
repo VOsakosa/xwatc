@@ -126,37 +126,6 @@ def parse_ausrüstungstyp(name: str) -> Ausrüstungstyp:
     return Kleidungsslot(Ausrüstungsort[name1], Ausrüstungsdicke[name2])
 
 
-class Effekt(Enum):
-    Verfluchen = auto()
-    Selbstentwaffnung = auto()
-    Blocken = auto()
-    Selbstverwirrung = auto()
-    Entflammung = auto()
-
-
-@define
-class Fähigkeit:
-    """ Attacken/Fähigkeiten, die ein Item im Kampf haben kann"""
-    name: str
-    schaden: int
-    mana: int = 0
-    stamina: int = 0
-    abklingzeit: int = 1
-    effekte: list[Effekt] = field(factory=list)
-
-    def add_effekt(self, effekt: str):
-        self.effekte.append(Effekt[effekt])
-
-    def set_mana(self, mana: int):
-        self.mana = mana
-
-    def set_stamina(self, stamina: int):
-        self.stamina = stamina
-
-    def set_abklingzeit(self, abklingzeit: int):
-        self.abklingzeit = abklingzeit
-
-
 @define
 class Item:
     """ Alle Items, die eine Figur im Inventar haben kann"""
@@ -165,7 +134,6 @@ class Item:
     beschreibung: str = field(default="?")
     item_typ: 'list[ItemKlasse]' = field(factory=list)  # type: ignore
     stapelbar: bool = field(default=True)
-    fähigkeiten: list[Fähigkeit] = field(factory=list)
     ausrüstungsklasse: None | Ausrüstungstyp = field(default=None)
 
     @staticmethod
@@ -195,14 +163,34 @@ class Item:
     def yield_classes(self) -> Iterator[ItemKlasse]:
         return iter(self.item_typ)
 
-    def add_fähigkeit(self, fähigkeit: Fähigkeit) -> None:
-        self.fähigkeiten.append(fähigkeit)
-
     def add_typ(self, klasse: str) -> None:
         self.item_typ.append(ItemKlasse[klasse])
 
 
-def lade_itemverzeichnis(pfad: str | PathLike, waffenpfad: str | PathLike) -> dict[str, Item]:
+def _lade_item(item_dict: str | dict[str, Any], klassen_name: str, common: dict[str, Any]) -> Item:
+    """Lade ein Item aus seiner Serialisierung.
+
+    >>> _lade_item("Hose;12", "Kleidung", {}) # doctest: +ELLIPSIS
+    Item(name='Hose', gold=12, beschreibung='?', item_typ=[<ItemKlasse.Kleidung:...>], ...)
+    """
+    if isinstance(item_dict, str):
+        item_name, *fields = re.split(r"\s*;\s*", item_dict)
+        if len(fields) > 1:
+            raise ValueError(f"Unerwartet viele Semikolons für {item_name}")
+        if fields and fields[0] != "-":
+            preis = int(fields[0])
+        else:
+            preis = 0
+        item_obj = Item.from_dict(common | {"name": item_name, "preis": preis})
+    elif isinstance(item_dict, dict):
+        item_obj = Item.from_dict(common | item_dict)
+    else:
+        raise ValueError(f"Unerwarteter Typ als Item in {klassen_name}")
+    item_obj.add_typ(klassen_name)
+    return item_obj
+
+
+def lade_itemverzeichnis(pfad: str | PathLike) -> dict[str, Item]:
     """Lädt das Itemverzeichnis bei Pfad."""
     with open(pfad, "r", encoding="utf-8") as file:
         data = yaml.safe_load(file)
@@ -219,20 +207,7 @@ def lade_itemverzeichnis(pfad: str | PathLike, waffenpfad: str | PathLike) -> di
             common = {}
             start = 0
         for item_dict in items[start:]:
-            if isinstance(item_dict, str):
-                item_name, *fields = re.split(r"\s*;\s*", item_dict)
-                if len(fields) > 1:
-                    raise ValueError(f"Unerwartet viele Semikolons für {item_name}")
-                if fields and fields[0] != "-":
-                    preis = int(fields[0])
-                else:
-                    preis = 0
-                item_obj = Item.from_dict(common | {"name": item_name, "preis": preis})
-            elif isinstance(item_dict, dict):
-                item_obj = Item.from_dict(common | item_dict)
-            else:
-                raise ValueError(f"Unerwarteter Typ als Item in {klassen_name}")
-            item_obj.add_typ(klassen_name)
+            item_obj = _lade_item(item_dict, klassen_name, common)
             item_verzeichnis[item_obj.name] = item_obj
 
     for item_obj in item_verzeichnis.values():
@@ -241,25 +216,20 @@ def lade_itemverzeichnis(pfad: str | PathLike, waffenpfad: str | PathLike) -> di
             item_class = classes[item_class]
             item_obj.add_typ(item_class)
 
-    with open(waffenpfad, "r") as file:
-        doc = yaml.safe_load(file)
-        for name, attacken in doc.items():
-            if name in item_verzeichnis:
-                waffe = item_verzeichnis[name]
-                for attacke in attacken:
-                    fähigkeit = Fähigkeit(name=attacke["name"], schaden=attacke["Schaden"])
-                    for stat in attacke:
-                        match stat.lower():
-                            case "mana":
-                                fähigkeit.set_mana(attacke[stat])
-                            case "stamina":
-                                fähigkeit.set_stamina(attacke[stat])
-                            case "abklingzeit":
-                                fähigkeit.set_abklingzeit(attacke[stat])
-                            case "effekte":
-                                for effekt in attacke[stat]:
-                                    fähigkeit.add_effekt(effekt)
-                    waffe.add_fähigkeit(fähigkeit)
+            # for attacke in attacken:
+            #     fähigkeit = Fertigkeit(name=attacke["name"], schaden=attacke["Schaden"])
+            #     for stat in attacke:
+            #         match stat.lower():
+            #             case "mana":
+            #                 fähigkeit.set_mana(attacke[stat])
+            #             case "stamina":
+            #                 fähigkeit.set_stamina(attacke[stat])
+            #             case "abklingzeit":
+            #                 fähigkeit.set_abklingzeit(attacke[stat])
+            #             case "effekte":
+            #                 for effekt in attacke[stat]:
+            #                     fähigkeit.add_effekt(effekt)
+            #     waffe.add_fähigkeit(fähigkeit)
 
     return item_verzeichnis
 
@@ -301,9 +271,8 @@ if __name__ == '__main__':
     import pathlib
 
     verzeichnis = pathlib.Path(__file__).absolute().parents[1] / "itemverzeichnis.yaml"
-    waffenverzeichnis = pathlib.Path(__file__).absolute().parents[1] / 'waffenverzeichnis.yaml'
 
-    lade_itemverzeichnis(verzeichnis, waffenverzeichnis)
+    lade_itemverzeichnis(verzeichnis)
     if not verzeichnis.exists():
         raise OSError("Itemverzeichnis nicht da, wo erwartet:", verzeichnis)
 

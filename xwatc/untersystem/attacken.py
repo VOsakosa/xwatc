@@ -3,9 +3,7 @@
 from enum import Enum
 from typing import Protocol, Self, Sequence
 
-from attrs import define
-
-from xwatc.untersystem.itemverzeichnis import Fähigkeit
+from attrs import define, Factory
 
 
 class Schadenstyp(Enum):
@@ -24,8 +22,12 @@ class Schadenstyp(Enum):
     def magisch(self) -> bool:
         """Ob es einer der magischen Schadenstypen ist.
 
-        >>> 
+        >>> Schadenstyp.Stich.magisch
+        False
+        >>> Schadenstyp.Feuer.magisch
+        True
         """
+        return self.value >= 10
 
 
 @define
@@ -92,6 +94,14 @@ class MitName(Protocol):
         """Der Name des Objekts."""
 
 
+class Effekt(Enum):
+    Verfluchen = 1
+    Selbstentwaffnung = 2
+    Blocken = 3
+    Selbstverwirrung = 4
+    Entflammung = 5
+
+
 @define
 class Fertigkeit:
     """Eine Art von Angriff, die ein Kämpfer besitzt."""
@@ -99,11 +109,9 @@ class Fertigkeit:
     name_kurz: str  # : z.B. normal
     schaden: int  # die Menge an Schaden in LP
     typ: list[Schadenstyp]
+    mp: int = 0
     zieltyp: Zieltyp = Zieltyp.Einzel
-
-    @classmethod
-    def aus_fähigkeit(cls, fähigkeit: Fähigkeit) -> Self:
-        return cls(fähigkeit.name, fähigkeit.name.lower(), fähigkeit.schaden)
+    effekte: list[Effekt] = Factory(list)
 
     def text(self, angreifer: MitName, verteidiger_liste: Sequence[MitName]) -> str:
         """Der Text, wenn die Attacke eingesetzt wird."""

@@ -241,7 +241,8 @@ mächtige Waffe:
   - parent: Waffe
     common:
       ausrüstung: beidhändig
-  - Morgenstern; 300
+  - name: Morgenstern
+    preis: 300
   - mächtige Axt; 300
   - Stahlhandschuh; 260
 normale Waffe:

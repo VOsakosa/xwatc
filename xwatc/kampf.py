@@ -106,13 +106,7 @@ class Kämpfer:
     def get_attacken(self) -> Sequence['Fertigkeit']:
         """Gebe die Liste von Attacken aus, die der Kämpfer gerade zur Verfügung hat."""
         waffen = list(self.nsc.get_waffen())
-        if not waffen:
-            return [Fertigkeit("Faustschlag", "faust", 6, [Schadenstyp.Wucht])]
-        attacken = []
-        for waffe in waffen:
-            for fähigkeit in waffe.fähigkeiten:
-                attacken.append(Fertigkeit.aus_fähigkeit(fähigkeit))
-        return attacken
+        return [Fertigkeit("Faustschlag", "faust", 6, [Schadenstyp.Wucht])]
 
     @property
     def nsc(self) -> NSC | Mänx:
