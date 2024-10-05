@@ -411,9 +411,10 @@ class Gebietsende(_Strecke):
                  port: str,
                  nach: str,
                  nach_port: str = ""):
-        """Erzeuge ein Gebietsende.
+        """Erzeuge ein Gebietsende::
 
-        >>> Gebietsende(None, "jtg:mitte", "mit-gkh", "jtg:gkh")
+            gb = Gebiet("lg:mitte")
+            Gebietsende(None, gb, "norden", "lg:norden", "süden");
         """
         super().__init__(von, None)
         self.gebiet = gebiet

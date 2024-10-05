@@ -171,5 +171,5 @@ def _lade_fertigkeit(data: dict) -> Fertigkeit:
     """
     if "name_kurz" not in data:
         data["name_kurz"] = data["name"].lower()
-    data["mp"] = data.get("mana", data.get("stamina"))
+    data["mp"] = data.get("mana", data.get("stamina", 0))
     return _converter.structure(data, Fertigkeit)

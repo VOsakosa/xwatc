@@ -577,9 +577,9 @@ class Mänx(InventarBasis):
              save: 'Speicherpunkt | None' = None) -> T:
         """Lasse den Spieler aus verschiedenen Optionen wählen.
 
-        z.B:
+        z.B::
 
-        >>> Mänx().menu([("Nach Hause gehen", "hause", 1), ("Weitergehen", "weiter", 12)])
+            Mänx().menu([("Nach Hause gehen", "hause", 1), ("Weitergehen", "weiter", 12)])
 
         erlaubt Eingaben 1, hau, hause für "Nach Hause gehen" auf dem Terminal.
         Auf der Anzeige wird ein Knopf "Nach Hause gehen" und einer "Weitergehen" gezeigt, die
