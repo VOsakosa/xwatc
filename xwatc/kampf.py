@@ -108,7 +108,7 @@ class Kämpfer:
         fertigkeiten = [
             f for f in self.nsc.kampfwerte.fertigkeiten if self.kann_attacke(f)
         ]
-        if not any(self._nsc.get_waffen()):
+        if not any(self._nsc.get_waffen()) and self._nsc.kampfwerte.nutze_std_fertigkeiten:
             fertigkeiten.append(Fertigkeit("Faustschlag", "faust", 6, [Schadenstyp.Wucht]))
         return fertigkeiten
 

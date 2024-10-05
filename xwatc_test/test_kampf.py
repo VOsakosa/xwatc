@@ -6,7 +6,7 @@ import pytest
 from xwatc.kampf import AIController, Kampf, Kämpfer, MänxController, start_kampf
 from xwatc.nsc import NSC, StoryChar
 from xwatc.system import Mänx, get_item
-from xwatc.untersystem.attacken import Zieltyp
+from xwatc.untersystem.attacken import Fertigkeit, Kampfwerte, Resistenzen, Schadenstyp, Zieltyp
 from xwatc.untersystem.person import Person, Rasse
 from xwatc_test.mock_system import MockSystem
 
@@ -122,6 +122,17 @@ class TestKampf(unittest.TestCase):
         self.assertEqual(attacken[0].zieltyp, Zieltyp.Einzel)
         self.assertEqual(attacken[1].name, "schwerer Hieb")
         self.assertEqual(attacken[1].zieltyp, Zieltyp.Einzel)
+
+    def test_get_attacken_monster(self) -> None:
+        fkeit = Fertigkeit("Schlitzer", "schlitzer", 16, [Schadenstyp.Klinge])
+        gegner = StoryChar("test:monster", "Großer Bär", kampfwerte=Kampfwerte(
+            150,
+            Resistenzen.neu_null(),
+            [fkeit],
+            nutze_std_fertigkeiten=False
+        )).zu_nsc()
+        kämpfer = Kämpfer.aus_nsc(gegner)
+        self.assertSequenceEqual(kämpfer.get_attacken(), [fkeit])
 
     def test_voller_kampf(self) -> None:
         system = MockSystem()
