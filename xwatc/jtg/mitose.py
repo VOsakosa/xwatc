@@ -137,7 +137,7 @@ def kiliwolf(wolf: NSC, mänx: Mänx):
     malp("Ein Pack Kiliwölfe greift dich an.")
     malp("Kiliwölfe sehen aus wie Wölfe, haben aber Scheren statt "
          "Vorderpfoten.")
-    if kampf.start_einzel_kampf(mänx, wolf):
+    if kampf.start_kampf(mänx, wolf):
         malp("Du weidest den Kiliwolf aus.")
         mänx.erhalte("Wolffleisch", 3)
     else:
