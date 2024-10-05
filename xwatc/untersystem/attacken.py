@@ -1,9 +1,14 @@
 """Das System von Fähigkeiten und Attacken."""
 
 from enum import Enum
+from functools import cache
 from typing import Protocol, Self, Sequence
 
 from attrs import define, Factory
+import cattrs
+import yaml
+
+from xwatc import XWATC_PATH
 
 
 class Schadenstyp(Enum):
@@ -17,6 +22,22 @@ class Schadenstyp(Enum):
     Arkan = 11
     Kälte = 12
     Blitz = 13
+
+    @staticmethod
+    def aus_str(text: str, _typ: object = None) -> "list[Schadenstyp]":
+        """Parse den Schadenstyp aus einem String.
+
+        >>> Schadenstyp.aus_str("wucht")
+        [<Schadenstyp.Wucht: 3>]
+        """
+        parts = []
+        for part in text.split():
+            parts.append(Schadenstyp[part.capitalize()])
+        if not parts:
+            raise ValueError("Kein Schadenstyp gegeben.")
+        if len(parts) > 2:
+            raise ValueError("Es gibt nur doppelte Schadenstypen, keine mehrfachen.")
+        return parts
 
     @property
     def magisch(self) -> bool:
@@ -110,6 +131,8 @@ class Fertigkeit:
     schaden: int  # die Menge an Schaden in LP
     typ: list[Schadenstyp]
     mp: int = 0
+    abklingzeit: int = 0
+    waffe: str | None = None
     zieltyp: Zieltyp = Zieltyp.Einzel
     effekte: list[Effekt] = Factory(list)
 
@@ -123,3 +146,30 @@ class Fertigkeit:
             vers = ", ".join(verteidiger[:-1]) + " und " + verteidiger[-1]
 
         return (f"{angreifer.name} setzt {self.name} gegen {vers} ein.")
+
+
+@cache
+def lade_fertigkeiten() -> list[Fertigkeit]:
+    path = XWATC_PATH / "fertigkeiten.yaml"
+    with path.open("r") as file:
+        data = yaml.safe_load(file)
+    return [_lade_fertigkeit(fertigkeit) for fertigkeit in data]
+
+
+_converter = cattrs.Converter()
+_converter.register_structure_hook(Fertigkeit, cattrs.gen.make_dict_structure_fn(
+    Fertigkeit, _converter, typ=cattrs.gen.override(struct_hook=Schadenstyp.aus_str)))
+
+
+def _lade_fertigkeit(data: dict) -> Fertigkeit:
+    """Lade eine Fertigkeit aus ihrer Serialisierung.
+
+    >>> _lade_fertigkeit({"abklingzeit": 2, "name": "Dreschen", "schaden": 25,
+    ...     "waffe": "Morgenstern", "typ": "wucht"})  # doctest:+ELLIPSIS, +NORMALIZE_WHITESPACE
+    Fertigkeit(name='Dreschen', name_kurz='dreschen', schaden=25, typ=[<Schadenstyp.Wucht: 3>], 
+        mp=0, abklingzeit=2, ...)
+    """
+    if "name_kurz" not in data:
+        data["name_kurz"] = data["name"].lower()
+    data["mp"] = data.get("mana", data.get("stamina"))
+    return _converter.structure(data, Fertigkeit)

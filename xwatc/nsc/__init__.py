@@ -512,7 +512,7 @@ class Bewege(system.MänxFkt[None]):
         else:
             kreuzung = get_gebiet(mänx, self.ziel[0]).finde_kreuzung(self.ziel[1])
             if not kreuzung:
-                getLogger("xwatc.nsc").warn(
+                getLogger("xwatc.nsc").warning(
                     "Kann NSC nicht nach Kreuzung {self.ziel[0]}:{self.ziel[1]} bewegen.")
             der_nsc.ort = kreuzung
 

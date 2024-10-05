@@ -482,6 +482,7 @@ class Mänx(InventarBasis):
     Information."""
     ausgabe: 'Terminal | anzeige.XwatcFenster' = ausgabe
     welt: Welt = field(factory=Welt.default)
+    # "NSC"-Eigenschaften
     person: Person = Person("w", Rasse.Mensch)
     titel: set[str] = field(factory=set, repr=False)
     fähigkeiten: set[Fähigkeit] = field(factory=set, repr=False)

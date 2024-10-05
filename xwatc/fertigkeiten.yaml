@@ -6,7 +6,7 @@
   typ: wucht
   waffe: Morgenstern
 - abklingzeit: 2
-  name: dreschen
+  name: Dreschen
   schaden: 25
   waffe: Morgenstern
   typ: wucht
@@ -83,7 +83,7 @@
   schaden: 5
   waffe: Dolch
   typ: stich
-- name: Hieb
+- name: Dolchhieb
   schaden: 6
   waffe: Dolch
   typ: klinge
