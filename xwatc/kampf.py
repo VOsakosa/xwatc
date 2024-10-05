@@ -133,7 +133,7 @@ class Kampf:
 
     def main(self, mänx: Mänx) -> 'Kampfausgang':
         self.runde = 0
-        while len({a.seite for a in self.kämpfer if not a.tot}) > 2:
+        while len({a.seite for a in self.kämpfer if not a.tot}) >= 2:
             self.runde += 1
             for i, kämpfer in enumerate(self.kämpfer[:]):
                 if kämpfer.tot:

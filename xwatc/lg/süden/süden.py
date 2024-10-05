@@ -1,14 +1,18 @@
 from time import sleep
+from xwatc import _, kampf
+from xwatc.nsc import StoryChar
 from xwatc.system import Mänx, minput, ja_nein, kursiv, mint, malp, Fortsetzung, Spielende
 from xwatc.lg.osten import osten
 import random
+from xwatc.untersystem.person import Person, Rasse
 from xwatc.weg import get_eintritt
 
 
 def süden(mänx: Mänx) -> Fortsetzung:
-    malp("Du wanderst durch fruchtbare Wiesen und Täler.Seltsam - warum siedelt hier niemand? "
-         "Ein Monster beantwortet deine Frage. ")
-    sleep(1)
+    malp("Du wanderst durch fruchtbare Wiesen und Täler. Seltsam - warum siedelt hier niemand? ")
+    mänx.sleep(1, "")
+    malp("Ein Monster beantwortet deine Frage. ")
+    mänx.sleep(1, "")
     malp("Es sieht aus wie eine riesige Schnecke. Sie brüllt.")
     mut = minput(mänx, "Kämpfst du oder fliehst du?", ["k", "f"])
     if mut == "k":
@@ -87,22 +91,21 @@ def rückweg(mänx: Mänx) -> Fortsetzung:
         return osten.osten
 
 
-def duhastüberlebt(mänx) -> Fortsetzung:
+def duhastüberlebt(mänx: Mänx) -> Fortsetzung:
     if ja_nein(mänx, "Weidest du die Schnecke aus? "):
-        malp("Du bekommst ein paar Dinge")
-        mänx.inventar["Schneckenschleim"] += 30
-        mänx.inventar["Riesenschneckeninnereien"] += 20
-        mänx.inventar["Riesenschneckenfleisch"] += 20
-    mut = minput(mänx, "Gehst du weiter oder kehrst du um? w/z", ["z", "w"])
-    if mut == "z":
+        malp("Du bekommst ein paar Dinge.")
+        mänx.erhalte("Schneckenschleim", 30)
+        mänx.erhalte("Riesenschneckeninnereien", 20)
+        mänx.erhalte("Riesenschneckenfleisch", 20)
+    mut = minput(mänx, "Gehst du weiter oder kehrst du um?", ["zurück", "weiter"])
+    if mut == "zurück":
         from xwatc.lg.mitte import MITTE
         return get_eintritt(mänx, (MITTE, "süden"))
-    assert mut == "w"
+    assert mut == "weiter"
     malp("Du wagst dich tiefer ins Land der Monster.")
-    weg = minput(mänx, "Biegst du in Richtung Osten/Westen "
-                 "ab oder gehst du einfach geradeaus?     "
-                 "w/o/we         ", ["w", "o", "we"])
-    if weg == "w":
+    weg = minput(mänx, "Biegst du in Richtung Osten/Westen ab oder gehst du einfach geradeaus?",
+                 ["westen", "osten", "gerade"])
+    if weg == "westen":
         a = random.randint(1, 11)
         if a == 1:
             malp("Waldschrat (inteligent)")
@@ -127,7 +130,7 @@ def duhastüberlebt(mänx) -> Fortsetzung:
                         "Dank deiner Fähigkeit mit Tieren zu reden, schnappst einige Worte auf.")
 
             elif ark == "um":
-                mänx.minput("Immer darauf achtend, dass die 'Flecken' ", kursiv("ganz"),
+                mänx.minput("Immer darauf achtend, dass die 'Flecken' " + kursiv("ganz") +
                             "weit weg von dir blieben, versuchst du sie zu umgehen...")
                 input('Da merkst du plötzlich, dass sich jemand von hinten an dich heranschleicht,'
                       'doch zu spät: Dieser Jemand haut dir auf den Kopf und du wirst ohnmächtig.')
@@ -174,6 +177,22 @@ def duhastüberlebt(mänx) -> Fortsetzung:
 
         else:
             malp("Fleischfressende Pflanze")
+    elif weg == "osten":
+        malp(_("Ein sehr feindlich dreinblickendes Skelett kommt auf dich zu."))
+        malp(_("Können Skelette überhaupt feindlich dreinblicken?"))
+        if mänx.menu([("kämpfen", "k", True), ("fliehen", "f", False)],
+                     _("Den Kampf kannst du vielleicht gewinnen, aber du könntest noch fliehen")):
+            if kampf.start_kampf(mänx, skelett.zu_nsc()) == kampf.Kampfausgang.Niederlage:
+                malp(_("Das Skelett lacht dich aus und läuft davon."), warte=True)
+            else:
+                malp(_("Komisch, denkst du dir."))
+        else:
+            malp(_("Das Skelett verfolgt dich nicht."))
     raise Spielende()
 
     # elif mut=="z":
+
+
+skelett = StoryChar("lg:süden:skelett", "Skelett", Person("m", Rasse.Skelett), {
+    "Unterhose": 1
+})
