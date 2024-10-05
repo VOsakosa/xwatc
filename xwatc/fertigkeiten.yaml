@@ -1,0 +1,89 @@
+# Morgenstern
+- stamina: 40
+  abklingzeit: 6
+  name: Ballerina
+  schaden: 75
+  typ: wucht
+  waffe: Morgenstern
+- abklingzeit: 2
+  name: dreschen
+  schaden: 25
+  waffe: Morgenstern
+  typ: wucht
+# Schild
+- effekt:
+  - Blocken
+  name: Blocken
+  schaden: 0
+  waffe: Schild
+  typ: wucht
+- abklingzeit: 3
+  name: Stoßen
+  schaden: 12
+  waffe: Schild
+  typ: wucht
+# Schwert
+- name: Hieb
+  schaden: 10
+  waffe: Schwert
+  typ: klinge
+- stamina: 15
+  abklingzeit: 2
+  name: schwerer Hieb
+  schaden: 25
+  waffe: Schwert
+  typ: klinge
+# Speer
+- effekt:
+  - Selbstverwirrung
+  abklingzeit: 5
+  name: Ansturm
+  schaden: 30
+  waffe: Speer
+  typ: stich
+
+- name: pieksen
+  schaden: 8
+  waffe: Speer
+  typ: stich
+
+# Handschuh
+- stamina: 10
+  abklingzeit: 3
+  name: Handkantenschlag
+  schaden: 25
+  waffe: Stahlhandschuh
+  typ: klinge
+
+- name: Boxen
+  schaden: 16
+  waffe: Stahlhandschuh
+  typ: wucht
+
+# Axt
+- name: Holzspalten
+  schaden: 18
+  waffe: Axt
+  typ: klinge
+
+- stamina: 30
+  abklingzeit: 4
+  name: Überkopfschlag
+  schaden: 50
+  waffe: Axt
+  typ: klinge
+
+# Dolch
+- effekt: [ Selbstentwaffnung ]
+  name: Dolchwurf
+  schaden: 0
+  waffe: Dolch
+  typ: stich
+- name: Stechen
+  schaden: 5
+  waffe: Dolch
+  typ: stich
+- name: Hieb
+  schaden: 6
+  waffe: Dolch
+  typ: klinge
