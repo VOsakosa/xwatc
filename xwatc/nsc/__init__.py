@@ -17,6 +17,7 @@ from xwatc.nsc._dialog import (Dialog, DialogFn, DialogErzeugerFn, DialogGeschic
                                RunType, VorList, Zeitpunkt, Malp, Sprich)
 from xwatc.serialize import converter
 from xwatc.system import Fortsetzung, Inventar, MenuOption, malp, mint, schiebe_inventar, MissingIDError
+from xwatc.untersystem.attacken import Kampfwerte
 from xwatc.untersystem.person import Rasse, Person
 from xwatc.weg import dorf
 
@@ -62,6 +63,7 @@ class StoryChar:
     """Das ist der Ingame-Name, wie "Torobias Berndoc, Magier". """
     person: Person | None = None
     startinventar: Mapping[str, int] = Factory(lambda: defaultdict(int))
+    kampfwerte: Kampfwerte = field(factory=Kampfwerte.mänx_default)
     """Das Inventar, mit dem der Charakter erzeugt wird."""
     # ort: str = ""
     # """Der Ort, an dem ein NSC startet. Wenn er leer ist, muss er manuell per Events in
@@ -235,6 +237,10 @@ class NSC(system.InventarBasis):
                 pass
         if ort is not None:
             ort.add_nsc(self)
+
+    @property
+    def kampfwerte(self) -> Kampfwerte:
+        return self.template.kampfwerte
 
     def vorstellen(self, mänx: system.Mänx) -> None | Fortsetzung | Rückkehr:
         """So wird der NSC vorgestellt"""

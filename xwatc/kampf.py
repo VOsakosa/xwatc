@@ -9,7 +9,7 @@ from attrs import define
 
 from xwatc import _
 from xwatc.nsc import NSC
-from xwatc.system import Mänx, malp
+from xwatc.system import Mänx, get_classes, malp
 from xwatc.untersystem.attacken import Fertigkeit, Schadenstyp
 from xwatc.untersystem.attacken import Zieltyp
 
@@ -105,8 +105,28 @@ class Kämpfer:
 
     def get_attacken(self) -> Sequence['Fertigkeit']:
         """Gebe die Liste von Attacken aus, die der Kämpfer gerade zur Verfügung hat."""
-        waffen = list(self.nsc.get_waffen())
-        return [Fertigkeit("Faustschlag", "faust", 6, [Schadenstyp.Wucht])]
+        fertigkeiten = [
+            f for f in self.nsc.kampfwerte.fertigkeiten if self.kann_attacke(f)
+        ]
+        if not any(self._nsc.get_waffen()):
+            fertigkeiten.append(Fertigkeit("Faustschlag", "faust", 6, [Schadenstyp.Wucht]))
+        return fertigkeiten
+
+    def kann_attacke(self, attacke: Fertigkeit) -> bool:
+        """Prüfe, ob die Fertigkeit für einen Kämpfer zur Verfügung steht (wenn er sie hat).
+
+        Also Cooldown, Waffe etc.
+        """
+        if attacke.waffe:
+            for waffe in self._nsc.get_waffen():
+                if waffe.name == attacke.waffe:
+                    break
+                for klasse in waffe.item_typ:
+                    if klasse.name == attacke.waffe:
+                        break
+            else:
+                return False
+        return True
 
     @property
     def nsc(self) -> NSC | Mänx:

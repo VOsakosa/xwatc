@@ -1,8 +1,9 @@
 """Das System von Fähigkeiten und Attacken."""
 
+from collections.abc import Iterator, Sequence
 from enum import Enum
 from functools import cache
-from typing import Protocol, Self, Sequence
+from typing import Protocol
 
 from attrs import define, Factory
 import cattrs
@@ -56,6 +57,17 @@ class Resistenzen:
     _dict: dict[Schadenstyp, int]
 
     @staticmethod
+    def neu_null() -> 'Resistenzen':
+        """Gibt neue Resistenzen, die überall 0 sind.
+
+        >>> Resistenzen.neu_null().prozentsatz(Schadenstyp.Feuer)
+        0
+        >>> Resistenzen.neu_null().multiplikator(Schadenstyp.Stich)
+        1.0
+        """
+        return Resistenzen({typ: 0 for typ in Schadenstyp})
+
+    @staticmethod
     def aus_str(liste: str) -> 'Resistenzen':
         """Parse Resistenzen aus einer Liste von Resistenzen, mit 0 als voller Schaden, 100 als
         kein Schaden.
@@ -101,7 +113,20 @@ class Resistenzen:
 class Kampfwerte:
     max_hp: int
     resistenzen: Resistenzen
-    fertigkeiten: 'list[Fertigkeit]'
+    _fertigkeiten: 'list[Fertigkeit]'
+    nutze_std_fertigkeiten: bool
+
+    @staticmethod
+    def mänx_default() -> 'Kampfwerte':
+        """Gibt Kampfwerte eines normalen Humanoiden."""
+        return Kampfwerte(100, Resistenzen.neu_null(), [], nutze_std_fertigkeiten=True)
+
+    @property
+    def fertigkeiten(self) -> 'Iterator[Fertigkeit]':
+        """Listet alle Fertigkeiten auf, auch die Standard-Fertigkeiten."""
+        yield from self._fertigkeiten
+        if self.nutze_std_fertigkeiten:
+            yield from lade_fertigkeiten()
 
 
 class Zieltyp(Enum):
@@ -149,7 +174,7 @@ class Fertigkeit:
 
 
 @cache
-def lade_fertigkeiten() -> list[Fertigkeit]:
+def lade_fertigkeiten() -> Sequence[Fertigkeit]:
     path = XWATC_PATH / "fertigkeiten.yaml"
     with path.open("r") as file:
         data = yaml.safe_load(file)

@@ -16,6 +16,7 @@ import yaml
 from attrs import define, field
 from typing_extensions import Self, assert_never
 
+from xwatc.untersystem.attacken import Kampfwerte
 from xwatc.untersystem.menus import Menu, MenuOption
 
 try:
@@ -484,6 +485,7 @@ class Mänx(InventarBasis):
     welt: Welt = field(factory=Welt.default)
     # "NSC"-Eigenschaften
     person: Person = Person("w", Rasse.Mensch)
+    kampfwerte: Kampfwerte = field(factory=Kampfwerte.mänx_default)
     titel: set[str] = field(factory=set, repr=False)
     fähigkeiten: set[Fähigkeit] = field(factory=set, repr=False)
     verbrechen: list[Verbrechen] = field(factory=list)
