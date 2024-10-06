@@ -68,21 +68,21 @@ class Kämpfer:
     @classmethod
     def aus_mänx(cls, mänx: Mänx) -> Self:
         """Erzeugt einen Kämpfer auf Basis des Spielers."""
-        lp = 100
+        lp = mänx.kampfwerte.max_lp
         return cls(lp=lp, max_lp=lp, seite=1, controller=MänxController(),
                    anzeige=KämpferAnzeige(_("Du")), nsc=mänx)
 
     @classmethod
     def aus_nsc(cls, nsc: NSC) -> Self:
         """Erzeugt einen Kämpfer auf Basis eines NSCs, als Feind."""
-        lp = 100
+        lp = nsc.kampfwerte.max_lp
         return cls(lp=lp, max_lp=lp, seite=2, controller=AIController(),
                    anzeige=KämpferAnzeige(nsc.name), nsc=nsc)
 
     @classmethod
     def aus_gefährte(cls, nsc: NSC) -> Self:
         """Erzeugt einen Kämpfer auf Basis eines NSCs, als Gefährte."""
-        lp = 100
+        lp = nsc.kampfwerte.max_lp
         return cls(lp=lp, max_lp=lp, seite=1, controller=MänxController(),
                    anzeige=KämpferAnzeige(nsc.name), nsc=nsc)
 

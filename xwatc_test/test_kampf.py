@@ -133,6 +133,7 @@ class TestKampf(unittest.TestCase):
         )).zu_nsc()
         kämpfer = Kämpfer.aus_nsc(gegner)
         self.assertSequenceEqual(kämpfer.get_attacken(), [fkeit])
+        self.assertEqual(kämpfer.lp, 150)
 
     def test_voller_kampf(self) -> None:
         system = MockSystem()

@@ -111,7 +111,7 @@ class Resistenzen:
 
 @define
 class Kampfwerte:
-    max_hp: int
+    max_lp: int
     resistenzen: Resistenzen
     _fertigkeiten: 'list[Fertigkeit]'
     nutze_std_fertigkeiten: bool
