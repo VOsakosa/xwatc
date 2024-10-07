@@ -16,6 +16,7 @@ import yaml
 from attrs import define, field
 from typing_extensions import Self, assert_never
 
+from xwatc.untersystem.attacken import Kampfwerte
 from xwatc.untersystem.menus import Menu, MenuOption
 
 try:
@@ -27,11 +28,13 @@ from xwatc import _
 from xwatc.serialize import mache_converter, unstructure_punkt
 from xwatc.terminal import Terminal
 from xwatc.untersystem import hilfe
-from xwatc.untersystem.itemverzeichnis import (ItemKlasse, Kleidungsslot, Waffenhand, Ausrüstungsort, Ausrüstungstyp,
-                                               Item, lade_itemverzeichnis)
+from xwatc.untersystem.itemverzeichnis import (Ausrüstungstyp, Item,
+                                               ItemKlasse, Kleidungsslot,
+                                               Waffenhand,
+                                               lade_itemverzeichnis)
 from xwatc.untersystem.person import Fähigkeit, Person, Rasse
-from xwatc.untersystem.variablen import (VT, MethodSave, WeltVariable, get_welt_var)
-from xwatc.untersystem.variablen import register
+from xwatc.untersystem.variablen import (VT, MethodSave, WeltVariable,
+                                         get_welt_var, register)
 from xwatc.untersystem.verbrechen import Verbrechen, Verbrechensart
 
 if typing.TYPE_CHECKING:
@@ -83,8 +86,7 @@ class MissingIDError(Exception):
 
 MänxPrädikat: TypeAlias = MänxFkt[bool]
 Fortsetzung: TypeAlias = Union[MänxFkt, HatMain, 'weg.Wegpunkt']
-ITEMVERZEICHNIS = lade_itemverzeichnis(Path(__file__).parent / "itemverzeichnis.yaml",
-                                       Path(__file__).parent / "waffenverzeichnis.yaml")
+ITEMVERZEICHNIS = lade_itemverzeichnis(Path(__file__).parent / "itemverzeichnis.yaml")
 ausgabe: Terminal | 'anzeige.XwatcFenster' = Terminal()
 
 
@@ -481,7 +483,9 @@ class Mänx(InventarBasis):
     Information."""
     ausgabe: 'Terminal | anzeige.XwatcFenster' = ausgabe
     welt: Welt = field(factory=Welt.default)
+    # "NSC"-Eigenschaften
     person: Person = Person("w", Rasse.Mensch)
+    kampfwerte: Kampfwerte = field(factory=Kampfwerte.mänx_default)
     titel: set[str] = field(factory=set, repr=False)
     fähigkeiten: set[Fähigkeit] = field(factory=set, repr=False)
     verbrechen: list[Verbrechen] = field(factory=list)
@@ -575,9 +579,9 @@ class Mänx(InventarBasis):
              save: 'Speicherpunkt | None' = None) -> T:
         """Lasse den Spieler aus verschiedenen Optionen wählen.
 
-        z.B:
+        z.B::
 
-        >>> Mänx().menu([("Nach Hause gehen", "hause", 1), ("Weitergehen", "weiter", 12)])
+            Mänx().menu([("Nach Hause gehen", "hause", 1), ("Weitergehen", "weiter", 12)])
 
         erlaubt Eingaben 1, hau, hause für "Nach Hause gehen" auf dem Terminal.
         Auf der Anzeige wird ein Knopf "Nach Hause gehen" und einer "Weitergehen" gezeigt, die

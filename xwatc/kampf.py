@@ -1,17 +1,18 @@
 """
 Beim Kampfsystem schlagen zwei Leute aufeinander ein.
 """
+import enum
 import random
-from typing import Self, TypeAlias, Union, Sequence, List, Tuple
+from typing import Self, Sequence, TypeAlias
 
 from attrs import define
-import xwatc
+
 from xwatc import _
 from xwatc.nsc import NSC
-from xwatc.system import HatMain, Mänx, Spielende, malp
-import enum
+from xwatc.system import Mänx, get_classes, malp
+from xwatc.untersystem.attacken import Fertigkeit, Schadenstyp
+from xwatc.untersystem.attacken import Zieltyp
 
-from xwatc.untersystem.itemverzeichnis import Fähigkeit
 __author__ = "jasper"
 
 
@@ -19,7 +20,7 @@ __author__ = "jasper"
 class MänxController:
     """Stellt eine Kontroller durch den Spieler dar."""
 
-    def wähle_attacke(self, kampf: 'Kampf', idx: int) -> tuple['Attacke', Sequence['Kämpfer']]:
+    def wähle_attacke(self, kampf: 'Kampf', idx: int) -> tuple['Fertigkeit', Sequence['Kämpfer']]:
         kämpfer = kampf.kämpfer[idx]
         att = kampf._mänx.menu([(a.name, a.name_kurz, a) for a in kämpfer.get_attacken()],
                                frage=_("kampf>"))
@@ -34,7 +35,7 @@ class MänxController:
 class AIController:
     """Stellt eine Kontrolle durch den Computer dar."""
 
-    def wähle_attacke(self, kampf: 'Kampf', idx: int) -> tuple['Attacke', Sequence['Kämpfer']]:
+    def wähle_attacke(self, kampf: 'Kampf', idx: int) -> tuple['Fertigkeit', Sequence['Kämpfer']]:
         """Wählt die Attacke, die die AI durchführt."""
         # Stand jetzt rein zufällig.
         kämpfer = kampf.kämpfer[idx]
@@ -67,21 +68,21 @@ class Kämpfer:
     @classmethod
     def aus_mänx(cls, mänx: Mänx) -> Self:
         """Erzeugt einen Kämpfer auf Basis des Spielers."""
-        lp = 100
+        lp = mänx.kampfwerte.max_lp
         return cls(lp=lp, max_lp=lp, seite=1, controller=MänxController(),
                    anzeige=KämpferAnzeige(_("Du")), nsc=mänx)
 
     @classmethod
     def aus_nsc(cls, nsc: NSC) -> Self:
         """Erzeugt einen Kämpfer auf Basis eines NSCs, als Feind."""
-        lp = 100
+        lp = nsc.kampfwerte.max_lp
         return cls(lp=lp, max_lp=lp, seite=2, controller=AIController(),
                    anzeige=KämpferAnzeige(nsc.name), nsc=nsc)
 
     @classmethod
     def aus_gefährte(cls, nsc: NSC) -> Self:
         """Erzeugt einen Kämpfer auf Basis eines NSCs, als Gefährte."""
-        lp = 100
+        lp = nsc.kampfwerte.max_lp
         return cls(lp=lp, max_lp=lp, seite=1, controller=MänxController(),
                    anzeige=KämpferAnzeige(nsc.name), nsc=nsc)
 
@@ -102,50 +103,38 @@ class Kämpfer:
             self.lp = self.max_lp
         # TODO Notification event!
 
-    def get_attacken(self) -> Sequence['Attacke']:
+    def get_attacken(self) -> Sequence['Fertigkeit']:
         """Gebe die Liste von Attacken aus, die der Kämpfer gerade zur Verfügung hat."""
-        waffen = list(self.nsc.get_waffen())
-        if not waffen:
-            return [Attacke("Faustschlag", "faust", 6)]
-        attacken = []
-        for waffe in waffen:
-            for fähigkeit in waffe.fähigkeiten:
-                attacken.append(Attacke.aus_fähigkeit(fähigkeit))
-        return attacken
+        fertigkeiten = [
+            f for f in self.nsc.kampfwerte.fertigkeiten if self.kann_attacke(f)
+        ]
+        if not any(self._nsc.get_waffen()) and self._nsc.kampfwerte.nutze_std_fertigkeiten:
+            fertigkeiten.append(Fertigkeit("Faustschlag", "faust", 6, [Schadenstyp.Wucht]))
+        return fertigkeiten
+
+    def kann_attacke(self, attacke: Fertigkeit) -> bool:
+        """Prüfe, ob die Fertigkeit für einen Kämpfer zur Verfügung steht (wenn er sie hat).
+
+        Also Cooldown, Waffe etc.
+        """
+        if attacke.waffe:
+            for waffe in self._nsc.get_waffen():
+                if waffe.name == attacke.waffe:
+                    break
+                for klasse in waffe.item_typ:
+                    if klasse.name == attacke.waffe:
+                        break
+            else:
+                return False
+        return True
 
     @property
     def nsc(self) -> NSC | Mänx:
         """Hole den NSC / Mänx aus der Basis"""
         return self._nsc
 
-
-class Zieltyp(enum.Enum):
-    Alle = enum.auto()
-    Einzel = enum.auto()
-
-
-@define
-class Attacke:
-    """Eine Art von Angriff, die ein Kämpfer besitzt."""
-    name: str  #: z.B. normaler Angriff
-    name_kurz: str  # : z.B. normal
-    schaden: int  # die Menge an Schaden in LP
-    zieltyp: Zieltyp = Zieltyp.Einzel
-
-    @classmethod
-    def aus_fähigkeit(cls, fähigkeit: Fähigkeit) -> Self:
-        return cls(fähigkeit.name, fähigkeit.name.lower(), fähigkeit.schaden)
-
-    def text(self, angreifer: Kämpfer, verteidiger_liste: Sequence[Kämpfer]) -> str:
-        """Der Text, wenn die Attacke eingesetzt wird."""
-        verteidiger = [(a.name if a.name != "Du" else "dich")
-                       for a in verteidiger_liste]
-        if len(verteidiger) == 1:
-            vers, = verteidiger
-        else:
-            vers = ", ".join(verteidiger[:-1]) + " und " + verteidiger[-1]
-
-        return (f"{angreifer.name} setzt {self.name} gegen {vers} ein.")
+    def __str__(self) -> str:
+        return self.anzeige.name
 
 
 @define
@@ -167,7 +156,7 @@ class Kampf:
 
     def main(self, mänx: Mänx) -> 'Kampfausgang':
         self.runde = 0
-        while len({a.seite for a in self.kämpfer if not a.tot}) > 2:
+        while len({a.seite for a in self.kämpfer if not a.tot}) >= 2:
             self.runde += 1
             for i, kämpfer in enumerate(self.kämpfer[:]):
                 if kämpfer.tot:
@@ -186,14 +175,20 @@ class Kampf:
         self.kämpfer.append(kämpfer)
 
     def _attacke_ausführen(self, angreifer: Kämpfer,
-                           attacke: Attacke, ziele: Sequence['Kämpfer']) -> None:
+                           attacke: Fertigkeit, ziele: Sequence['Kämpfer']) -> None:
         if attacke.zieltyp == Zieltyp.Einzel:
             assert len(ziele) == 1
         else:
             assert ziele
+        malp(attacke.text(angreifer, ziele))
         for ziel in ziele:
             ziel.schade(attacke.schaden)
-        malp(attacke.text(angreifer, ziele))
+            if isinstance(angreifer.nsc, Mänx):
+                malp(_("Du machst {} Schaden an {}").format(attacke.schaden, ziel))
+            elif isinstance(ziel.nsc, Mänx):
+                malp(_("{} macht {} Schaden an dir").format(angreifer, attacke.schaden))
+            else:
+                malp(_("{} macht {} Schaden an {}").format(angreifer, attacke.schaden, ziel))
 
 
 class Kampfausgang(enum.Enum):

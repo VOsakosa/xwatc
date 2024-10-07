@@ -107,10 +107,10 @@ class Gilt(MänxPrädikat):
 @define
 class Cooldown:
     """Ein Prädikat, das wahr ist, wenn es nicht in der letzten Zeit schon aktiviert wurde.
-    Unter id_ wird dafür eine Variable angelegt.
+    Unter id_ wird dafür eine Variable angelegt. ::
 
-    >>> NurWenn(Cooldown("id", 1), "Du holst dir deine tägliche Belohnung", "Du hast deine tägliche
-    ... Belohnung bereits abgeholt.")
+        NurWenn(Cooldown("id", 1), "Du holst dir deine tägliche Belohnung", 
+                "Du hast deine tägliche Belohnung bereits abgeholt.")
     """
     id_: str
     zeit: int  # Die Zeit in Tagen
