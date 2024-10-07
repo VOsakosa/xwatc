@@ -163,8 +163,9 @@ def unstructure_punkt(punkt: 'system.Speicherpunkt') -> Any:
     match punkt:
         case weg.Wegkreuzung(gebiet=gebiet, name=name):
             return {"gebiet": gebiet.name, "ort": name}
-        case FunctionType(__qualname__=name):
-            return {"fn": name}
+        case FunctionType(__qualname__=name, __module__=module):
+            assert "." not in name, "Nur Top-Level-Funktionen können Speicherpunkte sein."
+            return {"fn": module + "." + name}
         case MethodSave(method=method, obj=obj):
             return {"obj": obj, "method": method}
         case nsc.NSC(ort=weg.Wegkreuzung(gebiet=gebiet, name=name), template=nsc.StoryChar(id_=id_)):
