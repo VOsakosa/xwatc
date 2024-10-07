@@ -178,16 +178,7 @@ def duhastüberlebt(mänx: Mänx) -> Fortsetzung:
         else:
             malp("Fleischfressende Pflanze")
     elif weg == "osten":
-        malp(_("Ein sehr feindlich dreinblickendes Skelett kommt auf dich zu."))
-        malp(_("Können Skelette überhaupt feindlich dreinblicken?"))
-        if mänx.menu([("kämpfen", "k", True), ("fliehen", "f", False)],
-                     _("Den Kampf kannst du vielleicht gewinnen, aber du könntest noch fliehen")):
-            if kampf.start_kampf(mänx, skelett.zu_nsc()) == kampf.Kampfausgang.Niederlage:
-                malp(_("Das Skelett lacht dich aus und läuft davon."), warte=True)
-            else:
-                malp(_("Komisch, denkst du dir."))
-        else:
-            malp(_("Das Skelett verfolgt dich nicht."))
+        return skelett_kampf
     raise Spielende()
 
     # elif mut=="z":
@@ -196,3 +187,20 @@ def duhastüberlebt(mänx: Mänx) -> Fortsetzung:
 skelett = StoryChar("lg:süden:skelett", "Skelett", Person("m", Rasse.Skelett), {
     "Unterhose": 1
 })
+
+
+def skelett_kampf(mänx: Mänx) -> Fortsetzung:
+    malp(_("Ein sehr feindlich dreinblickendes Skelett kommt auf dich zu."))
+    malp(_("Können Skelette überhaupt feindlich dreinblicken?"))
+    if mänx.menu([("kämpfen", "k", True), ("fliehen", "f", False)],
+                 _("Den Kampf kannst du vielleicht gewinnen, aber du könntest noch fliehen"),
+                 save=skelett_kampf):
+        if kampf.start_kampf(mänx, skelett.zu_nsc()) == kampf.Kampfausgang.Niederlage:
+            malp(_("Das Skelett lacht dich aus und läuft davon."), warte=True)
+        else:
+            malp(_("Das Skelett fällt in sich zusammen."))
+            malp(_("Komisch, denkst du dir."))
+    else:
+        malp(_("Das Skelett verfolgt dich nicht."))
+
+    raise Spielende()

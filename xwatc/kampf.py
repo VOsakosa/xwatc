@@ -133,6 +133,9 @@ class Kämpfer:
         """Hole den NSC / Mänx aus der Basis"""
         return self._nsc
 
+    def __str__(self) -> str:
+        return self.anzeige.name
+
 
 @define
 class Kampf:
@@ -177,9 +180,15 @@ class Kampf:
             assert len(ziele) == 1
         else:
             assert ziele
+        malp(attacke.text(angreifer, ziele))
         for ziel in ziele:
             ziel.schade(attacke.schaden)
-        malp(attacke.text(angreifer, ziele))
+            if isinstance(angreifer.nsc, Mänx):
+                malp(_("Du machst {} Schaden an {}").format(attacke.schaden, ziel))
+            elif isinstance(ziel.nsc, Mänx):
+                malp(_("{} macht {} Schaden an dir").format(angreifer, attacke.schaden))
+            else:
+                malp(_("{} macht {} Schaden an {}").format(angreifer, attacke.schaden, ziel))
 
 
 class Kampfausgang(enum.Enum):
