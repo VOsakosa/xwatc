@@ -13,7 +13,6 @@ import queue
 import sys
 import threading
 from typing import Any, Callable, ClassVar, Mapping, NamedTuple, TypeAlias, assert_never, cast
-from typing import Optional as Opt
 from typing import Protocol, Sequence, TypeVar
 
 from attrs import define

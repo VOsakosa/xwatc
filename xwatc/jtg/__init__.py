@@ -13,7 +13,7 @@ from xwatc.jtg.ressourcen import zufälliger_name
 from xwatc.jtg.tauern import land_der_kühe
 from xwatc.nsc import Person, StoryChar, NSC, bezeichnung, Dialog, Malp, Zeitpunkt, Rückkehr, Kennt
 from xwatc.system import (
-    Mänx, minput, ja_nein, MenuOption, _,
+    SpielUnfertig, Mänx, minput, ja_nein, MenuOption, _,
     Spielende, mint, sprich, kursiv, malp, get_classes, Inventar, MänxFkt, Fortsetzung)
 from xwatc.untersystem.acker import wildpflanze
 from xwatc.untersystem.person import Fähigkeit, Rasse
@@ -273,7 +273,7 @@ def hexer_gut(leo: NSC, mänx: Mänx) -> Rückkehr:
     malp("Leo steht vor dir.")
     leo.sprich(
         "Du bist jetzt eine wandelnde Leiche und gehorchst meinem Willen")
-    raise Spielende()
+    raise SpielUnfertig
 
 
 leo.dialog("verirrt", "Ich habe mich hier verirrt.", hexer_gut, gruppe="grund")

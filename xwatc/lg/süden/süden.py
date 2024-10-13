@@ -1,7 +1,7 @@
 from time import sleep
 from xwatc import _, kampf
 from xwatc.nsc import StoryChar
-from xwatc.system import Mänx, minput, ja_nein, kursiv, mint, malp, Fortsetzung, Spielende
+from xwatc.system import SpielUnfertig, Mänx, minput, ja_nein, kursiv, mint, malp, Fortsetzung, Spielende
 from xwatc.lg.osten import osten
 import random
 from xwatc.untersystem.person import Person, Rasse
@@ -179,7 +179,10 @@ def duhastüberlebt(mänx: Mänx) -> Fortsetzung:
             malp("Fleischfressende Pflanze")
     elif weg == "osten":
         return skelett_kampf
-    raise Spielende()
+    else:
+        assert weg == "gerade"
+        raise SpielUnfertig()
+    raise SpielUnfertig()
 
     # elif mut=="z":
 
@@ -203,4 +206,4 @@ def skelett_kampf(mänx: Mänx) -> Fortsetzung:
     else:
         malp(_("Das Skelett verfolgt dich nicht."))
 
-    raise Spielende()
+    raise SpielUnfertig()

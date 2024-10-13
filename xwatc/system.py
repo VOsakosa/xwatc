@@ -814,11 +814,20 @@ def kursiv(text: str) -> str:
     return ausgabe.kursiv(text)
 
 
-class Spielende(Exception):
+class SpielendeBasis(Exception):
+    """Die Basisklasse für Exceptions, die das Spiel beenden sollen."""
+
+
+class Spielende(SpielendeBasis):
     """Diese Exception wird geschmissen, um das Spiel zu beenden."""
 
 
-class ZumHauptmenu(Exception):
+class SpielUnfertig(SpielendeBasis):
+    """Diese Exception wird geschmissen, wenn das Spiel an einen Punkt gelangt, der noch nicht
+    implementiert ist."""
+
+
+class ZumHauptmenu(SpielendeBasis):
     """Diese Exception wird geschmissen, um direkt zum Hauptmenü zu gelangen.
     Sie sollte nur von den Ausgaben geschmissen werden, damit der Spieler je nach Regel
     vorher noch abgespeichert wird.
@@ -847,14 +856,14 @@ def main_loop(mänx: Mänx, punkt: Fortsetzung | None = None) -> None:
         except Spielende:
             malp(_("Du bist tot"))
             if mänx.titel:
-                malp("Du hast folgende Titel erhalten:", ", ".join(mänx.titel))
-                malp("Aber keine Sorge, du wirst wiedergeboren")
-            punkt = respawn
+                malp(_("Du hast folgende Titel erhalten: {}").format(", ".join(mänx.titel)))
+            return
+        except SpielUnfertig:
+            pass
         except (EOFError, ZumHauptmenu):
             return
-        else:
-            malp("Hier ist die Geschichte zu Ende.")
-            punkt = respawn
+        malp(_("Hier ist die Geschichte zu Ende."))
+        punkt = respawn
 
 
 from xwatc import anzeige, nsc, scenario, weg  # @UnusedImport @Reimport
