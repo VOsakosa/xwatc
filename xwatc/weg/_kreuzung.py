@@ -256,6 +256,9 @@ class Wegkreuzung(Wegpunkt):
     :param immer_fragen: immer fragen, wie weitergegangen werden soll, auch
     wenn es keine Abzweigung ist
     :param menschen: Menschen, die an der Wegkreuzung stehen und angesprochen werden können.
+
+    Erzeuge eine Wegkreuzung durch die Funktion `weg.kreuzung` (wenn nicht auf dem Gitter)
+    oder `Gebiet.neuer_punkt` wenn auf dem Gitter eines Gebiets.
     """
     OPTS: ClassVar[Sequence[int]] = [
         4, 3, 5, 2, 6, 1, 7]  # Reihenfolge des Fragens
@@ -313,7 +316,7 @@ class Wegkreuzung(Wegpunkt):
         """Erzeuge ein Ausgangs-Objekt, um diesen Wegpunkt verbinden zu können.
 
         >>> a = kreuzung("a")
-        >>> a.ausgang("nachb") - kreuzung("b").ausgang("nacha");
+        >>> ausgang_b = a.ausgang("nachb", "Nach B") - kreuzung("b").ausgang("nacha", "Nach A")
         >>> len(a.get_nachbarn())
         1
         """
@@ -440,7 +443,12 @@ class Wegkreuzung(Wegpunkt):
         return self
 
     def __sub__(self, anderer: 'Wegkreuzung') -> 'Wegkreuzung':
-        """Verbinde Wegkreuzungen anhand ihres Namens."""
+        """Verbinde Wegkreuzungen anhand ihres Namens.
+
+        >>> fahrstraße = kreuzung("Freiheitsplatz") - kreuzung("Fahrstraße")
+        >>> fahrstraße.get_nachbarn() # doctest: +ELLIPSIS
+        [Wegkreuzung(name='Freiheitsplatz',...)]
+        """
         anderer.nachbarn[Himmelsrichtung.from_kurz(self.name)] = self
         self.nachbarn[Himmelsrichtung.from_kurz(anderer.name)] = anderer
         return anderer
