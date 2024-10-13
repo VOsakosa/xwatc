@@ -271,7 +271,7 @@ class Wegkreuzung(Wegpunkt):
     kreuzung_beschreiben: bool = False
     _gebiet: 'Gebiet | None' = None
     dorf: dorf.Dorf | None = None
-    beschreibungen: list[Beschreibung] = field(factory=list)
+    _beschreibungen: list[Beschreibung] = field(factory=list)
     _wenn_fn: dict[str, MänxPrädikat] = field(factory=dict)
 
     def __attrs_pre_init__(self):
@@ -286,7 +286,7 @@ class Wegkreuzung(Wegpunkt):
         der Wegpunkt betreten wird. Das kann ein Text sein, aber auch eine MänxFkt.
         Die Funktion kann einen Wegpunkt oder ein WegEnde zurückgeben, um
         das Wegsystem zu verlassen."""
-        self.beschreibungen.append(
+        self._beschreibungen.append(
             Beschreibung(geschichte, nur, außer, warten))
         return self
 
@@ -334,7 +334,7 @@ class Wegkreuzung(Wegpunkt):
         die Welt nicht anders als ein einfacher Aufruf. Denn beim Laden wird
         die Beschreibung mehrfach durchgeführt.
         """
-        for beschreibung in self.beschreibungen:
+        for beschreibung in self._beschreibungen:
             ans = beschreibung.beschreibe(mänx, str(ri_name))
             if isinstance(ans, (Wegpunkt, WegEnde)):
                 getLogger("xwatc.weg").info(
@@ -343,7 +343,7 @@ class Wegkreuzung(Wegpunkt):
             elif ans is not None:
                 getLogger("xwatc.weg").warning(
                     f"Beschreibung von {self.name} hat {ans} zurückgegeben. Das wird ignoriert.")
-        if ri_name and (self.kreuzung_beschreiben or not self.beschreibungen and self.immer_fragen):
+        if ri_name and (self.kreuzung_beschreiben or not self._beschreibungen and self.immer_fragen):
             from xwatc.vorlagen.kreuzung_beschreiben import beschreibe_kreuzung
             if isinstance(ri_name, Himmelsrichtung):
                 beschreibe_kreuzung(self, ri_name.nr)

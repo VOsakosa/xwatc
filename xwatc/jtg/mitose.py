@@ -83,7 +83,7 @@ def erzeuge_norddörfer(mänx: Mänx, gebiet: weg.Gebiet) -> weg.Wegpunkt:
     mitose = Dorf.mit_draußen("Mitose", gebiet)
     mitose_ort = mitose.draußen
     mitose_ort.verbinde(zur_mitte, "s")
-    mitose_ort.beschreibungen.clear()
+    mitose_ort._beschreibungen.clear()
     mitose_ort.add_beschreibung([
         "Du bist im Ort Mitose.",
         "Ein Weg führt in Nord-Süd-Richtung durch das Dorf.",
