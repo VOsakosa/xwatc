@@ -8,91 +8,92 @@ from xwatc.untersystem.person import Person, Rasse
 from xwatc.weg import get_eintritt
 
 
-def süden(mänx: Mänx) -> Fortsetzung:
+def schnecke(mänx: Mänx) -> Fortsetzung:
+    """Der Mänx kämpft gegen die Schnecke."""
     malp("Du wanderst durch fruchtbare Wiesen und Täler. Seltsam - warum siedelt hier niemand? ")
-    mänx.sleep(1, "")
+    sleep(1)
     malp("Ein Monster beantwortet deine Frage. ")
-    mänx.sleep(1, "")
+    sleep(1)
     malp("Es sieht aus wie eine riesige Schnecke. Sie brüllt.")
-    mut = minput(mänx, "Kämpfst du oder fliehst du?", ["k", "f"])
-    if mut == "k":
-        if mänx.hat_item("Speer"):
-            malp("Wirfst du deinen Speer oder versuchst du, deinen Speer in sie hineinzubohren?")
-            aa = mänx.minput("Fernkampf[f] oder Nahkampf[n]?", ["f", "n"])
-            if aa == "f":
-                malp("Du wirfst deinen Speer. Die Schnecke brüllte, als der Speer in sie eindrang. "
-                     "Doch außer das die Schnecke nun auf dich zuschleimt, hat es nichts bewirkt.")
-                mänx.erhalte("Speer", -1)
-                mut = minput(mänx, "Rennst du weg oder hebst du schützend "
-                             "deine Arme über dem Kopf f/v(flucht/verteidigung)", ["f", "v"])
-                if mut == "v":
-                    malp("Die Schnecke fraß dich auf, wie eine normale Schnecke Salat")
-                    mint("Du bist tot")
-                    raise Spielende()
-                else:
-                    assert mut == "f"
-                    malp("Du rennst weg. Zum Glück ist die Schnecke immer noch eine Schnecke "
-                         "und du entkommst.")
-                    return rückweg
-            else:
-                malp("Du rennst auf die Schnecke zu und schlitzt sie auf. Du wirfst dich förmlich"
-                     " in sie. Die Schnecke kreischt. Dann, schließlich ist sie tot.")
-                return duhastüberlebt
-        elif mänx.hat_item("Messer"):
-            malp("Du hast die Schnecke mit deinem Messer aufgeschlitzt. Du we"
-                 "ichst zurück. Wieder und wieder stichst du in die Schnecke"
-                 "rein und hüpfst danach gleich wieder zurück. Das tus"
-                 "t du solange, bis die Schnecke endlich tot ist.")
-            return duhastüberlebt
-
-        elif mänx.hat_item("Spitzhacke"):
-            malp("Du tötest die Schnecke mit deiner Spitzhacke")
-            return duhastüberlebt
-
-        elif mänx.hat_item("Schwert"):
-            malp("Dein Schwert fühlt sich plötzlich sehr, sehr schwer an. "
-                 "Als die Schnecke zu dir schleimt kanns"
-                 "t du dich irgendwie nicht mehr bewegen. ")
-            sleep(1)
-            malp("Sie frisst dich")
-            raise Spielende()
-        elif mänx.hat_item('Schild'):
-            while True:
-                hähä = minput(mänx, "Die Schnecke greift dich an, du konntest sie"
-                              "gerade noch so mit deinem Schild abwehren abwehren."
-                              " Hältst du weiter die Stellu"
-                              "ng oder fliehst du? v/f (flucht/verteidigung)", ["v", "f"])
-                if hähä == "f":
-                    break
-            malp(
-                "Du rennst weg. Zum Glück ist die Schnecke immer noch eine Schnecke und du entkommst.")
-            return rückweg
-        else:
-            malp("Du hast keine Waffe, die gegen eine Schnecke was ausrichten könnte")
-            sleep(3)
-            malp("Einige Sekunden später bist du tot")
-            raise Spielende()
-    else:
-        malp("Du rennst und rennst vor"
-             "der Schnecke weg, bis du"
-             "wieder dort angekommen b"
-             "ist, wo alles angefangen"
-             "hat")
+    if "f" == mänx.minput("Kämpfst du oder fliehst du?", ["k", "f"], save=schnecke):
+        malp("Du rennst und rennst vor der Schnecke weg, bis du wieder dort angekommen bist, wo "
+             "alles angefangen hat")
         return rückweg
+    if mänx.hat_item("Speer"):
+        malp("Wirfst du deinen Speer oder versuchst du, deinen Speer in sie hineinzubohren?")
+        if mänx.minput("Fernkampf oder Nahkampf?", ["Fernkampf", "Nahkampf"]) == "Fernkampf":
+            malp("Du wirfst deinen Speer. Die Schnecke brüllte, als der Speer in sie eindrang. "
+                 "Doch außer das die Schnecke nun auf dich zuschleimt, hat es nichts bewirkt.")
+            mänx.erhalte("Speer", -1)
+            mut = minput(mänx, "Rennst du weg oder hebst du schützend "
+                         "deine Arme über dem Kopf f/v(flucht/verteidigung)", ["f", "v"])
+            if mut == "v":
+                malp("Die Schnecke fraß dich auf, wie eine normale Schnecke Salat")
+                mint("Du bist tot")
+                raise Spielende()
+            else:
+                assert mut == "f"
+                malp("Du rennst weg. Zum Glück ist die Schnecke immer noch eine Schnecke "
+                     "und du entkommst.")
+                malp("Deinen Speer bist du aber los.")
+                return rückweg
+        else:
+            malp("Du rennst auf die Schnecke zu und schlitzt sie auf. Du wirfst dich förmlich"
+                 " in sie. Die Schnecke kreischt. Dann schließlich ist sie tot.")
+            return schnecke_besiegt
+    elif mänx.hat_item("Messer"):
+        malp("Du hast die Schnecke mit deinem Messer aufgeschlitzt. Du weichst zurück. "
+             "Wieder und wieder stichst du in die Schnecke"
+             "rein und hüpfst danach gleich wieder zurück. Das tust du solange, bis die Schnecke "
+             "endlich tot ist.")
+        return schnecke_besiegt
+
+    elif mänx.hat_item("Spitzhacke"):
+        malp("Du tötest die Schnecke mit deiner Spitzhacke")
+        return schnecke_besiegt
+
+    elif mänx.hat_item("Schwert"):
+        malp("Dein Schwert fühlt sich plötzlich sehr, sehr schwer an. "
+             "Als die Schnecke zu dir schleimt kanns"
+             "t du dich irgendwie nicht mehr bewegen. ")
+        sleep(1)
+        malp("Sie frisst dich")
+        raise Spielende()
+    elif mänx.hat_item('Schild'):
+        while minput(mänx, "Die Schnecke greift dich an, du konntest sie"
+                     "gerade noch so mit deinem Schild abwehren abwehren."
+                     " Hältst du weiter die Stellung oder fliehst du?",
+                     ["Stellung halten", "Fliehen"]) == "Stellung halten":
+            pass
+        malp(
+            "Du rennst weg. Zum Glück ist die Schnecke immer noch eine Schnecke und du entkommst.")
+        return rückweg
+    else:
+        malp("Du hast keine Waffe, die gegen eine Schnecke was ausrichten könnte")
+        sleep(3)
+        malp("Einige Sekunden später bist du tot")
+        raise Spielende()
+
+
+def süden(mänx: Mänx) -> Fortsetzung:
+    if not mänx.welt.ist("lg:süd:schnecke_tot"):
+        return schnecke
+    return monsterwellen
 
 
 def rückweg(mänx: Mänx) -> Fortsetzung:
-    intelipopo = minput(mänx, "gehst du den selben Weg wieder zurück oder gehst du einen anderen"
-                        "? g/a(gleicher/anderer)", ["g", "a"])
-    if intelipopo == "g":
+    if mänx.minput("Gehst du den selben Weg wieder zurück oder gehst du einen anderen?",
+                   ["Gleicher Weg", "Anderer Weg"], save=rückweg) == "Gleicher Weg":
         from xwatc.lg.mitte import MITTE
         return get_eintritt(mänx, (MITTE, "süden"))
     else:
+        malp("Du biegst leicht nach Osten ab.")
         return osten.osten
 
 
-def duhastüberlebt(mänx: Mänx) -> Fortsetzung:
-    if ja_nein(mänx, "Weidest du die Schnecke aus? "):
+def schnecke_besiegt(mänx: Mänx) -> Fortsetzung:
+    mänx.welt.setze("lg:süd:schnecke_tot")
+    if ja_nein(mänx, "Weidest du die Schnecke aus?", save=schnecke_besiegt):
         malp("Du bekommst ein paar Dinge.")
         mänx.erhalte("Schneckenschleim", 30)
         mänx.erhalte("Riesenschneckeninnereien", 20)
@@ -103,8 +104,12 @@ def duhastüberlebt(mänx: Mänx) -> Fortsetzung:
         return get_eintritt(mänx, (MITTE, "süden"))
     assert mut == "weiter"
     malp("Du wagst dich tiefer ins Land der Monster.")
+    return monsterwellen
+
+
+def monsterwellen(mänx: Mänx) -> Fortsetzung:
     weg = minput(mänx, "Biegst du in Richtung Osten/Westen ab oder gehst du einfach geradeaus?",
-                 ["westen", "osten", "gerade"])
+                 ["westen", "osten", "gerade"], save=monsterwellen)
     if weg == "westen":
         a = random.randint(1, 11)
         if a == 1:
