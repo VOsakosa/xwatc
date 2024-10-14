@@ -5,9 +5,12 @@ Unittests für xwatc.weg
 import unittest
 from unittest.mock import patch, Mock
 
+from xwatc.nsc import Malp, StoryChar
 from xwatc.system import Mänx, mint, malp, MissingIDError
+from xwatc.untersystem.attacken import Fertigkeit, Kampfwerte, Resistenzen, Schadenstyp
 from xwatc.weg import (Wegtyp, GEBIETE, Beschreibung, get_gebiet, Gebiet, Himmelsrichtung, Weg,
                        kreuzung, WegEnde, wegsystem, Eintritt, finde_punkt as finde_kreuzung)
+from xwatc.weg.begegnung import Begegnungsliste
 from xwatc_test.mock_system import MockSystem, ScriptEnde, UnpassendeEingabe
 
 
@@ -145,6 +148,20 @@ class TestWeg(unittest.TestCase):
         get_gebiet.assert_called_with(m, "test")
         with self.assertRaises(MissingIDError):
             print(finde_kreuzung(m, "test", "nein"))
+
+    def test_begegnungsliste(self) -> None:
+        liste = Begegnungsliste("test:wiese")
+
+        @liste.add_begegnung
+        def blumen(mänx: Mänx):
+            malp("Du findest Sonnenblumen")
+            mänx.erhalte("Sonnenblume")
+
+        liste.add_monster(StoryChar("test:büffel", "Büffel", kampfwerte=Kampfwerte(
+            max_lp=150, resistenzen=Resistenzen.aus_str("0,0,20,0,-10,10,20,0"),
+            fertigkeiten=[Fertigkeit("Ansturm", "ansturm", 20, Schadenstyp.aus_str("klinge"))],
+            nutze_std_fertigkeiten=False,
+        ), vorstellen_fn=["Ein großer, wütender Büffel hat dich entdeckt."]))
 
 
 class TestIntegration(unittest.TestCase):
