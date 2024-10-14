@@ -37,6 +37,17 @@ class WegEnde:
     """
     weiter: MänxFkt[Fortsetzung]
 
+    @staticmethod
+    def wrap(weiter: Fortsetzung | None) -> WegEnde | Wegpunkt | None:
+        """Packe die Forsetzung in ein WegEnde, falls sie nicht schon ein Wegpunkt ist."""
+        match weiter:
+            case None | Wegpunkt():
+                return weiter
+            case _ if callable(weiter):
+                return WegEnde(weiter)
+            case _:
+                return WegEnde(weiter.main)  # type: ignore
+
 
 @runtime_checkable
 class Wegpunkt(Protocol):

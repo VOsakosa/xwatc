@@ -312,7 +312,7 @@ class Wegkreuzung(Wegpunkt):
         )
 
     def ausgang(self, richtung: str, ziel_name: str,
-                typ=Wegtyp.WEG) -> _KreuzungsAusgang:
+                typ: Wegtyp = Wegtyp.WEG) -> _KreuzungsAusgang:
         """Erzeuge ein Ausgangs-Objekt, um diesen Wegpunkt verbinden zu können.
 
         >>> a = kreuzung("a")
@@ -403,6 +403,7 @@ class Wegkreuzung(Wegpunkt):
                 yield richtung, himri_oder_name
 
     def get_nachbarn(self) -> list[Wegpunkt]:
+        """Liste alle Nachbarn auf."""
         return [pt for pt in self.nachbarn.values()]
 
     def main(self, mänx: Mänx, von: Wegpunkt | None = None) -> Wegpunkt | WegEnde:
@@ -429,17 +430,8 @@ class Wegkreuzung(Wegpunkt):
         if isinstance(ans, Wegpunkt):
             return ans
         elif isinstance(ans, NSC):
-            mänx_ans = ans.main(mänx)
-            match mänx_ans:
-                case None:  # @UnusedVariable
-                    pass
-                case Wegpunkt():
-                    return mänx_ans
-                case _ if callable(mänx_ans):
-                    return WegEnde(mänx_ans)
-                case _:
-                    return WegEnde(mänx_ans.main)
-
+            if ende := WegEnde.wrap(ans.main(mänx)):
+                return ende
         return self
 
     def __sub__(self, anderer: 'Wegkreuzung') -> 'Wegkreuzung':
@@ -527,14 +519,7 @@ class Wegkreuzung(Wegpunkt):
             if mänx.welt.hat_obj(char):
                 nsc = mänx.welt.obj(char)
                 if not nsc.tot and nsc.ort == self:
-                    mänx_ans = nsc.main(mänx)
-                    match mänx_ans:
-                        case None | Wegpunkt():
-                            return mänx_ans
-                        case _ if callable(mänx_ans):
-                            return WegEnde(mänx_ans)
-                        case _:
-                            return WegEnde(mänx_ans.main)
+                    return WegEnde.wrap(nsc.main(mänx))
             return None
         self.add_beschreibung(beschreibung)
         return self
