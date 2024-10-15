@@ -1,18 +1,5 @@
 r"""
 Schreibt und liest das Xwatc-Itemverzeichnis.
-
-Die Grammatik des Itemverzeichnisses ist wie folgt:
-(Die Grammatik ignoriert Whitespace, Kommentarzeilen mit #)
-
-ITEMVERZEICHNIS := KLASSENBLOCK*
-KLASSENBLOCK := KLASSENDEFINITION ITEMDEFINITION*
-KLASSENDEFINITION := NAME ":" NAME@OBERKLASSE?
-ITEMDEFINITION := NAME (";" KOSTEN )?
-KOSTEN := INTEGER | "-"
-NAME := "[\w ]+"
-
-
-Created on 25.10.2020
 """
 from __future__ import annotations
 from collections.abc import Collection, Iterator, Sequence

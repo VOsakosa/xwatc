@@ -3,17 +3,17 @@ Ein Händler ist ein spezieller NSC, der Kaufen und Verkaufen von Items erlaubt.
 """
 from __future__ import annotations
 
-from attrs import define
+import re
 from collections import defaultdict
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
-import re
 
-from xwatc.nsc import Rückkehr, Zeitpunkt, Dialog, StoryChar, NSC
-from xwatc.system import (_, Mänx, get_classes, malp, Fortsetzung,
-                          ITEMVERZEICHNIS, get_preise, Speicherpunkt, MenuOption)
 import typing_extensions
+from attrs import define
 
+from xwatc.nsc import NSC, Dialog, Rückkehr, StoryChar, Zeitpunkt
+from xwatc.system import (Fortsetzung, MenuOption, Mänx, Speicherpunkt, _,
+                          get_classes, get_itemverzeichnis, get_preise, malp)
 
 Preis = int
 Item = str
@@ -109,7 +109,7 @@ class HandelsFn:
         """Berechne den Ankaufpreis für das Objekt name.
         :return: Preis in Gold, oder None, wenn nicht gekauft wird.
         """
-        if name in ITEMVERZEICHNIS:
+        if name in get_itemverzeichnis():
             return (get_preise(name) * self.aufpreis).__ceil__()
         return None
 

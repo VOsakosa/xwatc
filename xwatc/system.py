@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import enum
+from functools import cache
 import logging
 import types  # @UnusedImport
 import typing
@@ -86,25 +87,29 @@ class MissingIDError(Exception):
 
 MänxPrädikat: TypeAlias = MänxFkt[bool]
 Fortsetzung: TypeAlias = Union[MänxFkt, HatMain, 'weg.Wegpunkt']
-ITEMVERZEICHNIS = lade_itemverzeichnis(Path(__file__).parent / "itemverzeichnis.yaml")
 ausgabe: Terminal | 'anzeige.XwatcFenster' = Terminal()
+
+
+@cache
+def get_itemverzeichnis() -> dict[str, Item]:
+    return lade_itemverzeichnis(Path(__file__).parent / "itemverzeichnis.yaml")
 
 
 def get_classes(item: str) -> Iterator[str]:
     """Hole die Klassen, zu dem ein Item gehört, also z.B. "magisch", "Waffe"."""
-    return (cls.name for cls in ITEMVERZEICHNIS[item].yield_classes())
+    return (cls.name for cls in get_itemverzeichnis()[item].yield_classes())
 
 
 def get_preise(item: str) -> int:
     """Hole den Standard-Marktpreis für ein Item. Das ist generell der Verkaufspreis,
     nicht der Ankaufpreis."""
-    return ITEMVERZEICHNIS[item].get_preis()
+    return get_itemverzeichnis()[item].get_preis()
 
 
 def get_item(item_name: str) -> Item:
     """Hole die Item-Klasse von dem Namen des Items."""
     try:
-        return ITEMVERZEICHNIS[item_name]
+        return get_itemverzeichnis()[item_name]
     except KeyError:
         raise KeyError(f"Unbekanntes Item {item_name}") from None
 
@@ -113,7 +118,7 @@ def get_item_or_dummy(item_name: str) -> Item:
     """Hole die Item-Klasse von dem Namen des Items, oder einfach eine leere neue, wenn das Item
     nicht existiert."""
     try:
-        return ITEMVERZEICHNIS[item_name]
+        return get_itemverzeichnis()[item_name]
     except KeyError:
         return Item(item_name, 0, item_typ=[ItemKlasse.Unbekannt])  # type: ignore
 
