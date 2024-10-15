@@ -15,7 +15,7 @@ from xwatc.system import (Mänx, MenuOption, MänxFkt, malp, mint,
                           MänxPrädikat, Welt)
 from xwatc.utils import uartikel, bartikel, adj_endung, UndPred
 from xwatc.untersystem.menus import Option
-from xwatc.weg import Ausgang, Wegpunkt, WegEnde, Weg, Gebiet
+from xwatc.weg import Ausgang, Wegpunkt, WegEnde, Weg, Gebiet, begegnung
 from xwatc.weg import dorf
 from xwatc.effect import TextGeschichte
 
@@ -212,6 +212,8 @@ def kreuzung(
     gucken: BeschreibungFn | Sequence[str] = (),
     kreuzung_beschreiben: bool = False,
     immer_fragen: bool = False,
+    monster: begegnung.Monstergebiet | None = None,
+    tiefe: int = 10,
     **kwargs: Ausgang
 ) -> 'Wegkreuzung':
     """Konstruktor für Wegkreuzungen ursprünglichen Typs, die nicht auf einem Gitter liegen,
@@ -221,10 +223,10 @@ def kreuzung(
     :param immer_fragen: Wenn False, läuft der Mensch automatisch weiter, wenn es nur eine
         Fortsetzung gibt.
     """
-    nb = {Himmelsrichtung.from_kurz(
-        key): value.wegpunkt for key, value in kwargs.items()}
+    nb = {Himmelsrichtung.from_kurz(key): value.wegpunkt
+          for key, value in kwargs.items()}
     ans = Wegkreuzung(name, nb, kreuzung_beschreiben=kreuzung_beschreiben,
-                      immer_fragen=immer_fragen)
+                      immer_fragen=immer_fragen, monstergebiet=monster, tiefe=tiefe)
     if gucken:
         ans.add_option("Umschauen[gucken]", "gucken", gucken)
     for ausgang in kwargs.values():
@@ -248,7 +250,11 @@ class NSCReference:
 class Wegkreuzung(Wegpunkt):
     """Eine Wegkreuzung enthält ist ein Punkt, wo
     1) mehrere Wege fortführen
-    2) NSCs herumstehen, mit denen interagiert werden kann.
+    2) NSCs herumstehen, mit denen interagiert werden kann
+
+    Alternativ ist eine Wegkreuzung auch eine Kachel, ein Gebiet mit uniformer Landschaft, in
+    dem Monster lauern. Der Spieler kann sich eine Richtung aussuchen, aber bevor er die Kachel
+    verlässt, warten Monster auf ihn.
 
     :param nachbarn: Nachbarn der Kreuzung, nach Richtung oder Ziel
     :param kreuzung_beschreiben: Ob die Kreuzung sich anhand ihrer
@@ -273,6 +279,9 @@ class Wegkreuzung(Wegpunkt):
     dorf: dorf.Dorf | None = None
     _beschreibungen: list[Beschreibung] = field(factory=list)
     _wenn_fn: dict[str, MänxPrädikat] = field(factory=dict)
+    # Monstergebiet etc.
+    _monstergebiet: begegnung.Monstergebiet | None = None
+    tiefe: int = 10
 
     def __attrs_pre_init__(self):
         super().__init__()
@@ -335,7 +344,9 @@ class Wegkreuzung(Wegpunkt):
         die Beschreibung mehrfach durchgeführt.
         """
         for beschreibung in self._beschreibungen:
-            ans = beschreibung.beschreibe(mänx, str(ri_name))
+            if isinstance(ri_name, Himmelsrichtung):
+                ri_name = str(ri_name)
+            ans = beschreibung.beschreibe(mänx, ri_name)
             if isinstance(ans, (Wegpunkt, WegEnde)):
                 getLogger("xwatc.weg").info(
                     f"Springe aus Beschreibung von {self.name} nach {ans}.")
@@ -353,8 +364,7 @@ class Wegkreuzung(Wegpunkt):
         #    mensch.ansehen(mänx)
         return None
 
-    def optionen(self, mänx: Mänx,
-                 von: NachbarKey | None) -> Iterable[MenuOption[Wegpunkt | 'nsc.NSC']]:
+    def _get_optionen(self, mänx: Mänx, von: NachbarKey | None) -> Iterable[MenuOption[Wegpunkt | 'nsc.NSC']]:
         """Sammelt Optionen, wie der Mensch sich verhalten kann."""
         for mensch in self.get_nscs(mänx.welt):
             yield (_("Mit {name} reden").format(name=mensch.name),
@@ -406,33 +416,55 @@ class Wegkreuzung(Wegpunkt):
         """Liste alle Nachbarn auf."""
         return [pt for pt in self.nachbarn.values()]
 
+    def get_key(self, nachbar: Wegpunkt | None) -> None | NachbarKey:
+        von_key = None
+        if nachbar is not self:
+            for key, value in self.nachbarn.items():
+                if value is nachbar:
+                    von_key = key
+                    break
+        return von_key
+
     def main(self, mänx: Mänx, von: Wegpunkt | None = None) -> Wegpunkt | WegEnde:
         """Fragt nach allen Richtungen."""
         from xwatc.nsc import NSC
-        von_key = None
-        if von is not self:
-            for key, value in self.nachbarn.items():
-                if value is von:
-                    von_key = key
-                    break
+        von_key = self.get_key(von)
         schnell_austritt = self.beschreibe(mänx, von_key)
         if schnell_austritt is not None:
             return schnell_austritt
-        opts = list(self.optionen(mänx, von_key))
+        opts = list(self._get_optionen(mänx, von_key))
         if not opts:
             raise ValueError(f"Keine Optionen, um aus {self} zu entkommen.")
         # Direkt wählen, wenn nicht immer_fragen an.
         if not self.immer_fragen and ((von is None) + len(opts)) <= 2:
             if isinstance(opts[0][2], Wegpunkt):
-                return opts[0][2]
+                return self._run_auf_dem_weg(mänx, von, opts[0][2])
         frage = _("Welchen Weg nimmst du?") if mänx.ausgabe.terminal else ""
         ans = mänx.menu(opts, frage=frage, save=self)
         if isinstance(ans, Wegpunkt):
-            return ans
+            return self._run_auf_dem_weg(mänx, von, ans)
         elif isinstance(ans, NSC):
             if ende := WegEnde.wrap(ans.main(mänx)):
                 return ende
         return self
+
+    def _run_auf_dem_weg(self, mänx: Mänx, von: Wegpunkt | None, richtung: Wegpunkt) -> Wegpunkt | WegEnde:
+        """Mache dich auf den Weg in eine richtung. Hat die Kreuzung ein Monstergebiet,
+        so trifft man auf dem Weg mehrfach auf Monster, ohne die Wegkreuzung zu verlassen.
+        """
+        if not self._monstergebiet:
+            return richtung
+        self._monstergebiet.betrete(mänx)
+        auf_dem_weg = AufDemWeg(
+            kachel=self,
+            tiefe=self.tiefe,
+            monster=self._monstergebiet,
+            herkunft=von or self,
+            ziel=richtung)
+        ans = None
+        while ans is None:
+            ans = auf_dem_weg.main(mänx)
+        return ans
 
     def __sub__(self, anderer: 'Wegkreuzung') -> 'Wegkreuzung':
         """Verbinde Wegkreuzungen anhand ihres Namens.
@@ -582,3 +614,31 @@ class Wegkreuzung(Wegpunkt):
             return f"{self.gebiet.name}:{self.name}"
         except ValueError:
             return f"?:{self.name}"
+
+
+@define
+class AufDemWeg:
+    """Modelliert, dass der Spieler auf dem Weg aus einer Kachel heraus ist."""
+    kachel: Wegkreuzung
+    tiefe: int
+    monster: begegnung.Monstergebiet
+    herkunft: Wegpunkt
+    ziel: Wegpunkt
+    fortschritt: int = 0
+
+    def main(self, mänx: Mänx) -> WegEnde | Wegpunkt | None:
+        # Beschreibe auf Basis der Kachel
+        ans: None | WegEnde | Wegpunkt | AufDemWeg
+        while self.fortschritt < self.tiefe:
+            self.tiefe -= 1
+            if begegnung := self.monster.nächste_begegnung(mänx):
+                break
+        else:
+            return self.ziel
+        if ans := self.kachel.beschreibe(mänx, ri_name=None):
+            return ans
+        optionen: list[MenuOption[None | Wegpunkt]] = [
+            (_("Weiter"), "w", None),
+            (_("Richtung ändern"), "r", self.kachel),
+            (_("Fliehen"), "f", self.herkunft)]
+        return mänx.menu(optionen, save=None)

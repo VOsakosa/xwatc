@@ -13,7 +13,7 @@ mehr Monster. Normalerweise triffst du nichts.
 from typing import TypeVar
 from attrs import define, field
 
-from xwatc.nsc import StoryChar
+from xwatc import nsc
 from xwatc.system import Welt, Mänx, MänxFkt
 from xwatc.weg import WegEnde, Wegpunkt
 
@@ -31,11 +31,18 @@ class Begegnungsliste:
         """Füge eine Begegnung hinzu, die eine Funktion ist."""
         return fkt
 
-    def add_monster(self, template: StoryChar) -> None:
+    def add_monster(self, template: "nsc.StoryChar") -> None:
         """Füge ein Monster hinzu."""
 
 
 @define
+class Begegnungsausgang:
+    """Der Ausgang einer Begegnung, wird zurückgegeben, nachdem eine Begegnung fertig durchgeführt
+    wurde."""
+    ausgang: WegEnde | Wegpunkt | None
+
+
+@define(kw_only=True)
 class Monstergebiet:
     """Ein Gebiet, in dem Monster spawnen und innerhalb des Gebiets umherziehen.
     (wird abgespeichert)
@@ -44,7 +51,15 @@ class Monstergebiet:
     Gebiet (Monsterpegel)
     """
     begegnungen: Begegnungsliste
-    monsterspiegel = field(kw_only=True)
+    monsterspiegel: int
+    herkunft: "kreuzung.NachbarKey | None" = None
 
     def betrete(self, mänx: Mänx) -> None:
         """Betrete das Monstergebiet und regeneriere die Monster."""
+
+    def nächste_begegnung(self, mänx: Mänx) -> Begegnungsausgang | None:
+        """Führe eine Begegnung mit einem Monster aus."""
+        return None
+
+
+from xwatc.weg import _kreuzung as kreuzung  # noqa

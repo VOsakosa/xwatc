@@ -3,14 +3,14 @@ Unittests für xwatc.weg
 
 """
 import unittest
-from unittest.mock import patch, Mock
+from unittest.mock import create_autospec, patch, Mock
 
 from xwatc.nsc import StoryChar
 from xwatc.system import Mänx, mint, malp, MissingIDError
 from xwatc.untersystem.attacken import Fertigkeit, Kampfwerte, Resistenzen, Schadenstyp
-from xwatc.weg import (Wegtyp, GEBIETE, Beschreibung, get_gebiet, Gebiet, Himmelsrichtung, Weg,
+from xwatc.weg import (WegAdapter, Wegtyp, GEBIETE, Beschreibung, get_gebiet, Gebiet, Himmelsrichtung, Weg,
                        kreuzung, WegEnde, wegsystem, Eintritt, finde_punkt as finde_kreuzung)
-from xwatc.weg.begegnung import Begegnungsliste
+from xwatc.weg.begegnung import Begegnungsausgang, Begegnungsliste, Monstergebiet
 from xwatc_test.mock_system import MockSystem, ScriptEnde, UnpassendeEingabe
 
 
@@ -54,6 +54,18 @@ class TestWeg(unittest.TestCase):
         self.assertListEqual(system.pop_ausgaben(), ["Nur der Text"])
         d.beschreibe(mänx, von="Nein")
         self.assertListEqual(system.pop_ausgaben(), [])
+
+    def test_beschreibe(self) -> None:
+        system = MockSystem()
+        mänx = system.install()
+
+        kr = kreuzung("test")
+        kr.add_beschreibung(["Da"], nur=(None,))
+        kr.add_beschreibung(["An"], außer=(None,))
+        kr.beschreibe(mänx, ri_name=None)
+        self.assertListEqual(system.pop_ausgaben(), ["Da"])
+        kr.beschreibe(mänx, ri_name="None")
+        self.assertListEqual(system.pop_ausgaben(), ["An"])
 
     def test_gitter(self) -> None:
         gebiet = Gebiet("Test-Gebiet")
@@ -162,6 +174,45 @@ class TestWeg(unittest.TestCase):
             fertigkeiten=[Fertigkeit("Ansturm", "ansturm", 20, Schadenstyp.aus_str("klinge"))],
             nutze_std_fertigkeiten=False,
         ), vorstellen_fn=["Ein großer, wütender Büffel hat dich entdeckt."]))
+
+    def test_kachel_verlassen(self) -> None:
+        system = MockSystem()
+        mänx = system.install()
+        gebiet_instance = Monstergebiet(begegnungen=Begegnungsliste("leer"), monsterspiegel=10)
+        gebiet = create_autospec(gebiet_instance)
+        i = 0
+
+        def do(m: Mänx):
+            nonlocal i
+            i += 1
+            malp(f"Durchgang {i}")
+            return Begegnungsausgang(None)
+
+        gebiet.nächste_begegnung.side_effect = do
+
+        end_mock = Mock()
+        start_mock = Mock()
+        end = WegAdapter(end_mock)
+        start = WegAdapter(start_mock)
+        kachel = kreuzung("test:mitte", monster=gebiet, süden=end, norden=start, tiefe=2,
+                          immer_fragen=True)
+        kachel.add_beschreibung("Du bist in der Mitte des Tests", nur=(None,))
+        kachel.add_beschreibung("Du erreichst die Mitte des Tests", außer=(None,))
+
+        system.ein("süden")
+        system.ein("w")
+        system.ein("w")
+        weiter = kachel.main(mänx, von=start)
+        system.aus("Du erreichst die Mitte des Tests")
+        system.aus("Welchen Weg nimmst du?")
+        system.aus("Durchgang 1")
+        system.aus("Du bist in der Mitte des Tests")
+        system.aus("Durchgang 2")
+        self.assertEqual(gebiet.nächste_begegnung.call_count, 2)
+        self.assertIs(weiter, end)
+        start_mock.assert_not_called()
+        end_mock.assert_not_called()
+        gebiet.betrete.assert_called_once()
 
 
 class TestIntegration(unittest.TestCase):

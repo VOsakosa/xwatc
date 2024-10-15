@@ -62,14 +62,14 @@ class MockSystem:
             raise AssertionError(f"Es gab keine Ausgabe. Erwartet: {text}")
         ausgabe = self.ausgaben.pop(0)
         if ausgabe != text:
-            raise AssertionError(f"Ausgabe {ausgabe!r} ist nicht {text}.")
+            raise AssertionError(f"Ausgabe {ausgabe!r} Erwartet: {text!r}.")
 
     def aus_regex(self, regex: str) -> None:
         if not self.ausgaben:
             raise AssertionError(f"Es gab keine Ausgabe. Erwartet: {regex}")
         ausgabe = self.ausgaben.pop(0)
         if not re.fullmatch(regex, ausgabe):
-            raise AssertionError(f"Ausgabe {ausgabe!r} passt nicht auf {regex}.")
+            raise AssertionError(f"Ausgabe {ausgabe!r} passt nicht auf {regex!r}.")
 
     def pop_ausgaben(self) -> list[str]:
         ans = list(self.ausgaben)
