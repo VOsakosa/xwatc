@@ -5,7 +5,7 @@ Unittests für xwatc.weg
 import unittest
 from unittest.mock import patch, Mock
 
-from xwatc.nsc import Malp, StoryChar
+from xwatc.nsc import StoryChar
 from xwatc.system import Mänx, mint, malp, MissingIDError
 from xwatc.untersystem.attacken import Fertigkeit, Kampfwerte, Resistenzen, Schadenstyp
 from xwatc.weg import (Wegtyp, GEBIETE, Beschreibung, get_gebiet, Gebiet, Himmelsrichtung, Weg,

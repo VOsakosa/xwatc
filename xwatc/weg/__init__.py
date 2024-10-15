@@ -144,7 +144,6 @@ class Weg(_Strecke):
         :param länge: Länge in Stunden
         :param p1: Startpunkt
         :param p2: Endpunkt
-        :param monster_tag: Monster, die am Tag auftauchen
         """
         super().__init__(p1, p2)
         self.länge = länge / 24

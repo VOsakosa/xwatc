@@ -58,8 +58,8 @@ def _add_fns() -> None:
                     objekte[key] = obj
                 case NSC():
                     if type(obj) != NSC:
-                        _logger.warn("Unterklasse von NSC kann nicht richtig gespeichert werden"
-                                     f": {type(obj)}")
+                        _logger.warning("Unterklasse von NSC kann nicht richtig gespeichert werden"
+                                        f": {type(obj)}")
                     objekte[key] = converter.unstructure(obj, NSC)
                 case [*_]:
                     objekte[key] = converter.unstructure(obj, list[NSC])
