@@ -13,7 +13,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from functools import wraps
 from logging import getLogger
-from typing import TYPE_CHECKING, runtime_checkable, Protocol, TypeAlias, TypeVar
+from typing import TYPE_CHECKING, Final, runtime_checkable, Protocol, TypeAlias, TypeVar
 import typing
 from typing_extensions import Self
 
@@ -136,6 +136,7 @@ class _Strecke(WegpunktAusgang):
 class Weg(_Strecke):
     """Ein Weg hat zwei Enden und dient dazu, die Länge der Reise darzustellen.
     Zwei Menschen auf dem Weg zählen als nicht benachbart."""
+    DEFAULT_FRAGE: Final[str] = _("Folgst du weiter dem Weg?")
 
     def __init__(self, länge: float,
                  p1: Ausgang | None = None,

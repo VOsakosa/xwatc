@@ -14,6 +14,7 @@ from xwatc.weg import (GEBIETE, Beschreibung, Eintritt, Gebiet,
                        Himmelsrichtung, Weg, WegAdapter, WegEnde, Wegtyp)
 from xwatc.weg import finde_punkt as finde_kreuzung
 from xwatc.weg import get_gebiet, kreuzung, wegsystem
+from xwatc.weg._kreuzung import Wegkreuzung
 from xwatc.weg.begegnung import (Begegnungsausgang, Begegnungsliste, Monstergebiet)
 from xwatc_test.mock_system import MockSystem, ScriptEnde, UnpassendeEingabe
 
@@ -221,6 +222,48 @@ def monstergebiet() -> Monstergebiet:
 
     gebiet.nächste_begegnung.side_effect = do
     return gebiet
+
+
+@fixture
+def start_kreuzung():
+    return kreuzung("start", immer_fragen=True)
+
+
+@fixture
+def end_kreuzung():
+    return kreuzung("ende", immer_fragen=True)
+
+
+@fixture
+def testweg(start_kreuzung: Wegkreuzung, end_kreuzung: Wegkreuzung, ):
+    weg = Weg(4, monster=monstergebiet)
+    start_kreuzung.ausgang("weiter", "Weiter") - weg - end_kreuzung.ausgang("zurück", "Zurück")
+    return weg
+
+
+def test_weg_geradeaus(mänx: Mänx, system: MockSystem, monstergebiet: Monstergebiet,
+                       start_kreuzung: Wegkreuzung, end_kreuzung: Wegkreuzung, testweg: Weg) -> None:
+    system.ein("w")
+    system.ein("w")
+    system.ein("w")
+    system.ein("w")
+    assert end_kreuzung == testweg.main(mänx, von=start_kreuzung)
+    system.aus("Durchgang 1")
+    system.aus(Weg.DEFAULT_FRAGE)
+    system.aus("Durchgang 2")
+    system.aus(Weg.DEFAULT_FRAGE)
+    system.aus("Durchgang 3")
+    system.aus(Weg.DEFAULT_FRAGE)
+    system.aus("Durchgang 4")
+
+
+def test_weg_fliehen(system: MockSystem, start_kreuzung: Wegkreuzung, testweg: Weg) -> None:
+    system.ein("w")
+    system.ein("f")
+    assert start_kreuzung == testweg.main(system.install(), von=start_kreuzung)
+    system.aus("Durchgang 1")
+    system.aus(Weg.DEFAULT_FRAGE)
+    system.aus("Durchgang 2")
 
 
 class TestIntegration(unittest.TestCase):
