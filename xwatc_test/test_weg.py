@@ -3,14 +3,18 @@ Unittests für xwatc.weg
 
 """
 import unittest
-from unittest.mock import create_autospec, patch, Mock
+from unittest.mock import Mock, create_autospec, patch
+
+from pytest import fixture
 
 from xwatc.nsc import StoryChar
-from xwatc.system import Mänx, mint, malp, MissingIDError
-from xwatc.untersystem.attacken import Fertigkeit, Kampfwerte, Resistenzen, Schadenstyp
-from xwatc.weg import (WegAdapter, Wegtyp, GEBIETE, Beschreibung, get_gebiet, Gebiet, Himmelsrichtung, Weg,
-                       kreuzung, WegEnde, wegsystem, Eintritt, finde_punkt as finde_kreuzung)
-from xwatc.weg.begegnung import Begegnungsausgang, Begegnungsliste, Monstergebiet
+from xwatc.system import MissingIDError, Mänx, malp, mint
+from xwatc.untersystem.attacken import (Fertigkeit, Kampfwerte, Resistenzen, Schadenstyp)
+from xwatc.weg import (GEBIETE, Beschreibung, Eintritt, Gebiet,
+                       Himmelsrichtung, Weg, WegAdapter, WegEnde, Wegtyp)
+from xwatc.weg import finde_punkt as finde_kreuzung
+from xwatc.weg import get_gebiet, kreuzung, wegsystem
+from xwatc.weg.begegnung import (Begegnungsausgang, Begegnungsliste, Monstergebiet)
 from xwatc_test.mock_system import MockSystem, ScriptEnde, UnpassendeEingabe
 
 
@@ -175,44 +179,48 @@ class TestWeg(unittest.TestCase):
             nutze_std_fertigkeiten=False,
         ), vorstellen_fn=["Ein großer, wütender Büffel hat dich entdeckt."]))
 
-    def test_kachel_verlassen(self) -> None:
-        system = MockSystem()
-        mänx = system.install()
-        gebiet_instance = Monstergebiet(begegnungen=Begegnungsliste("leer"), monsterspiegel=10)
-        gebiet = create_autospec(gebiet_instance)
-        i = 0
 
-        def do(m: Mänx):
-            nonlocal i
-            i += 1
-            malp(f"Durchgang {i}")
-            return Begegnungsausgang(None)
+def test_kachel_verlassen(system: MockSystem, mänx: Mänx, monstergebiet: Monstergebiet) -> None:
 
-        gebiet.nächste_begegnung.side_effect = do
+    end_mock = Mock()
+    start_mock = Mock()
+    end = WegAdapter(end_mock)
+    start = WegAdapter(start_mock)
+    kachel = kreuzung("test:mitte", monster=monstergebiet, süden=end, norden=start, tiefe=2,
+                      immer_fragen=True)
+    kachel.add_beschreibung("Du bist in der Mitte des Tests", nur=(None,))
+    kachel.add_beschreibung("Du erreichst die Mitte des Tests", außer=(None,))
 
-        end_mock = Mock()
-        start_mock = Mock()
-        end = WegAdapter(end_mock)
-        start = WegAdapter(start_mock)
-        kachel = kreuzung("test:mitte", monster=gebiet, süden=end, norden=start, tiefe=2,
-                          immer_fragen=True)
-        kachel.add_beschreibung("Du bist in der Mitte des Tests", nur=(None,))
-        kachel.add_beschreibung("Du erreichst die Mitte des Tests", außer=(None,))
+    system.ein("süden")
+    system.ein("w")
+    system.ein("w")
+    weiter = kachel.main(mänx, von=start)
+    system.aus("Du erreichst die Mitte des Tests")
+    system.aus("Welchen Weg nimmst du?")
+    system.aus("Durchgang 1")
+    system.aus("Du bist in der Mitte des Tests")
+    system.aus("Durchgang 2")
+    assert monstergebiet.nächste_begegnung.call_count == 2  # type: ignore
+    assert weiter is end
+    start_mock.assert_not_called()
+    end_mock.assert_not_called()
+    monstergebiet.betrete.assert_called_once()  # type: ignore
 
-        system.ein("süden")
-        system.ein("w")
-        system.ein("w")
-        weiter = kachel.main(mänx, von=start)
-        system.aus("Du erreichst die Mitte des Tests")
-        system.aus("Welchen Weg nimmst du?")
-        system.aus("Durchgang 1")
-        system.aus("Du bist in der Mitte des Tests")
-        system.aus("Durchgang 2")
-        self.assertEqual(gebiet.nächste_begegnung.call_count, 2)
-        self.assertIs(weiter, end)
-        start_mock.assert_not_called()
-        end_mock.assert_not_called()
-        gebiet.betrete.assert_called_once()
+
+@fixture
+def monstergebiet() -> Monstergebiet:
+    gebiet_instance = Monstergebiet(begegnungen=Begegnungsliste("leer"), monsterspiegel=10)
+    gebiet = create_autospec(gebiet_instance)
+    i = 0
+
+    def do(m: Mänx):
+        nonlocal i
+        i += 1
+        malp(f"Durchgang {i}")
+        return Begegnungsausgang(None)
+
+    gebiet.nächste_begegnung.side_effect = do
+    return gebiet
 
 
 class TestIntegration(unittest.TestCase):

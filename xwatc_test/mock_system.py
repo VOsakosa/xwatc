@@ -7,13 +7,15 @@ Mänx(...)
 Created on 25.03.2023
 """
 import re
-from attrs import define
+import unittest
 from collections.abc import Sequence
 from typing import TypeVar
-import unittest
+
+from attr import Factory, define
+
 from xwatc import system
-from xwatc.system import Menu, Mänx, Speicherpunkt, MänxFkt
-from attr import Factory
+from xwatc.system import Menu, Mänx, MänxFkt, Speicherpunkt
+
 __author__ = "jasper"
 
 
