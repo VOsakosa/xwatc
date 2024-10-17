@@ -152,7 +152,7 @@ class Weg(_Strecke):
     def main(self, mänx: Mänx, von: Wegpunkt | None) -> Wegpunkt:
         """Verwendet Zeit und bringt den Spieler an die gegenüberliegende Seite."""
         tagrest = mänx.welt.tag % 1.0
-        if tagrest < 0.5 and tagrest + self.länge >= 0.5:
+        if tagrest < 0.5 and tagrest + self.länge >= 0.5 and self.länge < 0.5:
             if von and mänx.ja_nein("Du wirst nicht vor Ende der Nacht ankommen. "
                                     "Willst du umkehren?"):
                 return von
