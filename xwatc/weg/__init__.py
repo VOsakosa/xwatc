@@ -548,6 +548,7 @@ class Eintritt:
         return get_eintritt(mänx, (self.gebiet, self.port))
 
 
+BeschreibungFn = MänxFkt[None | Wegpunkt | WegEnde]
 GebietsFn: TypeAlias = Callable[[Mänx, Gebiet], Wegpunkt | None]
 
 

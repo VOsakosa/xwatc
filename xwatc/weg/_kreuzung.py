@@ -7,22 +7,25 @@ from attrs import define, field
 from collections.abc import Collection, Iterable, Iterator, Sequence
 import enum
 from logging import getLogger
-from typing import (ClassVar, NewType, TYPE_CHECKING)
+from typing import (Callable, ClassVar, NewType, TYPE_CHECKING)
 from typing_extensions import Self
 
 from xwatc import _
-from xwatc.system import (Mänx, MenuOption, MänxFkt, malp, mint,
+from xwatc.effect import to_geschichte as to_geschichte_generic
+from xwatc.system import (Mänx, MenuOption, mint,
                           MänxPrädikat, Welt)
 from xwatc.utils import uartikel, bartikel, adj_endung, UndPred
 from xwatc.untersystem.menus import Option
-from xwatc.weg import Ausgang, Wegpunkt, WegEnde, Weg, Gebiet, begegnung
-from xwatc.weg import dorf
-from xwatc.effect import TextGeschichte
+from xwatc.weg import Ausgang, Wegpunkt, WegEnde, Weg, Gebiet, begegnung, BeschreibungFn, dorf
 
 
 if TYPE_CHECKING:
     from xwatc import nsc
 __author__ = "jasper"
+
+
+def to_geschichte(geschichte: Sequence[str] | BeschreibungFn) -> BeschreibungFn:
+    return to_geschichte_generic(geschichte)
 
 
 class Wegtyp(enum.Enum):
@@ -128,7 +131,6 @@ class Richtungsoption:
 
 
 NachbarKey = _StrAsHimmelsrichtung | Himmelsrichtung
-BeschreibungFn = MänxFkt[None | Wegpunkt | WegEnde]
 
 
 @define(frozen=True)
@@ -154,16 +156,6 @@ class _KreuzungsAusgang(Ausgang):
         return self.kreuzung
 
 
-def _geschichte(geschichte: Sequence[str] | BeschreibungFn) -> BeschreibungFn:
-    """Converter for `Beschreibung.geschichte`, um Strings als Liste aus einem String zu behandeln.
-    """
-    if isinstance(geschichte, str):
-        return TextGeschichte([geschichte])
-    elif isinstance(geschichte, Sequence):
-        return TextGeschichte(geschichte)
-    return geschichte
-
-
 def _nur(nur: Collection[str | None]) -> Sequence[str | None]:
     """Macht einen String zu einer Liste von Strings"""
     if isinstance(nur, str):
@@ -180,7 +172,7 @@ class Beschreibung:
     Wenn der Mänx den Wegpunkt aus einer der genannten Richtungen betritt, wird
     die Beschreibung abgespielt.
     """
-    geschichte: BeschreibungFn = field(converter=_geschichte)
+    geschichte: BeschreibungFn = field(converter=to_geschichte)
     nur: Sequence[str | None] = field(converter=_nur, default=())
     außer: Sequence[str | None] = field(converter=_nur, default=())
     warten: bool = field(default=False)
