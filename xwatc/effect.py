@@ -32,7 +32,7 @@ def seq_str_converter(maybe_string: Sequence[str]) -> Sequence[str]:
     return maybe_string
 
 
-def _to_geschichte(text: Sequence[str | Warten] | MänxFkt[F]) -> MänxFkt[F | None]:
+def to_geschichte(text: Sequence[str | Warten] | MänxFkt[F]) -> MänxFkt[F | None]:
     """Converter, um Listen von Texten als MänxFkt aufzufassen."""
     match text:
         case str(txt):
@@ -76,9 +76,9 @@ class TextGeschichte:
 class NurWenn(Generic[F]):
     """Diese Geschichte wird nur durchgeführt, wenn eine Variable gesetzt ist."""
     prädikat: MänxPrädikat
-    geschichte: MänxFkt[F | None] = field(converter=_to_geschichte)
+    geschichte: MänxFkt[F | None] = field(converter=to_geschichte)
     sonst: MänxFkt[F | None] | None = field(
-        converter=_to_geschichte, default=None)
+        converter=to_geschichte, default=None)
 
     def __call__(self, mänx: Mänx) -> F | None:
         if self.prädikat(mänx):
@@ -141,7 +141,7 @@ class Zufällig(Generic[F]):
         Wahrscheinlichkeit ausgeführt werden."""
         if not fälle:
             raise TypeError("Zufällig braucht min. einen Ausgang")
-        wahlen = [_to_geschichte(fall) for fall in fälle]
+        wahlen = [to_geschichte(fall) for fall in fälle]
         len_fälle = len(fälle)
         wkeiten = [i / len_fälle for i in range(1, len_fälle)]
         return cls(wahlen, wkeiten)
@@ -155,7 +155,7 @@ class Zufällig(Generic[F]):
         if any(wkeit <= 0 for wkeit, _fall in fälle):
             raise ValueError(
                 "Wahrscheinlichkeitsgewichte müssen positiv sein.")
-        wahlen = [_to_geschichte(fall) for _wkeit, fall in fälle]
+        wahlen = [to_geschichte(fall) for _wkeit, fall in fälle]
         gesamt = sum(wkeit for wkeit, _f in fälle)
         zsum: float = 0  # @UnusedVariable
         wkeiten = [(zsum := zsum + wkeit) / gesamt for wkeit, _f in fälle[:-1]]
@@ -164,7 +164,7 @@ class Zufällig(Generic[F]):
     @classmethod
     def mit_wkeit(cls, wkeit: float, dann: Sequence[str] | MänxFkt[F]) -> Self:
         """Erzeuge eine Geschichte, wo nur manchmal etwas passiert."""
-        wahlen = [_to_geschichte(dann), TextGeschichte([])]
+        wahlen = [to_geschichte(dann), TextGeschichte([])]
         wkeiten = [wkeit]
         return cls(wahlen, wkeiten)
 
@@ -189,7 +189,7 @@ def in_folge(*geschichten: Sequence[str | Warten] | MänxFkt[F]) -> Geschichtsfo
     """Führt mehrere Geschichten hintereinander aus. Gibt eine Geschichte eine Fortsetzung zurück,
     wird diese zurückgegeben und die restlichen Funktionen verworfen.
     """
-    return Geschichtsfolge([_to_geschichte(g) for g in geschichten])
+    return Geschichtsfolge([to_geschichte(g) for g in geschichten])
 
 
 @define
