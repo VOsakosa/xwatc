@@ -10,15 +10,12 @@ mehr Monster. Normalerweise triffst du nichts.
 
 """
 
-from typing import TypeVar
-from attrs import define, field
+from typing import Sequence
+from attrs import define
 
 from xwatc import nsc
-from xwatc.system import Welt, Mänx, MänxFkt
+from xwatc.system import Mänx, MänxFkt
 from xwatc.weg import WegEnde, Wegpunkt
-
-
-Wrapped = TypeVar("Wrapped", bound=MänxFkt[None | Wegpunkt | WegEnde])
 
 
 @define
@@ -27,7 +24,7 @@ class Begegnungsliste:
     (wird nicht abgespeichert)"""
     id_: str
 
-    def add_begegnung(self, fkt: Wrapped) -> Wrapped:
+    def add_begegnung[T: MänxFkt[None | Wegpunkt | WegEnde] | Sequence[str]](self, fkt: T) -> T:
         """Füge eine Begegnung hinzu, die eine Funktion ist."""
         return fkt
 
