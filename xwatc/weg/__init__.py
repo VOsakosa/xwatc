@@ -97,11 +97,10 @@ class WegpunktAusgang(Wegpunkt, Ausgang):
 class _Strecke(WegpunktAusgang):
     """Abstrakte Basisklasse für Wegpunkte, die zwei Orte verbinden."""
 
-    def __init__(self, p1: Ausgang | None,
-                 p2: Ausgang | None = None):
+    def __init__(self, start: Ausgang | None, ende: Ausgang | None = None):
         super().__init__()
-        self.p1 = self._verbinde(p1)
-        self.p2 = self._verbinde(p2)
+        self.start = self._verbinde(start)
+        self.ende = self._verbinde(ende)
 
     def _verbinde(self, anderer: Ausgang | None) -> Wegpunkt | None:
         """Ruft anderer.verbinde(self) auf."""
@@ -112,13 +111,13 @@ class _Strecke(WegpunktAusgang):
             return anderer.wegpunkt
 
     def get_nachbarn(self) -> list[Wegpunkt]:
-        return [a for a in (self.p1, self.p2) if a]
+        return [a for a in (self.start, self.ende) if a]
 
     def verbinde(self, anderer: Wegpunkt) -> None:
-        if not self.p1:
-            self.p1 = anderer
-        elif self.p1 != anderer and not self.p2:
-            self.p2 = anderer
+        if not self.start:
+            self.start = anderer
+        elif self.start != anderer and not self.ende:
+            self.ende = anderer
 
     def __repr__(self):
         def name(pk: Wegpunkt | None):
@@ -129,8 +128,8 @@ class _Strecke(WegpunktAusgang):
                     return ans
                 case _:
                     return type(pk).__name__
-        return (f"{type(self).__name__} von {name(self.p1)} "
-                f"nach {name(self.p2)}")
+        return (f"{type(self).__name__} von {name(self.start)} "
+                f"nach {name(self.ende)}")
 
 
 class Weg(_Strecke):
@@ -140,7 +139,8 @@ class Weg(_Strecke):
 
     def __init__(self, länge: float,
                  p1: Ausgang | None = None,
-                 p2: Ausgang | None = None):
+                 p2: Ausgang | None = None,
+                 monster: 'begegnung.Monstergebiet' | None = None):
         """
         :param länge: Länge in Stunden
         :param p1: Startpunkt
@@ -157,7 +157,7 @@ class Weg(_Strecke):
                                     "Willst du umkehren?"):
                 return von
         ruhen = True
-        richtung = von == self.p1
+        richtung = von == self.start
         weg_rest = self.länge
         while weg_rest > 0:
             mänx.welt.tick(1 / 24)
@@ -169,11 +169,11 @@ class Weg(_Strecke):
             weg_rest -= 1 / 48 if mänx.welt.is_nacht() else 1 / 24
 
         if richtung:
-            assert self.p2, "Loses Ende!"
-            return self.p2
+            assert self.ende, "Loses Ende!"
+            return self.ende
         else:
-            assert self.p1, "Loses Ende!"
-            return self.p1
+            assert self.start, "Loses Ende!"
+            return self.start
 
 
 @runtime_checkable
@@ -284,8 +284,8 @@ class Gebiet:
         weg = Weg(länge * self.gitterlänge)
         pkt1.nachbarn[ri1] = weg
         pkt2.nachbarn[ri2] = weg
-        weg.p1 = pkt1
-        weg.p2 = pkt2
+        weg.start = pkt1
+        weg.ende = pkt2
 
     @property
     def größe(self) -> tuple[int, int]:
@@ -373,8 +373,8 @@ class WegSperre(_Strecke):
     sichtbar. Soll der Weg nicht sichtbar sein, so nutze stattdessen die
     wenn-Funktion eines Wegpunkts.
 
-    ## Beispiel
-    ```
+    **Beispiel**::
+
         def durchgang(mänx):
             malp("Eine kleine Klippe versperrt dir den Weg.")
             if mänx.hat_fertigkeit("Klettern"):
@@ -385,8 +385,8 @@ class WegSperre(_Strecke):
         def runter(mänx):
             malp("Du springst eine kleine Klippe herunter.")
             return True
+
         WegSperre(None, None, runter, durchgang)
-    ```
     """
 
     def __init__(self, start: Ausgang | None, ende: Ausgang | None,
@@ -397,21 +397,21 @@ class WegSperre(_Strecke):
         self.zurück = zurück
 
     def main(self, mänx: Mänx, von: Wegpunkt | None) -> Wegpunkt | WegEnde:
-        assert self.p2
-        assert self.p1
-        if von is self.p1:
+        assert self.ende
+        assert self.start
+        if von is self.start:
             if self.hin and self.hin(mänx):
-                return self.p2
-            return self.p1
-        elif von is self.p2:
+                return self.ende
+            return self.start
+        elif von is self.ende:
             if self.zurück and self.zurück(mänx):
-                return self.p1
-            return self.p2
+                return self.start
+            return self.ende
         else:
             # Strecke einfach so betreten?
             getLogger("xwatc.weg").warning(
                 f"{self} von unverbundenem Punkt betreten, gehe zu Punkt 1")
-            return self.p1
+            return self.start
 
 
 class Gebietsende(_Strecke):
@@ -437,28 +437,20 @@ class Gebietsende(_Strecke):
         self.gebiet.eintrittspunkte[self.port] = self
         assert nach in GEBIETE, f"Unbekanntes Gebiet: {nach}"
 
-    @property
-    def von(self) -> Wegpunkt | None:
-        return self.p1
-
-    @von.setter
-    def von(self, wegpunkt: Wegpunkt | None):
-        self.p1 = wegpunkt
-
     def main(self, mänx: Mänx, von: Wegpunkt | None) -> Wegpunkt:
-        assert self.p1, "Loses Ende"
-        if von is not self.p1:
-            return self.p1
-        if self.p2:
-            return self.p2
+        assert self.start, "Loses Ende"
+        if von is not self.start:
+            return self.start
+        if self.ende:
+            return self.ende
         else:
             try:
-                self.p2 = get_eintritt(mänx, (self.nach, self.nach_port))
+                self.ende = get_eintritt(mänx, (self.nach, self.nach_port))
             except KeyError:
                 raise MissingID(
                     f"Gebietsende {self.gebiet}:{self.port} ist lose.")
             else:
-                return self.p2
+                return self.ende
 
     def __str__(self) -> str:
         return f"Gebietsende {self.gebiet.name}:{self.port} - {self.nach}:{self.nach_port}"
@@ -527,8 +519,8 @@ def gebiet(name: str) -> Callable[[GebietsFn], MänxFkt[Gebiet]]:
     """Dekorator für Gebietserzeugungsfunktionen.
 
     >>> @gebiet("jtg:banane")
-    >>> def erzeuge_banane(mänx: Mänx, gebiet: weg.Gebiet) -> Wegpunkt:
-    >>>    ...
+    ... def erzeuge_banane(mänx: Mänx, gebiet: weg.Gebiet) -> Wegpunkt:
+    ...    ...
     """
     def wrapper(funk: GebietsFn) -> MänxFkt[Gebiet]:
         @wraps(funk)
@@ -568,6 +560,7 @@ def wegsystem(mänx: Mänx, start: Wegpunkt | str | tuple[str, str], return_fn: 
 GEBIETE: dict[str, MänxFkt[Gebiet]] = {}
 from xwatc import nsc  # @Reimport
 from xwatc.weg._kreuzung import Wegkreuzung, Himmelsrichtung, kreuzung, Wegtyp, Beschreibung  # @Reimport
+from xwatc.weg import begegnung
 
 # def wegkreuzung_structure(_typ: type, kreuzung) -> Wegkreuzung:
 #     raise NotImplementedError

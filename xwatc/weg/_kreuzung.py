@@ -521,8 +521,8 @@ class Wegkreuzung(Wegpunkt):
         self._optionen[ri1] = Richtungsoption(beschriftung_hin, typ=typ)
         nach.nachbarn[ri2] = weg
         nach._optionen[ri2] = Richtungsoption(beschriftung_zurück, typ=typ)
-        weg.p1 = self
-        weg.p2 = nach
+        weg.start = self
+        weg.ende = nach
 
     def add_option(self, name: str, id_: str,
                    effekt: Sequence[str] | BeschreibungFn,
