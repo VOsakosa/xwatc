@@ -261,13 +261,14 @@ def test_weg_geradeaus(mänx: Mänx, system: MockSystem, monstergebiet: Monsterg
     assert mänx.welt.uhrzeit() == (10, 0)
 
 
-def test_weg_fliehen(system: MockSystem, start_kreuzung: Wegkreuzung, testweg: Weg) -> None:
+def test_weg_fliehen(mänx: Mänx, system: MockSystem, start_kreuzung: Wegkreuzung, testweg: Weg) -> None:
     system.ein("w")
     system.ein("f")
-    assert start_kreuzung == testweg.main(system.install(), von=start_kreuzung)
+    assert start_kreuzung == testweg.main(mänx, von=start_kreuzung)
     system.aus("Durchgang 1")
     system.aus(Weg.DEFAULT_FRAGE)
     system.aus("Durchgang 2")
+    assert mänx.welt.uhrzeit() == (10, 0)
 
 
 class TestIntegration(unittest.TestCase):

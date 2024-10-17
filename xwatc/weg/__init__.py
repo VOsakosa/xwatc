@@ -138,9 +138,10 @@ class _Strecke(WegpunktAusgang):
                 f"nach {name(self.ende)}")
 
 
-@define
+@define(kw_only=True)
 class _Durchlauf:
     richtung: bool
+    weg_rest: int
     will_ruhen: bool = True
 
 
@@ -174,10 +175,9 @@ class Weg(_Strecke):
         if self.monster:
             self.monster.betrete(mänx)
 
-        durchlauf = _Durchlauf(von == self.start)
-        weg_rest = int(self.länge * 48)
-        while weg_rest > 0:
-            weg_rest -= 1 if mänx.welt.is_nacht() else 2
+        durchlauf = _Durchlauf(richtung=von == self.start, weg_rest=int(self.länge * 48))
+        while durchlauf.weg_rest > 0:
+            durchlauf.weg_rest -= 1 if mänx.welt.is_nacht() else 2
             mänx.welt.tick(1 / 24, tag_nachricht=True)
             if ans := self._stück_gelaufen(mänx, durchlauf):
                 return ans
@@ -194,20 +194,22 @@ class Weg(_Strecke):
         if not begegnung and not (durchlauf.will_ruhen and mänx.welt.is_nacht()):
             # Nichts passiert, keine Nacht
             return None
-        optionen: list[MenuOption[None | WegEnde | Wegpunkt | Literal["s"]]] = [
-            ("Weiter", "w", None),
-            ("Zurück", "f", self.enden[not durchlauf.richtung])
+        optionen: list[MenuOption[Literal["w", "f", "s"]]] = [
+            ("Weiter", "w", "w"),
+            ("Zurück", "f", "f")
         ]
         if mänx.welt.is_nacht():
             optionen.append(("Schlafen", "schlafen", "s"))
-        ans = mänx.menu(optionen, frage=self.DEFAULT_FRAGE)
-        if ans == "s":
+        aktion = mänx.menu(optionen, frage=self.DEFAULT_FRAGE)
+        if aktion == "s":
             mänx.welt.nächster_tag()
-            ans = None
             durchlauf.will_ruhen = True
+        elif aktion == "f":
+            mänx.welt.tick(self.länge - durchlauf.weg_rest / 48, tag_nachricht=True)
+            return self.enden[not durchlauf.richtung]
         elif mänx.welt.is_nacht():
             durchlauf.will_ruhen = False
-        return ans
+        return None
 
 
 @runtime_checkable
