@@ -13,12 +13,12 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from functools import wraps
 from logging import getLogger
-from typing import TYPE_CHECKING, Final, runtime_checkable, Protocol, TypeAlias, TypeVar
+from typing import TYPE_CHECKING, Final, Literal, runtime_checkable, Protocol, TypeAlias, TypeVar
 import typing
 from typing_extensions import Self
 
 from xwatc import _
-from xwatc.system import Fortsetzung, Mänx, MänxFkt, MänxPrädikat, MissingID, MissingIDError
+from xwatc.system import Fortsetzung, Mänx, MänxFkt, MänxPrädikat, MenuOption, MissingID, MissingIDError
 from itertools import repeat
 
 
@@ -113,6 +113,12 @@ class _Strecke(WegpunktAusgang):
     def get_nachbarn(self) -> list[Wegpunkt]:
         return [a for a in (self.start, self.ende) if a]
 
+    @property
+    def enden(self) -> tuple[Wegpunkt, Wegpunkt]:
+        assert self.start, "Loses Ende!"
+        assert self.ende, "Loses Ende!"
+        return (self.start, self.ende)
+
     def verbinde(self, anderer: Wegpunkt) -> None:
         if not self.start:
             self.start = anderer
@@ -132,10 +138,18 @@ class _Strecke(WegpunktAusgang):
                 f"nach {name(self.ende)}")
 
 
+@define
+class _Durchlauf:
+    richtung: bool
+    will_ruhen: bool = True
+
+
 class Weg(_Strecke):
     """Ein Weg hat zwei Enden und dient dazu, die Länge der Reise darzustellen.
     Zwei Menschen auf dem Weg zählen als nicht benachbart."""
     DEFAULT_FRAGE: Final[str] = _("Folgst du weiter dem Weg?")
+    länge: float
+    monster: 'begegnung.Monstergebiet' | None
 
     def __init__(self, länge: float,
                  p1: Ausgang | None = None,
@@ -148,32 +162,52 @@ class Weg(_Strecke):
         """
         super().__init__(p1, p2)
         self.länge = länge / 24
+        self.monster = monster
 
-    def main(self, mänx: Mänx, von: Wegpunkt | None) -> Wegpunkt:
+    def main(self, mänx: Mänx, von: Wegpunkt | None) -> Wegpunkt | WegEnde:
         """Verwendet Zeit und bringt den Spieler an die gegenüberliegende Seite."""
         tagrest = mänx.welt.tag % 1.0
         if tagrest < 0.5 and tagrest + self.länge >= 0.5 and self.länge < 0.5:
             if von and mänx.ja_nein("Du wirst nicht vor Ende der Nacht ankommen. "
                                     "Willst du umkehren?"):
                 return von
-        ruhen = True
-        richtung = von == self.start
-        weg_rest = self.länge
-        while weg_rest > 0:
-            mänx.welt.tick(1 / 24)
-            if ruhen and mänx.welt.is_nacht():
-                if mänx.ja_nein("Es ist Nacht. Willst du ruhen?"):
-                    mänx.welt.nächster_tag()
-                else:
-                    ruhen = False
-            weg_rest -= 1 / 48 if mänx.welt.is_nacht() else 1 / 24
+        if self.monster:
+            self.monster.betrete(mänx)
 
-        if richtung:
-            assert self.ende, "Loses Ende!"
-            return self.ende
-        else:
-            assert self.start, "Loses Ende!"
-            return self.start
+        durchlauf = _Durchlauf(von == self.start)
+        weg_rest = int(self.länge * 48)
+        while weg_rest > 0:
+            weg_rest -= 1 if mänx.welt.is_nacht() else 2
+            mänx.welt.tick(1 / 24, tag_nachricht=True)
+            if ans := self._stück_gelaufen(mänx, durchlauf):
+                return ans
+        return self.enden[durchlauf.richtung]
+
+    def _stück_gelaufen(self, mänx: Mänx, durchlauf: _Durchlauf) -> WegEnde | Wegpunkt | None:
+        """Nachdem der Mänx ein Stück gelaufen ist, kann er auf Monster treffen oder er will
+        schlafen."""
+        begegnung = None
+        if self.monster:
+            begegnung = self.monster.nächste_begegnung(mänx)
+            if begegnung and begegnung.ausgang:
+                return begegnung.ausgang
+        if not begegnung and not (durchlauf.will_ruhen and mänx.welt.is_nacht()):
+            # Nichts passiert, keine Nacht
+            return None
+        optionen: list[MenuOption[None | WegEnde | Wegpunkt | Literal["s"]]] = [
+            ("Weiter", "w", None),
+            ("Zurück", "f", self.enden[not durchlauf.richtung])
+        ]
+        if mänx.welt.is_nacht():
+            optionen.append(("Schlafen", "schlafen", "s"))
+        ans = mänx.menu(optionen, frage=self.DEFAULT_FRAGE)
+        if ans == "s":
+            mänx.welt.nächster_tag()
+            ans = None
+            durchlauf.will_ruhen = True
+        elif mänx.welt.is_nacht():
+            durchlauf.will_ruhen = False
+        return ans
 
 
 @runtime_checkable

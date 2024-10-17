@@ -10,8 +10,8 @@ from pytest import fixture
 from xwatc.nsc import StoryChar
 from xwatc.system import MissingIDError, Mänx, malp, mint
 from xwatc.untersystem.attacken import (Fertigkeit, Kampfwerte, Resistenzen, Schadenstyp)
-from xwatc.weg import (GEBIETE, Beschreibung, Eintritt, Gebiet,
-                       Himmelsrichtung, Weg, WegAdapter, WegEnde, Wegtyp)
+from xwatc.weg import (GEBIETE, _Strecke, Beschreibung, Eintritt, Gebiet,
+                       Himmelsrichtung, Weg, WegAdapter, WegEnde, Wegpunkt, Wegtyp)
 from xwatc.weg import finde_punkt as finde_kreuzung
 from xwatc.weg import get_gebiet, kreuzung, wegsystem
 from xwatc.weg._kreuzung import Wegkreuzung
@@ -88,15 +88,18 @@ class TestWeg(unittest.TestCase):
         self.assertIsInstance(richtung, Weg)
         self.assertIn(p2, richtung.get_nachbarn())
 
-        def get_nachbarn2(pt) -> set:
+        def get_nachbarn2(pt: Wegpunkt) -> set:
             ans = set()
             for nb in pt.get_nachbarn():
-                self.assertIsInstance(nb, Weg)
-                if nb.p1 == pt:
-                    ans.add(nb.p2.name)
+                assert isinstance(nb, Weg)
+                if nb.start == pt:
+                    assert isinstance(nb.ende, Wegkreuzung)
+                    ans.add(nb.ende.name)
                 else:
-                    ans.add(nb.p1.name)
+                    assert isinstance(nb.start, Wegkreuzung)
+                    ans.add(nb.start.name)
             return ans
+
         self.assertSetEqual(get_nachbarn2(p1), {p2.name})
         p3 = gebiet.neuer_punkt((2, 1), "zwischenpunkt")
         self.assertSetEqual(get_nachbarn2(p1), {p3.name})
@@ -235,7 +238,7 @@ def end_kreuzung():
 
 
 @fixture
-def testweg(start_kreuzung: Wegkreuzung, end_kreuzung: Wegkreuzung, ):
+def testweg(start_kreuzung: Wegkreuzung, end_kreuzung: Wegkreuzung, monstergebiet: Monstergebiet):
     weg = Weg(4, monster=monstergebiet)
     start_kreuzung.ausgang("weiter", "Weiter") - weg - end_kreuzung.ausgang("zurück", "Zurück")
     return weg

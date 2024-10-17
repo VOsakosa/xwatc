@@ -468,12 +468,19 @@ class Welt:
         ist Nacht."""
         return self.tag % 1.0 >= 0.5
 
-    def tick(self, uhr: float):
+    def tick(self, uhr: float, tag_nachricht: bool = False):
         """Lasse etwas Zeit in der Welt vergehen."""
         if uhr < 0:
             raise ValueError(
                 "Mit tick kann die Uhr nicht zurückbewegt werden.")
+        vorher_nacht = self.is_nacht()
         self.tag += uhr
+        if tag_nachricht:
+            jetzt_nacht = self.is_nacht()
+            if vorher_nacht and not jetzt_nacht:
+                malp(_("Es wird Tag."))
+            elif jetzt_nacht and not vorher_nacht:
+                malp(_("Die Nacht bricht an."))
 
     def uhrzeit(self) -> tuple[int, int]:
         """Gebe die momentane Uhrzeit als Tupel (Stunde, Minute) aus."""
