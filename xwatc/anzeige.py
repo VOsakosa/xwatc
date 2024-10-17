@@ -463,7 +463,9 @@ class XwatcFenster:
                     if self.speicherpunkt:
                         if self.mänx.speicherdatei_name and taste == 's':
                             self.mänx.save(self.speicherpunkt)
-                            self.malp_stack(_("Spielstand gespeichert."))
+                            self.malp_stack(_("Spielstand unter {} gespeichert.").format(
+                                self.mänx.speicherdatei_name
+                            ))
                         else:
                             self.speichern_als()
                     else:
