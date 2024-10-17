@@ -170,7 +170,7 @@ class TestWeg(unittest.TestCase):
             print(finde_kreuzung(m, "test", "nein"))
 
     def test_begegnungsliste(self) -> None:
-        liste = Begegnungsliste("test:wiese")
+        liste = Begegnungsliste("test:wiese", max_monsterspiegel=10)
 
         @liste.add_begegnung
         def blumen(mänx: Mänx):
@@ -213,7 +213,8 @@ def test_kachel_verlassen(system: MockSystem, mänx: Mänx, monstergebiet: Monst
 
 @fixture
 def monstergebiet() -> Monstergebiet:
-    gebiet_instance = Monstergebiet(begegnungen=Begegnungsliste("leer"), monsterspiegel=10)
+    gebiet_instance = Monstergebiet(begegnungen=Begegnungsliste(
+        "leer", max_monsterspiegel=10), monsterspiegel=10)
     gebiet = create_autospec(gebiet_instance)
     i = 0
 

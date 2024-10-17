@@ -3,9 +3,8 @@ gespeicherten Teil trennt. Bei Erstellung soll alles einen eindeutigen Namen hab
 """
 from collections import defaultdict
 from collections.abc import Mapping, Iterator, Sequence, Callable
-from enum import Enum
 from logging import getLogger
-from typing import Any, Literal
+from typing import Any
 
 from attrs import define, field, Factory
 import attrs
@@ -13,13 +12,12 @@ import cattrs
 
 from xwatc import system, _
 from xwatc import weg
-from xwatc.nsc._dialog import (Dialog, DialogFn, DialogErzeugerFn, DialogGeschichte, Rückkehr,
+from xwatc.nsc._dialog import (Dialog, DialogFn, DialogGeschichte, Rückkehr,
                                RunType, VorList, Zeitpunkt, Malp, Sprich)
 from xwatc.serialize import converter
 from xwatc.system import Fortsetzung, Inventar, MenuOption, malp, mint, schiebe_inventar, MissingIDError
 from xwatc.untersystem.attacken import Kampfwerte
-from xwatc.untersystem.person import Rasse, Person
-from xwatc.weg import dorf
+from xwatc.untersystem.person import Person, Rasse
 
 
 @define(frozen=True)
@@ -88,7 +86,7 @@ class StoryChar:
             except KeyError:
                 if item not in _warn_items:
                     _warn_items.add(item)
-                    getLogger("xwatc.item").warn(f"Unbekanntes Item in NSC: {item}")
+                    getLogger("xwatc.item").warning(f"Unbekanntes Item in NSC {self.id_}: {item}")
 
     def zu_nsc(self, nr: int = 0) -> 'NSC':
         """Erzeuge den zugehörigen NSC aus dem Template. Dieser wird
@@ -160,8 +158,7 @@ class StoryChar:
 
     def kampf(self, fn: DialogGeschichte) -> Dialog:
         """Dekorator, um die Kampf-Funktion zu setzen"""
-        dia = Dialog("k", "Angreifen", fn,
-                          zeitpunkt=Zeitpunkt.Option)
+        dia = Dialog("k", "Angreifen", fn, zeitpunkt=Zeitpunkt.Option)
         self.dialoge.append(dia)
         return dia
 
@@ -290,11 +287,8 @@ class NSC(system.InventarBasis):
         if self.tot:
             mint(_("Die Leiche von {self.name} liegt still auf dem Boden.").format(self=self))
             return None
-        vorstellung = self.vorstellen(mänx)
-        # intermediäre variable wegen
-        # https://github.com/python/mypy/issues/12998
-        match vorstellung:
-            case None:  # @UnusedVariable
+        match self.vorstellen(mänx):
+            case None:
                 pass
             case Rückkehr():
                 return None
