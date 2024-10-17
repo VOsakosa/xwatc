@@ -258,6 +258,7 @@ def test_weg_geradeaus(mänx: Mänx, system: MockSystem, monstergebiet: Monsterg
     system.aus("Durchgang 3")
     system.aus(Weg.DEFAULT_FRAGE)
     system.aus("Durchgang 4")
+    assert mänx.welt.uhrzeit() == (10, 0)
 
 
 def test_weg_fliehen(system: MockSystem, start_kreuzung: Wegkreuzung, testweg: Weg) -> None:
