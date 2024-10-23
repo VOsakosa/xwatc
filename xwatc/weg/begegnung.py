@@ -10,35 +10,89 @@ mehr Monster. Normalerweise triffst du nichts.
 
 """
 
+from enum import Enum
 import random
-from typing import Sequence
+from collections import defaultdict
+from typing import Literal, assert_never, Sequence
+
 from attrs import define, field
 
-from xwatc import nsc
+from xwatc import _, kampf, nsc
 from xwatc.effect import to_geschichte
-from xwatc.system import Mänx, MänxPrädikat
-from xwatc.weg import WegEnde, Wegpunkt, BeschreibungFn
+from xwatc.system import Inventar, Fortsetzung, Spielende, Mänx, MänxFkt, MänxPrädikat, malp
+from xwatc.weg import BeschreibungFn, WegEnde, Wegpunkt
+
+
+class FluchtT(Enum):
+    Flucht = 0
+
+
+Flucht: Literal[FluchtT.Flucht] = FluchtT.Flucht
+
+BegegnungFn = MänxFkt[WegEnde | Wegpunkt | None | FluchtT]
 
 
 @define
 class Begegnung:
-    fn: BeschreibungFn
+    fn: BegegnungFn
     wenn_fn: MänxPrädikat | None = None
     mit_monsterspiegel: bool = False
 
 
-@define
-class MonsterBegegnungFn(BeschreibungFn):
-    monster: 'nsc.StoryChar'
-    unique: bool
+def DEFAULT_NIEDERLAGE(*_args):
+    raise Spielende
 
-    def __call__(self, mänx: Mänx) -> WegEnde | Wegpunkt | None:
+
+def wrap_rückkehr(ans: nsc.Rückkehr | Fortsetzung) -> WegEnde | Wegpunkt | None | FluchtT:
+    match ans:
+        case nsc.Rückkehr.VERLASSEN:
+            return Flucht
+        case nsc.Rückkehr.WEITER_REDEN | nsc.Rückkehr.ZURÜCK:
+            return None
+        case _:
+            return WegEnde.wrap(ans)
+
+
+@define
+class MonsterBegegnungFn(BegegnungFn):
+    monster: 'nsc.StoryChar'
+    beschreibung: nsc.DialogGeschichte
+    niederlage_fn: nsc.DialogGeschichte = DEFAULT_NIEDERLAGE
+    beute: Inventar = field(factory=lambda: defaultdict(int))
+    kann_fliehen: bool = True
+    unique: bool = True
+
+    def __call__(self, mänx: Mänx) -> WegEnde | Wegpunkt | None | FluchtT:
         if self.unique:
             monster = mänx.welt.obj(self.monster)
             if monster.tot:
                 return None
         else:
             monster = self.monster.zu_nsc()
+        if ans := wrap_rückkehr(monster._call_geschichte(mänx, self.beschreibung)):
+            return ans
+        if self.kann_fliehen:
+            optionen = [("Kämpfen", "k", True), ("Fliehen", "f", False)]
+        else:
+            optionen = [("Kampf beginnen", "k", True)]
+        if not mänx.menu(optionen):
+            return Flucht
+        match kampf.start_kampf(mänx, monster):
+            case kampf.Kampfausgang.Sieg:
+                malp(_("Du hast gewonnen!"))
+                monster.tot = True
+                if mänx.ja_nein(_("Plünderst du den Gegner aus?")):
+                    mänx.welt.tick(1 / 24, tag_nachricht=True)
+                    monster.plündern(mänx)
+                    for item, anzahl in self.beute.items():
+                        mänx.erhalte(item, anzahl)
+                return None
+            case kampf.Kampfausgang.Flucht:
+                return Flucht
+            case kampf.Kampfausgang.Niederlage | kampf.Kampfausgang.Gleichstand:
+                return wrap_rückkehr(monster._call_geschichte(mänx, self.niederlage_fn))
+            case other:
+                assert_never(other)
         return WegEnde.wrap(monster.main(mänx))
 
 
@@ -56,12 +110,15 @@ class Begegnungsliste:
         self._begegnungen.append(Begegnung(fn=to_geschichte(fn), wenn_fn=wenn))
         return fn
 
-    def add_monster(self, template: "nsc.StoryChar", *,
+    def add_monster(self,
+                    text: nsc.DialogGeschichte,
+                    template: "nsc.StoryChar",
+                    *,
                     unique: bool = False, wenn: MänxPrädikat | None = None,
                     mit_monsterspiegel: bool = True) -> None:
-        """Füge ein Monster hinzu."""
+        """Füge ein Monster hinzu, das dich angreift."""
         self._begegnungen.append(
-            Begegnung(MonsterBegegnungFn(template, unique=unique), wenn_fn=wenn,
+            Begegnung(MonsterBegegnungFn(template, text, unique=unique), wenn_fn=wenn,
                       mit_monsterspiegel=mit_monsterspiegel))
 
     @property
@@ -73,7 +130,7 @@ class Begegnungsliste:
 class Begegnungsausgang:
     """Der Ausgang einer Begegnung, wird zurückgegeben, nachdem eine Begegnung fertig durchgeführt
     wurde."""
-    ausgang: WegEnde | Wegpunkt | None
+    ausgang: WegEnde | Wegpunkt | None | FluchtT
 
 
 @define(kw_only=True)
@@ -103,7 +160,7 @@ class Monstergebiet:
             return None
         return Begegnungsausgang(self.run_begegnung(mänx, begegnung))
 
-    def run_begegnung(self, mänx: Mänx, begegnung: Begegnung) -> WegEnde | Wegpunkt | None:
+    def run_begegnung(self, mänx: Mänx, begegnung: Begegnung) -> WegEnde | Wegpunkt | None | FluchtT:
         """Führe eine Begegnung mit einem Monster aus."""
         return begegnung.fn(mänx)
 

@@ -441,6 +441,7 @@ class NSC(system.InventarBasis):
 
     def plündern(self, mänx: system.Mänx) -> Any:
         """Schiebe das ganze Inventar von NSC zum Mänxen."""
+        # TODO Das muss Text geben.
         schiebe_inventar(self.inventar, mänx.inventar)
 
 

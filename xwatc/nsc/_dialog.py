@@ -94,8 +94,6 @@ def _vorherige_converter(value: VorList | str) -> VorList:
         return [value]
     return value
 
-# TODO move to NSC
-
 
 @define
 class Dialog:

@@ -469,7 +469,10 @@ class Welt:
         return self.tag % 1.0 >= 0.5
 
     def tick(self, uhr: float, tag_nachricht: bool = False):
-        """Lasse etwas Zeit in der Welt vergehen."""
+        """Lasse etwas Zeit in der Welt vergehen.
+
+        :param uhr: Die Zeit in Tagen.
+        """
         if uhr < 0:
             raise ValueError(
                 "Mit tick kann die Uhr nicht zurückbewegt werden.")
