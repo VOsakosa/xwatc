@@ -9,7 +9,7 @@ from attrs import define
 
 from xwatc import _
 from xwatc.nsc import NSC
-from xwatc.system import Mänx, get_classes, malp
+from xwatc.system import Mänx, malp
 from xwatc.untersystem.attacken import Fertigkeit, Schadenstyp
 from xwatc.untersystem.attacken import Zieltyp
 

@@ -19,13 +19,13 @@ from typing_extensions import Self
 
 from xwatc import _
 from xwatc.system import Fortsetzung, Mänx, MänxFkt, MänxPrädikat, MenuOption, MissingID, MissingIDError
-from xwatc.weg.begegnung import Flucht
 from itertools import repeat
 
 
 if TYPE_CHECKING:
     from xwatc import nsc
     from xwatc.weg._kreuzung import Wegkreuzung
+    from xwatc.weg import begegnung
 
 __author__ = "jasper"
 
@@ -187,6 +187,7 @@ class Weg(_Strecke):
     def _stück_gelaufen(self, mänx: Mänx, durchlauf: _Durchlauf) -> WegEnde | Wegpunkt | None:
         """Nachdem der Mänx ein Stück gelaufen ist, kann er auf Monster treffen oder er will
         schlafen."""
+        from xwatc.weg.begegnung import Flucht
         begegnung = None
         if self.monster:
             begegnung = self.monster.nächste_begegnung(mänx)
@@ -600,7 +601,6 @@ def wegsystem(mänx: Mänx, start: Wegpunkt | str | tuple[str, str], return_fn: 
 GEBIETE: dict[str, MänxFkt[Gebiet]] = {}
 from xwatc import nsc  # @Reimport
 from xwatc.weg._kreuzung import Wegkreuzung, Himmelsrichtung, kreuzung, Wegtyp, Beschreibung  # @Reimport
-from xwatc.weg import begegnung
 
 # def wegkreuzung_structure(_typ: type, kreuzung) -> Wegkreuzung:
 #     raise NotImplementedError

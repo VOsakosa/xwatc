@@ -5,9 +5,10 @@ Unittests für xwatc.weg
 import unittest
 from unittest.mock import Mock, create_autospec, patch
 
-from pytest import fixture
+from pytest import MonkeyPatch, fixture
 
 from xwatc.nsc import StoryChar
+from xwatc.nsc._dialog import Malp
 from xwatc.system import MissingIDError, Mänx, malp, mint
 from xwatc.untersystem.attacken import (Fertigkeit, Kampfwerte, Resistenzen, Schadenstyp)
 from xwatc.weg import (GEBIETE, _Strecke, Beschreibung, Eintritt, Gebiet,
@@ -15,7 +16,7 @@ from xwatc.weg import (GEBIETE, _Strecke, Beschreibung, Eintritt, Gebiet,
 from xwatc.weg import finde_punkt as finde_kreuzung
 from xwatc.weg import get_gebiet, kreuzung, wegsystem
 from xwatc.weg._kreuzung import Wegkreuzung
-from xwatc.weg.begegnung import (Begegnungsausgang, Begegnungsliste, Monstergebiet)
+from xwatc.weg.begegnung import (Begegnungsausgang, Begegnungsliste, Flucht, Monstergebiet)
 from xwatc_test.mock_system import MockSystem, ScriptEnde, UnpassendeEingabe
 
 
@@ -177,13 +178,30 @@ class TestWeg(unittest.TestCase):
             malp("Du findest Sonnenblumen")
             mänx.erhalte("Sonnenblume")
 
-        liste.add_monster("Ein großer, wütender Büffel hat dich entdeckt.",
-                          StoryChar("test:büffel", "Büffel", kampfwerte=Kampfwerte(
-                              max_lp=150, resistenzen=Resistenzen.aus_str("0,0,20,0,-10,10,20,0"),
-                              fertigkeiten=[Fertigkeit(
-                                  "Ansturm", "ansturm", 20, Schadenstyp.aus_str("klinge"))],
-                              nutze_std_fertigkeiten=False,
-                          )))
+        liste.add_monster("Ein großer, wütender Büffel hat dich entdeckt.", büffel)
+
+
+büffel = StoryChar("test:büffel", "Büffel", kampfwerte=Kampfwerte(
+    max_lp=150, resistenzen=Resistenzen.aus_str("0,0,20,0,-10,10,20,0"),
+    fertigkeiten=[Fertigkeit("Ansturm", "ansturm", 20, Schadenstyp.aus_str("klinge"))],
+    nutze_std_fertigkeiten=False,
+))
+büffel_text = Malp("Ein großer, wütender Büffel hat dich entdeckt")
+
+
+@fixture
+def büffelgebiet():
+    liste = Begegnungsliste("test:wiese", max_monsterspiegel=10)
+    liste.add_monster(büffel_text, büffel)
+    return Monstergebiet(begegnungen=liste, monsterspiegel=10)
+
+
+def test_monster_begegnung(system: MockSystem, mänx: Mänx, monkeypatch: MonkeyPatch, büffelgebiet: Monstergebiet) -> None:
+    system.ein("f")
+    ans = büffelgebiet.nächste_begegnung(mänx)
+    assert ans
+    assert ans.ausgang == Flucht
+    system.aus(büffel_text.text)
 
 
 def test_kachel_verlassen(system: MockSystem, mänx: Mänx, monstergebiet: Monstergebiet) -> None:

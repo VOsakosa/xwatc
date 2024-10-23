@@ -16,7 +16,8 @@ from xwatc.system import (Mänx, MenuOption, mint,
                           MänxPrädikat, Welt)
 from xwatc.utils import uartikel, bartikel, adj_endung, UndPred
 from xwatc.untersystem.menus import Option
-from xwatc.weg import Ausgang, Wegpunkt, WegEnde, Weg, Gebiet, begegnung, BeschreibungFn, dorf
+import xwatc.weg
+from xwatc.weg import Ausgang, Wegpunkt, WegEnde, Weg, Gebiet, BeschreibungFn, dorf
 
 
 if TYPE_CHECKING:
@@ -204,7 +205,7 @@ def kreuzung(
     gucken: BeschreibungFn | Sequence[str] = (),
     kreuzung_beschreiben: bool = False,
     immer_fragen: bool = False,
-    monster: begegnung.Monstergebiet | None = None,
+    monster: "xwatc.weg.begegnung.Monstergebiet | None" = None,
     tiefe: int = 10,
     **kwargs: Ausgang
 ) -> 'Wegkreuzung':
@@ -272,7 +273,7 @@ class Wegkreuzung(Wegpunkt):
     _beschreibungen: list[Beschreibung] = field(factory=list)
     _wenn_fn: dict[str, MänxPrädikat] = field(factory=dict)
     # Monstergebiet etc.
-    _monstergebiet: begegnung.Monstergebiet | None = None
+    _monstergebiet: "xwatc.weg.begegnung.Monstergebiet | None" = None
     tiefe: int = 10
 
     def __attrs_pre_init__(self):
@@ -613,7 +614,7 @@ class AufDemWeg:
     """Modelliert, dass der Spieler auf dem Weg aus einer Kachel heraus ist."""
     kachel: Wegkreuzung
     tiefe: int
-    monster: begegnung.Monstergebiet
+    monster: "xwatc.weg.begegnung.Monstergebiet"
     herkunft: Wegpunkt
     ziel: Wegpunkt
     fortschritt: int = 0
@@ -624,7 +625,7 @@ class AufDemWeg:
         while self.fortschritt < self.tiefe:
             self.tiefe -= 1
             if ausgang := self.monster.nächste_begegnung(mänx):
-                if ausgang.ausgang == begegnung.Flucht:
+                if ausgang.ausgang == xwatc.weg.begegnung.Flucht:
                     return self.herkunft
                 elif ausgang.ausgang:
                     return ausgang.ausgang

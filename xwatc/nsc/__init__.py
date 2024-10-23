@@ -505,13 +505,12 @@ class Bewege(system.MänxFkt[None]):
     ziel: tuple[str, str] | None = None
 
     def __call__(self, mänx: system.Mänx) -> None:
-        from xwatc.weg import get_gebiet, Wegkreuzung
         der_nsc = mänx.welt.obj(self.char)
         if self.ziel is None:
             assert isinstance(mänx.context, weg.Wegkreuzung)
             der_nsc.ort = mänx.context
         else:
-            kreuzung = get_gebiet(mänx, self.ziel[0]).finde_kreuzung(self.ziel[1])
+            kreuzung = weg.get_gebiet(mänx, self.ziel[0]).finde_kreuzung(self.ziel[1])
             if not kreuzung:
                 getLogger("xwatc.nsc").warning(
                     "Kann NSC nicht nach Kreuzung {self.ziel[0]}:{self.ziel[1]} bewegen.")

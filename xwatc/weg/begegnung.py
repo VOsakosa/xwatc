@@ -17,7 +17,7 @@ from typing import Literal, assert_never, Sequence
 
 from attrs import define, field
 
-from xwatc import _, kampf, nsc
+from xwatc import _, nsc
 from xwatc.effect import to_geschichte
 from xwatc.system import Inventar, Fortsetzung, Spielende, Mänx, MänxFkt, MänxPrädikat, malp
 from xwatc.weg import BeschreibungFn, WegEnde, Wegpunkt
@@ -43,7 +43,7 @@ def DEFAULT_NIEDERLAGE(*_args):
     raise Spielende
 
 
-def wrap_rückkehr(ans: nsc.Rückkehr | Fortsetzung) -> WegEnde | Wegpunkt | None | FluchtT:
+def wrap_rückkehr(ans: 'nsc.Rückkehr' | Fortsetzung) -> WegEnde | Wegpunkt | None | FluchtT:
     match ans:
         case nsc.Rückkehr.VERLASSEN:
             return Flucht
@@ -56,8 +56,8 @@ def wrap_rückkehr(ans: nsc.Rückkehr | Fortsetzung) -> WegEnde | Wegpunkt | Non
 @define
 class MonsterBegegnungFn(BegegnungFn):
     monster: 'nsc.StoryChar'
-    beschreibung: nsc.DialogGeschichte
-    niederlage_fn: nsc.DialogGeschichte = DEFAULT_NIEDERLAGE
+    beschreibung: 'nsc.DialogGeschichte'
+    niederlage_fn: 'nsc.DialogGeschichte' = DEFAULT_NIEDERLAGE
     beute: Inventar = field(factory=lambda: defaultdict(int))
     kann_fliehen: bool = True
     unique: bool = True
@@ -111,7 +111,7 @@ class Begegnungsliste:
         return fn
 
     def add_monster(self,
-                    text: nsc.DialogGeschichte,
+                    text: 'nsc.DialogGeschichte',
                     template: "nsc.StoryChar",
                     *,
                     unique: bool = False, wenn: MänxPrädikat | None = None,
@@ -143,7 +143,6 @@ class Monstergebiet:
     """
     begegnungen: Begegnungsliste
     monsterspiegel: int
-    herkunft: "kreuzung.NachbarKey | None" = None
 
     def betrete(self, mänx: Mänx) -> None:
         """Betrete das Monstergebiet und regeneriere die Monster."""
@@ -166,3 +165,4 @@ class Monstergebiet:
 
 
 from xwatc.weg import _kreuzung as kreuzung  # noqa
+from xwatc import kampf  # noqa
