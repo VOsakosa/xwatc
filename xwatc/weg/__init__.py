@@ -19,6 +19,7 @@ from typing_extensions import Self
 
 from xwatc import _
 from xwatc.system import Fortsetzung, Mänx, MänxFkt, MänxPrädikat, MenuOption, MissingID, MissingIDError
+from xwatc.weg.begegnung import Flucht
 from itertools import repeat
 
 
@@ -190,6 +191,8 @@ class Weg(_Strecke):
         if self.monster:
             begegnung = self.monster.nächste_begegnung(mänx)
             if begegnung and begegnung.ausgang:
+                if begegnung.ausgang == Flucht:
+                    return self.enden[not durchlauf.richtung]
                 return begegnung.ausgang
         if not begegnung and not (durchlauf.will_ruhen and mänx.welt.is_nacht()):
             # Nichts passiert, keine Nacht

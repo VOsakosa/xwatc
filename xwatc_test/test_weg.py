@@ -177,11 +177,13 @@ class TestWeg(unittest.TestCase):
             malp("Du findest Sonnenblumen")
             mänx.erhalte("Sonnenblume")
 
-        liste.add_monster(StoryChar("test:büffel", "Büffel", kampfwerte=Kampfwerte(
-            max_lp=150, resistenzen=Resistenzen.aus_str("0,0,20,0,-10,10,20,0"),
-            fertigkeiten=[Fertigkeit("Ansturm", "ansturm", 20, Schadenstyp.aus_str("klinge"))],
-            nutze_std_fertigkeiten=False,
-        ), vorstellen_fn=["Ein großer, wütender Büffel hat dich entdeckt."]))
+        liste.add_monster("Ein großer, wütender Büffel hat dich entdeckt.",
+                          StoryChar("test:büffel", "Büffel", kampfwerte=Kampfwerte(
+                              max_lp=150, resistenzen=Resistenzen.aus_str("0,0,20,0,-10,10,20,0"),
+                              fertigkeiten=[Fertigkeit(
+                                  "Ansturm", "ansturm", 20, Schadenstyp.aus_str("klinge"))],
+                              nutze_std_fertigkeiten=False,
+                          )))
 
 
 def test_kachel_verlassen(system: MockSystem, mänx: Mänx, monstergebiet: Monstergebiet) -> None:

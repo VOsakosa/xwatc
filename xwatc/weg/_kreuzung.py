@@ -623,7 +623,11 @@ class AufDemWeg:
         ans: None | WegEnde | Wegpunkt | AufDemWeg
         while self.fortschritt < self.tiefe:
             self.tiefe -= 1
-            if begegnung := self.monster.nächste_begegnung(mänx):
+            if ausgang := self.monster.nächste_begegnung(mänx):
+                if ausgang.ausgang == begegnung.Flucht:
+                    return self.herkunft
+                elif ausgang.ausgang:
+                    return ausgang.ausgang
                 break
         else:
             return self.ziel
