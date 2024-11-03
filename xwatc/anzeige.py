@@ -204,6 +204,7 @@ class XwatcFenster:
     def __init__(self, app: Gtk.Application):
         win = Gtk.ApplicationWindow()
         app.add_window(win)
+        self.app = app
 
         # Eigenschaften des Stacks(?)
         self.text_view = Gtk.TextView(hexpand=True, vexpand=True, editable=False)
@@ -236,11 +237,12 @@ class XwatcFenster:
         self.mänx: system.Mänx | None = None
         self.unterbrochen = False
 
-    def run(self, startpunkt: None | Fortsetzung = None) -> None:
+    def run(self, startpunkt: None | Fortsetzung = None, *, show: bool = True) -> None:
         system.ausgabe = self
         threading.Thread(target=self._xwatc_thread, args=(startpunkt,),
                          name="Xwatc-Geschichte", daemon=True).start()
-        cast(Gtk.Window, self.main_grid.get_parent()).present()
+        if show:
+            cast(Gtk.Window, self.main_grid.get_parent()).present()
 
     def _xwatc_thread(self, startpunkt: Fortsetzung | None):
         # Das nächste, was passiert. None für Abbruch, die Buchstaben stehen für interne Menüs
@@ -340,8 +342,7 @@ class XwatcFenster:
                                 self.unterbrochen = False
                             GLib.idle_add(ready)
                     else:
-                        getLogger("xwatc.anzeige").error(
-                            "Unterbrechung eingereiht, ohne Mänxen.")
+                        getLogger("xwatc.anzeige").error("Unterbrechung eingereiht, ohne Mänxen.")
 
                 case _:
                     return ans
@@ -356,20 +357,20 @@ class XwatcFenster:
         if self.mänx:
             self.info_widget.update(self.mänx, can_save=self.speicherpunkt is not None)
 
-    def malp(self, *text, sep=" ", end='\n', warte=False) -> None:
+    def malp(self, *text: object, sep: str = " ", end: str = '\n', warte: bool = False) -> None:
         """Zeigt *text* zusätzlich an."""
         self.add_text(sep.join(map(str, text)) + end)
         if warte:
             self.auswahl([(_("Weiter"), None)])
             self.get_minput_return()
 
-    def mint(self, *text):
+    def mint(self, *text: object) -> None:
         """Printe und warte auf ein Enter."""
         self.add_text(" ".join(str(t) for t in text) + "\n")
         self.auswahl([(_("Weiter"), None)])
         self.get_minput_return()
 
-    def sprich(self, sprecher: str, text: str, warte: bool = False, wie: str = ""):
+    def sprich(self, sprecher: str, text: str, warte: bool = False, wie: str = "") -> None:
         if wie:
             sprecher += f"({wie})"
         self.add_text(f'{sprecher}: »{text}«\n')
@@ -382,8 +383,7 @@ class XwatcFenster:
         """Füge Text hinzu."""
         self.buffer.insert(self.buffer.get_end_iter(), text)
 
-    def minput(self, _mänx, frage: str,
-               lower=True,
+    def minput(self, _mänx, frage: str, lower=True,
                save: system.Speicherpunkt | None = None) -> str:
         self.malp(frage)
         self.speicherpunkt = save
@@ -447,7 +447,8 @@ class XwatcFenster:
             self.show_grid.prepend(widget)
         self.sichtbare_anzeigen.add(typ)
 
-    def key_pressed(self, _controller, keyval, _keycode, state) -> bool:
+    def key_pressed(self, _controller: object,
+                    keyval: int, _keycode: object, state: Gdk.ModifierType) -> bool:
         """Ausgeführt, wenn eine Taste gedrückt wird."""
         control = Gdk.ModifierType.CONTROL_MASK & state
         taste = Gdk.keyval_name(keyval)
@@ -472,9 +473,11 @@ class XwatcFenster:
                         self.malp_stack(_("Du kannst hier nicht speichern."))
                 elif taste == "g":
                     _minput_return.put(Unterbrechung(system.Mänx.rede_mit_gefährten))
+            return False
         # KEIN STRG: Auswahl der Option
         elif taste == "e" and self.mänx and self.choice_action is None:
             self.auswahlwidget.wähle(Unterbrechung(InventarFenster.run))
+            return False
         return self.auswahlwidget.key_pressed(taste)
 
     def malp_stack(self, nachricht: str) -> None:

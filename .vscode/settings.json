@@ -5,5 +5,13 @@
         "--doctest-modules"
     ],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "python.testing.pytestEnabled": true,
+    "cSpell.words": [
+        "auswahl",
+        "auswahlwidget",
+        "malp",
+        "mänx",
+        "minput",
+        "Xwatc"
+    ]
 }
