@@ -142,15 +142,21 @@ class Auswahlswidget(Gtk.Box):
     def _remove_choices(self):
         """Entferne die Auswahlen. Das wird immer vor dem Hinzufügen der neuen Auswahlen
         eingefügt."""
+        self._mgn.clear()
         while child := self.get_first_child():
             self.remove(child)
 
     def deactivate_choices(self) -> None:
         """Graue die Auswahlen aus. Passiert nach jeder Auswahl."""
-        self._mgn.clear()
         for child in get_children(self):
             if isinstance(child, (Gtk.Button, Gtk.Entry)):
                 child.set_sensitive(False)
+
+    def activate_choices(self) -> None:
+        """Mache die Auswahlen wieder möglich."""
+        for child in get_children(self):
+            if isinstance(child, (Gtk.Button, Gtk.Entry)):
+                child.set_sensitive(True)
 
     def wähle(self, ans: object) -> None:
         """Wähle programmatisch eine Option."""
@@ -213,7 +219,7 @@ class XwatcFenster:
         self.buffer = self.text_view.get_buffer()
         self.anzeigen: dict[type, Gtk.Widget] = {}
         self.sichtbare_anzeigen: set[type] = set()
-        #: Das wird gemacht, statt an den Xvatc-Thread zurückzugeben.
+        #: Das wird gemacht, statt an den Xwatc-Thread zurückzugeben.
         self.choice_action: None | Callable[[Any], Any] = None
         self.speicherpunkt: system.Speicherpunkt | None = None
 
@@ -253,10 +259,10 @@ class XwatcFenster:
                 self.mänx = system.Mänx(self)
                 next_ = "m"
             else:
-                next_ = "h"  # hauptmenu
+                next_ = "h"  # Hauptmenü
             # Next speichert den Zustand (Hauptmenü, Spiel, Lademenü, etc.)
             while next_ is not None:
-                if next_ == "h":  # hauptmenu
+                if next_ == "h":  # Hauptmenü
                     self.malp(_("Xwatc-Hauptmenü"))
                     if self.menu(None, Menu([(_("Lade Spielstand"), "lade", False),
                                              (_("Neuer Spielstand"), "neu", True)])):
@@ -331,18 +337,20 @@ class XwatcFenster:
                 case AnzeigeSpielEnde() | system.ZumHauptmenu():
                     raise ans
                 case Unterbrechung(fkt=fkt):
-                    if self.mänx:
-                        if not self.unterbrochen:
-                            self.unterbrochen = True
-                            GLib.idle_add(self.push_stack)
-                            fkt(self.mänx)
+                    if self.mänx and not self.unterbrochen:
+                        self.unterbrochen = True
+                        GLib.idle_add(self.push_stack)
+                        fkt(self.mänx)
 
-                            def ready():
-                                self.pop_stack()
-                                self.unterbrochen = False
-                            GLib.idle_add(ready)
+                        def ready():
+                            self.pop_stack()
+                            self.unterbrochen = False
+                        GLib.idle_add(ready)
                     else:
-                        getLogger("xwatc.anzeige").error("Unterbrechung eingereiht, ohne Mänxen.")
+                        GLib.idle_add(self.auswahlwidget.activate_choices)
+                        if not self.mänx:
+                            getLogger("xwatc.anzeige").error(
+                                "Unterbrechung eingereiht, ohne Mänxen.")
 
                 case _:
                     return ans

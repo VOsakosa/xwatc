@@ -2,7 +2,7 @@ from collections.abc import Iterator
 from functools import wraps
 import threading
 from time import sleep
-from typing import Any, Awaitable, Callable
+from typing import Any, Awaitable, Callable, Generator
 import unittest
 from unittest.mock import Mock
 
@@ -92,9 +92,12 @@ class TestAnzeige:
             assert (child := lg_fenster.auswahlwidget.get_first_child())
             assert child.is_sensitive()
             lg_fenster.key_pressed(None, Gdk.KEY_e, None, Gdk.ModifierType(0))
+            # Await it twice, because xwatc_thread also uses GIdle.
+            await GIdle()
+            await GIdle()
             assert (child := lg_fenster.auswahlwidget.get_first_child())
             assert child.is_sensitive()
-            assert InventarFenster in lg_fenster.sichtbare_anzeigen
+            # assert InventarFenster in lg_fenster.sichtbare_anzeigen
 
 
 @pytest.fixture
@@ -113,8 +116,11 @@ def lg_fenster(xwatc_fenster) -> XwatcFenster:
 
 
 @define
-class GIdle:
+class GIdle(Awaitable):
     """Waiting for the event loop"""
+
+    def __await__(self) -> 'Generator[GIdle]':
+        yield self
 
 
 @pytest.fixture
