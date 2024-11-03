@@ -592,7 +592,7 @@ gaa = StoryChar("jtg:süd:garnichts", ("Gaa", "Nix", "Junge"), Person("m"), dire
     Lederhose=1,
     Unterhose=1,
     Leinenhemd=1,
-    Oberhemd=1,
+    Hemd=1,
 ),
     vorstellen_fn=["Ein sommersprössiger Junge mit braunen Haaren."]
 )

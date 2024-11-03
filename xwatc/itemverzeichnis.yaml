@@ -54,6 +54,7 @@ Holz:
   - Holz; 14
   - Stöckchen; 3
 Kleidung:
+  - {}
   - ausrüstung: oben flattern
     name: Äntorenmantel
     preis: 38
@@ -114,6 +115,8 @@ Kleidung:
   - ausrüstung: kopf innen
     name: Mütze
     preis: 12
+  - ausrüstung: fuss aussen
+    name: Sandalen
   - ausrüstung: hals flattern
     name: Schal
     preis: 8
@@ -150,6 +153,12 @@ Oberbekleidung:
     name: Anzugjacke
     preis: 28
   - ausrüstung: oben innen
+    name: Hemd
+    preis: 17
+  - ausrüstung: oben innen
+    name: Leibchen
+    preis: 17
+  - ausrüstung: oben innen
     name: Leinenhemd
     preis: 17
   - ausrüstung: oben innen
@@ -169,17 +178,17 @@ Obst:
   - Zwetschge; 5
 Ring:
   - parent: Ausrüstung
-  - ausrüstung: hand accessoire
-    name: Ehering
+    common:
+      ausrüstung: hand accessoire
+  - name: Armbanduhr
+    preis: 120
+  - name: Ehering
     preis: 52
-  - ausrüstung: hand accessoire
-    name: Ring
+  - name: Ring
     preis: 34
-  - ausrüstung: hand accessoire
-    name: Ring des Berndoc
+  - name: Ring des Berndoc
     preis: 130
-  - ausrüstung: hand accessoire
-    name: Schnöder Ehering
+  - name: Schnöder Ehering
     preis: 32
 Rüstung:
   - parent: Kleidung
@@ -204,6 +213,8 @@ Talisman:
   - parent: Ausrüstung
   - Talisman der Schreie
   - Talisman des Verstehens
+Trank:
+  - Kräutersud gegen Achselgeruch
 Unterwäsche:
   - parent: Kleidung
   - ausrüstung: oben anliegend
@@ -226,7 +237,9 @@ Unterwäsche:
     preis: 3
 Werkzeug:
   - Angel; 42
+  - Glocke
   - Nagel; 1
+  - Schraube; 1
 Zauberstab:
   - parent: Waffe
   - Flammenstab; 150
